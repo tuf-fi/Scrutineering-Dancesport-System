@@ -48,7 +48,7 @@ export function Tabs({ items, value, onChange, label, large = false, className }
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(t.id)}
             className={cn(
-              'shrink-0 whitespace-nowrap border-b-2 px-4 font-semibold transition-colors',
+              '-mb-px mr-6 shrink-0 whitespace-nowrap border-b-2 font-semibold transition-colors last:mr-0',
               large ? 'h-14 text-body' : 'h-11 text-small',
               active
                 ? 'border-gold-500 text-neutral-900'

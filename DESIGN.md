@@ -33,10 +33,10 @@ colors:
 typography:
   display:
     fontFamily: "Manrope Variable, system-ui, sans-serif"
-    fontSize: "2.25rem"
-    fontWeight: 700
-    lineHeight: 1.1
-    letterSpacing: "-0.02em"
+    fontSize: "clamp(2rem, 1.4rem + 2.2vw, 3.25rem)"
+    fontWeight: 600
+    lineHeight: 1.05
+    letterSpacing: "-0.03em"
   title:
     fontFamily: "Manrope Variable, system-ui, sans-serif"
     fontSize: "1.5rem"
@@ -83,12 +83,12 @@ components:
     padding: "0 32px"
     typography: "{typography.title}"
   button-secondary:
-    textColor: "{colors.brown-900}"
+    textColor: "{colors.neutral-900}"
     rounded: "{rounded.md}"
     height: "44px"
-    padding: "0 16px"
+    padding: "0 20px"
   button-secondary-hover:
-    backgroundColor: "{colors.brown-50}"
+    backgroundColor: "{colors.neutral-50}"
   button-ghost:
     textColor: "{colors.neutral-700}"
     rounded: "{rounded.md}"
@@ -105,29 +105,23 @@ components:
   button-danger-hover:
     backgroundColor: "{colors.danger-hover}"
   input:
-    backgroundColor: "{colors.white}"
+    backgroundColor: "{colors.neutral-50}"
     textColor: "{colors.neutral-900}"
     rounded: "{rounded.md}"
     height: "44px"
-    padding: "0 12px"
+    padding: "0 14px"
   card:
     backgroundColor: "{colors.white}"
     rounded: "{rounded.lg}"
     padding: "20px"
   badge:
-    backgroundColor: "{colors.neutral-100}"
-    textColor: "{colors.neutral-700}"
-    typography: "{typography.label}"
-    rounded: "{rounded.sm}"
-    padding: "4px 8px"
-  badge-brown:
-    backgroundColor: "{colors.brown-900}"
-    textColor: "{colors.white}"
-  table-header:
-    backgroundColor: "{colors.neutral-50}"
     textColor: "{colors.neutral-600}"
-    typography: "{typography.label}"
-    padding: "12px 16px"
+    typography: "{typography.small}"
+  table-header:
+    backgroundColor: "{colors.white}"
+    textColor: "{colors.neutral-600}"
+    typography: "{typography.small}"
+    padding: "12px 16px 12px 0"
   table-row-highlight:
     backgroundColor: "{colors.gold-50}"
   dialog:
@@ -156,7 +150,7 @@ No role has a priority layout. Every screen works from 375px phones to a 1920px 
 
 **Key Characteristics:**
 - Flat surfaces with hairline borders; one shadow, reserved for overlays.
-- Mono type for numbers and labels, sans for everything else.
+- Mono type for numbers and data, sans for everything else.
 - One gold action per screen.
 - Status colors only for payment, round and connection state.
 - Works offline: all fonts and assets are bundled.
@@ -167,12 +161,12 @@ A warm-black and white base, brown for dark and secondary surfaces, and gold as 
 
 ### Primary
 - **Podium Gold** (#e4b22e, `gold-400`): Primary button fill and the main call to action. Always carries Ink Black text. Hover Pale Gold (#f0c84f, `gold-300`), pressed Aged Gold (#c99a1b, `gold-500`).
-- **Brass Text** (#7f5e0d, `gold-700`): Gold used as text or eyebrow labels on white. Never use a gold fill as text on white.
-- **Winner Tint** (#fff8e1, `gold-50`) and **Gold Wash** (#fdedb5, `gold-100`): highlighted table rows (ties at a recall cutoff), the "for checking" badge.
+- **Brass Text** (#7f5e0d, `gold-700`): Gold used as text on white, such as a status word. Never use a gold fill as text on white.
+- **Winner Tint** (#fff8e1, `gold-50`) and **Gold Wash** (#fdedb5, `gold-100`): highlighted table rows (ties at a recall cutoff).
 - **Focus Gold** (#c99a1b, `gold-500`): the 2px focus ring on every focusable element.
 
 ### Secondary
-- **Espresso** (#2b1d14, `brown-900`): secondary button outline and text, brown badges, dark surfaces.
+- **Espresso** (#2b1d14, `brown-900`): dark surfaces and the toast ground.
 - **Deep Roast** (#1c130d, `brown-950`): toasts, the venue screen and navigation grounds.
 - **Cocoa Line** (#3b2819, `brown-800`): secondary button border.
 - **Brown Mist** (#f6f1ec, `brown-50`) and **Brown Fog** (#e8dccf, `brown-100`): secondary button hover and pressed fills.
@@ -206,13 +200,15 @@ A warm-black and white base, brown for dark and secondary surfaces, and gold as 
 **Character:** Manrope is clear and geometric, readable at phone size and on a projector. JetBrains Mono gives numbers an even rhythm and the metadata a printed-sheet feel.
 
 ### Hierarchy
-- **Display** (700, 2.25rem, 1.1, -0.02em): page titles.
+- **Display** (600, fluid 2rem to 3.25rem, 1.05, -0.03em): page titles.
 - **Title** (700, 1.5rem, 1.2, -0.01em): dialog titles, empty-state headings, the adjudicator Submit button.
 - **Body** (400, 1rem, 1.5): paragraphs and form text. Keep lines near 65ch.
 - **Small** (500 to 600, 0.875rem, 1.4): table cells, field labels, hints, tabs.
-- **Label** (mono, 500, 0.75rem, 0.08em, uppercase): eyebrows, table headers, badges. Numbers in tables use mono with `tabular-nums`.
+- **Label** (mono, 500, 0.75rem, 0.08em): short data labels only. Numbers in tables and meta lines use mono with `tabular-nums`.
 
 ### Named Rules
+**The No Costume Rule.** Mono is for numbers and data, not for decoration: no uppercase mono eyebrows, headers or badges. No label sits above a heading; the heading carries itself.
+
 **The Mono Numbers Rule.** Back numbers, X counts, placings, prices and event numbers are always mono and tabular so columns line up.
 
 ## Layout
@@ -238,14 +234,14 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 ### Buttons
 - **Shape:** 8px radius, semibold, 44px tall by default (36 small, 48 large, 64 extra large for adjudicator phones).
 - **Primary:** Podium Gold fill with Ink Black text, `0 16px` padding. Hover Pale Gold, pressed Aged Gold.
-- **Secondary:** Cocoa Line border with Espresso text; hover fills Brown Mist.
+- **Secondary:** 1px Soft Rule border with Charcoal Brown text; hover fills Table Bone.
 - **Ghost:** Slate Taupe text; hover fills Pale Stone.
 - **Danger:** Alert Red fill with white text; hover `#9a1f19`.
 - **Disabled:** 40% opacity, no pointer.
 
 ### Inputs / Fields
-- **Style:** white fill, 1px Soft Rule border, 8px radius, 44px tall. A visible label always sits above; a placeholder never replaces it.
-- **Focus:** border shifts to Espresso and the gold focus ring appears.
+- **Style:** Table Bone fill, 1px Soft Rule border, 8px radius, 44px tall. A visible label always sits above; a placeholder never replaces it.
+- **Focus:** fill turns white, border shifts to Charcoal Brown and the gold focus ring appears.
 - **Error:** Alert Red border with the message below in red (role alert). Hints use Muted Taupe.
 - **Disabled:** Pale Stone fill.
 
@@ -253,22 +249,22 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 - **Corner Style:** 12px. **Background:** white. **Border:** 1px Hairline. **Shadow:** none. **Padding:** 20px. Never nest a card inside a card.
 
 ### Tables
-- Sticky header on Table Bone with mono uppercase labels. Row hover on Table Bone. Rows separated by faint rules. Highlight rows with Winner Tint (ties at the cutoff). Loading shows skeleton rows of the same shape; empty shows the empty state.
+- Open, ruled like the printed sheet: no outer border, a 1px black rule under a sticky header of plain muted labels, hairline rules between rows. Row hover on Table Bone. Numbers are mono and right-aligned. Highlight rows with Winner Tint (ties at the cutoff). Loading shows skeleton rows of the same shape; empty shows the empty state.
 
-### Badges
-- Mono uppercase label, 4px radius, optional status dot. Tones: neutral, gold, brown, success, warning, danger.
+### Status
+- A dot and a word in the status color, no fill and no pill. Tones: neutral, gold, success, warning, danger. Never stack more than a few in one row.
 
 ### Tabs
 - Underline style: active tab has a 2px gold underline and Charcoal text; inactive text is Muted Taupe. Arrow keys move selection. A large variant (56px tall) serves adjudicator phones.
 
 ### Dialog
-- Native dialog, 12px radius, 24px padding, max 32rem wide, hidden scrollbar, backdrop at 60% black. Actions right-aligned.
+- Built on Radix Dialog (focus trap, scroll lock, Esc, portal). 12px radius, 24px padding, max 32rem wide, hidden scrollbar, plain 60% black backdrop with no blur. Actions right-aligned.
 
 ### Toast
-- Deep Roast fill with white text, bottom-centred, 4s, tap to dismiss. Success and danger tones swap the fill.
+- Built on Sonner, styled with project tokens: Deep Roast fill with white text, bottom-centred, 4s. `toast.success` turns the fill green and `toast.error` red.
 
 ### Page header
-- Optional gold-700 mono eyebrow, Display title, optional description, a hairline underneath, actions on the right.
+- Display title, optional description, actions on the right. No label above the title.
 
 ## Do's and Don'ts
 
@@ -285,7 +281,8 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 ### Don't:
 - **Don't** use gold as text on white; use `gold-700`.
 - **Don't** add shadows to cards, tables or inputs.
-- **Don't** nest cards inside cards or stack many badges in one row.
+- **Don't** nest cards inside cards or wrap every item in a card; rule content with hairlines instead.
+- **Don't** put an eyebrow or kicker above a heading, or set mono uppercase as decoration.
 - **Don't** use green, orange or red as decoration.
 - **Don't** use placeholder text in place of a label.
 - **Don't** use low-contrast text or a beige palette.

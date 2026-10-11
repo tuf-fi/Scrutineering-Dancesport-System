@@ -1,8 +1,37 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Button, Input, Table, Tabs } from './index.ts'
+import { Button, Dialog, Input, Table, Tabs, Toaster, toast } from './index.ts'
+
+describe('Dialog', () => {
+  it('shows its title and closes on Escape', async () => {
+    const onClose = vi.fn()
+    render(<Dialog open onClose={onClose} title="Publish this result?" description="It goes public." />)
+    expect(screen.getByRole('dialog', { name: 'Publish this result?' })).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('renders nothing while closed and runs its actions', async () => {
+    const onClick = vi.fn()
+    const { rerender } = render(<Dialog open={false} onClose={() => {}} title="Hidden" />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    rerender(
+      <Dialog open onClose={() => {}} title="Shown" actions={<Button onClick={onClick}>Publish</Button>} />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Publish' }))
+    expect(onClick).toHaveBeenCalledOnce()
+  })
+})
+
+describe('Toaster', () => {
+  it('shows a toast message', async () => {
+    render(<Toaster />)
+    act(() => void toast.success('Submitted'))
+    expect(await screen.findByText('Submitted')).toBeInTheDocument()
+  })
+})
 
 describe('Button', () => {
   it('does not fire when disabled', async () => {

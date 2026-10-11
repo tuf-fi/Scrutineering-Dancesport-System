@@ -1,124 +1,120 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ConnectionStatus } from './components/ConnectionStatus.tsx'
-import { DataPreview } from './DataPreview.tsx'
 import {
   Badge,
   Button,
-  Card,
   Dialog,
   EmptyState,
   Input,
-  PageHeader,
   Select,
-  Skeleton,
-  Table,
   Tabs,
-  Textarea,
-  ToastViewport,
-  useToast,
+  Toaster,
+  toast,
 } from './components/ui/index.ts'
+import { DataPreview } from './DataPreview.tsx'
 
-// TODO: temporary design-system preview; replaced by the router and role layouts in step 5
-const rows = [
-  { back: 60, names: 'Santos, Mia', xs: 7 },
-  { back: 107, names: 'Reyes, Lian', xs: 6 },
-  { back: 179, names: 'Cruz, Ana', xs: 4 },
-]
+// TODO: temporary preview; replaced by the router and role layouts in step 5
+
+function Spec({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <div className="grid gap-4 border-t border-neutral-200 py-6 sm:grid-cols-[10rem_1fr] sm:gap-8">
+      <h3 className="text-small font-medium text-neutral-600">{name}</h3>
+      <div>{children}</div>
+    </div>
+  )
+}
 
 export default function App() {
   const [tab, setTab] = useState('cha')
   const [open, setOpen] = useState(false)
-  const toast = useToast((s) => s.show)
 
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-10">
-      <PageHeader
-        eyebrow="E47 · Junior I · E1"
-        title="Cha Cha Cha"
-        description="Design system preview."
-        actions={
-          <>
-            <ConnectionStatus />
-            <Button variant="secondary" onClick={() => setOpen(true)}>Open dialog</Button>
-            <Button onClick={() => toast('Submitted', 'success')}>Show toast</Button>
-          </>
-        }
-      />
+    <>
+      <header className="border-b border-neutral-200">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-8">
+          <span className="text-body font-bold tracking-[-0.02em]">BIS</span>
+          <ConnectionStatus />
+        </div>
+      </header>
 
-      <section className="flex flex-wrap items-center gap-3">
-        <Button>Primary</Button>
-        <Button variant="secondary">Secondary</Button>
-        <Button variant="ghost">Ghost</Button>
-        <Button variant="danger">Danger</Button>
-        <Button disabled>Disabled</Button>
-        <Button size="xl">Submit</Button>
-      </section>
+      <main className="mx-auto flex max-w-5xl flex-col gap-24 px-4 pb-24 pt-12 sm:px-8 sm:pt-16">
+        <DataPreview />
 
-      <section className="flex flex-wrap gap-2">
-        <Badge>Unpaid</Badge>
-        <Badge tone="gold">For checking</Badge>
-        <Badge tone="success" dot>Approved</Badge>
-        <Badge tone="danger">Rejected</Badge>
-        <Badge tone="warning" dot>Offline</Badge>
-        <Badge tone="brown">Final</Badge>
-      </section>
-
-      <Tabs
-        label="Dances"
-        value={tab}
-        onChange={setTab}
-        items={[
-          { id: 'cha', label: 'Cha Cha Cha' },
-          { id: 'rumba', label: 'Rumba' },
-          { id: 'jive', label: 'Jive' },
-        ]}
-      />
-
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Card className="flex flex-col gap-4">
-          <Input label="Username" hint="Issued by the admin" />
-          <Input label="Reference number" error="Enter the 13-digit reference" />
-          <Select label="Age group">
-            <option>Junior I</option>
-            <option>Junior II</option>
-          </Select>
-          <Textarea label="Rejection reason" />
-        </Card>
-        <Card className="flex flex-col gap-3">
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-4/5" />
-          <EmptyState title="No payments waiting" description="New proofs of payment appear here." />
-        </Card>
-      </section>
-
-      <Table
-        columns={[
-          { key: 'back', header: 'Back', cell: (r) => r.back, mono: true },
-          { key: 'names', header: 'Competitor', cell: (r) => r.names },
-          { key: 'xs', header: 'X', cell: (r) => r.xs, mono: true, align: 'right' },
-        ]}
-        rows={rows}
-        rowKey={(r) => String(r.back)}
-        rowClassName={(r) => (r.xs === 4 ? 'bg-gold-50' : undefined)}
-      />
-      <Table columns={[{ key: 'a', header: 'Loading', cell: () => null }]} rows={[]} rowKey={() => ''} loading />
-
-      <DataPreview />
+        <section className="flex flex-col gap-6">
+          <h2 className="text-title font-semibold">Components</h2>
+          <div>
+            <Spec name="Buttons">
+              <div className="flex flex-wrap items-center gap-3">
+                <Button>Approve</Button>
+                <Button variant="secondary">Print list</Button>
+                <Button variant="ghost">Cancel</Button>
+                <Button variant="danger">Reject</Button>
+                <Button disabled>Submit</Button>
+              </div>
+            </Spec>
+            <Spec name="Status">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                <Badge tone="neutral">Unpaid</Badge>
+                <Badge tone="gold">For checking</Badge>
+                <Badge tone="success">Approved</Badge>
+                <Badge tone="danger">Rejected</Badge>
+                <Badge tone="warning">Offline</Badge>
+              </div>
+            </Spec>
+            <Spec name="Tabs">
+              <Tabs
+                label="Dances"
+                value={tab}
+                onChange={setTab}
+                items={[
+                  { id: 'cha', label: 'Cha Cha Cha' },
+                  { id: 'rumba', label: 'Rumba' },
+                  { id: 'jive', label: 'Jive' },
+                ]}
+              />
+            </Spec>
+            <Spec name="Fields">
+              <div className="grid max-w-2xl gap-4 sm:grid-cols-3">
+                <Input label="Reference number" hint="From the GCash receipt" />
+                <Input label="Amount" error="Enter the amount paid" />
+                <Select label="Age group">
+                  <option>Junior I</option>
+                  <option>Junior II</option>
+                </Select>
+              </div>
+            </Spec>
+            <Spec name="Empty">
+              <EmptyState title="No payments waiting" description="New proofs of payment appear here." />
+            </Spec>
+            <Spec name="Overlays">
+              <div className="flex flex-wrap gap-3">
+                <Button variant="secondary" onClick={() => setOpen(true)}>
+                  Publish result
+                </Button>
+                <Button variant="secondary" onClick={() => toast.success('Submitted')}>
+                  Show toast
+                </Button>
+              </div>
+            </Spec>
+          </div>
+        </section>
+      </main>
 
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         title="Publish this result?"
-        description="E47 Round 1 goes to the venue screen and the public site."
+        description="It goes to the venue screen and the public site."
         actions={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={() => setOpen(false)}>Publish</Button>
           </>
         }
       />
-      <ToastViewport />
-    </main>
+      <Toaster />
+    </>
   )
 }

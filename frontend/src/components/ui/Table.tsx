@@ -8,7 +8,7 @@ export interface Column<T> {
   header: string
   cell: (row: T) => ReactNode
   align?: 'left' | 'right' | 'center'
-  // Render the cell in the mono face (back numbers, counts, prices)
+  // Numbers (back numbers, counts, placings) use the mono face so columns line up
   mono?: boolean
 }
 
@@ -37,7 +37,7 @@ export function Table<T>({
   if (!loading && rows.length === 0) return <EmptyState {...empty} />
 
   return (
-    <div className={cn('no-scrollbar overflow-auto rounded-lg border border-neutral-200', className)}>
+    <div className={cn('no-scrollbar overflow-auto', className)}>
       <table className="w-full border-collapse text-small">
         <thead>
           <tr>
@@ -46,8 +46,7 @@ export function Table<T>({
                 key={c.key}
                 scope="col"
                 className={cn(
-                  'sticky top-0 border-b border-neutral-200 bg-neutral-50 px-4 py-3',
-                  'font-mono text-label font-medium uppercase text-neutral-600',
+                  'sticky top-0 border-b border-neutral-900 bg-white py-3 pr-4 font-medium text-neutral-600 first:pl-0 last:pr-0',
                   align[c.align ?? 'left'],
                 )}
               >
@@ -59,9 +58,9 @@ export function Table<T>({
         <tbody>
           {loading
             ? Array.from({ length: 5 }, (_, i) => (
-                <tr key={i} className="border-b border-neutral-100 last:border-0">
+                <tr key={i} className="border-b border-neutral-200">
                   {columns.map((c) => (
-                    <td key={c.key} className="px-4 py-3">
+                    <td key={c.key} className="py-3.5 pr-4 first:pl-0 last:pr-0">
                       <Skeleton className="h-4 w-full max-w-32" />
                     </td>
                   ))}
@@ -71,7 +70,7 @@ export function Table<T>({
                 <tr
                   key={rowKey(row)}
                   className={cn(
-                    'border-b border-neutral-100 last:border-0 hover:bg-neutral-50',
+                    'border-b border-neutral-200 transition-colors hover:bg-neutral-50',
                     rowClassName?.(row),
                   )}
                 >
@@ -79,7 +78,7 @@ export function Table<T>({
                     <td
                       key={c.key}
                       className={cn(
-                        'px-4 py-3 text-neutral-900',
+                        'py-3.5 pr-4 text-neutral-900 first:pl-0 last:pr-0',
                         align[c.align ?? 'left'],
                         c.mono && 'font-mono tabular-nums',
                       )}

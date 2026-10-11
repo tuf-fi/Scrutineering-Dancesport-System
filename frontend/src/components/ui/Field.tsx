@@ -8,9 +8,9 @@ import {
 import { cn } from '../../lib/cn.ts'
 
 const control =
-  'w-full rounded-md border bg-white px-3 text-body text-neutral-900 transition-colors ' +
-  'hover:border-neutral-400 focus-visible:border-brown-700 focus-visible:outline-gold-500 ' +
-  'disabled:bg-neutral-100 disabled:text-neutral-500'
+  'w-full rounded-md border bg-neutral-50 px-3.5 text-body text-neutral-900 transition-colors ' +
+  'hover:border-neutral-400 focus-visible:border-neutral-900 focus-visible:bg-white ' +
+  'focus-visible:outline-gold-500 disabled:bg-neutral-100 disabled:text-neutral-500'
 
 interface FieldShellProps {
   label: string
@@ -23,7 +23,7 @@ interface FieldShellProps {
 function FieldShell({ label, hint, error, id, children }: FieldShellProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-small font-semibold text-neutral-800">
+      <label htmlFor={id} className="text-small font-medium text-neutral-700">
         {label}
       </label>
       {children}
