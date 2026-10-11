@@ -1,122 +1,119 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import {
+  Badge,
+  Button,
+  Card,
+  Dialog,
+  EmptyState,
+  Input,
+  PageHeader,
+  Select,
+  Skeleton,
+  Table,
+  Tabs,
+  Textarea,
+  ToastViewport,
+  useToast,
+} from './components/ui/index.ts'
 
-function App() {
-  const [count, setCount] = useState(0)
+// TODO: temporary design-system preview; replaced by the router and role layouts in step 5
+const rows = [
+  { back: 60, names: 'Santos, Mia', xs: 7 },
+  { back: 107, names: 'Reyes, Lian', xs: 6 },
+  { back: 179, names: 'Cruz, Ana', xs: 4 },
+]
+
+export default function App() {
+  const [tab, setTab] = useState('cha')
+  const [open, setOpen] = useState(false)
+  const toast = useToast((s) => s.show)
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+    <main className="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-10">
+      <PageHeader
+        eyebrow="E47 · Junior I · E1"
+        title="Cha Cha Cha"
+        description="Design system preview."
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setOpen(true)}>Open dialog</Button>
+            <Button onClick={() => toast('Submitted', 'success')}>Show toast</Button>
+          </>
+        }
+      />
+
+      <section className="flex flex-wrap items-center gap-3">
+        <Button>Primary</Button>
+        <Button variant="secondary">Secondary</Button>
+        <Button variant="ghost">Ghost</Button>
+        <Button variant="danger">Danger</Button>
+        <Button disabled>Disabled</Button>
+        <Button size="xl">Submit</Button>
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+      <section className="flex flex-wrap gap-2">
+        <Badge>Unpaid</Badge>
+        <Badge tone="gold">For checking</Badge>
+        <Badge tone="success" dot>Approved</Badge>
+        <Badge tone="danger">Rejected</Badge>
+        <Badge tone="warning" dot>Offline</Badge>
+        <Badge tone="brown">Final</Badge>
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <Tabs
+        label="Dances"
+        value={tab}
+        onChange={setTab}
+        items={[
+          { id: 'cha', label: 'Cha Cha Cha' },
+          { id: 'rumba', label: 'Rumba' },
+          { id: 'jive', label: 'Jive' },
+        ]}
+      />
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Card className="flex flex-col gap-4">
+          <Input label="Username" hint="Issued by the admin" />
+          <Input label="Reference number" error="Enter the 13-digit reference" />
+          <Select label="Age group">
+            <option>Junior I</option>
+            <option>Junior II</option>
+          </Select>
+          <Textarea label="Rejection reason" />
+        </Card>
+        <Card className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-4/5" />
+          <EmptyState title="No payments waiting" description="New proofs of payment appear here." />
+        </Card>
+      </section>
+
+      <Table
+        columns={[
+          { key: 'back', header: 'Back', cell: (r) => r.back, mono: true },
+          { key: 'names', header: 'Competitor', cell: (r) => r.names },
+          { key: 'xs', header: 'X', cell: (r) => r.xs, mono: true, align: 'right' },
+        ]}
+        rows={rows}
+        rowKey={(r) => String(r.back)}
+        rowClassName={(r) => (r.xs === 4 ? 'bg-gold-50' : undefined)}
+      />
+      <Table columns={[{ key: 'a', header: 'Loading', cell: () => null }]} rows={[]} rowKey={() => ''} loading />
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Publish this result?"
+        description="E47 Round 1 goes to the venue screen and the public site."
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={() => setOpen(false)}>Publish</Button>
+          </>
+        }
+      />
+      <ToastViewport />
+    </main>
   )
 }
-
-export default App

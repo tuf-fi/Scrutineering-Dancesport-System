@@ -1,111 +1,123 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import 'tailwindcss';
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/jetbrains-mono';
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+@theme {
+  --font-sans: 'Manrope Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Black and neutrals: a faint brown tint, not beige */
+  --color-black: #0e0c0a;
+  --color-neutral-50: #f7f6f5;
+  --color-neutral-100: #efedeb;
+  --color-neutral-200: #e2dfdc;
+  --color-neutral-300: #cfcac5;
+  --color-neutral-400: #a29b94;
+  --color-neutral-500: #7a736c;
+  --color-neutral-600: #5c564f;
+  --color-neutral-700: #433e39;
+  --color-neutral-800: #2b2724;
+  --color-neutral-900: #171412;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  /* Brown: dark surfaces, headers, secondary actions */
+  --color-brown-50: #f6f1ec;
+  --color-brown-100: #e8dccf;
+  --color-brown-300: #b58f6c;
+  --color-brown-500: #8a6440;
+  --color-brown-600: #6b4a2f;
+  --color-brown-700: #4f3622;
+  --color-brown-800: #3b2819;
+  --color-brown-900: #2b1d14;
+  --color-brown-950: #1c130d;
+
+  /* Gold: the one accent. Fills take black text; use 700 for gold text on white */
+  --color-gold-50: #fff8e1;
+  --color-gold-100: #fdedb5;
+  --color-gold-200: #f8dd84;
+  --color-gold-300: #f0c84f;
+  --color-gold-400: #e4b22e;
+  --color-gold-500: #c99a1b;
+  --color-gold-600: #a67c10;
+  --color-gold-700: #7f5e0d;
+
+  --color-success: #2f7d4e;
+  --color-success-soft: #e3f1e9;
+  --color-warning: #b85c0a;
+  --color-warning-soft: #fcebd9;
+  --color-danger: #b3261e;
+  --color-danger-soft: #fbe4e2;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-overlay: 0 12px 32px -8px rgb(14 12 10 / 0.35);
+
+  --text-display: 2.25rem;
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.01em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.4;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.08em;
+
+  --animate-skeleton: skeleton 1.4s ease-in-out infinite;
+  --animate-toast-in: toast-in 160ms ease-out;
+  --animate-dialog-in: dialog-in 160ms ease-out;
+  @keyframes skeleton {
+    50% {
+      opacity: 0.5;
+    }
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-neutral-900);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
   }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  body {
+    margin: 0;
+    min-height: 100dvh;
   }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  :focus-visible {
+    outline: 2px solid var(--color-gold-500);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+/* Modals and drawers scroll but never show a scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
 }
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
