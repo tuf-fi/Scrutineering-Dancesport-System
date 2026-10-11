@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T00:00:00.000Z",
+  "title": "Design System: BIS",
+  "extensions": {
+    "colorMeta": {
+      "gold-400": { "role": "primary", "displayName": "Podium Gold", "canonical": "#e4b22e", "tonalRamp": ["#7f5e0d", "#a67c10", "#c99a1b", "#e4b22e", "#f0c84f", "#f8dd84", "#fdedb5", "#fff8e1"] },
+      "brown-900": { "role": "secondary", "displayName": "Espresso", "canonical": "#2b1d14", "tonalRamp": ["#1c130d", "#2b1d14", "#3b2819", "#4f3622", "#6b4a2f", "#8a6440", "#b58f6c", "#e8dccf"] },
+      "neutral-900": { "role": "neutral", "displayName": "Charcoal Brown", "canonical": "#171412", "tonalRamp": ["#171412", "#2b2724", "#433e39", "#5c564f", "#7a736c", "#a29b94", "#e2dfdc", "#f7f6f5"] },
+      "success": { "role": "tertiary", "displayName": "Confirm Green", "canonical": "#2f7d4e", "tonalRamp": ["#143a25", "#1f5535", "#2f7d4e", "#4f9a6d", "#7bb792", "#a6d0b6", "#e3f1e9", "#f3f9f6"] },
+      "warning": { "role": "tertiary", "displayName": "Caution Orange", "canonical": "#b85c0a", "tonalRamp": ["#5a2c05", "#7f4007", "#b85c0a", "#d97a26", "#e69c58", "#f2c093", "#fcebd9", "#fef6ee"] },
+      "danger": { "role": "tertiary", "displayName": "Alert Red", "canonical": "#b3261e", "tonalRamp": ["#5a130f", "#821a15", "#b3261e", "#cf4a42", "#de766f", "#ecaaa5", "#fbe4e2", "#fdf3f2"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles." },
+      "title": { "displayName": "Title", "purpose": "Dialog and empty-state headings, the adjudicator Submit button." },
+      "body": { "displayName": "Body", "purpose": "Paragraphs and form text." },
+      "small": { "displayName": "Small", "purpose": "Table cells, field labels, hints, tabs." },
+      "label": { "displayName": "Label", "purpose": "Eyebrows, table headers, badges, all numbers in tables." }
+    },
+    "shadows": [
+      { "name": "overlay", "value": "0 12px 32px -8px rgb(14 12 10 / 0.35)", "purpose": "Dialogs and toasts only." }
+    ],
+    "motion": [
+      { "name": "dialog-in", "value": "160ms ease-out", "purpose": "Dialog fade and scale on open." },
+      { "name": "toast-in", "value": "160ms ease-out", "purpose": "Toast slide up on appear." },
+      { "name": "skeleton", "value": "1.4s ease-in-out infinite", "purpose": "Loading placeholder pulse." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one gold action on a screen.",
+      "html": "<button class=\"ds-btn-primary\">Publish result</button>",
+      "css": ".ds-btn-primary { background: var(--color-gold-400); color: var(--color-black); height: 44px; padding: 0 16px; border: 0; border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-primary:hover { background: var(--color-gold-300); } .ds-btn-primary:active { background: var(--color-gold-500); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined brown action beside a primary.",
+      "html": "<button class=\"ds-btn-secondary\">Open dialog</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: var(--color-brown-900); height: 44px; padding: 0 16px; border: 1px solid var(--color-brown-800); border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-secondary:hover { background: var(--color-brown-50); } .ds-btn-secondary:active { background: var(--color-brown-100); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions such as rejecting a payment.",
+      "html": "<button class=\"ds-btn-danger\">Reject</button>",
+      "css": ".ds-btn-danger { background: var(--color-danger); color: #fff; height: 44px; padding: 0 16px; border: 0; border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-danger:hover { background: #9a1f19; } .ds-btn-danger:active { background: #821a15; } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled input; the label is always visible.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-user\">Username</label><input class=\"ds-input\" id=\"ds-user\" value=\"scrutineer1\" /><p class=\"ds-field-hint\">Issued by the admin</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); } .ds-field-label { font-size: 0.875rem; font-weight: 600; color: var(--color-neutral-800); } .ds-input { height: 44px; padding: 0 12px; background: #fff; color: var(--color-neutral-900); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; } .ds-input:hover { border-color: var(--color-neutral-400); } .ds-input:focus-visible { border-color: var(--color-brown-700); outline: 2px solid var(--color-gold-500); outline-offset: 2px; } .ds-field-hint { margin: 0; font-size: 0.875rem; color: var(--color-neutral-600); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Mono uppercase state label with an optional dot.",
+      "html": "<span class=\"ds-badge ds-badge-success\"><span class=\"ds-badge-dot\"></span>Approved</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; } .ds-badge-success { background: var(--color-success-soft); color: var(--color-success); } .ds-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat surface with a hairline border and no shadow.",
+      "html": "<div class=\"ds-card\"><p class=\"ds-card-eyebrow\">E47 - Junior I - E1</p><p class=\"ds-card-title\">Cha Cha Cha</p></div>",
+      "css": ".ds-card { background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 20px; font-family: var(--font-sans); } .ds-card-eyebrow { margin: 0 0 6px; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-gold-700); } .ds-card-title { margin: 0; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; color: var(--color-neutral-900); }"
+    },
+    {
+      "name": "Results Table",
+      "kind": "custom",
+      "refersTo": "table-header",
+      "description": "Sticky mono header, mono numbers, tie row highlighted in gold tint.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>Back</th><th>Competitor</th><th class=\"ds-r\">X</th></tr></thead><tbody><tr><td class=\"ds-mono\">60</td><td>Santos, Mia</td><td class=\"ds-mono ds-r\">7</td></tr><tr class=\"ds-tie\"><td class=\"ds-mono\">179</td><td>Cruz, Ana</td><td class=\"ds-mono ds-r\">4</td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.875rem; border: 1px solid var(--color-neutral-200); } .ds-table th { padding: 12px 16px; text-align: left; background: var(--color-neutral-50); color: var(--color-neutral-600); border-bottom: 1px solid var(--color-neutral-200); font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; } .ds-table td { padding: 12px 16px; color: var(--color-neutral-900); border-bottom: 1px solid var(--color-neutral-100); } .ds-table tbody tr:hover { background: var(--color-neutral-50); } .ds-table .ds-tie { background: var(--color-gold-50); } .ds-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; } .ds-r { text-align: right; }"
+    },
+    {
+      "name": "Tabs",
+      "kind": "nav",
+      "refersTo": "button-ghost",
+      "description": "Underline tabs; active tab has a 2px gold underline.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab ds-tab-active\" role=\"tab\" aria-selected=\"true\">Cha Cha Cha</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Rumba</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Jive</button></div>",
+      "css": ".ds-tabs { display: flex; border-bottom: 1px solid var(--color-neutral-200); font-family: var(--font-sans); } .ds-tab { height: 44px; padding: 0 16px; background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--color-neutral-600); font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600; cursor: pointer; } .ds-tab:hover { color: var(--color-neutral-900); } .ds-tab-active { border-bottom-color: var(--color-gold-500); color: var(--color-neutral-900); } .ds-tab:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: -2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Result Sheet",
+    "overview": "BIS looks like the paper it replaces: the printed \"Qualified Solos for the final\" sheet, with its heavy header band, hairline rules and columns of back numbers. Numbers come first. Counts, cutoffs, ties and placings are shown plainly and are never hidden behind decoration. The system is flat, exact and printable, so the same screen can be glanced at on an adjudicator's phone, read across a scrutineer's laptop, or projected for a crowd.\n\nBlack, brown and white carry the structure. Gold is the one voice: it marks the single action that matters, the active tab, an approved or highlighted row. Its rarity is the point. Controls are precise and sturdy: clear edges, confident sizes, nothing ornamental, so a wrong tap is hard to make and a wrong value is easy to spot.\n\nNo role has a priority layout. Every screen works from 375px phones to a 1920px venue screen, and each role's sizes are tuned for its own device.",
+    "keyCharacteristics": [
+      "Flat surfaces with hairline borders; one shadow, reserved for overlays.",
+      "Mono type for numbers and labels, sans for everything else.",
+      "One gold action per screen.",
+      "Status colors only for payment, round and connection state.",
+      "Works offline: all fonts and assets are bundled."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Gold marks one thing at a time: the primary action, the active tab, or a highlighted row. If two golds compete on a screen, one is wrong.", "section": "colors" },
+      { "name": "The Black-on-Gold Rule", "body": "Gold fills always carry Ink Black text, never white. Gold text on white uses Brass Text (gold-700).", "section": "colors" },
+      { "name": "The Status Only Rule", "body": "Green, orange and red mean state (payment, round, connection, error). They are never decoration.", "section": "colors" },
+      { "name": "The Mono Numbers Rule", "body": "Back numbers, X counts, placings, prices and event numbers are always mono and tabular so columns line up.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Cards, tables and inputs never carry a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use one gold primary action per screen.",
+      "Do put black text on every gold fill.",
+      "Do set numbers in mono with tabular figures.",
+      "Do give every field a visible label.",
+      "Do give every screen empty, loading (skeleton matching the final layout) and error states.",
+      "Do keep touch targets at 56px or more for adjudicators.",
+      "Do keep motion short and honour prefers-reduced-motion.",
+      "Do hide scrollbars inside dialogs, tables and tab strips while content still scrolls."
+    ],
+    "donts": [
+      "Don't use gold as text on white; use gold-700.",
+      "Don't add shadows to cards, tables or inputs.",
+      "Don't nest cards inside cards or stack many badges in one row.",
+      "Don't use green, orange or red as decoration.",
+      "Don't use placeholder text in place of a label.",
+      "Don't use low-contrast text or a beige palette.",
+      "Don't load fonts or assets from a CDN; BIS must work offline.",
+      "Don't say \"judge\"; say \"adjudicator\"."
+    ]
+  }
+}
