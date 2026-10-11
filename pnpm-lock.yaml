@@ -10,6 +10,9 @@ importers:
 
   frontend:
     dependencies:
+      '@bis/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       '@tanstack/react-query':
         specifier: ^5.104.1
         version: 5.104.1(react@19.3.0)
@@ -77,6 +80,12 @@ importers:
       vitest:
         specifier: ^5.0.3
         version: 5.0.3(@types/node@24.19.2)(jsdom@30.1.2)(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0))
+
+  packages/shared:
+    devDependencies:
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
 
 packages:
 
