@@ -37,6 +37,13 @@ export const RoundStatus = {
 } as const
 export type RoundStatus = (typeof RoundStatus)[keyof typeof RoundStatus]
 
+export const SubmissionStatus = {
+  Waiting: 'waiting',
+  Marking: 'marking',
+  Submitted: 'submitted',
+} as const
+export type SubmissionStatus = (typeof SubmissionStatus)[keyof typeof SubmissionStatus]
+
 export const AgeGroup = {
   Juvenile: 'juvenile',
   Junior1: 'junior_1',

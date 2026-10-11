@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { ConnectionStatus } from './components/ConnectionStatus.tsx'
+import { DataPreview } from './DataPreview.tsx'
 import {
   Badge,
   Button,
@@ -36,6 +38,7 @@ export default function App() {
         description="Design system preview."
         actions={
           <>
+            <ConnectionStatus />
             <Button variant="secondary" onClick={() => setOpen(true)}>Open dialog</Button>
             <Button onClick={() => toast('Submitted', 'success')}>Show toast</Button>
           </>
@@ -100,6 +103,8 @@ export default function App() {
         rowClassName={(r) => (r.xs === 4 ? 'bg-gold-50' : undefined)}
       />
       <Table columns={[{ key: 'a', header: 'Loading', cell: () => null }]} rows={[]} rowKey={() => ''} loading />
+
+      <DataPreview />
 
       <Dialog
         open={open}

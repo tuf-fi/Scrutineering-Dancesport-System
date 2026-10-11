@@ -7,6 +7,7 @@ import type {
   Role,
   RoundStatus,
   RoundType,
+  SubmissionStatus,
 } from './enums.ts'
 
 export type Id = string
@@ -119,6 +120,14 @@ interface MarkBase {
 export type Mark =
   | (MarkBase & { kind: 'x' })
   | (MarkBase & { kind: 'placing'; placing: number })
+
+// One adjudicator's progress in a round; pushed live to the scrutineer board
+export interface AdjudicatorSubmission {
+  roundId: Id
+  adjudicatorId: Id
+  status: SubmissionStatus
+  submittedAt: Timestamp | null
+}
 
 export interface Result {
   id: Id
