@@ -1,13 +1,15 @@
 import {
+  Role,
   RoundStatus,
   type AgeGroup,
   type Class,
   type Discipline,
   type PaymentStatus,
+  type SessionUser,
 } from '@bis/shared'
 import { adjudicatorPins, adjudicators, panels } from './data/adjudicators.ts'
 import { clubs } from './data/clubs.ts'
-import { competitions } from './data/competitions.ts'
+import { competitions, currentCompetitionId } from './data/competitions.ts'
 import { competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
@@ -88,3 +90,62 @@ export const getRankingPoints = (filter: RankingFilter = {}) =>
 
 export const getStaffUsers = () => reply(staffUsers)
 export const getAuditLog = () => reply(auditLog)
+
+// TODO: fake sign-in for the sample app. Phase 3 replaces this with JWT in httpOnly cookies.
+const SAMPLE_PASSWORD = 'bis2026'
+
+function settle<T>(produce: () => T): Promise<T> {
+  return new Promise((resolve, reject) =>
+    setTimeout(() => {
+      try {
+        resolve(structuredClone(produce()))
+      } catch (error) {
+        reject(error)
+      }
+    }, LATENCY_MS),
+  )
+}
+
+export const signInStaff = (username: string, password: string) =>
+  settle<SessionUser>(() => {
+    const user = staffUsers.find((s) => s.username === username.trim().toLowerCase())
+    if (!user || password !== SAMPLE_PASSWORD) throw new Error('Wrong username or password.')
+    return { id: user.id, name: user.name, role: user.role }
+  })
+
+export const signInClub = (email: string, password: string) =>
+  settle<SessionUser>(() => {
+    const club = clubs.find((c) => c.contactEmail === email.trim().toLowerCase())
+    if (!club || password !== SAMPLE_PASSWORD) throw new Error('Wrong email or password.')
+    return { id: club.id, name: club.name, role: Role.Club }
+  })
+
+export const signInAdjudicator = (pin: string) =>
+  settle<SessionUser>(() => {
+    const entry = adjudicatorPins.find(
+      (p) => p.competitionId === currentCompetitionId && p.pin === pin,
+    )
+    const adjudicator = adjudicators.find((a) => a.id === entry?.adjudicatorId)
+    if (!adjudicator) throw new Error("That PIN isn't registered for this competition.")
+    return {
+      id: adjudicator.id,
+      name: adjudicator.name,
+      role: Role.Adjudicator,
+      letter: adjudicator.letter,
+    }
+  })
+
+// TODO: sample-only helper for the dev sign-in hint; delete with the mocks
+export const getSampleCredentials = () =>
+  settle(() => ({
+    password: SAMPLE_PASSWORD,
+    usernames: staffUsers.map((s) => s.username),
+    clubEmail: clubs[0].contactEmail,
+    pins: adjudicatorPins
+      .filter((p) => p.competitionId === currentCompetitionId)
+      .slice(0, 3)
+      .map((p) => ({
+        letter: adjudicators.find((a) => a.id === p.adjudicatorId)?.letter ?? '',
+        pin: p.pin,
+      })),
+  }))

@@ -163,6 +163,15 @@ export interface StaffUser {
   role: Role
 }
 
+// Who is signed in on this device
+export interface SessionUser {
+  id: Id
+  name: string
+  role: Role
+  // Adjudicators only: their letter on the panel
+  letter?: string
+}
+
 export interface AuditEntry {
   id: Id
   actorId: Id

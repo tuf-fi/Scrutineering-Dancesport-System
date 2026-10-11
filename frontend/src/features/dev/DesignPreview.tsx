@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ConnectionStatus } from './components/ConnectionStatus.tsx'
+import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
 import {
   Badge,
   Button,
@@ -8,12 +8,11 @@ import {
   Input,
   Select,
   Tabs,
-  Toaster,
   toast,
-} from './components/ui/index.ts'
+} from '../../components/ui/index.ts'
 import { DataPreview } from './DataPreview.tsx'
 
-// TODO: temporary preview; replaced by the router and role layouts in step 5
+// Development-only review page for the design system and the sample data layer (/dev/design)
 
 function Spec({ name, children }: { name: string; children: ReactNode }) {
   return (
@@ -24,7 +23,7 @@ function Spec({ name, children }: { name: string; children: ReactNode }) {
   )
 }
 
-export default function App() {
+export function DesignPreview() {
   const [tab, setTab] = useState('cha')
   const [open, setOpen] = useState(false)
 
@@ -114,7 +113,6 @@ export default function App() {
           </>
         }
       />
-      <Toaster />
     </>
   )
 }

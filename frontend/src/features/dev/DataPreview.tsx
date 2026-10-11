@@ -1,5 +1,5 @@
 import { RoundStatus, SubmissionStatus, type AdjudicatorSubmission, type Event } from '@bis/shared'
-import { Badge, Button, Skeleton, Table, type BadgeTone } from './components/ui/index.ts'
+import { Badge, Button, Skeleton, Table, type BadgeTone } from '../../components/ui/index.ts'
 import {
   useAdjudicators,
   useCompetitions,
@@ -7,10 +7,10 @@ import {
   useEvents,
   useLiveSubmissions,
   useRounds,
-} from './hooks/index.ts'
-import { ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade } from './lib/format.ts'
+} from '../../hooks/index.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade } from '../../lib/format.ts'
 
-// TODO: temporary check of the sample data layer; removed once real screens use these hooks
+// Development-only check of the sample data layer; removed once real screens use these hooks
 
 const STATUS: Record<string, { tone: BadgeTone; label: string }> = {
   [SubmissionStatus.Submitted]: { tone: 'success', label: 'Submitted' },

@@ -6,6 +6,7 @@ export const staffUsers: StaffUser[] = [
   { id: 'staff-secretariat', name: 'Jonas Bellosillo', username: 'secretariat', role: Role.Secretariat },
   { id: 'staff-scrutineer', name: 'Teresita Quimpo', username: 'scrutineer', role: Role.Scrutineer },
   { id: 'staff-chairperson', name: 'Gregorio Almazan', username: 'chairperson', role: Role.Chairperson },
+  { id: 'staff-mc', name: 'Dante Ibarra', username: 'mc', role: Role.Mc },
 ]
 
 export const auditLog: AuditEntry[] = [

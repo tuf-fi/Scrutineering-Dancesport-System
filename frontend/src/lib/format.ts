@@ -1,4 +1,12 @@
-import type { AgeGroup, Dance, Discipline, Event, PaymentStatus, RoundType } from '@bis/shared'
+import type {
+  AgeGroup,
+  Dance,
+  Discipline,
+  Event,
+  PaymentStatus,
+  Role,
+  RoundType,
+} from '@bis/shared'
 
 export const AGE_GROUP_LABEL: Record<AgeGroup, string> = {
   juvenile: 'Juvenile',
@@ -42,6 +50,25 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
   rejected: 'Rejected',
   paid_at_venue: 'Paid at venue',
 }
+
+export const ROLE_LABEL: Record<Role, string> = {
+  admin: 'Admin',
+  secretariat: 'Secretariat',
+  scrutineer: 'Scrutineer',
+  chairperson: 'Chairperson of Adjudicators',
+  adjudicator: 'Adjudicator',
+  mc: 'MC',
+  club: 'Club',
+  public: 'Public',
+}
+
+// "10 October 2026"
+export const formatDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 
 // The event number as printed on sheets, e.g. E47
 export const eventCode = (event: Pick<Event, 'number'>) => `E${event.number}`
