@@ -10,6 +10,7 @@ import {
   type Competition,
   type Competitor,
   type CompetitorRow,
+  type MarkSubmission,
   type Entry,
   type EntryRow,
   type Event,
@@ -32,6 +33,7 @@ import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
+import { adjudicatorState, demoRounds, startDemoRound, submitMarks } from './adjudicating.ts'
 import { heats, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
@@ -831,3 +833,14 @@ export const deleteEvent = (actorId: string, id: string) =>
     events.splice(events.indexOf(event), 1)
     record(actorId, 'Deleted event', `Event ${event.number}`)
   })
+
+// ---- Adjudicator ----
+
+export const getAdjudicatorState = (adjudicatorId: string) => reply(adjudicatorState(adjudicatorId))
+
+export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
+  settle<void>(() => submitMarks(adjudicatorId, roundId, submissions))
+
+// TODO: dev-only controls that stand in for the scrutineer starting a round
+export const getDemoRounds = () => reply(demoRounds())
+export const startDemoRoundOnFloor = (roundId: string | null) => settle<void>(() => startDemoRound(roundId))

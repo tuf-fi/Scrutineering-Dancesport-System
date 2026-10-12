@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router'
 import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
 import { Button } from '../../components/ui/index.ts'
+import { useOutboxFlush } from '../../features/adjudicator/useFloor.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useSignOut } from '../useSignOut.ts'
 
@@ -9,17 +10,20 @@ import { useSignOut } from '../useSignOut.ts'
 export function AdjudicatorLayout() {
   const user = useAuth((s) => s.user)
   const signOut = useSignOut('/adjudicator')
+  useOutboxFlush(user?.id ?? '')
   if (!user) return null
 
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-neutral-200">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-8">
-          <div className="flex items-baseline gap-2.5">
-            <span className="font-mono text-title font-semibold">{user.letter}</span>
-            <span className="text-small text-neutral-600">{user.name}</span>
+          <div className="flex items-center gap-3">
+            <span className="grid size-9 place-items-center rounded-full bg-neutral-900 font-mono text-small font-semibold text-white">
+              {user.letter}
+            </span>
+            <span className="text-small font-medium text-neutral-900">{user.name}</span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-3">
             <ConnectionStatus />
             <Button variant="ghost" size="sm" onClick={signOut}>
               Sign out

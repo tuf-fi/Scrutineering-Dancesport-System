@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { Button } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
 
 interface PinKeypadProps {
@@ -9,6 +8,13 @@ interface PinKeypadProps {
   disabled?: boolean
   error?: string | null
 }
+
+const digit =
+  'grid h-16 place-items-center rounded-2xl bg-neutral-100 text-3xl font-medium tabular-nums text-neutral-900 ' +
+  'transition-colors hover:bg-neutral-200/70 active:bg-neutral-200 disabled:opacity-40 sm:h-20'
+const action =
+  'h-16 rounded-2xl text-small font-medium text-neutral-600 transition-colors hover:text-neutral-900 ' +
+  'active:bg-neutral-100 disabled:opacity-40 sm:h-20'
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -34,17 +40,13 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
   return (
     <div className="flex flex-col items-center gap-8">
       <div className="flex flex-col items-center gap-3">
-        <div
-          role="img"
-          aria-label={`${value.length} of ${length} digits entered`}
-          className="flex gap-4"
-        >
+        <div role="img" aria-label={`${value.length} of ${length} digits entered`} className="flex gap-5">
           {Array.from({ length }, (_, i) => (
             <span
               key={i}
               className={cn(
-                'size-4 rounded-full border-2 border-neutral-900 transition-colors',
-                i < value.length && 'bg-neutral-900',
+                'size-3.5 rounded-full border-2 transition-colors',
+                i < value.length ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300',
               )}
             />
           ))}
@@ -56,32 +58,19 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
 
       <div className="grid w-full max-w-xs grid-cols-3 gap-3 sm:max-w-sm sm:gap-4">
         {DIGITS.map((d) => (
-          <Button
-            key={d}
-            variant="secondary"
-            size="xl"
-            disabled={disabled}
-            onClick={() => press(d)}
-            className="font-mono tabular-nums sm:h-20"
-          >
+          <button key={d} type="button" disabled={disabled} onClick={() => press(d)} className={digit}>
             {d}
-          </Button>
+          </button>
         ))}
-        <Button variant="ghost" size="xl" disabled={disabled} onClick={clear} className="px-0 text-body! sm:h-20">
+        <button type="button" disabled={disabled} onClick={clear} className={action}>
           Clear
-        </Button>
-        <Button
-          variant="secondary"
-          size="xl"
-          disabled={disabled}
-          onClick={() => press('0')}
-          className="font-mono tabular-nums sm:h-20"
-        >
+        </button>
+        <button type="button" disabled={disabled} onClick={() => press('0')} className={digit}>
           0
-        </Button>
-        <Button variant="ghost" size="xl" disabled={disabled} onClick={remove} className="px-0 text-body! sm:h-20">
+        </button>
+        <button type="button" disabled={disabled} onClick={remove} className={action}>
           Delete
-        </Button>
+        </button>
       </div>
     </div>
   )

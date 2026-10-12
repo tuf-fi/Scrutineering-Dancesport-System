@@ -258,3 +258,37 @@ export interface ImportResult {
   // Rows that could not be imported, by line number in the file
   skipped: Array<{ line: number; reason: string }>
 }
+
+// One competitor an adjudicator may mark in a round
+export interface MarkingCompetitor {
+  id: Id
+  backNumber: number | null
+  // null when the round has no heats yet
+  heat: number | null
+}
+
+// What an adjudicator marks in the round that is on the floor
+export interface MarkingTask {
+  round: Round
+  event: Event
+  // Marks an X for exactly this many competitors per dance; null in the final, which is placed instead
+  recallNumber: number | null
+  dances: Dance[]
+  competitors: MarkingCompetitor[]
+}
+
+export type AdjudicatorState =
+  | { status: 'waiting' }
+  | { status: 'marking'; task: MarkingTask }
+  | { status: 'submitted'; task: MarkingTask }
+
+// One dance's marks: the competitors given an X, or in a final everyone in order from 1st place down
+export interface MarkSubmission {
+  dance: Dance
+  competitorIds: Id[]
+}
+
+export interface DemoRound {
+  roundId: Id
+  label: string
+}

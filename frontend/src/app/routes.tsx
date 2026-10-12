@@ -7,6 +7,8 @@ import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
 import { AdjudicatorSignIn } from '../features/adjudicator/AdjudicatorSignIn.tsx'
+import { MarkPage } from '../features/adjudicator/MarkPage.tsx'
+import { SubmittedPage } from '../features/adjudicator/SubmittedPage.tsx'
 import { Waiting } from '../features/adjudicator/Waiting.tsx'
 import { ClubSignIn } from '../features/auth/ClubSignIn.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
@@ -60,7 +62,16 @@ export const routes: RouteObject[] = [
           { index: true, element: <AdjudicatorSignIn /> },
           {
             element: <RequireRole roles={[Role.Adjudicator]} signInPath="/adjudicator" />,
-            children: [{ element: <AdjudicatorLayout />, children: [{ path: 'waiting', element: <Waiting /> }] }],
+            children: [
+              {
+                element: <AdjudicatorLayout />,
+                children: [
+                  { path: 'waiting', element: <Waiting /> },
+                  { path: 'mark', element: <MarkPage /> },
+                  { path: 'submitted', element: <SubmittedPage /> },
+                ],
+              },
+            ],
           },
         ],
       },

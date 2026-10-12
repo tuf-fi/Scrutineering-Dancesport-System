@@ -107,8 +107,9 @@ describe('adjudicator PIN sign-in', () => {
     const router = renderAt('/adjudicator')
     await screen.findByRole('heading', { name: 'Enter your PIN' })
     for (const digit of '4100') await userEvent.click(screen.getByRole('button', { name: digit }))
-    await screen.findByRole('heading', { name: 'Waiting for the next round' })
-    expect(router.state.location.pathname).toBe('/adjudicator/waiting')
+    // A round is on the floor, so the waiting screen hands over to marking
+    await screen.findByText(/Mark an X for exactly 12/)
+    expect(router.state.location.pathname).toBe('/adjudicator/mark')
     expect(useAuth.getState().user?.letter).toBe('A')
   })
 
