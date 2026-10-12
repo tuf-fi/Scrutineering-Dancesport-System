@@ -1,6 +1,6 @@
 import type { Entry } from '@bis/shared'
 import { clubs } from './clubs.ts'
-import { competitors, coupleCompetitors, soloCompetitors } from './competitors.ts'
+import { competitors, poolFor } from './competitors.ts'
 import { currentCompetitionId } from './competitions.ts'
 import { completedEvent, events, featuredEvent } from './events.ts'
 import { createRng, shuffle } from './rng.ts'
@@ -21,7 +21,7 @@ export const entries: Entry[] = events.flatMap((event) => {
         : event.isSolo
           ? 4 + Math.floor(rng() * 13)
           : 3 + Math.floor(rng() * 6)
-  const pool = shuffle(event.isSolo ? soloCompetitors : coupleCompetitors, rng)
+  const pool = shuffle(poolFor(event.isSolo, event.ageGroup), rng)
 
   return pool.slice(0, count).map((c) => ({
     id: `${event.id}:${c.id}`,

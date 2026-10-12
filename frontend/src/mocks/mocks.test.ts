@@ -2,7 +2,7 @@ import { RoundStatus, RoundType, SubmissionStatus } from '@bis/shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as api from './api.ts'
 import { panels } from './data/adjudicators.ts'
-import { competitors } from './data/competitors.ts'
+import { ageGroupOf, competitors } from './data/competitors.ts'
 import { currentCompetitionId } from './data/competitions.ts'
 import { entries } from './data/entries.ts'
 import { completedEvent, currentEvents, events, featuredEvent } from './data/events.ts'
@@ -23,6 +23,13 @@ describe('program', () => {
 
   it('has more than 50 events in the current competition', () => {
     expect(currentEvents.length).toBeGreaterThan(50)
+  })
+
+  it('only enters a dancer in events for their own age group', () => {
+    const eventById = byId(events)
+    for (const entry of entries) {
+      expect(ageGroupOf.get(entry.competitorId)).toBe(eventById.get(entry.eventId)?.ageGroup)
+    }
   })
 
   it('gives every competitor a unique back number', () => {

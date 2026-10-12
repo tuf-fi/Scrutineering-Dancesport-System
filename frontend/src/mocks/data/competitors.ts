@@ -1,4 +1,4 @@
-import type { Competitor } from '@bis/shared'
+import { AgeGroup, type Competitor } from '@bis/shared'
 import { clubs } from './clubs.ts'
 import { createRng, pick, shuffle } from './rng.ts'
 
@@ -15,8 +15,10 @@ const LAST = [
 ]
 const INITIALS = 'ABCDEFGHJKLMNPRST'
 
-const SOLOS = 90
-const COUPLES = 30
+const AGE_GROUPS = Object.values(AgeGroup)
+// Each dancer belongs to one age group, as in the real sport
+const SOLOS_PER_AGE_GROUP = 40
+const COUPLES_PER_AGE_GROUP = 12
 
 const rng = createRng(11)
 const used = new Set<string>()
@@ -31,23 +33,32 @@ function personName(): string {
   }
 }
 
-const backNumbers = shuffle(Array.from({ length: 299 }, (_, i) => i + 1), rng)
+const backNumbers = shuffle(Array.from({ length: 400 }, (_, i) => i + 1), rng)
 
-function make(index: number, names: string[]): Competitor {
-  return {
+export const competitors: Competitor[] = []
+export const ageGroupOf = new Map<string, AgeGroup>()
+const solos = new Map<AgeGroup, Competitor[]>()
+const couples = new Map<AgeGroup, Competitor[]>()
+
+function add(ageGroup: AgeGroup, names: string[], into: Map<AgeGroup, Competitor[]>) {
+  const index = competitors.length
+  const competitor: Competitor = {
     id: `c-${String(index + 1).padStart(3, '0')}`,
     names,
     backNumber: backNumbers[index],
     clubId: pick(clubs, rng).id,
   }
+  competitors.push(competitor)
+  ageGroupOf.set(competitor.id, ageGroup)
+  into.set(ageGroup, [...(into.get(ageGroup) ?? []), competitor])
 }
 
-export const soloCompetitors: Competitor[] = Array.from({ length: SOLOS }, (_, i) =>
-  make(i, [personName()]),
-)
+for (const ageGroup of AGE_GROUPS) {
+  for (let i = 0; i < SOLOS_PER_AGE_GROUP; i++) add(ageGroup, [personName()], solos)
+}
+for (const ageGroup of AGE_GROUPS) {
+  for (let i = 0; i < COUPLES_PER_AGE_GROUP; i++) add(ageGroup, [personName(), personName()], couples)
+}
 
-export const coupleCompetitors: Competitor[] = Array.from({ length: COUPLES }, (_, i) =>
-  make(SOLOS + i, [personName(), personName()]),
-)
-
-export const competitors: Competitor[] = [...soloCompetitors, ...coupleCompetitors]
+export const poolFor = (isSolo: boolean, ageGroup: AgeGroup): Competitor[] =>
+  (isSolo ? solos : couples).get(ageGroup) ?? []

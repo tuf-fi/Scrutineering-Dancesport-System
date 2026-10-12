@@ -72,6 +72,21 @@ export interface Payment {
   checkedAt: Timestamp | null
 }
 
+// One entry a payment covers, ready to show in the admin's checking view
+export interface PaymentLine {
+  entryId: Id
+  eventId: Id
+  eventNumber: number
+  dances: Dance[]
+  competitorNames: string[]
+  fee: number
+}
+
+export interface PaymentDetail extends Payment {
+  clubName: string
+  lines: PaymentLine[]
+}
+
 export interface Adjudicator {
   id: Id
   name: string
@@ -137,6 +152,21 @@ export interface Result {
   place: number
   approvedBy: Id
   approvedAt: Timestamp
+}
+
+// One result in a competitor's history, with the event and competition it came from
+export interface CompetitorHistoryLine {
+  resultId: Id
+  competitionId: Id
+  competitionName: string
+  competitionDate: string
+  eventNumber: number
+  dances: Dance[]
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  place: number
+  points: number
 }
 
 export interface PointsRow {

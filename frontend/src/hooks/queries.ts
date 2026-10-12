@@ -6,7 +6,11 @@ export const useCompetitions = () =>
   useQuery({ queryKey: ['competitions'], queryFn: api.getCompetitions })
 
 export const useCompetition = (id: string) =>
-  useQuery({ queryKey: ['competitions', id], queryFn: () => api.getCompetition(id) })
+  useQuery({
+    queryKey: ['competitions', id],
+    queryFn: () => api.getCompetition(id),
+    enabled: Boolean(id),
+  })
 
 export const useClubs = () => useQuery({ queryKey: ['clubs'], queryFn: api.getClubs })
 export const useCompetitors = () =>
@@ -29,6 +33,13 @@ export const usePointsTable = () =>
 
 export const useRankingPoints = (filter: api.RankingFilter = {}) =>
   useQuery({ queryKey: ['ranking-points', filter], queryFn: () => api.getRankingPoints(filter) })
+
+export const useCompetitorHistory = (competitorId: string) =>
+  useQuery({
+    queryKey: ['competitor-history', competitorId],
+    queryFn: () => api.getCompetitorHistory(competitorId),
+    enabled: Boolean(competitorId),
+  })
 
 export const useStaffUsers = () =>
   useQuery({ queryKey: ['staff-users'], queryFn: api.getStaffUsers })

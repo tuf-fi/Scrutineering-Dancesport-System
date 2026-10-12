@@ -5,7 +5,7 @@ import { currentEvents } from './events.ts'
 const NAMES = [
   'Lorenzo V. Aguilar', 'Patricia M. Dizon', 'Ramon T. Hernandez', 'Celeste B. Ilagan',
   'Victor L. Manalo', 'Rowena S. Panganiban', 'Dionisio C. Quizon', 'Helena P. Sarmiento',
-  'Alfredo G. Tabora', 'Cecilia R. Ventura',
+  'Alfredo G. Tabora',
 ]
 
 export const adjudicators: Adjudicator[] = NAMES.map((name, i) => ({

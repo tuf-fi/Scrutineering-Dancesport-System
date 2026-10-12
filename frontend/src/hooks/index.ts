@@ -1,4 +1,5 @@
 export * from './queries.ts'
+export * from './useAdmin.ts'
 export * from './useAuth.ts'
 export * from './useEvents.ts'
 export * from './useRound.ts'

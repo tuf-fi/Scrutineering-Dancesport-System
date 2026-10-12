@@ -48,7 +48,7 @@ function buildEvents(competitionId: string, ageGroups: number): Event[] {
 }
 
 const [current, ...past] = competitions
-const pastAgeGroups = [2, 2]
+const pastAgeGroups = [AGE_ORDER.length, AGE_ORDER.length]
 
 export const events: Event[] = [
   ...buildEvents(current.id, AGE_ORDER.length),
