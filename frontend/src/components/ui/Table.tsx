@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+import { useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
+import { Dialog } from './Dialog.tsx'
 import { EmptyState } from './EmptyState.tsx'
 import { Pagination, Showing } from './Pagination.tsx'
 import { Skeleton } from './Skeleton.tsx'
@@ -30,6 +31,8 @@ interface TableProps<T> {
   rowClassName?: (row: T) => string | undefined
   // Makes whole rows clickable; keep a real link in the row for keyboard and screen readers
   onRowClick?: (row: T) => void
+  // Clicking a row opens a modal listing every column, including the ones narrow screens hide
+  detailTitle?: (row: T) => string
   // Below this width the table scrolls sideways inside its card instead of squeezing its columns
   minWidthClass?: string
   // Names the pager for screen readers when a page has more than one table
@@ -49,6 +52,7 @@ export function Table<T>({
   empty = { title: 'Nothing here yet' },
   rowClassName,
   onRowClick,
+  detailTitle,
   minWidthClass = 'min-w-[34rem]',
   paginationLabel,
   className,
@@ -56,6 +60,12 @@ export function Table<T>({
   // Go back to the first page whenever the rows change because of a filter or a search
   const resetKey = `${rows.length}|${rows[0] ? rowKey(rows[0]) : ''}|${rows.length ? rowKey(rows[rows.length - 1]) : ''}`
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, resetKey)
+  const [detail, setDetail] = useState<T | null>(null)
+  const open = onRowClick ?? (detailTitle ? setDetail : undefined)
+
+  // Buttons, links and fields inside a row do their own thing
+  const fromControl = (e: MouseEvent | KeyboardEvent) =>
+    (e.target as HTMLElement).closest('a,button,input,select,textarea,label') !== null
 
   if (!loading && rows.length === 0) {
     return (
@@ -109,10 +119,20 @@ export function Table<T>({
               : pageItems.map((row) => (
                   <tr
                     key={rowKey(row)}
-                    onClick={onRowClick && (() => onRowClick(row))}
+                    onClick={open && ((e) => !fromControl(e) && open(row))}
+                    onKeyDown={
+                      open &&
+                      ((e) => {
+                        if ((e.key === 'Enter' || e.key === ' ') && !fromControl(e)) {
+                          e.preventDefault()
+                          open(row)
+                        }
+                      })
+                    }
+                    tabIndex={open ? 0 : undefined}
                     className={cn(
-                      'transition-colors hover:bg-neutral-50',
-                      onRowClick && 'cursor-pointer',
+                      'transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-50',
+                      open && 'cursor-pointer',
                       rowClassName?.(row),
                     )}
                   >
@@ -139,6 +159,29 @@ export function Table<T>({
       </div>
       {!loading && (
         <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label={paginationLabel} showSummary={false} />
+      )}
+      {detailTitle && (
+        <Dialog
+          open={detail !== null}
+          onClose={() => setDetail(null)}
+          title={detail ? detailTitle(detail) : ''}
+          className="max-w-lg"
+        >
+          {detail && (
+            <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
+              {columns
+                .filter((c) => c.header)
+                .map((c) => (
+                  <div key={c.key} className="flex min-w-0 flex-col gap-1">
+                    <dt className="text-xs text-neutral-500">{c.header}</dt>
+                    <dd className={cn('min-w-0 break-words text-small text-neutral-900', c.mono && 'font-mono tabular-nums')}>
+                      {c.cell(detail)}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          )}
+        </Dialog>
       )}
     </div>
   )

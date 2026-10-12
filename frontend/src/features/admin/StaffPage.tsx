@@ -99,6 +99,7 @@ export function StaffPage() {
         rowKey={(s) => s.id}
         minWidthClass="min-w-0"
         paginationLabel="Staff pagination"
+        detailTitle={(u) => u.name}
         empty={
           needle || role !== 'all'
             ? { title: 'No accounts match', description: 'Try a different role or name.' }

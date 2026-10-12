@@ -1,4 +1,4 @@
-import { Select } from '../../components/ui/index.ts'
+import { Select } from './ui/index.ts'
 
 export function CompetitionSelect({
   list,

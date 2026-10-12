@@ -86,6 +86,7 @@ export function CompetitionsPage() {
         rowKey={(c) => c.id}
         minWidthClass="min-w-0"
         paginationLabel="Competitions pagination"
+        detailTitle={(c) => c.name}
         empty={
           needle || year !== 'all'
             ? { title: 'No competitions match', description: 'Try a different year, name, venue or organizer.' }

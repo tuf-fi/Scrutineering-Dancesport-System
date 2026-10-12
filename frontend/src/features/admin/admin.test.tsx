@@ -62,8 +62,12 @@ describe('competitions', () => {
 
   it('opens the edit modal, prefilled, from the edit icon only, and starts blank for a new one', async () => {
     renderApp('/admin/competitions', Role.Admin)
+    // A row click shows the data read-only; editing is only through the edit icon
     await userEvent.click(await screen.findByText('Legazpi Dancesport Cup 2026'))
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    const view = await dialogFor('Legazpi Dancesport Cup 2026')
+    expect(within(view).getByText('Albay Dancesport Council')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
+    await userEvent.click(within(view).getByRole('button', { name: 'Close' }))
 
     await userEvent.click(screen.getByRole('button', { name: 'Edit Legazpi Dancesport Cup 2026' }))
     let dialog = await dialogFor('Edit competition')
@@ -394,11 +398,13 @@ describe('points table', () => {
 })
 
 describe('payment checking', () => {
-  // The club buttons in the queue table (the first table on the page), one per payment row
+  // The rows of the queue table (the first table on the page); a row opens the review
+  const queueRows = () => within(document.querySelector('table')!).getAllByRole('row', { hidden: true }).slice(1)
   const clubs = async () => {
     await screen.findByRole('columnheader', { name: 'Club' })
-    const table = document.querySelector('table')!
-    return within(table).findAllByRole('button', { hidden: true })
+    // Skeleton rows have no text until the payments load
+    await waitFor(() => expect(queueRows()[0]).toHaveTextContent(/₱/))
+    return queueRows()
   }
 
   it('lists the payments waiting to be checked and shows the full review', async () => {
@@ -428,7 +434,7 @@ describe('payment checking', () => {
     await screen.findByText(/Approved by Amelia Rosales/)
     expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
     await waitFor(() =>
-      expect(within(document.querySelector('table')!).queryAllByRole('button', { hidden: true })).toHaveLength(before - 1),
+      expect(queueRows()).toHaveLength(before - 1),
     )
   })
 

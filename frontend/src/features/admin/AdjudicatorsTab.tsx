@@ -20,7 +20,7 @@ import {
   useGeneratePins,
 } from '../../hooks/index.ts'
 import { AdjudicatorDialog } from './AdjudicatorDialog.tsx'
-import { CompetitionSelect } from './CompetitionSelect.tsx'
+import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { LETTERS } from './constants.ts'
 
 interface TabProps {
@@ -98,6 +98,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
         rowKey={(a) => a.id}
         minWidthClass="min-w-0"
         paginationLabel="Adjudicators pagination"
+        detailTitle={(a) => a.name}
         empty={
           needle
             ? { title: `No adjudicators match "${query.trim()}"`, description: 'Try a name or a letter.' }

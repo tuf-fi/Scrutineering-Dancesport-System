@@ -16,7 +16,7 @@ import { cn } from '../../lib/cn.ts'
 import { useAdjudicators, useEvents, usePanels, useSetPanel } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { eventCode, eventDances, eventGrade, letterRanges } from '../../lib/format.ts'
-import { CompetitionSelect } from './CompetitionSelect.tsx'
+import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 
 // Who marks one event: pick the adjudicators and save
 function PanelEditor({ event, initial }: { event: Event; initial: string[] }) {

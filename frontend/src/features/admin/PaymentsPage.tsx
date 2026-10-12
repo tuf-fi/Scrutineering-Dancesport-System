@@ -121,9 +121,7 @@ export function PaymentsPage() {
             cell: (p) => (
               <div className="flex items-center gap-3">
                 <Avatars names={[p.clubName]} />
-                <button type="button" className="truncate text-left font-medium text-neutral-900">
-                  {p.clubName}
-                </button>
+                <span className="truncate font-medium text-neutral-900">{p.clubName}</span>
               </div>
             ),
           },
