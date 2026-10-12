@@ -14,6 +14,11 @@ import { DesignPreview } from '../features/dev/DesignPreview.tsx'
 import { McHome } from '../features/mc/McHome.tsx'
 import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
 import { RankingsPage } from '../features/public/RankingsPage.tsx'
+import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
+import { EventPage } from '../features/secretariat/EventPage.tsx'
+import { EventsPage } from '../features/secretariat/EventsPage.tsx'
+import { LateEntriesPage } from '../features/secretariat/LateEntriesPage.tsx'
+import { SchedulePage } from '../features/secretariat/SchedulePage.tsx'
 import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
 import { McLayout } from './layouts/McLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
@@ -77,7 +82,22 @@ export const routes: RouteObject[] = [
           },
         ],
       },
-      staffSection('/secretariat', [Role.Secretariat], staffNav.secretariat),
+      {
+        path: '/secretariat',
+        element: <RequireRole roles={[Role.Secretariat]} signInPath="/login" />,
+        children: [
+          {
+            element: <StaffLayout />,
+            children: [
+              { index: true, element: <EventsPage /> },
+              { path: 'events/:eventId', element: <EventPage /> },
+              { path: 'competitors', element: <CompetitorsPage /> },
+              { path: 'late-entries', element: <LateEntriesPage /> },
+              { path: 'schedule', element: <SchedulePage /> },
+            ],
+          },
+        ],
+      },
       staffSection('/scrutineer', [Role.Scrutineer, Role.Chairperson], staffNav.scrutineer),
 
       {
@@ -90,7 +110,15 @@ export const routes: RouteObject[] = [
         path: '/print',
         element: <RequireRole roles={STAFF} signInPath="/login" />,
         children: [
-          { element: <PrintLayout />, children: [{ index: true, element: <Placeholder title="Printouts" /> }] },
+          {
+            element: <PrintLayout />,
+            children: [
+              { index: true, element: <Placeholder title="Printouts" /> },
+              // TODO: step 11 builds the heat and recall lists these links open
+              { path: 'heats/:eventId', element: <Placeholder title="Heat list" /> },
+              { path: 'recall/:eventId', element: <Placeholder title="Recall list" /> },
+            ],
+          },
         ],
       },
 
