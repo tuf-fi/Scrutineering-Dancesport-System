@@ -56,6 +56,8 @@ export interface Entry {
   competitorId: Id
   scratched: boolean
   paymentId: Id | null
+  // Added at the venue after entries closed
+  late?: boolean
 }
 
 export interface Payment {
@@ -208,4 +210,51 @@ export interface AuditEntry {
   action: string
   target: string
   at: Timestamp
+}
+
+// One entry shown in the secretariat's event view
+export interface EntryRow {
+  entryId: Id
+  competitorId: Id
+  names: string[]
+  backNumber: number | null
+  clubName: string
+  scratched: boolean
+  late: boolean
+  // null when no payment is linked (past competitions)
+  paymentStatus: PaymentStatus | null
+}
+
+export interface CompetitorRow extends Competitor {
+  clubName: string
+  // Entries that are not scratched, across all competitions
+  entryCount: number
+}
+
+// A late entry with its event and what the club owes for it
+export interface LateEntryRow extends EntryRow {
+  eventId: Id
+  eventNumber: number
+  dances: Dance[]
+  fee: number
+  paymentId: Id
+}
+
+export interface ScheduleItem {
+  eventId: Id
+  // 1 is first on the floor
+  position: number
+  eventNumber: number
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  dances: Dance[]
+  isSolo: boolean
+  rounds: Array<{ type: RoundType; status: RoundStatus }>
+}
+
+export interface ImportResult {
+  created: number
+  // Rows that could not be imported, by line number in the file
+  skipped: Array<{ line: number; reason: string }>
 }

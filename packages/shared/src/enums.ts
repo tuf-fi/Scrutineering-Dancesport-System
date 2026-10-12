@@ -82,3 +82,9 @@ export const Dance = {
   Quickstep: 'quickstep',
 } as const
 export type Dance = (typeof Dance)[keyof typeof Dance]
+
+// The dances each discipline is danced in
+export const DISCIPLINE_DANCES: Record<Discipline, Dance[]> = {
+  latin: [Dance.Samba, Dance.ChaChaCha, Dance.Rumba, Dance.PasoDoble, Dance.Jive],
+  standard: [Dance.Waltz, Dance.Tango, Dance.VienneseWaltz, Dance.Foxtrot, Dance.Quickstep],
+}

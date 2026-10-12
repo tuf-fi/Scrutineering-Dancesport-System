@@ -1,4 +1,5 @@
 import {
+  DISCIPLINE_DANCES,
   PaymentStatus,
   Role,
   RoundStatus,
@@ -7,6 +8,14 @@ import {
   type AgeGroup,
   type Class,
   type Competition,
+  type Competitor,
+  type CompetitorRow,
+  type Entry,
+  type EntryRow,
+  type Event,
+  type ImportResult,
+  type LateEntryRow,
+  type ScheduleItem,
   type CompetitorHistoryLine,
   type Discipline,
   type Panel,
@@ -18,10 +27,11 @@ import {
 import { adjudicatorPins, adjudicators, panels } from './data/adjudicators.ts'
 import { clubs } from './data/clubs.ts'
 import { competitions, currentCompetitionId } from './data/competitions.ts'
-import { competitors } from './data/competitors.ts'
+import { ageGroupOf, competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
-import { paymentDetail, payments } from './data/payments.ts'
+import { feeFor, paymentDetail, payments } from './data/payments.ts'
+import './data/late.ts'
 import { heats, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
@@ -439,3 +449,385 @@ export const getSampleCredentials = () =>
         pin: p.pin,
       })),
   }))
+
+// ---- Secretariat ----
+
+const clubName = (clubId: string) => clubs.find((c) => c.id === clubId)?.name ?? 'Unknown club'
+
+function entryRow(entry: Entry): EntryRow {
+  const competitor = found(competitors.find((c) => c.id === entry.competitorId), 'Competitor')
+  const payment = payments.find((p) => p.id === entry.paymentId)
+  return {
+    entryId: entry.id,
+    competitorId: competitor.id,
+    names: competitor.names,
+    backNumber: competitor.backNumber,
+    clubName: clubName(competitor.clubId),
+    scratched: entry.scratched,
+    late: entry.late ?? false,
+    paymentStatus: payment?.status ?? null,
+  }
+}
+
+export const getCompetitionEntries = (competitionId: string) =>
+  reply(entries.filter((e) => events.find((ev) => ev.id === e.eventId)?.competitionId === competitionId))
+
+export const getEntryRows = (eventId: string) =>
+  reply(
+    entries
+      .filter((e) => e.eventId === eventId)
+      .map(entryRow)
+      .sort((a, b) => (a.backNumber ?? Infinity) - (b.backNumber ?? Infinity)),
+  )
+
+export const setEntryScratched = (actorId: string, entryId: string, scratched: boolean) =>
+  settle<EntryRow>(() => {
+    const entry = found(entries.find((e) => e.id === entryId), 'Entry')
+    entry.scratched = scratched
+    const event = found(events.find((e) => e.id === entry.eventId), 'Event')
+    const row = entryRow(entry)
+    record(actorId, scratched ? 'Scratched entry' : 'Restored entry', `Event ${event.number}, ${row.names.join(' & ')}`)
+    return row
+  })
+
+const competitorRow = (c: Competitor): CompetitorRow => ({
+  ...c,
+  clubName: clubName(c.clubId),
+  entryCount: entries.filter((e) => e.competitorId === c.id && !e.scratched).length,
+})
+
+export const getCompetitorRows = () => reply(competitors.map(competitorRow))
+
+function checkBackNumber(competitorId: string, backNumber: number | null) {
+  if (backNumber === null) return
+  if (!Number.isInteger(backNumber) || backNumber < 1) throw new Error('A back number is a whole number from 1.')
+  const owner = competitors.find((c) => c.backNumber === backNumber && c.id !== competitorId)
+  if (owner) throw new Error(`Back number ${backNumber} is already taken by ${owner.names.join(' & ')}.`)
+}
+
+function cleanNames(names: string[]) {
+  const cleaned = names.map((n) => n.trim()).filter(Boolean)
+  if (cleaned.length < 1 || cleaned.length > 2) throw new Error('A competitor is one dancer or a couple.')
+  return cleaned
+}
+
+export const createCompetitor = (actorId: string, input: { names: string[]; clubId: string }) =>
+  settle<CompetitorRow>(() => {
+    const names = cleanNames(input.names)
+    found(clubs.find((c) => c.id === input.clubId), 'Club')
+    const competitor: Competitor = {
+      id: `c-${String(competitors.length + 1).padStart(3, '0')}`,
+      names,
+      backNumber: null,
+      clubId: input.clubId,
+    }
+    competitors.push(competitor)
+    record(actorId, 'Added competitor', names.join(' & '))
+    return competitorRow(competitor)
+  })
+
+export const setBackNumber = (actorId: string, competitorId: string, backNumber: number | null) =>
+  settle<CompetitorRow>(() => {
+    const competitor = found(competitors.find((c) => c.id === competitorId), 'Competitor')
+    checkBackNumber(competitorId, backNumber)
+    competitor.backNumber = backNumber
+    record(actorId, 'Set back number', competitor.names.join(' & '))
+    return competitorRow(competitor)
+  })
+
+// Gives every competitor without a back number the next free one
+export const assignBackNumbers = (actorId: string) =>
+  settle<number>(() => {
+    const taken = new Set(competitors.map((c) => c.backNumber).filter((n): n is number => n !== null))
+    let next = 1
+    let assigned = 0
+    for (const competitor of competitors) {
+      if (competitor.backNumber !== null) continue
+      while (taken.has(next)) next++
+      competitor.backNumber = next
+      taken.add(next)
+      assigned++
+    }
+    record(actorId, 'Assigned back numbers', `${assigned} competitors`)
+    return assigned
+  })
+
+// TODO: the backend parses the uploaded file; here the screen sends the rows it read from the CSV
+export const importCompetitors = (actorId: string, rows: Array<{ names: string[]; clubName: string }>) =>
+  settle<ImportResult>(() => {
+    const result: ImportResult = { created: 0, skipped: [] }
+    rows.forEach((row, i) => {
+      const line = i + 2
+      const club = clubs.find((c) => c.name.toLowerCase() === row.clubName.trim().toLowerCase())
+      if (!club) return void result.skipped.push({ line, reason: `Unknown club "${row.clubName}".` })
+      let names: string[]
+      try {
+        names = cleanNames(row.names)
+      } catch (error) {
+        return void result.skipped.push({ line, reason: (error as Error).message })
+      }
+      competitors.push({
+        id: `c-${String(competitors.length + 1).padStart(3, '0')}`,
+        names,
+        backNumber: null,
+        clubId: club.id,
+      })
+      result.created++
+    })
+    record(actorId, 'Imported competitors', `${result.created} added`)
+    return result
+  })
+
+// TODO: a competitor's age group comes from their birth date in the real system; new sample competitors have none
+function checkEligible(competitorId: string, event: { isSolo: boolean; ageGroup: AgeGroup }) {
+  const competitor = found(competitors.find((c) => c.id === competitorId), 'Competitor')
+  if ((competitor.names.length === 1) !== event.isSolo) {
+    throw new Error(event.isSolo ? 'This is a solo event.' : 'This is a couple event.')
+  }
+  const age = ageGroupOf.get(competitorId)
+  if (age && age !== event.ageGroup) throw new Error('This competitor is in a different age group.')
+}
+
+function lateRow(entry: Entry): LateEntryRow {
+  const event = found(events.find((e) => e.id === entry.eventId), 'Event')
+  return {
+    ...entryRow(entry),
+    eventId: event.id,
+    eventNumber: event.number,
+    dances: event.dances,
+    fee: feeFor(event),
+    paymentId: entry.paymentId ?? '',
+  }
+}
+
+export const getLateEntries = (competitionId: string) =>
+  reply(
+    entries
+      .filter((e) => e.late && events.find((ev) => ev.id === e.eventId)?.competitionId === competitionId)
+      .map(lateRow),
+  )
+
+// A late entry gets its own payment, either paid in cash now or left unpaid
+export const createLateEntry = (
+  actorId: string,
+  input: { competitorId: string; eventId: string; paidInCash: boolean },
+) =>
+  settle<LateEntryRow>(() => {
+    const event = found(events.find((e) => e.id === input.eventId), 'Event')
+    const competitor = found(competitors.find((c) => c.id === input.competitorId), 'Competitor')
+    checkEligible(competitor.id, event)
+    if (entries.some((e) => e.eventId === event.id && e.competitorId === competitor.id)) {
+      throw new Error('This competitor is already entered in the event.')
+    }
+    const fee = feeFor(event)
+    const paymentId = `pay-late-${payments.length + 1}`
+    const entry: Entry = {
+      id: `${event.id}:${competitor.id}`,
+      eventId: event.id,
+      competitorId: competitor.id,
+      scratched: false,
+      paymentId,
+      late: true,
+    }
+    payments.push({
+      id: paymentId,
+      clubId: competitor.clubId,
+      entryIds: [entry.id],
+      amountDue: fee,
+      amountPaid: input.paidInCash ? fee : null,
+      referenceNumber: null,
+      receiptUrl: null,
+      status: input.paidInCash ? PaymentStatus.PaidAtVenue : PaymentStatus.Unpaid,
+      rejectionReason: null,
+      checkedBy: input.paidInCash ? actorId : null,
+      checkedAt: input.paidInCash ? new Date().toISOString() : null,
+    })
+    entries.push(entry)
+    record(actorId, 'Added late entry', `Event ${event.number}, ${competitor.names.join(' & ')}`)
+    return lateRow(entry)
+  })
+
+export const markPaidAtVenue = (actorId: string, paymentId: string) =>
+  settle<PaymentDetail>(() => {
+    const payment = found(payments.find((p) => p.id === paymentId), 'Payment')
+    if (payment.status !== PaymentStatus.Unpaid && payment.status !== PaymentStatus.Rejected) {
+      throw new Error('Only unpaid or rejected payments can be paid at the venue.')
+    }
+    payment.status = PaymentStatus.PaidAtVenue
+    payment.amountPaid = payment.amountDue
+    payment.rejectionReason = null
+    payment.checkedBy = actorId
+    payment.checkedAt = new Date().toISOString()
+    const detail = paymentDetail(payment)
+    record(actorId, 'Recorded cash payment', detail.clubName)
+    return detail
+  })
+
+// The order events run in; starts as event number order
+const scheduleOrder = new Map<string, string[]>()
+
+function orderFor(competitionId: string): string[] {
+  let order = scheduleOrder.get(competitionId)
+  if (!order) {
+    order = events
+      .filter((e) => e.competitionId === competitionId)
+      .sort((a, b) => a.number - b.number)
+      .map((e) => e.id)
+    scheduleOrder.set(competitionId, order)
+  }
+  return order
+}
+
+function scheduleOf(competitionId: string): ScheduleItem[] {
+  return orderFor(competitionId).map((eventId, i) => {
+    const event = found(events.find((e) => e.id === eventId), 'Event')
+    return {
+      eventId,
+      position: i + 1,
+      eventNumber: event.number,
+      ageGroup: event.ageGroup,
+      class: event.class,
+      discipline: event.discipline,
+      dances: event.dances,
+      isSolo: event.isSolo,
+      rounds: rounds.filter((r) => r.eventId === eventId).map((r) => ({ type: r.type, status: r.status })),
+    }
+  })
+}
+
+export const getSchedule = (competitionId: string) => reply(scheduleOf(competitionId))
+
+export const moveScheduledEvent = (
+  actorId: string,
+  competitionId: string,
+  eventId: string,
+  direction: 'up' | 'down',
+) =>
+  settle<ScheduleItem[]>(() => {
+    const order = orderFor(competitionId)
+    const from = order.indexOf(eventId)
+    const to = direction === 'up' ? from - 1 : from + 1
+    if (from < 0 || to < 0 || to >= order.length) throw new Error('That event cannot move further.')
+    ;[order[from], order[to]] = [order[to], order[from]]
+    const event = found(events.find((e) => e.id === eventId), 'Event')
+    record(actorId, 'Moved event in schedule', `Event ${event.number}`)
+    return scheduleOf(competitionId)
+  })
+
+export const updateCompetitor = (actorId: string, id: string, input: { names: string[]; clubId: string }) =>
+  settle<CompetitorRow>(() => {
+    const competitor = found(competitors.find((c) => c.id === id), 'Competitor')
+    const names = cleanNames(input.names)
+    found(clubs.find((c) => c.id === input.clubId), 'Club')
+    if ((names.length === 1) !== (competitor.names.length === 1) && entries.some((e) => e.competitorId === id)) {
+      throw new Error('Remove their entries before changing between a solo dancer and a couple.')
+    }
+    competitor.names = names
+    competitor.clubId = input.clubId
+    record(actorId, 'Edited competitor', names.join(' & '))
+    return competitorRow(competitor)
+  })
+
+export const deleteCompetitor = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const index = competitors.findIndex((c) => c.id === id)
+    if (index < 0) throw new Error('Competitor not found')
+    if (entries.some((e) => e.competitorId === id)) {
+      throw new Error('This competitor has entries. Remove or scratch them first.')
+    }
+    record(actorId, 'Deleted competitor', competitors[index].names.join(' & '))
+    competitors.splice(index, 1)
+  })
+
+function lateEntry(entryId: string) {
+  const entry = found(entries.find((e) => e.id === entryId), 'Entry')
+  if (!entry.late) throw new Error('Only late entries can be changed here.')
+  return entry
+}
+
+export const deleteLateEntry = (actorId: string, entryId: string) =>
+  settle<void>(() => {
+    const entry = lateEntry(entryId)
+    const event = found(events.find((e) => e.id === entry.eventId), 'Event')
+    const names = entryRow(entry).names.join(' & ')
+    const payment = payments.find((p) => p.id === entry.paymentId)
+    if (payment) payments.splice(payments.indexOf(payment), 1)
+    entries.splice(entries.indexOf(entry), 1)
+    record(actorId, 'Removed late entry', `Event ${event.number}, ${names}`)
+  })
+
+// Fixes a wrong event or payment on a late entry; the competitor stays the same
+export const updateLateEntry = (actorId: string, entryId: string, input: { eventId: string; paidInCash: boolean }) =>
+  settle<LateEntryRow>(() => {
+    const entry = lateEntry(entryId)
+    const event = found(events.find((e) => e.id === input.eventId), 'Event')
+    if (event.id !== entry.eventId) {
+      checkEligible(entry.competitorId, event)
+      if (entries.some((e) => e.eventId === event.id && e.competitorId === entry.competitorId)) {
+        throw new Error('This competitor is already entered in the event.')
+      }
+    }
+    const payment = found(payments.find((p) => p.id === entry.paymentId), 'Payment')
+    const newId = `${event.id}:${entry.competitorId}`
+    payment.entryIds = payment.entryIds.map((id) => (id === entry.id ? newId : id))
+    entry.id = newId
+    entry.eventId = event.id
+    const fee = feeFor(event)
+    payment.amountDue = fee
+    payment.amountPaid = input.paidInCash ? fee : null
+    payment.status = input.paidInCash ? PaymentStatus.PaidAtVenue : PaymentStatus.Unpaid
+    payment.checkedBy = input.paidInCash ? actorId : null
+    payment.checkedAt = input.paidInCash ? new Date().toISOString() : null
+    record(actorId, 'Edited late entry', `Event ${event.number}, ${entryRow(entry).names.join(' & ')}`)
+    return lateRow(entry)
+  })
+
+export type EventInput = Omit<Event, 'id' | 'competitionId'>
+
+function checkEvent(competitionId: string, input: EventInput, id?: string) {
+  if (!Number.isInteger(input.number) || input.number < 1) throw new Error('The event number is a whole number from 1.')
+  if (events.some((e) => e.competitionId === competitionId && e.number === input.number && e.id !== id)) {
+    throw new Error(`Event ${input.number} already exists in this competition.`)
+  }
+  if (input.dances.length === 0) throw new Error('Choose at least one dance.')
+  const allowed = DISCIPLINE_DANCES[input.discipline]
+  if (input.dances.some((d) => !allowed.includes(d))) {
+    throw new Error(`These dances do not belong to ${input.discipline}.`)
+  }
+}
+
+export const saveEvent = (actorId: string, competitionId: string, input: EventInput, id?: string) =>
+  settle<Event>(() => {
+    found(competitions.find((c) => c.id === competitionId), 'Competition')
+    checkEvent(competitionId, input, id)
+    if (id) {
+      const event = found(events.find((e) => e.id === id), 'Event')
+      if (event.isSolo !== input.isSolo && entries.some((e) => e.eventId === id)) {
+        throw new Error('Remove the entries before changing between solo and couple.')
+      }
+      Object.assign(event, input)
+      record(actorId, 'Edited event', `Event ${event.number}`)
+      return event
+    }
+    const event: Event = { id: `${competitionId}:e${input.number}`, competitionId, ...input }
+    events.push(event)
+    // orderFor builds the order from the events on first use, so the new one may already be in it
+    const order = orderFor(competitionId)
+    if (!order.includes(event.id)) order.push(event.id)
+    record(actorId, 'Created event', `Event ${event.number}`)
+    return event
+  })
+
+export const deleteEvent = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const event = found(events.find((e) => e.id === id), 'Event')
+    if (entries.some((e) => e.eventId === id) || rounds.some((r) => r.eventId === id)) {
+      throw new Error('This event has entries or rounds. Remove them first.')
+    }
+    const order = orderFor(event.competitionId)
+    order.splice(order.indexOf(id), 1)
+    const panel = panels.findIndex((p) => p.eventId === id)
+    if (panel >= 0) panels.splice(panel, 1)
+    events.splice(events.indexOf(event), 1)
+    record(actorId, 'Deleted event', `Event ${event.number}`)
+  })

@@ -23,8 +23,6 @@ const STATUS_CYCLE = [
 ]
 
 const eventById = new Map(events.map((e) => [e.id, e]))
-const competitorById = new Map(competitors.map((c) => [c.id, c]))
-const entryById = new Map(entries.map((e) => [e.id, e]))
 
 // TODO: replace with the real uploaded screenshot when the backend stores receipts
 export function sampleReceipt(amount: number, reference: string): string {
@@ -75,10 +73,11 @@ export const payments: Payment[] = clubs.flatMap((club, i) => {
 
 export function paymentDetail(payment: Payment): PaymentDetail {
   const lines = payment.entryIds
-    .map((entryId) => entryById.get(entryId))
+    // Looked up live: late entries and new competitors are added after this module loads
+    .map((entryId) => entries.find((e) => e.id === entryId))
     .flatMap((entry) => {
       const event = entry && eventById.get(entry.eventId)
-      const competitor = entry && competitorById.get(entry.competitorId)
+      const competitor = entry && competitors.find((c) => c.id === entry.competitorId)
       if (!entry || !event || !competitor) return []
       return [
         {
