@@ -1,43 +1,58 @@
 import { Role } from '@bis/shared'
+import {
+  Activity,
+  Award,
+  CalendarClock,
+  CalendarDays,
+  Clock,
+  ClipboardCheck,
+  Layers,
+  LayoutGrid,
+  ListChecks,
+  ListOrdered,
+  Trophy,
+  UserRound,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react'
 
 export interface NavItem {
   to: string
   label: string
   // Matches only its own path, not nested ones (the section's landing screen)
   end?: boolean
+  // Shown in the staff sidebar
+  icon?: LucideIcon
 }
 
 export type StaffRole = typeof Role.Admin | typeof Role.Secretariat | typeof Role.Scrutineer | typeof Role.Chairperson
 
+const scrutineerNav: NavItem[] = [
+  { to: '/scrutineer', label: 'Rounds', end: true, icon: Layers },
+  { to: '/scrutineer/heats', label: 'Heats', icon: LayoutGrid },
+  { to: '/scrutineer/live', label: 'Live board', icon: Activity },
+  { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
+  { to: '/scrutineer/results', label: 'Results', icon: Award },
+]
+
 export const staffNav: Record<StaffRole, NavItem[]> = {
   admin: [
-    { to: '/admin', label: 'Competitions', end: true },
-    { to: '/admin/staff', label: 'Staff accounts' },
-    { to: '/admin/adjudicators', label: 'Adjudicators and panels' },
-    { to: '/admin/points', label: 'Points table' },
-    { to: '/admin/payments', label: 'Payments' },
+    { to: '/admin/competitions', label: 'Competitions', icon: Trophy },
+    { to: '/admin/staff', label: 'Staff accounts', icon: Users },
+    { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck },
+    { to: '/admin/points', label: 'Points table', icon: ListOrdered },
+    { to: '/admin/payments', label: 'Payments', icon: Wallet },
   ],
   secretariat: [
-    { to: '/secretariat', label: 'Events', end: true },
-    { to: '/secretariat/competitors', label: 'Competitors' },
-    { to: '/secretariat/late-entries', label: 'Late entries' },
-    { to: '/secretariat/schedule', label: 'Schedule' },
+    { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays },
+    { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound },
+    { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
+    { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
   ],
-  scrutineer: [
-    { to: '/scrutineer', label: 'Rounds', end: true },
-    { to: '/scrutineer/heats', label: 'Heats' },
-    { to: '/scrutineer/live', label: 'Live board' },
-    { to: '/scrutineer/recall', label: 'Recall' },
-    { to: '/scrutineer/results', label: 'Results' },
-  ],
+  scrutineer: scrutineerNav,
   // The chairperson sees the scrutineer's screens, read-only
-  chairperson: [
-    { to: '/scrutineer', label: 'Rounds', end: true },
-    { to: '/scrutineer/heats', label: 'Heats' },
-    { to: '/scrutineer/live', label: 'Live board' },
-    { to: '/scrutineer/recall', label: 'Recall' },
-    { to: '/scrutineer/results', label: 'Results' },
-  ],
+  chairperson: scrutineerNav,
 }
 
 export const publicNav: NavItem[] = [

@@ -1,12 +1,19 @@
 import { Role } from '@bis/shared'
-import { createBrowserRouter, type RouteObject } from 'react-router'
+import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
 import { Placeholder } from '../components/Placeholder.tsx'
+import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
+import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
+import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
+import { PointsPage } from '../features/admin/PointsPage.tsx'
+import { StaffPage } from '../features/admin/StaffPage.tsx'
 import { AdjudicatorSignIn } from '../features/adjudicator/AdjudicatorSignIn.tsx'
 import { Waiting } from '../features/adjudicator/Waiting.tsx'
 import { ClubSignIn } from '../features/auth/ClubSignIn.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
 import { DesignPreview } from '../features/dev/DesignPreview.tsx'
 import { McHome } from '../features/mc/McHome.tsx'
+import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
+import { RankingsPage } from '../features/public/RankingsPage.tsx'
 import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
 import { McLayout } from './layouts/McLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
@@ -53,7 +60,23 @@ export const routes: RouteObject[] = [
         ],
       },
 
-      staffSection('/admin', [Role.Admin], staffNav.admin),
+      {
+        path: '/admin',
+        element: <RequireRole roles={[Role.Admin]} signInPath="/login" />,
+        children: [
+          {
+            element: <StaffLayout />,
+            children: [
+              { index: true, element: <Navigate to="/admin/competitions" replace /> },
+              { path: 'competitions', element: <CompetitionsPage /> },
+              { path: 'staff', element: <StaffPage /> },
+              { path: 'adjudicators', element: <AdjudicatorsPage /> },
+              { path: 'points', element: <PointsPage /> },
+              { path: 'payments', element: <PaymentsPage /> },
+            ],
+          },
+        ],
+      },
       staffSection('/secretariat', [Role.Secretariat], staffNav.secretariat),
       staffSection('/scrutineer', [Role.Scrutineer, Role.Chairperson], staffNav.scrutineer),
 
@@ -80,7 +103,18 @@ export const routes: RouteObject[] = [
 
       ...(import.meta.env.DEV ? [{ path: '/dev/design', element: <DesignPreview /> }] : []),
 
-      { path: '/', element: <PublicLayout />, children: sectionRoutes(publicNav, '') },
+      {
+        path: '/',
+        element: <PublicLayout />,
+        children: [
+          ...sectionRoutes(
+            publicNav.filter((item) => item.to !== '/rankings'),
+            '',
+          ),
+          { path: 'rankings', element: <RankingsPage /> },
+          { path: 'competitors/:id', element: <CompetitorPage /> },
+        ],
+      },
       { path: '*', element: <NotFound /> },
     ],
   },

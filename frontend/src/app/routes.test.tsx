@@ -135,6 +135,6 @@ describe('dev role switcher', () => {
     await userEvent.keyboard('{Control>}{Shift>}d{/Shift}{/Control}')
     await userEvent.click(await screen.findByRole('button', { name: 'Admin' }))
     await screen.findByRole('heading', { name: 'Competitions' })
-    expect(router.state.location.pathname).toBe('/admin')
+    expect(router.state.location.pathname).toBe('/admin/competitions')
   })
 })
