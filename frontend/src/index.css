@@ -53,16 +53,18 @@
 
   --shadow-overlay: 0 12px 32px -8px rgb(14 12 10 / 0.35);
 
-  --text-display: clamp(2rem, 1.4rem + 2.2vw, 3.25rem);
-  --text-display--line-height: 1.05;
-  --text-display--letter-spacing: -0.03em;
-  --text-title: 1.5rem;
-  --text-title--line-height: 1.2;
+  --text-display: clamp(1.375rem, 1.2rem + 0.55vw, 1.625rem);
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: 1rem;
+  --text-title--line-height: 1.4;
   --text-title--letter-spacing: -0.01em;
-  --text-body: 1rem;
-  --text-body--line-height: 1.5;
-  --text-small: 0.875rem;
-  --text-small--line-height: 1.4;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.75rem;
+  --text-small--line-height: 1.5;
+  --text-xs: 0.6875rem;
+  --text-xs--line-height: 1.4;
   --text-label: 0.75rem;
   --text-label--line-height: 1.2;
   --text-label--letter-spacing: 0.08em;
@@ -70,6 +72,13 @@
   --animate-skeleton: skeleton 1.4s ease-in-out infinite;
   --animate-fade-in: fade-in 160ms ease-out;
   --animate-dialog-in: dialog-in 160ms ease-out;
+  --animate-drawer-in: drawer-in 200ms ease-out;
+  @keyframes drawer-in {
+    from {
+      transform: translateX(2rem);
+      opacity: 0;
+    }
+  }
   @keyframes fade-in {
     from {
       opacity: 0;

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
+import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import { EmptyState } from './EmptyState.tsx'
+import { Pagination, Showing } from './Pagination.tsx'
 import { Skeleton } from './Skeleton.tsx'
 
 export interface Column<T> {
@@ -10,6 +12,12 @@ export interface Column<T> {
   align?: 'left' | 'right' | 'center'
   // Numbers (back numbers, counts, placings) use the mono face so columns line up
   mono?: boolean
+  // Quieter secondary text, for supporting columns
+  muted?: boolean
+  // Hides the column on screens narrower than this breakpoint
+  hideBelow?: 'sm' | 'md'
+  // Fixed width class for narrow columns such as a rank
+  widthClass?: string
 }
 
 interface TableProps<T> {
@@ -20,11 +28,19 @@ interface TableProps<T> {
   empty?: { title: string; description?: string; action?: ReactNode }
   // Highlights a row, e.g. ties at the recall cutoff
   rowClassName?: (row: T) => string | undefined
+  // Makes whole rows clickable; keep a real link in the row for keyboard and screen readers
+  onRowClick?: (row: T) => void
+  // Below this width the table scrolls sideways inside its card instead of squeezing its columns
+  minWidthClass?: string
+  // Names the pager for screen readers when a page has more than one table
+  paginationLabel?: string
   className?: string
 }
 
 const align = { left: 'text-left', right: 'text-right', center: 'text-center' } as const
+const hide = { sm: 'hidden sm:table-cell', md: 'hidden md:table-cell' } as const
 
+// Shows 10 rows at a time with a pager underneath
 export function Table<T>({
   columns,
   rows,
@@ -32,64 +48,98 @@ export function Table<T>({
   loading = false,
   empty = { title: 'Nothing here yet' },
   rowClassName,
+  onRowClick,
+  minWidthClass = 'min-w-[34rem]',
+  paginationLabel,
   className,
 }: TableProps<T>) {
-  if (!loading && rows.length === 0) return <EmptyState {...empty} />
+  // Go back to the first page whenever the rows change because of a filter or a search
+  const resetKey = `${rows.length}|${rows[0] ? rowKey(rows[0]) : ''}|${rows.length ? rowKey(rows[rows.length - 1]) : ''}`
+  const { page, setPage, pageSize, total, pageItems } = usePagination(rows, resetKey)
+
+  if (!loading && rows.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-neutral-300 px-6">
+        <EmptyState {...empty} />
+      </div>
+    )
+  }
 
   return (
-    <div className={cn('no-scrollbar overflow-auto', className)}>
-      <table className="w-full border-collapse text-small">
-        <thead>
-          <tr>
-            {columns.map((c) => (
-              <th
-                key={c.key}
-                scope="col"
-                className={cn(
-                  'sticky top-0 border-b border-neutral-900 bg-white py-3 pr-4 font-medium text-neutral-600 first:pl-0 last:pr-0',
-                  align[c.align ?? 'left'],
-                )}
-              >
-                {c.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading
-            ? Array.from({ length: 5 }, (_, i) => (
-                <tr key={i} className="border-b border-neutral-200">
-                  {columns.map((c) => (
-                    <td key={c.key} className="py-3.5 pr-4 first:pl-0 last:pr-0">
-                      <Skeleton className="h-4 w-full max-w-32" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            : rows.map((row) => (
-                <tr
-                  key={rowKey(row)}
+    <div className="flex flex-col gap-4">
+      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+      <div className={cn('no-scrollbar overflow-auto', className)}>
+        <table className={cn('w-full border-collapse text-small', minWidthClass)}>
+          <thead>
+            <tr>
+              {columns.map((c) => (
+                <th
+                  key={c.key}
+                  scope="col"
                   className={cn(
-                    'border-b border-neutral-200 transition-colors hover:bg-neutral-50',
-                    rowClassName?.(row),
+                    'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200 bg-neutral-50 px-5 py-3.5',
+                    'text-xs font-medium uppercase tracking-wider text-neutral-500 first:pl-6 last:pr-6',
+                    align[c.align ?? 'left'],
+                    c.hideBelow && hide[c.hideBelow],
+                    c.widthClass,
                   )}
                 >
-                  {columns.map((c) => (
-                    <td
-                      key={c.key}
-                      className={cn(
-                        'py-3.5 pr-4 text-neutral-900 first:pl-0 last:pr-0',
-                        align[c.align ?? 'left'],
-                        c.mono && 'font-mono tabular-nums',
-                      )}
-                    >
-                      {c.cell(row)}
-                    </td>
-                  ))}
-                </tr>
+                  {c.header}
+                </th>
               ))}
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100/80">
+            {loading
+              ? Array.from({ length: 5 }, (_, i) => (
+                  <tr key={i}>
+                    {columns.map((c) => (
+                      <td
+                        key={c.key}
+                        className={cn(
+                          'px-5 py-4 first:pl-6 last:pr-6',
+                          c.hideBelow && hide[c.hideBelow],
+                        )}
+                      >
+                        <Skeleton className="h-3.5 w-full max-w-32" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              : pageItems.map((row) => (
+                  <tr
+                    key={rowKey(row)}
+                    onClick={onRowClick && (() => onRowClick(row))}
+                    className={cn(
+                      'transition-colors hover:bg-neutral-50',
+                      onRowClick && 'cursor-pointer',
+                      rowClassName?.(row),
+                    )}
+                  >
+                    {columns.map((c) => (
+                      <td
+                        key={c.key}
+                        className={cn(
+                          'px-5 py-4 first:pl-6 last:pr-6',
+                          c.muted ? 'text-neutral-600' : 'text-neutral-900',
+                          align[c.align ?? 'left'],
+                          c.mono && 'font-mono tabular-nums',
+                          c.hideBelow && hide[c.hideBelow],
+                        )}
+                      >
+                        {c.cell(row)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+          </tbody>
+        </table>
+      </div>
+      {!loading && <Showing page={page} pageSize={pageSize} total={total} />}
+      </div>
+      {!loading && (
+        <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label={paginationLabel} showSummary={false} />
+      )}
     </div>
   )
 }

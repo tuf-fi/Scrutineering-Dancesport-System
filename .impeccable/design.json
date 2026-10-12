@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-11T13:02:12.972Z",
+  "generatedAt": "2026-10-11T13:43:38.539Z",
   "title": "Design System: BIS",
   "extensions": {
     "colorMeta": {
@@ -98,11 +98,11 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Page titles; fluid 2rem to 3.25rem."
+        "purpose": "Page titles; fluid 1.625rem to 2.25rem."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Dialog and empty-state headings, the adjudicator Submit button."
+        "purpose": "Section headings and dialog titles."
       },
       "body": {
         "displayName": "Body",
@@ -163,7 +163,7 @@
       "refersTo": "button-primary",
       "description": "The one gold action on a screen.",
       "html": "<button class=\"ds-btn-primary\">Publish result</button>",
-      "css": ".ds-btn-primary { background: var(--color-gold-400); color: var(--color-black); height: 44px; padding: 0 20px; border: 0; border-radius: 8px; font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-primary:hover { background: var(--color-gold-300); } .ds-btn-primary:active { background: var(--color-gold-500); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
+      "css": ".ds-btn-primary { background: var(--color-gold-400); color: var(--color-black); height: 40px; padding: 0 20px; border: 0; border-radius: 8px; font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-primary:hover { background: var(--color-gold-300); } .ds-btn-primary:active { background: var(--color-gold-500); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
     },
     {
       "name": "Secondary Button",
@@ -171,7 +171,7 @@
       "refersTo": "button-secondary",
       "description": "Hairline-outlined action beside a primary.",
       "html": "<button class=\"ds-btn-secondary\">Print list</button>",
-      "css": ".ds-btn-secondary { background: transparent; color: var(--color-neutral-900); height: 44px; padding: 0 20px; border: 1px solid var(--color-neutral-300); border-radius: 8px; font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-secondary:hover { background: var(--color-neutral-50); } .ds-btn-secondary:active { background: var(--color-neutral-100); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
+      "css": ".ds-btn-secondary { background: transparent; color: var(--color-neutral-900); height: 40px; padding: 0 20px; border: 1px solid var(--color-neutral-300); border-radius: 8px; font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-secondary:hover { background: var(--color-neutral-50); } .ds-btn-secondary:active { background: var(--color-neutral-100); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
     },
     {
       "name": "Danger Button",
@@ -179,7 +179,7 @@
       "refersTo": "button-danger",
       "description": "Destructive actions such as rejecting a payment.",
       "html": "<button class=\"ds-btn-danger\">Reject</button>",
-      "css": ".ds-btn-danger { background: var(--color-danger); color: #fff; height: 44px; padding: 0 20px; border: 0; border-radius: 8px; font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-danger:hover { background: #9a1f19; } .ds-btn-danger:active { background: #821a15; } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
+      "css": ".ds-btn-danger { background: var(--color-danger); color: #fff; height: 40px; padding: 0 20px; border: 0; border-radius: 8px; font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s; } .ds-btn-danger:hover { background: #9a1f19; } .ds-btn-danger:active { background: #821a15; } .ds-btn-danger:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: 2px; }"
     },
     {
       "name": "Text Field",
@@ -187,7 +187,7 @@
       "refersTo": "input",
       "description": "Labelled input; the label is always visible.",
       "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-user\">Username</label><input class=\"ds-input\" id=\"ds-user\" value=\"scrutineer1\" /><p class=\"ds-field-hint\">Issued by the admin</p></div>",
-      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); } .ds-field-label { font-size: 0.875rem; font-weight: 500; color: var(--color-neutral-700); } .ds-input { height: 44px; padding: 0 14px; background: var(--color-neutral-50); color: var(--color-neutral-900); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-family: var(--font-sans); font-size: 1rem; } .ds-input:hover { border-color: var(--color-neutral-400); } .ds-input:focus-visible { border-color: var(--color-neutral-900); background: #fff; outline: 2px solid var(--color-gold-500); outline-offset: 2px; } .ds-field-hint { margin: 0; font-size: 0.875rem; color: var(--color-neutral-600); }"
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); } .ds-field-label { font-size: 0.8125rem; font-weight: 500; color: var(--color-neutral-700); } .ds-input { height: 40px; padding: 0 14px; background: var(--color-neutral-50); color: var(--color-neutral-900); border: 1px solid var(--color-neutral-300); border-radius: 8px; font-family: var(--font-sans); font-size: 0.9375rem; } .ds-input:hover { border-color: var(--color-neutral-400); } .ds-input:focus-visible { border-color: var(--color-neutral-900); background: #fff; outline: 2px solid var(--color-gold-500); outline-offset: 2px; } .ds-field-hint { margin: 0; font-size: 0.8125rem; color: var(--color-neutral-600); }"
     },
     {
       "name": "Status",
@@ -195,7 +195,7 @@
       "refersTo": "badge",
       "description": "A dot and a word in the status color; no fill.",
       "html": "<span class=\"ds-status ds-status-success\"><span class=\"ds-status-dot\"></span>Approved</span>",
-      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; } .ds-status-success { color: var(--color-success); } .ds-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }"
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 500; } .ds-status-success { color: var(--color-success); } .ds-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }"
     },
     {
       "name": "Card",
@@ -203,15 +203,15 @@
       "refersTo": "card",
       "description": "Flat surface with a hairline border and no shadow.",
       "html": "<div class=\"ds-card\"><p class=\"ds-card-title\">Cha Cha Cha</p><p class=\"ds-card-meta\">E11 &middot; Junior I &middot; E1 &middot; Latin</p></div>",
-      "css": ".ds-card { background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 20px; font-family: var(--font-sans); } .ds-card-title { margin: 0 0 4px; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-neutral-900); } .ds-card-meta { margin: 0; font-size: 0.875rem; color: var(--color-neutral-600); }"
+      "css": ".ds-card { background: #fff; border: 1px solid var(--color-neutral-200); border-radius: 12px; padding: 20px; font-family: var(--font-sans); } .ds-card-title { margin: 0 0 4px; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-neutral-900); } .ds-card-meta { margin: 0; font-size: 0.8125rem; color: var(--color-neutral-600); }"
     },
     {
       "name": "Results Table",
       "kind": "custom",
       "refersTo": "table-header",
-      "description": "Open table ruled like the printed sheet; mono numbers, tie row in gold tint.",
-      "html": "<table class=\"ds-table\"><thead><tr><th>Back</th><th>Competitor</th><th class=\"ds-r\">X</th></tr></thead><tbody><tr><td class=\"ds-mono\">60</td><td>Santos, Mia</td><td class=\"ds-mono ds-r\">7</td></tr><tr class=\"ds-tie\"><td class=\"ds-mono\">179</td><td>Cruz, Ana</td><td class=\"ds-mono ds-r\">4</td></tr></tbody></table>",
-      "css": ".ds-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.875rem; } .ds-table th { padding: 12px 16px 12px 0; text-align: left; background: #fff; color: var(--color-neutral-600); border-bottom: 1px solid var(--color-neutral-900); font-weight: 500; } .ds-table td { padding: 14px 16px 14px 0; color: var(--color-neutral-900); border-bottom: 1px solid var(--color-neutral-200); } .ds-table tbody tr:hover { background: var(--color-neutral-50); } .ds-table .ds-tie { background: var(--color-gold-50); } .ds-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; } .ds-r { text-align: right; padding-right: 0; }"
+      "description": "Contained table: hairline border, header band, soft rules; mono numbers, tie row in gold tint.",
+      "html": "<div class=\"ds-table-wrap\"><table class=\"ds-table\"><thead><tr><th>Back</th><th>Competitor</th><th class=\"ds-r\">X</th></tr></thead><tbody><tr><td class=\"ds-mono\">60</td><td>Santos, Mia</td><td class=\"ds-mono ds-r\">7</td></tr><tr class=\"ds-tie\"><td class=\"ds-mono\">179</td><td>Cruz, Ana</td><td class=\"ds-mono ds-r\">4</td></tr></tbody></table></div>",
+      "css": ".ds-table-wrap { border: 1px solid var(--color-neutral-200); border-radius: 12px; overflow: hidden; background: #fff; } .ds-table { width: 100%; border-collapse: collapse; font-family: var(--font-sans); font-size: 0.8125rem; } .ds-table th { padding: 10px 16px; text-align: left; background: var(--color-neutral-50); color: var(--color-neutral-500); border-bottom: 1px solid var(--color-neutral-200); font-size: 0.75rem; font-weight: 500; } .ds-table td { padding: 12px 16px; color: var(--color-neutral-900); border-bottom: 1px solid var(--color-neutral-100); } .ds-table tbody tr:last-child td { border-bottom: 0; } .ds-table tbody tr:hover { background: var(--color-neutral-50); } .ds-table .ds-tie { background: var(--color-gold-50); } .ds-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; } .ds-r { text-align: right; }"
     },
     {
       "name": "Tabs",
@@ -219,7 +219,7 @@
       "refersTo": "button-ghost",
       "description": "Underline tabs; active tab has a 2px gold underline.",
       "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab ds-tab-active\" role=\"tab\" aria-selected=\"true\">Cha Cha Cha</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Rumba</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Jive</button></div>",
-      "css": ".ds-tabs { display: flex; border-bottom: 1px solid var(--color-neutral-200); font-family: var(--font-sans); } .ds-tab { height: 44px; padding: 0; margin-right: 24px; margin-bottom: -1px; background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--color-neutral-600); font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600; cursor: pointer; } .ds-tab:hover { color: var(--color-neutral-900); } .ds-tab-active { border-bottom-color: var(--color-gold-500); color: var(--color-neutral-900); } .ds-tab:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: -2px; }"
+      "css": ".ds-tabs { display: flex; border-bottom: 1px solid var(--color-neutral-200); font-family: var(--font-sans); } .ds-tab { height: 40px; padding: 0; margin-right: 24px; margin-bottom: -1px; background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--color-neutral-600); font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600; cursor: pointer; } .ds-tab:hover { color: var(--color-neutral-900); } .ds-tab-active { border-bottom-color: var(--color-gold-500); color: var(--color-neutral-900); } .ds-tab:focus-visible { outline: 2px solid var(--color-gold-500); outline-offset: -2px; }"
     }
   ],
   "narrative": {

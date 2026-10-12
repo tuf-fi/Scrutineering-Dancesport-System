@@ -1,4 +1,4 @@
----
+﻿---
 name: BIS Design System
 description: Plain, exact and printable like a result sheet; black, brown and white with gold marking what matters.
 colors:
@@ -33,26 +33,26 @@ colors:
 typography:
   display:
     fontFamily: "Manrope Variable, system-ui, sans-serif"
-    fontSize: "clamp(2rem, 1.4rem + 2.2vw, 3.25rem)"
+    fontSize: "clamp(1.625rem, 1.3rem + 1vw, 2.25rem)"
     fontWeight: 600
-    lineHeight: 1.05
-    letterSpacing: "-0.03em"
+    lineHeight: 1.15
+    letterSpacing: "-0.025em"
   title:
     fontFamily: "Manrope Variable, system-ui, sans-serif"
-    fontSize: "1.5rem"
-    fontWeight: 700
-    lineHeight: 1.2
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: 1.35
     letterSpacing: "-0.01em"
   body:
     fontFamily: "Manrope Variable, system-ui, sans-serif"
-    fontSize: "1rem"
+    fontSize: "0.9375rem"
     fontWeight: 400
-    lineHeight: 1.5
+    lineHeight: 1.55
   small:
     fontFamily: "Manrope Variable, system-ui, sans-serif"
-    fontSize: "0.875rem"
+    fontSize: "0.8125rem"
     fontWeight: 500
-    lineHeight: 1.4
+    lineHeight: 1.45
   label:
     fontFamily: "JetBrains Mono Variable, ui-monospace, monospace"
     fontSize: "0.75rem"
@@ -200,10 +200,10 @@ A warm-black and white base, brown for dark and secondary surfaces, and gold as 
 **Character:** Manrope is clear and geometric, readable at phone size and on a projector. JetBrains Mono gives numbers an even rhythm and the metadata a printed-sheet feel.
 
 ### Hierarchy
-- **Display** (600, fluid 2rem to 3.25rem, 1.05, -0.03em): page titles.
-- **Title** (700, 1.5rem, 1.2, -0.01em): dialog titles, empty-state headings, the adjudicator Submit button.
-- **Body** (400, 1rem, 1.5): paragraphs and form text. Keep lines near 65ch.
-- **Small** (500 to 600, 0.875rem, 1.4): table cells, field labels, hints, tabs.
+- **Display** (600, fluid 1.375rem to 1.625rem, 1.2, -0.02em): page titles.
+- **Title** (600, 1rem, 1.4, -0.01em): section headings and dialog titles.
+- **Body** (400, 0.875rem, 1.55): paragraphs and form text. Keep lines near 65ch.
+- **Small** (500 to 600, 0.75rem, 1.5): table cells, field labels, hints, tabs, buttons. Table headers use 0.6875rem. Do not enlarge this scale; type was reduced twice on request.
 - **Label** (mono, 500, 0.75rem, 0.08em): short data labels only. Numbers in tables and meta lines use mono with `tabular-nums`.
 
 ### Named Rules
@@ -232,7 +232,7 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 ## Components
 
 ### Buttons
-- **Shape:** 8px radius, semibold, 44px tall by default (36 small, 48 large, 64 extra large for adjudicator phones).
+- **Shape:** 8px radius, semibold, 40px tall by default (32 small, 44 large, 64 extra large with 24px labels for adjudicator phones).
 - **Primary:** Podium Gold fill with Ink Black text, `0 16px` padding. Hover Pale Gold, pressed Aged Gold.
 - **Secondary:** 1px Soft Rule border with Charcoal Brown text; hover fills Table Bone.
 - **Ghost:** Slate Taupe text; hover fills Pale Stone.
@@ -240,7 +240,7 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 - **Disabled:** 40% opacity, no pointer.
 
 ### Inputs / Fields
-- **Style:** Table Bone fill, 1px Soft Rule border, 8px radius, 44px tall. A visible label always sits above; a placeholder never replaces it.
+- **Style:** Table Bone fill, 1px Soft Rule border, 8px radius, 40px tall. A visible label always sits above; a placeholder never replaces it.
 - **Focus:** fill turns white, border shifts to Charcoal Brown and the gold focus ring appears.
 - **Error:** Alert Red border with the message below in red (role alert). Hints use Muted Taupe.
 - **Disabled:** Pale Stone fill.
@@ -249,19 +249,39 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 - **Corner Style:** 12px. **Background:** white. **Border:** 1px Hairline. **Shadow:** none. **Padding:** 20px. Never nest a card inside a card.
 
 ### Tables
-- Open, ruled like the printed sheet: no outer border, a 1px black rule under a sticky header of plain muted labels, hairline rules between rows. Row hover on Table Bone. Numbers are mono and right-aligned. Highlight rows with Winner Tint (ties at the cutoff). Loading shows skeleton rows of the same shape; empty shows the empty state.
+- A plain contained surface: 1px Hairline border, 12px radius, a white header with small muted labels over a hairline, hairline rules between rows and a soft hover. Names read at full strength, supporting columns (venue, username) in Muted Taupe. Numbers are mono and right-aligned. No date tiles, chips or other decoration on rows. Highlight rows with Winner Tint (ties at the cutoff). Loading shows skeleton rows of the same shape; empty shows the empty state.
+- **Every table and list paginates, at most 10 rows a page, with the pager always shown.** The footer reads "Showing 1–10 of 33" on the left and the pager on the right; it returns to page 1 when a filter or search changes.
+- **Row actions** are icon buttons (edit, delete, and others such as reset password), 32px, muted until hovered; delete turns Alert Red. Rows are not clickable except where a row opens a read-only view (Payments drawer, Rankings); editing is only through the edit icon.
 
 ### Status
 - A dot and a word in the status color, no fill and no pill. Tones: neutral, gold, success, warning, danger. Never stack more than a few in one row.
 
 ### Tabs
-- Underline style: active tab has a 2px gold underline and Charcoal text; inactive text is Muted Taupe. Arrow keys move selection. A large variant (56px tall) serves adjudicator phones.
+- Underline style: active tab has a 2px gold underline and Charcoal text; inactive text is Muted Taupe. An optional count follows the label in small muted mono. Arrow keys move selection. A large variant (56px tall) serves adjudicator phones.
 
 ### Dialog
-- Built on Radix Dialog (focus trap, scroll lock, Esc, portal). 12px radius, 24px padding, max 32rem wide, hidden scrollbar, plain 60% black backdrop with no blur. Actions right-aligned.
+- Built on Radix Dialog (focus trap, scroll lock, Esc, portal). 12px radius, max 28 to 32rem wide, hidden scrollbar, plain 50% black backdrop with no blur. A title and one-line description with a close button at the top-right, the form below, and the actions in a Table Bone footer bar under a hairline, right-aligned. Creating and editing a record (competition, staff account, adjudicator) happens in this modal on the list page, never on a separate page.
+
+### Drawer
+- Off-canvas panel from the right edge (max 36rem, full width on phones), built on Radix Dialog like Dialog, with the same plain 50% black backdrop. Title and status under it, close button top-right, hidden-scrollbar body, and a footer bar pinned to the bottom for decisions (Payments: Reject and Approve). Opens from a table row click; the table stays the list.
 
 ### Toast
 - Built on Sonner, styled with project tokens: Deep Roast fill with white text, bottom-centred, 4s. `toast.success` turns the fill green and `toast.error` red.
+
+### Staff sidebar
+- From laptop width, fixed to the viewport (the page never scrolls it): 15rem, collapsible to a 4.5rem icon rail, remembered on the device. The surface is flat Table Bone with hairline rules, no cards. The logo is centred at the top with the collapse button at its top-right (above the logo in the collapsed rail). Between two hairlines under it, the signed-in person: initials avatar on the left, name over role on the right. Each section has a Lucide icon (18px, 1.75 stroke) and a label. The current section is a white row with a hairline border and a gold icon; the rest are Muted Taupe with a soft hover. Collapsed, labels stay in the page for screen readers and a dark tooltip shows beside the icon on hover and focus. Under a hairline at the bottom: the connection status as a plain dot and word (Confirm Green online, Caution Orange offline) and Sign out in Alert Red. On laptops there is no top bar; those controls live in the sidebar. Below laptop width the sidebar is replaced by a top bar (logo, status, sign out) over a scrolling strip of text tabs.
+
+### Filters
+- Filters are selects with a visible label, not button groups, and their options carry no counts. A list's toolbar reads left to right: search, the select filters, then the page's primary action pushed to the far right of the same row, level with the inputs. The two-option view switch on the adjudicators page is the only toggle-button group left (36px, 8px radius, the chosen option fills Charcoal Brown); gold stays reserved for the one primary action.
+
+### Pagination
+- A circular pager: a round bordered arrow, the page numbers as round buttons with the current page filled Charcoal Brown, then the next arrow. Long runs collapse with an ellipsis around the current page. On phones it reads "Page 2 of 6" between the two arrows.
+
+### Avatars
+- Overlapping initials circles for a solo dancer or a couple (36px; 56px on a profile), tinted Brown Mist and Pale Stone with a white ring. There are no photos yet.
+
+### Ranking rows
+- Rank in mono (top three at full strength, the rest muted), competitor with their club underneath, then competitions and points right-aligned in mono. Equal points share a rank and the next rank is skipped. Whole rows open the competitor's page.
 
 ### Page header
 - Display title, optional description, actions on the right. No label above the title.

@@ -67,7 +67,7 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
             {d}
           </Button>
         ))}
-        <Button variant="ghost" size="xl" disabled={disabled} onClick={clear} className="px-0 text-small sm:h-20">
+        <Button variant="ghost" size="xl" disabled={disabled} onClick={clear} className="px-0 text-body! sm:h-20">
           Clear
         </Button>
         <Button
@@ -79,7 +79,7 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
         >
           0
         </Button>
-        <Button variant="ghost" size="xl" disabled={disabled} onClick={remove} className="px-0 text-small sm:h-20">
+        <Button variant="ghost" size="xl" disabled={disabled} onClick={remove} className="px-0 text-body! sm:h-20">
           Delete
         </Button>
       </div>

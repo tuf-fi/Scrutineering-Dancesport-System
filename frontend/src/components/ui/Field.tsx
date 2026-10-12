@@ -12,18 +12,26 @@ const control =
   'hover:border-neutral-400 focus-visible:border-neutral-900 focus-visible:bg-white ' +
   'focus-visible:outline-gold-500 disabled:bg-neutral-100 disabled:text-neutral-500'
 
-interface FieldShellProps {
+interface CommonProps {
   label: string
+  // Keeps the label for screen readers only, for fields whose column header already names them
+  hideLabel?: boolean
   hint?: string
   error?: string
+}
+
+interface FieldShellProps extends CommonProps {
   id: string
   children: ReactNode
 }
 
-function FieldShell({ label, hint, error, id, children }: FieldShellProps) {
+function FieldShell({ label, hideLabel, hint, error, id, children }: FieldShellProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-small font-medium text-neutral-700">
+      <label
+        htmlFor={id}
+        className={cn('text-small font-medium text-neutral-700', hideLabel && 'sr-only')}
+      >
         {label}
       </label>
       {children}
@@ -40,12 +48,6 @@ function FieldShell({ label, hint, error, id, children }: FieldShellProps) {
   )
 }
 
-interface CommonProps {
-  label: string
-  hint?: string
-  error?: string
-}
-
 function describe(id: string, hint?: string, error?: string) {
   return {
     'aria-invalid': error ? true : undefined,
@@ -55,6 +57,7 @@ function describe(id: string, hint?: string, error?: string) {
 
 export function Input({
   label,
+  hideLabel,
   hint,
   error,
   className,
@@ -62,10 +65,10 @@ export function Input({
 }: CommonProps & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId()
   return (
-    <FieldShell label={label} hint={hint} error={error} id={id}>
+    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
       <input
         id={id}
-        className={cn(control, 'h-11', error ? 'border-danger' : 'border-neutral-300', className)}
+        className={cn(control, 'h-10', error ? 'border-danger' : 'border-neutral-300', className)}
         {...describe(id, hint, error)}
         {...props}
       />
@@ -75,6 +78,7 @@ export function Input({
 
 export function Select({
   label,
+  hideLabel,
   hint,
   error,
   className,
@@ -83,10 +87,10 @@ export function Select({
 }: CommonProps & SelectHTMLAttributes<HTMLSelectElement>) {
   const id = useId()
   return (
-    <FieldShell label={label} hint={hint} error={error} id={id}>
+    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
       <select
         id={id}
-        className={cn(control, 'h-11', error ? 'border-danger' : 'border-neutral-300', className)}
+        className={cn(control, 'h-10', error ? 'border-danger' : 'border-neutral-300', className)}
         {...describe(id, hint, error)}
         {...props}
       >
@@ -98,6 +102,7 @@ export function Select({
 
 export function Textarea({
   label,
+  hideLabel,
   hint,
   error,
   className,
@@ -106,7 +111,7 @@ export function Textarea({
 }: CommonProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const id = useId()
   return (
-    <FieldShell label={label} hint={hint} error={error} id={id}>
+    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
       <textarea
         id={id}
         rows={rows}
