@@ -50,6 +50,9 @@ export function EventPage() {
             <ButtonLink variant="secondary" to={`/print/recall/${eventId}`} target="_blank">
               Recall list
             </ButtonLink>
+            <ButtonLink variant="ghost" to={`/print?event=${eventId}`} target="_blank">
+              All printouts
+            </ButtonLink>
           </>
         }
       />

@@ -119,9 +119,18 @@ export function recallTable(roundId: string): RecallTable {
   const above = sorted.filter((r) => r.xCount > (cutoff ?? 0)).length
   const decision = hasTie ? (tieDecisions.get(roundId) ?? null) : null
 
+  // A round that is already decided has its recall in the next round's heats, whatever the counts say
+  const sequence = rounds.filter((r) => r.eventId === round.eventId)
+  const nextRound = sequence[sequence.indexOf(round) + 1]
+  const decided = round.status === RoundStatus.Approved || round.status === RoundStatus.Published
+  const through = decided && nextRound
+    ? new Set(heats.filter((h) => h.roundId === nextRound.id).flatMap((h) => h.competitorIds))
+    : null
+
   const rows: RecallRow[] = sorted.map((r, i) => {
     let outcome: RecallRow['outcome']
-    if (!hasTie) outcome = i < recall ? 'recalled' : 'out'
+    if (through && through.size > 0) outcome = through.has(r.competitorId) ? 'recalled' : 'out'
+    else if (!hasTie) outcome = i < recall ? 'recalled' : 'out'
     else if (r.xCount > cutoff) outcome = 'recalled'
     else if (r.xCount < cutoff) outcome = 'out'
     else outcome = decision ? (decision.choice === 'more' ? 'recalled' : 'out') : 'tied'
@@ -134,8 +143,8 @@ export function recallTable(roundId: string): RecallTable {
     adjudicatorCount: adjudicatorIds.length,
     submittedCount: adjudicatorIds.filter((id) => submitted.has(id)).length,
     rows,
-    recalled: !hasTie ? Math.min(recall, sorted.length) : decision ? (decision.choice === 'more' ? above + tied.length : above) : recall,
-    tie: hasTie ? { xCount: cutoff, count: tied.length, decision } : null,
+    recalled: through && through.size > 0 ? through.size : !hasTie ? Math.min(recall, sorted.length) : decision ? (decision.choice === 'more' ? above + tied.length : above) : recall,
+    tie: hasTie && !(through && through.size > 0) ? { xCount: cutoff, count: tied.length, decision } : null,
   }
 }
 

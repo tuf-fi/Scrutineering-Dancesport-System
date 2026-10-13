@@ -17,6 +17,16 @@ export const AGE_GROUP_LABEL: Record<AgeGroup, string> = {
   senior: 'Senior',
 }
 
+// As printed on result sheets, e.g. "JUN 1 - E1"
+export const AGE_GROUP_SHORT: Record<AgeGroup, string> = {
+  juvenile: 'JUV',
+  junior_1: 'JUN 1',
+  junior_2: 'JUN 2',
+  youth: 'YTH',
+  adult: 'ADT',
+  senior: 'SEN',
+}
+
 export const DISCIPLINE_LABEL: Record<Discipline, string> = {
   latin: 'Latin',
   standard: 'Standard',
