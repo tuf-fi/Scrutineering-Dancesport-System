@@ -16,6 +16,11 @@ import { DesignPreview } from '../features/dev/DesignPreview.tsx'
 import { McHome } from '../features/mc/McHome.tsx'
 import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
 import { RankingsPage } from '../features/public/RankingsPage.tsx'
+import { HeatsPage } from '../features/scrutineer/HeatsPage.tsx'
+import { LivePage } from '../features/scrutineer/LivePage.tsx'
+import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
+import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
+import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
 import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
@@ -26,7 +31,7 @@ import { McLayout } from './layouts/McLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
 import { StaffLayout } from './layouts/StaffLayout.tsx'
 import { ClubLayout, PublicLayout } from './layouts/TopNavLayout.tsx'
-import { clubNav, publicNav, staffNav, type NavItem } from './nav.ts'
+import { clubNav, publicNav, type NavItem } from './nav.ts'
 import { NotFound } from './NotFound.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
@@ -41,14 +46,6 @@ function sectionRoutes(items: NavItem[], basePath: string): RouteObject[] {
 }
 
 const STAFF = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
-
-function staffSection(path: string, roles: Role[], items: NavItem[]): RouteObject {
-  return {
-    path,
-    element: <RequireRole roles={roles} signInPath="/login" />,
-    children: [{ element: <StaffLayout />, children: sectionRoutes(items, path) }],
-  }
-}
 
 export const routes: RouteObject[] = [
   {
@@ -109,7 +106,22 @@ export const routes: RouteObject[] = [
           },
         ],
       },
-      staffSection('/scrutineer', [Role.Scrutineer, Role.Chairperson], staffNav.scrutineer),
+      {
+        path: '/scrutineer',
+        element: <RequireRole roles={[Role.Scrutineer, Role.Chairperson]} signInPath="/login" />,
+        children: [
+          {
+            element: <StaffLayout />,
+            children: [
+              { index: true, element: <RoundsPage /> },
+              { path: 'heats', element: <HeatsPage /> },
+              { path: 'live', element: <LivePage /> },
+              { path: 'recall', element: <RecallPage /> },
+              { path: 'results', element: <ResultsPage /> },
+            ],
+          },
+        ],
+      },
 
       {
         path: '/mc',

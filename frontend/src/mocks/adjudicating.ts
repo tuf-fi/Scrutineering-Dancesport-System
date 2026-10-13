@@ -56,6 +56,12 @@ function taskFor(roundId: string): MarkingTask | null {
   return { round, event, recallNumber: round.recallNumber, dances: event.dances, competitors: fieldOf(round) }
 }
 
+// The competitors in a round, for heat setup and marks
+export function roundField(roundId: string): MarkingTask['competitors'] {
+  const round = rounds.find((r) => r.id === roundId)
+  return round ? fieldOf(round) : []
+}
+
 export function adjudicatorState(adjudicatorId: string): AdjudicatorState {
   const task = activeRoundId ? taskFor(activeRoundId) : null
   const onPanel = panels.find((p) => p.eventId === task?.event.id)?.adjudicatorIds.includes(adjudicatorId)

@@ -10,7 +10,9 @@ import {
   type Competition,
   type Competitor,
   type CompetitorRow,
+  type HeatAssignment,
   type MarkSubmission,
+  type TieDecision,
   type Entry,
   type EntryRow,
   type Event,
@@ -33,6 +35,18 @@ import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
+import {
+  approveRoundResults,
+  confirmTie,
+  currentRoundId,
+  heatAssignments,
+  proposeTie,
+  publishRoundResults,
+  recallTable,
+  roundRows,
+  saveHeatAssignments,
+  skatingTable,
+} from './scrutinizing.ts'
 import { adjudicatorState, demoRounds, startDemoRound, submitMarks } from './adjudicating.ts'
 import { heats, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
@@ -74,7 +88,7 @@ export const getPanel = (eventId: string) =>
 
 // The live round turns to review once every adjudicator has submitted
 function withLiveStatus<T extends { id: string; status: RoundStatus }>(round: T): T {
-  return isLiveRound(round.id) && liveRoundComplete()
+  return round.status === RoundStatus.Marking && isLiveRound(round.id) && liveRoundComplete()
     ? { ...round, status: RoundStatus.Review }
     : round
 }
@@ -844,3 +858,43 @@ export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, s
 // TODO: dev-only controls that stand in for the scrutineer starting a round
 export const getDemoRounds = () => reply(demoRounds())
 export const startDemoRoundOnFloor = (roundId: string | null) => settle<void>(() => startDemoRound(roundId))
+
+// ---- Scrutineer ----
+
+export const getCurrentRoundId = () => reply(currentRoundId())
+export const getCompetitionRounds = (competitionId: string) => reply(roundRows(competitionId))
+export const getHeatAssignments = (roundId: string) => reply(heatAssignments(roundId))
+
+export const saveHeats = (actorId: string, roundId: string, assignments: HeatAssignment[]) =>
+  settle<void>(() => {
+    saveHeatAssignments(roundId, assignments)
+    record(actorId, 'Set heats', roundId)
+  })
+
+export const getRecallTable = (roundId: string) => reply(recallTable(roundId))
+
+export const proposeTieDecision = (actorId: string, roundId: string, choice: TieDecision['choice']) =>
+  settle<void>(() => {
+    proposeTie(actorId, roundId, choice)
+    record(actorId, 'Proposed tie decision', roundId)
+  })
+
+export const confirmTieDecision = (actorId: string, roundId: string) =>
+  settle<void>(() => {
+    confirmTie(actorId, roundId)
+    record(actorId, 'Confirmed tie decision', roundId)
+  })
+
+export const getSkatingTable = (roundId: string) => reply(skatingTable(roundId))
+
+export const approveRound = (actorId: string, roundId: string) =>
+  settle<void>(() => {
+    approveRoundResults(actorId, roundId)
+    record(actorId, 'Approved round', roundId)
+  })
+
+export const publishRound = (actorId: string, roundId: string) =>
+  settle<void>(() => {
+    publishRoundResults(actorId, roundId)
+    record(actorId, 'Published round', roundId)
+  })

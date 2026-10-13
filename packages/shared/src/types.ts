@@ -292,3 +292,72 @@ export interface DemoRound {
   roundId: Id
   label: string
 }
+
+// A round in the scrutineer's dashboard, with its event
+export interface RoundRow {
+  roundId: Id
+  eventId: Id
+  eventNumber: number
+  dances: Dance[]
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  type: RoundType
+  recallNumber: number | null
+  status: RoundStatus
+  heatCount: number
+  entryCount: number
+}
+
+export interface HeatAssignment {
+  competitorId: Id
+  heat: number
+}
+
+export interface RecallRow {
+  competitorId: Id
+  backNumber: number | null
+  names: string[]
+  xCount: number
+  rank: number
+  // tied: on the cutoff with the same X count as someone outside it, and not decided yet
+  outcome: 'recalled' | 'tied' | 'out'
+}
+
+export interface TieDecision {
+  // Recall everyone on the tie, or only those above it
+  choice: 'more' | 'fewer'
+  proposedBy: Id
+  confirmedBy: Id | null
+}
+
+export interface RecallTable {
+  roundId: Id
+  recallNumber: number
+  adjudicatorCount: number
+  submittedCount: number
+  rows: RecallRow[]
+  // How many will be recalled under the current decision
+  recalled: number
+  tie: { xCount: number; count: number; decision: TieDecision | null } | null
+}
+
+export interface SkatingRow {
+  competitorId: Id
+  backNumber: number | null
+  names: string[]
+  // Each adjudicator's placing, or 1 or 0 for an X in earlier rounds; null when they have not marked yet
+  marks: Record<Id, number | null>
+  // How many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
+  majority: number[]
+  total: number
+  place: number
+}
+
+export interface SkatingTable {
+  roundId: Id
+  kind: 'x' | 'placing'
+  adjudicators: Array<{ id: Id; letter: string }>
+  places: number
+  rows: SkatingRow[]
+}

@@ -19,6 +19,10 @@ export interface Column<T> {
   hideBelow?: 'sm' | 'md'
   // Fixed width class for narrow columns such as a rank
   widthClass?: string
+  // In the row detail modal: leave out a column that repeats the title
+  detail?: false
+  // In the row detail modal: columns with the same group share one compact section
+  group?: string
 }
 
 interface TableProps<T> {
@@ -168,18 +172,35 @@ export function Table<T>({
           className="max-w-lg"
         >
           {detail && (
-            <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
-              {columns
-                .filter((c) => c.header)
-                .map((c) => (
-                  <div key={c.key} className="flex min-w-0 flex-col gap-1">
-                    <dt className="text-xs text-neutral-500">{c.header}</dt>
-                    <dd className={cn('min-w-0 break-words text-small text-neutral-900', c.mono && 'font-mono tabular-nums')}>
-                      {c.cell(detail)}
-                    </dd>
-                  </div>
-                ))}
-            </dl>
+            <div className="flex flex-col gap-6">
+              <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
+                {columns
+                  .filter((c) => c.header && c.detail !== false && !c.group)
+                  .map((c) => (
+                    <div key={c.key} className="flex min-w-0 flex-col gap-1">
+                      <dt className="text-xs text-neutral-500">{c.header}</dt>
+                      <dd className={cn('min-w-0 break-words text-small text-neutral-900', c.mono && 'font-mono tabular-nums')}>
+                        {c.cell(detail)}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+              {[...new Set(columns.flatMap((c) => (c.group ? [c.group] : [])))].map((group) => (
+                <section key={group} className="flex flex-col gap-3 border-t border-neutral-100 pt-5">
+                  <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-500">{group}</h3>
+                  <dl className="grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-2">
+                    {columns
+                      .filter((c) => c.group === group)
+                      .map((c) => (
+                        <div key={c.key} className="flex flex-col items-center gap-1 rounded-lg bg-neutral-50 px-2 py-2.5">
+                          <dt className="text-xs text-neutral-500">{c.header}</dt>
+                          <dd className="font-mono text-small font-medium tabular-nums text-neutral-900">{c.cell(detail)}</dd>
+                        </div>
+                      ))}
+                  </dl>
+                </section>
+              ))}
+            </div>
           )}
         </Dialog>
       )}
