@@ -361,3 +361,21 @@ export interface SkatingTable {
   places: number
   rows: SkatingRow[]
 }
+
+// One thing for the MC to read out; the MC steps through them in order
+export interface Announcement {
+  id: Id
+  kind: 'call' | 'recall' | 'finalists' | 'result'
+  eventNumber: number
+  dances: Dance[]
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  roundType: RoundType
+  // call: the heat going to the floor
+  heat: number | null
+  // call, recall, finalists: the back numbers to read, lowest first
+  numbers: number[]
+  // result: one competitor and their place
+  result: { place: number; backNumber: number | null; names: string[]; clubName: string } | null
+}

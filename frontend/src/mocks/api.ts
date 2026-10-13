@@ -35,6 +35,7 @@ import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
+import { announcements } from './announcing.ts'
 import {
   approveRoundResults,
   confirmTie,
@@ -898,3 +899,7 @@ export const publishRound = (actorId: string, roundId: string) =>
     publishRoundResults(actorId, roundId)
     record(actorId, 'Published round', roundId)
   })
+
+// ---- MC ----
+
+export const getAnnouncements = () => reply(announcements())
