@@ -132,76 +132,76 @@ Route map:
 
 ## Step 6: Admin screens
 
-- [ ] Competitions: list, create and edit (name, date, venue, organizer)
-- [ ] Staff accounts: list, add, assign a role, reset a password
-- [ ] Adjudicators and panels: add adjudicators with a letter, generate a PIN per competition, assign a panel to each event
-- [ ] Points table: editable table (1st = 10 down to semi-final = 1)
-- [ ] Payment checking: a queue filtered by status. Each payment shows the club, dancers and events, amount due, the amount and reference number the club entered, and the screenshot, with Approve/Reject buttons and a required reason when rejecting
+- [x] Competitions: list, create and edit (name, date, venue, organizer)
+- [x] Staff accounts: list, add, assign a role, reset a password
+- [x] Adjudicators and panels: add adjudicators with a letter, generate a PIN per competition, assign a panel to each event
+- [x] Points table: editable table (1st = 10 down to semi-final = 1)
+- [x] Payment checking: a queue filtered by status. Each payment shows the club, dancers and events, amount due, the amount and reference number the club entered, and the screenshot, with Approve/Reject buttons and a required reason when rejecting
 
 ## Step 7: Secretariat screens
 
-- [ ] Events list (E1 to E100+): number, age group, class, discipline, dances, solo or couple, entry count
-- [ ] Event detail: entries, scratch toggle, payment status per entry
-- [ ] Competitors: search, add, import (CSV upload UI), assign back numbers
-- [ ] Late entries and cash payments ("Paid at venue")
-- [ ] Schedule: order of events and rounds
-- [ ] Buttons to print heat and recall lists (these open the print pages)
+- [x] Events list (E1 to E100+): number, age group, class, discipline, dances, solo or couple, entry count
+- [x] Event detail: entries, scratch toggle, payment status per entry
+- [x] Competitors: search, add, import (CSV upload UI), assign back numbers
+- [x] Late entries and cash payments ("Paid at venue")
+- [x] Schedule: order of events and rounds
+- [x] Buttons to print heat and recall lists (these open the print pages)
 
 ## Step 8: Adjudicator screens (phone)
 
 Design these one-handed at 375px wide. Make buttons at least 56px tall.
 
-- [ ] PIN sign-in with a large keypad
-- [ ] "Waiting for next round" screen
-- [ ] **X marking:** grid of back numbers, tap to toggle X, live counter "8 of 12 marked"; the Submit button stays disabled until the count matches the recall number exactly
-- [ ] **Final placing:** assign 1st to 6th or 7th; each place can be used only once; reorder easily
-- [ ] Multi-dance rounds: tabs for each dance
-- [ ] Confirm, then a large, clear **"Submitted"** screen
-- [ ] A "Saved, sending…" state for when Wi-Fi drops (visual only for now)
+- [x] PIN sign-in with a large keypad
+- [x] "Waiting for next round" screen
+- [x] **X marking:** grid of back numbers, tap to toggle X, live counter "8 of 12 marked"; the Submit button stays disabled until the count matches the recall number exactly
+- [x] **Final placing:** assign 1st to 6th or 7th; each place can be used only once; reorder easily
+- [x] Multi-dance rounds: tabs for each dance
+- [x] Confirm, then a large, clear **"Submitted"** screen
+- [x] A "Saved, sending…" state for when Wi-Fi drops (visual only for now)
 
 ## Step 9: Scrutineer screens
 
-- [ ] Rounds dashboard: current event, round, heats and status
-- [ ] Heat setup: split competitors into heats
-- [ ] **Live submission board:** a grid of adjudicators A to J showing waiting, marking and submitted; flag a phone that has gone quiet
-- [ ] Recall table: X count per competitor, sorted, with a cutoff line at the recall number and ties at the cutoff highlighted
-- [ ] Tie resolution: choose to recall more or fewer; chairperson confirmation step
-- [ ] **Skating System table:** placings matrix, majority columns and final places (show static sample results for now; the real engine comes in Phase 2)
-- [ ] Approve and publish buttons with a confirmation dialog
-- [ ] Chairperson view: the same screens, read-only, plus "Confirm tie decision"
+- [x] Rounds dashboard: current event, round, heats and status
+- [x] Heat setup: split competitors into heats
+- [x] **Live submission board:** a grid of adjudicators A to J showing waiting, marking and submitted; flag a phone that has gone quiet
+- [x] Recall table: X count per competitor, sorted, with a cutoff line at the recall number and ties at the cutoff highlighted
+- [x] Tie resolution: choose to recall more or fewer; chairperson confirmation step
+- [x] **Skating System table:** placings matrix, majority columns and final places (show static sample results for now; the real engine comes in Phase 2)
+- [x] Approve and publish buttons with a confirmation dialog
+- [x] Chairperson view: the same screens, read-only, plus "Confirm tie decision"
 
 ## Step 10: MC / venue screen
 
-- [ ] Large-text, high-contrast display for a projector
-- [ ] Modes: next event call, recalled numbers, finalists, results from last place up (reveal one place at a time)
-- [ ] Keyboard controls (arrow keys or space) to step through announcements
+- [x] Large-text, high-contrast display for a projector
+- [x] Modes: next event call, recalled numbers, finalists, results from last place up (reveal one place at a time)
+- [x] Keyboard controls (arrow keys or space) to step through announcements
 
 ## Step 11: Printouts
 
 Use plain HTML pages with A4 print CSS (`@page { size: A4; margin: 12mm; }`). They print from any browser or save as PDF.
 
-- [ ] Heat lists
-- [ ] "Qualified for the next round" list (match the E47 sheet layout)
-- [ ] Scores sheet with every adjudicator's marks
-- [ ] Final results, with spaces for the scrutineer and chairperson to sign
-- [ ] Blank adjudicator mark sheets for the paper fallback
+- [x] Heat lists
+- [x] "Qualified for the next round" list (match the E47 sheet layout)
+- [x] Scores sheet with every adjudicator's marks
+- [x] Final results, with spaces for the scrutineer and chairperson to sign
+- [x] Blank adjudicator mark sheets for the paper fallback
 
 ## Step 12: Public site
 
 Build this mobile-first. Later it also serves the venue guest Wi-Fi.
 
-- [ ] Home: live and latest results
-- [ ] Competitions: past events, then events, then results per event
-- [ ] Competitor profile: history and points
-- [ ] Rankings: filter by age group, class and discipline (for example Junior I E1 Latin)
+- [x] Home: live and latest results
+- [x] Competitions: past events, then events, then results per event
+- [x] Competitor profile: history and points
+- [x] Rankings: filter by age group, class and discipline (for example Junior I E1 Latin)
 
 ## Step 13: Club portal
 
-- [ ] Club sign-up and sign-in
-- [ ] Dancers: add and edit; collect only the fields needed (Data Privacy Act, since many dancers are minors)
-- [ ] Register dancers to events with a running fee total
-- [ ] Payment page: GCash, Maya and bank details, an upload for the screenshot, and fields for the reference number and amount
-- [ ] Payment status list with badges, and the reason shown when a payment is rejected
+- [x] Club sign-up and sign-in
+- [x] Dancers: add and edit; collect only the fields needed (Data Privacy Act, since many dancers are minors)
+- [x] Register dancers to events with a running fee total
+- [x] Payment page: GCash, Maya and bank details, an upload for the screenshot, and fields for the reference number and amount
+- [x] Payment status list with badges, and the reason shown when a payment is rejected
 
 ## Step 14: Polish and client walkthrough
 

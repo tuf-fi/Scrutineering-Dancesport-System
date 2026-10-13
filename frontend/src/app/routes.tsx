@@ -1,6 +1,5 @@
 import { Role } from '@bis/shared'
 import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
-import { Placeholder } from '../components/Placeholder.tsx'
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
@@ -14,6 +13,10 @@ import { ClubSignIn } from '../features/auth/ClubSignIn.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
 import { DesignPreview } from '../features/dev/DesignPreview.tsx'
 import { McHome } from '../features/mc/McHome.tsx'
+import { CompetitionPage } from '../features/public/CompetitionPage.tsx'
+import { CompetitionsPage as PublicCompetitionsPage } from '../features/public/CompetitionsPage.tsx'
+import { EventResultsPage } from '../features/public/EventResultsPage.tsx'
+import { HomePage } from '../features/public/HomePage.tsx'
 import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
 import { RankingsPage } from '../features/public/RankingsPage.tsx'
 import { HeatsPage } from '../features/scrutineer/HeatsPage.tsx'
@@ -21,6 +24,16 @@ import { LivePage } from '../features/scrutineer/LivePage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
 import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
+import { ClubSignUp } from '../features/club/ClubSignUp.tsx'
+import { DancersPage } from '../features/club/DancersPage.tsx'
+import { EntriesPage } from '../features/club/EntriesPage.tsx'
+import { PaymentsPage as ClubPaymentsPage } from '../features/club/PaymentsPage.tsx'
+import { BlankSheetsPage } from '../features/print/BlankSheetsPage.tsx'
+import { FinalResultsPage } from '../features/print/FinalResultsPage.tsx'
+import { HeatListPage } from '../features/print/HeatListPage.tsx'
+import { PrintIndexPage } from '../features/print/PrintIndexPage.tsx'
+import { QualifiedPage } from '../features/print/QualifiedPage.tsx'
+import { ScoresPage } from '../features/print/ScoresPage.tsx'
 import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
@@ -31,19 +44,9 @@ import { McLayout } from './layouts/McLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
 import { StaffLayout } from './layouts/StaffLayout.tsx'
 import { ClubLayout, PublicLayout } from './layouts/TopNavLayout.tsx'
-import { clubNav, publicNav, type NavItem } from './nav.ts'
 import { NotFound } from './NotFound.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
-
-// TODO: each placeholder is replaced by its real screen in steps 6 to 13
-function sectionRoutes(items: NavItem[], basePath: string): RouteObject[] {
-  return items.map((item) =>
-    item.end
-      ? { index: true, element: <Placeholder title={item.label} /> }
-      : { path: item.to.slice(basePath.length + 1), element: <Placeholder title={item.label} /> },
-  )
-}
 
 const STAFF = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
 
@@ -136,20 +139,32 @@ export const routes: RouteObject[] = [
           {
             element: <PrintLayout />,
             children: [
-              { index: true, element: <Placeholder title="Printouts" /> },
-              // TODO: step 11 builds the heat and recall lists these links open
-              { path: 'heats/:eventId', element: <Placeholder title="Heat list" /> },
-              { path: 'recall/:eventId', element: <Placeholder title="Recall list" /> },
+              { index: true, element: <PrintIndexPage /> },
+              { path: 'heats/:eventId', element: <HeatListPage /> },
+              { path: 'recall/:eventId', element: <QualifiedPage /> },
+              { path: 'scores/:eventId', element: <ScoresPage /> },
+              { path: 'results/:eventId', element: <FinalResultsPage /> },
+              { path: 'blank-sheets/:eventId', element: <BlankSheetsPage /> },
             ],
           },
         ],
       },
 
       { path: '/club/sign-in', element: <ClubSignIn /> },
+      { path: '/club/sign-up', element: <ClubSignUp /> },
       {
         path: '/club',
         element: <RequireRole roles={[Role.Club]} signInPath="/club/sign-in" />,
-        children: [{ element: <ClubLayout />, children: sectionRoutes(clubNav, '/club') }],
+        children: [
+          {
+            element: <ClubLayout />,
+            children: [
+              { index: true, element: <DancersPage /> },
+              { path: 'events', element: <EntriesPage /> },
+              { path: 'payments', element: <ClubPaymentsPage /> },
+            ],
+          },
+        ],
       },
 
       ...(import.meta.env.DEV ? [{ path: '/dev/design', element: <DesignPreview /> }] : []),
@@ -158,10 +173,10 @@ export const routes: RouteObject[] = [
         path: '/',
         element: <PublicLayout />,
         children: [
-          ...sectionRoutes(
-            publicNav.filter((item) => item.to !== '/rankings'),
-            '',
-          ),
+          { index: true, element: <HomePage /> },
+          { path: 'competitions', element: <PublicCompetitionsPage /> },
+          { path: 'competitions/:competitionId', element: <CompetitionPage /> },
+          { path: 'competitions/:competitionId/events/:eventId', element: <EventResultsPage /> },
           { path: 'rankings', element: <RankingsPage /> },
           { path: 'competitors/:id', element: <CompetitorPage /> },
         ],

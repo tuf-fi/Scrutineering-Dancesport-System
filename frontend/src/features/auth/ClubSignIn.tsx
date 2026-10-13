@@ -20,6 +20,12 @@ export function ClubSignIn() {
       footer={
         <>
           <p className="text-neutral-600">
+            New club?{' '}
+            <Link to="/club/sign-up" className="font-semibold text-neutral-900 underline underline-offset-4">
+              Register your club
+            </Link>
+          </p>
+          <p className="text-neutral-600">
             Competition staff?{' '}
             <Link to="/login" className="font-semibold text-neutral-900 underline underline-offset-4">
               Staff sign-in

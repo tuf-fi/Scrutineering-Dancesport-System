@@ -2,6 +2,7 @@ import type { Announcement } from '@bis/shared'
 import { ChevronLeft, ChevronRight, Maximize } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import logo from '../../assets/logo.png'
+import { ErrorState } from '../../components/ui/index.ts'
 import { useAnnouncements, useCompetitions } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { ROUND_TYPE_LABEL, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
@@ -107,7 +108,8 @@ function View({ item, results, shown }: { item: Announcement; results: Announcem
 }
 
 export function McHome() {
-  const { data } = useAnnouncements()
+  const announcements = useAnnouncements()
+  const data = announcements.data
   const competitions = useCompetitions()
   const [asked, setAsked] = useState(0)
   const [awake, setAwake] = useState(true)
@@ -171,6 +173,8 @@ export function McHome() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [go, jump, fullscreen, index, items.length])
+
+  if (announcements.isError) return <ErrorState onRetry={() => void announcements.refetch()} />
 
   if (!current) {
     return (

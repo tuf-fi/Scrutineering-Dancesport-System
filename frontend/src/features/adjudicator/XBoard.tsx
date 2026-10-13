@@ -51,10 +51,10 @@ export function XBoard({ competitors, selected, onToggle }: XBoardProps) {
     <div className="flex flex-col gap-6">
       {heats.map((heat) => (
         <section key={heat} className="flex flex-col gap-3">
-          <h3 className="flex items-center gap-3 text-xs font-medium uppercase tracking-wider text-neutral-500">
+          <h2 className="flex items-center gap-3 text-xs font-medium uppercase tracking-wider text-neutral-500">
             Heat {heat}
             <span aria-hidden className="h-px flex-1 bg-neutral-200" />
-          </h3>
+          </h2>
           {grid(competitors.filter((c) => c.heat === heat))}
         </section>
       ))}

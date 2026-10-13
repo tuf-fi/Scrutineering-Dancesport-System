@@ -28,9 +28,9 @@ export function PlacingBoard({ competitors, ranking, onChange }: PlacingBoardPro
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+        <h2 className="text-xs font-medium uppercase tracking-wider text-neutral-500">
           {unplaced.length > 0 ? `Tap for ${ordinal(ranking.length + 1)} place` : 'Everyone is placed'}
-        </h3>
+        </h2>
         {unplaced.length > 0 && (
           <ul className="grid grid-cols-[repeat(auto-fill,minmax(4rem,1fr))] gap-3">
             {unplaced.map((c) => (

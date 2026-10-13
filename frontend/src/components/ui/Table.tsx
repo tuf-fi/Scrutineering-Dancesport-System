@@ -98,7 +98,7 @@ export function Table<T>({
                     c.widthClass,
                   )}
                 >
-                  {c.header}
+                  {c.header || <span className="sr-only">Actions</span>}
                 </th>
               ))}
             </tr>

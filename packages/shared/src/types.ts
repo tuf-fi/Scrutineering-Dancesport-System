@@ -379,3 +379,41 @@ export interface Announcement {
   // result: one competitor and their place
   result: { place: number; backNumber: number | null; names: string[]; clubName: string } | null
 }
+
+// What a club may keep about a dancer: a name and an age group, nothing more (Data Privacy Act)
+export interface ClubDancer {
+  id: Id
+  names: string[]
+  ageGroup: AgeGroup | null
+  // Entries that are not scratched, in the current competition
+  entryCount: number
+}
+
+// An event a dancer could be entered in, from the club's point of view
+export interface EntryOption {
+  eventId: Id
+  eventNumber: number
+  dances: Dance[]
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  fee: number
+  entered: boolean
+  // Already paid or sent for checking, so it can no longer be withdrawn here
+  locked: boolean
+}
+
+export interface PaymentMethod {
+  name: string
+  accountName: string
+  number: string
+  note?: string
+}
+
+export interface ClubSignUp {
+  name: string
+  contactName: string
+  contactEmail: string
+  contactPhone: string
+  password: string
+}

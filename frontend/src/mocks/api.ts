@@ -9,6 +9,7 @@ import {
   type Class,
   type Competition,
   type Competitor,
+  type ClubSignUp,
   type CompetitorRow,
   type HeatAssignment,
   type MarkSubmission,
@@ -36,6 +37,18 @@ import { events } from './data/events.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
 import { announcements } from './announcing.ts'
+import {
+  clubDancers,
+  clubPasswords,
+  clubPayments,
+  deleteDancer,
+  entryOptions,
+  paymentMethods,
+  registerEntries,
+  saveDancer,
+  signUpClub,
+  submitPaymentProof,
+} from './clubPortal.ts'
 import {
   approveRoundResults,
   confirmTie,
@@ -433,7 +446,7 @@ export const signInStaff = (username: string, password: string) =>
 export const signInClub = (email: string, password: string) =>
   settle<SessionUser>(() => {
     const club = clubs.find((c) => c.contactEmail === email.trim().toLowerCase())
-    if (!club || password !== SAMPLE_PASSWORD) throw new Error('Wrong email or password.')
+    if (!club || password !== (clubPasswords.get(club.id) ?? SAMPLE_PASSWORD)) throw new Error('Wrong email or password.')
     return { id: club.id, name: club.name, role: Role.Club }
   })
 
@@ -903,3 +916,28 @@ export const publishRound = (actorId: string, roundId: string) =>
 // ---- MC ----
 
 export const getAnnouncements = () => reply(announcements())
+
+// ---- Public ----
+
+// Events that already have results, so the public site only links to what can be shown
+export const getResultEventIds = (competitionId: string) =>
+  reply(
+    events
+      .filter((e) => e.competitionId === competitionId && results.some((r) => r.eventId === e.id))
+      .map((e) => e.id),
+  )
+
+// ---- Club portal ----
+
+export const signUpNewClub = (input: ClubSignUp) => settle<SessionUser>(() => signUpClub(input))
+export const getClubDancers = (clubId: string) => reply(clubDancers(clubId))
+export const saveClubDancer = (clubId: string, input: { names: string[]; ageGroup: AgeGroup }, id?: string) =>
+  settle(() => saveDancer(clubId, input, id))
+export const deleteClubDancer = (clubId: string, id: string) => settle<void>(() => deleteDancer(clubId, id))
+export const getEntryOptions = (clubId: string, dancerId: string) => reply(entryOptions(clubId, dancerId))
+export const registerClubEntries = (clubId: string, dancerId: string, eventIds: string[]) =>
+  settle<void>(() => registerEntries(clubId, dancerId, eventIds))
+export const getClubPayments = (clubId: string) => reply(clubPayments(clubId))
+export const getPaymentMethods = () => reply(paymentMethods())
+export const submitClubPayment = (clubId: string, input: { amountPaid: number; referenceNumber: string; receiptUrl: string }) =>
+  settle<void>(() => submitPaymentProof(clubId, input))

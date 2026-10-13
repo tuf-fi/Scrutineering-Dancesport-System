@@ -132,3 +132,42 @@ describe('competitor page', () => {
     expect(await screen.findByText('Competitor not found')).toBeInTheDocument()
   })
 })
+
+describe('public site', () => {
+  it('home shows what is on the floor and the latest results', async () => {
+    renderApp('/')
+    expect(await screen.findByRole('heading', { name: 'Sorsogon Dancesport Open 2026' })).toBeInTheDocument()
+    const floor = await screen.findByRole('region', { name: 'On the floor now' })
+    expect(within(floor).getByText(/E11/)).toBeInTheDocument()
+
+    const latest = await screen.findByRole('region', { name: 'Latest results' })
+    const podium = await within(latest).findAllByRole('listitem')
+    expect(podium.length).toBeGreaterThanOrEqual(3)
+    expect(within(latest).getAllByText('1st').length).toBeGreaterThan(0)
+  })
+
+  it('goes from the competitions list to an event and its results', async () => {
+    renderApp('/competitions')
+    expect(await screen.findByRole('heading', { name: 'Competitions' })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('link', { name: 'Sorsogon Dancesport Open 2026' }))
+
+    // Events page 10 at a time and E12 is on the second page, so search for it
+    await userEvent.type(await screen.findByLabelText('Search events'), 'E12')
+    await userEvent.click(await screen.findByRole('link', { name: /E12/ }))
+
+    expect(await screen.findByRole('heading', { name: /^E12 Rumba/ })).toBeInTheDocument()
+    const table = await screen.findByRole('table')
+    await within(table).findAllByRole('link')
+    const rows = within(table).getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText('1st')).toBeInTheDocument()
+    expect((await screen.findAllByText(/back numbers through to/)).length).toBe(2)
+  })
+
+  it('opens a competitor profile from the results', async () => {
+    renderApp('/competitions/comp-sorsogon-2026/events/comp-sorsogon-2026:e12')
+    const table = await screen.findByRole('table')
+    const [first] = await within(table).findAllByRole('link')
+    await userEvent.click(first)
+    expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
+  })
+})
