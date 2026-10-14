@@ -1,14 +1,15 @@
 import { useState } from 'react'
+import { usingMocks } from '../../api/mode.ts'
 import { Button, Select } from '../../components/ui/index.ts'
 import { useDemoRounds, useStartDemoRound } from '../../hooks/index.ts'
 
-// TODO: dev only. In the real system the scrutineer starts each round; this stands in for them.
+// Sample app only. With the real server the scrutineer starts each round from their Rounds screen.
 export function DemoControls() {
   const rounds = useDemoRounds()
   const start = useStartDemoRound()
   const [roundId, setRoundId] = useState('')
 
-  if (!import.meta.env.DEV || !rounds.data?.length) return null
+  if (!import.meta.env.DEV || !usingMocks || !rounds.data?.length) return null
   const chosen = roundId || rounds.data[0].roundId
 
   return (

@@ -1,15 +1,15 @@
 # Client walkthrough (Phase 1 preview)
 
-BIS Phase 1 is a frontend with sample data. Nothing is saved anywhere: changes live in the browser tab and reset on refresh, and sign-in is a stand-in for the real accounts built in Phase 3.
+This walkthrough runs the app on sample data (`pnpm dev:sample`). Nothing is saved anywhere: changes live in the browser tab and reset on refresh, and sign-in is a stand-in. The real server, with accounts and a database, is described in [VENUE.md](VENUE.md).
 
 ## Run it
 
 ```
 pnpm install
-pnpm --filter frontend dev
+pnpm dev:sample
 ```
 
-Open the address it prints. To share a static preview, run `pnpm --filter frontend build` and upload `frontend/dist` to Vercel or Netlify. Both configs are in `frontend/` (`vercel.json`, `public/_redirects`) so refreshing any page works.
+Open the address it prints. To share a static preview, run `pnpm build:sample` (the app on sample data, no server needed) and upload `frontend/dist` to Vercel or Netlify. Both configs are in `frontend/` (`vercel.json`, `public/_redirects`) so refreshing any page works.
 
 ## Sign in
 

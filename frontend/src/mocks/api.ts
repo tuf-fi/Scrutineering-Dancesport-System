@@ -1,12 +1,16 @@
 import {
   DISCIPLINE_DANCES,
+  parseCompetitorCsv,
   PaymentStatus,
   Role,
   RoundStatus,
   type Adjudicator,
+  type CompetitionInput,
+  type EventInput,
+  type RankingFilter,
   type AdjudicatorPin,
   type AgeGroup,
-  type Class,
+  type BackupStatus,
   type Competition,
   type Competitor,
   type ClubSignUp,
@@ -21,7 +25,6 @@ import {
   type LateEntryRow,
   type ScheduleItem,
   type CompetitorHistoryLine,
-  type Discipline,
   type Panel,
   type PaymentDetail,
   type PointsRow,
@@ -67,6 +70,7 @@ import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
 import { isLiveRound, liveRoundComplete, visibleMarks } from './realtime.ts'
 
+export type { CompetitionInput, EventInput, RankingFilter } from '@bis/shared'
 export { getSubmissionSnapshot, resetLiveRound, subscribeSubmissions } from './realtime.ts'
 
 const LATENCY_MS = 250
@@ -119,12 +123,6 @@ export const getPayments = (status?: PaymentStatus) =>
   reply(status ? payments.filter((p) => p.status === status) : payments)
 
 export const getPointsTable = () => reply(pointsTable)
-
-export interface RankingFilter {
-  ageGroup?: AgeGroup
-  class?: Class
-  discipline?: Discipline
-}
 
 export const getRankingPoints = (filter: RankingFilter = {}) =>
   reply(
@@ -184,8 +182,6 @@ function record(actorId: string, action: string, target: string) {
 }
 
 const tempPassword = () => Math.random().toString(36).slice(2, 10)
-
-export type CompetitionInput = Omit<Competition, 'id'>
 
 export const saveCompetition = (actorId: string, input: CompetitionInput, id?: string) =>
   settle<Competition>(() => {
@@ -480,6 +476,10 @@ export const getSampleCredentials = () =>
       })),
   }))
 
+// The sample app keeps no session across a reload; the real one reads it from the cookie
+export const signOut = () => settle<null>(() => null)
+export const getSession = () => settle<SessionUser | null>(() => null)
+
 // ---- Secretariat ----
 
 const clubName = (clubId: string) => clubs.find((c) => c.id === clubId)?.name ?? 'Unknown club'
@@ -607,6 +607,10 @@ export const importCompetitors = (actorId: string, rows: Array<{ names: string[]
     record(actorId, 'Imported competitors', `${result.created} added`)
     return result
   })
+
+// The real server reads the uploaded file itself; the sample reads it here with the same parser
+export const importCompetitorsCsv = (actorId: string, text: string) =>
+  importCompetitors(actorId, parseCompetitorCsv(text))
 
 // TODO: a competitor's age group comes from their birth date in the real system; new sample competitors have none
 function checkEligible(competitorId: string, event: { isSolo: boolean; ageGroup: AgeGroup }) {
@@ -812,8 +816,6 @@ export const updateLateEntry = (actorId: string, entryId: string, input: { event
     return lateRow(entry)
   })
 
-export type EventInput = Omit<Event, 'id' | 'competitionId'>
-
 function checkEvent(competitionId: string, input: EventInput, id?: string) {
   if (!Number.isInteger(input.number) || input.number < 1) throw new Error('The event number is a whole number from 1.')
   if (events.some((e) => e.competitionId === competitionId && e.number === input.number && e.id !== id)) {
@@ -872,6 +874,28 @@ export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, s
 // TODO: dev-only controls that stand in for the scrutineer starting a round
 export const getDemoRounds = () => reply(demoRounds())
 export const startDemoRoundOnFloor = (roundId: string | null) => settle<void>(() => startDemoRound(roundId))
+
+// The sample rounds are all planned already; starting one puts it on the adjudicators' phones
+export const planRounds = (_actorId: string, _competitionId: string) => settle<number>(() => 0)
+export const startRound = (actorId: string, roundId: string) =>
+  settle<void>(() => {
+    startDemoRound(roundId)
+    record(actorId, 'Started round', roundId)
+  })
+export const clearFloor = (actorId: string, _competitionId?: string) =>
+  settle<void>(() => {
+    startDemoRound(null)
+    record(actorId, 'Cleared the floor', 'Floor')
+  })
+
+export const getBackupStatus = () =>
+  reply<BackupStatus>({
+    targets: [
+      { path: 'USB drive', ok: true, lastBackupAt: new Date().toISOString(), error: null },
+      { path: 'Laptop 3', ok: true, lastBackupAt: new Date().toISOString(), error: null },
+    ],
+    lastBackupAt: new Date().toISOString(),
+  })
 
 // ---- Scrutineer ----
 

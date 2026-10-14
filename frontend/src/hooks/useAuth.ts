@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import * as api from '../api/index.ts'
+import { usingMocks } from '../api/mode.ts'
 
 export const useSignInStaff = () =>
   useMutation({
@@ -14,10 +15,10 @@ export const useSignInClub = () =>
 export const useSignInAdjudicator = () =>
   useMutation({ mutationFn: (pin: string) => api.signInAdjudicator(pin) })
 
-// Sample credentials for the dev hint; never fetched in a production build
+// Sample credentials for the dev hint; only the sample app has them, and never in a production build
 export const useSampleCredentials = () =>
   useQuery({
     queryKey: ['sample-credentials'],
     queryFn: api.getSampleCredentials,
-    enabled: import.meta.env.DEV,
+    enabled: import.meta.env.DEV && usingMocks,
   })

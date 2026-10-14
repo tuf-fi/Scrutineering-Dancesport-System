@@ -1,13 +1,25 @@
-import { RoundStatus, SubmissionStatus, type RoundRow } from '@bis/shared'
+import { RoundStatus, SubmissionStatus, type RoundRow, type RoundType } from '@bis/shared'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { RoundStatusBadge, ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
-import { ButtonLink, ErrorState, PageHeader, SearchField, Select, Table, Toolbar } from '../../components/ui/index.ts'
-import { useLiveSubmissions } from '../../hooks/index.ts'
+import { Button, ButtonLink, ErrorState, PageHeader, SearchField, Select, Table, Toolbar, toast } from '../../components/ui/index.ts'
+import { useClearFloor, useLiveSubmissions, usePlanRounds, useStartRound } from '../../hooks/index.ts'
 import { AGE_GROUP_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 import { useRoundChoice } from './useRoundChoice.ts'
 
-function OnTheFloor({ row }: { row: RoundRow }) {
+const ROUND_ORDER: RoundType[] = ['round_1', 'round_2', 'quarter_final', 'semi_final', 'final']
+
+// A round can start once the one before it in the same event is approved or published
+function canStart(row: RoundRow, all: RoundRow[]): boolean {
+  if (row.status !== RoundStatus.Pending) return false
+  const earlier = all
+    .filter((r) => r.eventId === row.eventId && ROUND_ORDER.indexOf(r.type) < ROUND_ORDER.indexOf(row.type))
+    .sort((a, b) => ROUND_ORDER.indexOf(b.type) - ROUND_ORDER.indexOf(a.type))[0]
+  return !earlier || earlier.status === RoundStatus.Approved || earlier.status === RoundStatus.Published
+}
+
+function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competitionId: string; readOnly: boolean }) {
+  const clear = useClearFloor()
   const submissions = useLiveSubmissions(row.roundId)
   const submitted = submissions.filter((s) => s.status === SubmissionStatus.Submitted).length
 
@@ -46,19 +58,31 @@ function OnTheFloor({ row }: { row: RoundRow }) {
           </div>
         ))}
       </dl>
-      <nav aria-label="Open this round" className="flex flex-wrap gap-2">
+      <nav aria-label="Open this round" className="flex flex-wrap items-center gap-2">
         {links.map(([label, page]) => (
           <ButtonLink key={page} size="sm" variant="secondary" to={`/scrutineer/${page}?round=${row.roundId}`}>
             {label}
           </ButtonLink>
         ))}
+        {!readOnly && row.status === RoundStatus.Marking && submitted === 0 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={clear.isPending}
+            onClick={() => clear.mutate(competitionId, { onSuccess: () => toast.success('Round taken off the floor'), onError: (e) => toast.error(e.message) })}
+          >
+            Take off the floor
+          </Button>
+        )}
       </nav>
     </section>
   )
 }
 
 export function RoundsPage() {
-  const { rounds, list, roundId, row } = useRoundChoice()
+  const { competitionId, rounds, list, roundId, row, readOnly } = useRoundChoice()
+  const start = useStartRound()
+  const plan = usePlanRounds()
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
 
@@ -77,7 +101,9 @@ export function RoundsPage() {
     <div className="flex flex-col gap-8">
       <PageHeader title="Rounds" description="Where the competition is, and every round still to run." />
 
-      {row ? <OnTheFloor key={roundId} row={row} /> : null}
+      {row && row.status !== RoundStatus.Pending ? (
+        <OnTheFloor key={roundId} row={row} competitionId={competitionId} readOnly={readOnly} />
+      ) : null}
 
       <div className="flex flex-col gap-6">
         <Toolbar>
@@ -92,6 +118,21 @@ export function RoundsPage() {
               ))}
             </Select>
           </div>
+          {!readOnly && (
+            <Button
+              className="w-full sm:ml-auto sm:w-auto"
+              variant="secondary"
+              disabled={plan.isPending || !competitionId}
+              onClick={() =>
+                plan.mutate(competitionId, {
+                  onSuccess: (n) => toast.success(n === 0 ? 'Every event with entries already has its rounds' : `Planned rounds for ${n} event${n === 1 ? '' : 's'}`),
+                  onError: (e) => toast.error(e.message),
+                })
+              }
+            >
+              Plan rounds
+            </Button>
+          )}
         </Toolbar>
 
         <Table<RoundRow>
@@ -117,6 +158,27 @@ export function RoundsPage() {
             { key: 'entries', header: 'Entries', cell: (r) => r.entryCount, mono: true, align: 'right', hideBelow: 'md' },
             { key: 'heats', header: 'Heats', cell: (r) => r.heatCount || '–', mono: true, align: 'right', hideBelow: 'md' },
             { key: 'status', header: 'Status', cell: (r) => <RoundStatusBadge status={r.status} /> },
+            ...(readOnly
+              ? []
+              : [
+                  {
+                    key: 'start',
+                    header: 'Action',
+                    align: 'right' as const,
+                    detail: false as const,
+                    cell: (r: RoundRow) =>
+                      canStart(r, list) ? (
+                        <Button
+                          size="sm"
+                          disabled={start.isPending}
+                          aria-label={`Start ${eventCode({ number: r.eventNumber })} ${ROUND_TYPE_LABEL[r.type]}`}
+                          onClick={() => start.mutate(r.roundId, { onSuccess: () => toast.success('Round on the floor'), onError: (e) => toast.error(e.message) })}
+                        >
+                          Start
+                        </Button>
+                      ) : null,
+                  },
+                ]),
           ]}
         />
       </div>

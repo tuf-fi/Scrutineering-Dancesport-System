@@ -7,8 +7,8 @@ import { useAdjudicators, useLiveSubmissions } from '../../hooks/index.ts'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
-// A phone that has been marking this long without sending is flagged
-// TODO: the real flag comes from the venue server's heartbeat for each phone
+// The venue server flags a phone that stopped sending its heartbeat (quietSince). The sample app has no
+// heartbeat, so it flags a phone that has been marking this long without sending.
 const QUIET_MS = 20_000
 
 const STATUS = {
@@ -90,9 +90,11 @@ function Board({ roundId, final, select }: { roundId: string; final: boolean; se
             key: 'status',
             header: 'Status',
             cell: (s) => {
-              const quiet = s.status === SubmissionStatus.Marking && quietFor(s.adjudicatorId) > QUIET_MS
+              const sinceServer = s.quietSince ? Math.max(0, Date.now() - new Date(s.quietSince).getTime()) : null
+              const silent = sinceServer ?? quietFor(s.adjudicatorId)
+              const quiet = s.status === SubmissionStatus.Marking && (sinceServer !== null || silent > QUIET_MS)
               return quiet ? (
-                <Badge tone="warning">No response for {Math.floor(quietFor(s.adjudicatorId) / 1000)} s</Badge>
+                <Badge tone="warning">No response for {Math.floor(silent / 1000)} s</Badge>
               ) : (
                 <Badge tone={STATUS[s.status].tone}>{STATUS[s.status].label}</Badge>
               )

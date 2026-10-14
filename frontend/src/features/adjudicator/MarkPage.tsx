@@ -2,6 +2,7 @@ import type { Dance, MarkingTask, MarkSubmission } from '@bis/shared'
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { Button, Dialog, ErrorState, Skeleton, Tabs, toast } from '../../components/ui/index.ts'
+import { isNetworkError } from '../../api/http.ts'
 import { useSubmitMarks } from '../../hooks/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
 import { useConnection } from '../../stores/connection.ts'
@@ -44,6 +45,11 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
       {
         onSuccess: () => navigate('/adjudicator/submitted', { replace: true }),
         onError: (e) => {
+          // The Wi-Fi dropped just now: keep the marks on the phone; they go out when it reconnects
+          if (isNetworkError(e)) {
+            saveOffline({ adjudicatorId, roundId: task.round.id, submissions })
+            return void navigate('/adjudicator/submitted', { replace: true })
+          }
           setConfirming(false)
           toast.error(e.message)
         },

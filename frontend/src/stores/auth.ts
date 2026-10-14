@@ -1,6 +1,5 @@
 import type { SessionUser } from '@bis/shared'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 interface AuthStore {
   user: SessionUser | null
@@ -8,14 +7,10 @@ interface AuthStore {
   signOut: () => void
 }
 
-// TODO: kept in localStorage so a refresh keeps the sample session; phase 3 uses an httpOnly cookie
-export const useAuth = create<AuthStore>()(
-  persist(
-    (set) => ({
-      user: null,
-      signIn: (user) => set({ user }),
-      signOut: () => set({ user: null }),
-    }),
-    { name: 'bis-auth' },
-  ),
-)
+// Who is signed in on this device. The session itself is an httpOnly cookie the browser keeps; this only
+// mirrors it for the screens, and is filled again from the server when the page loads (app/session.ts).
+export const useAuth = create<AuthStore>()((set) => ({
+  user: null,
+  signIn: (user) => set({ user }),
+  signOut: () => set({ user: null }),
+}))

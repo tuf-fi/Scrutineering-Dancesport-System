@@ -17,6 +17,7 @@ export function useRoundChoice() {
   const roundId = asked && list.some((r) => r.roundId === asked) ? asked : (current.data ?? '')
 
   return {
+    competitionId: competitionId ?? '',
     rounds,
     list,
     roundId,

@@ -64,7 +64,11 @@ export function FinalResultsPage() {
                     const c = byId.get(r.competitorId)
                     return (
                       <tr key={r.id}>
-                        <td className={`${td} font-bold`}>{ordinal(r.place)}</td>
+                        <td className={`${td} font-bold`}>
+                          {r.placeFrom !== undefined && r.placeTo !== undefined && r.placeTo > r.placeFrom
+                            ? `${ordinal(r.placeFrom)}–${ordinal(r.placeTo)}`
+                            : ordinal(r.place)}
+                        </td>
                         <td className={`${td} ${num}`}>{c?.backNumber}</td>
                         <td className={td}>{c ? competitorName(c.names) : ''}</td>
                         <td className={td}>{c?.clubName}</td>

@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router'
+import { BackupNotice } from '../../components/BackupNotice.tsx'
 import { Brand } from '../../components/Brand.tsx'
 import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
 import { Button } from '../../components/ui/index.ts'
@@ -66,6 +67,7 @@ export function StaffLayout() {
           </>
         )}
 
+        <BackupNotice />
         <main className="flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
           <div className="mx-auto w-full max-w-6xl">
             <Outlet />

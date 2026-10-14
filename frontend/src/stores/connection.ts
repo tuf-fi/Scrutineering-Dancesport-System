@@ -6,7 +6,8 @@ interface ConnectionStore {
   toggle: () => void
 }
 
-// TODO: drive from the real venue-server connection in phase 3; for now it is a manual demo switch
+// Whether this device can reach the venue server. useRealtime sets it from the socket and from every request;
+// in the sample app the badge is a manual switch.
 export const useConnection = create<ConnectionStore>((set) => ({
   online: true,
   setOnline: (online) => set({ online }),

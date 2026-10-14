@@ -11,15 +11,20 @@ Read these first:
 
 ## Current phase
 
-**Phase 1: frontend only, with sample data.** Do not build the backend, database or scoring engine yet. All data comes from `frontend/src/mocks/` through `frontend/src/api/`.
+**Phases 1 to 3 are built:** the screens, the scoring engine (`packages/scoring`) and the venue backend (`backend/`, Fastify + SQLite). See [ROADMAP.md](ROADMAP.md) for what is next (offline safety, cloud sync, registration and payments) and [VENUE.md](VENUE.md) for running it.
+
+Screens and hooks get all data through `frontend/src/api/`, which talks to the venue server. `frontend/src/mocks/` is sample data only: it runs the frontend tests and `pnpm dev:sample` / `pnpm build:sample` (the client preview). Never import from `mocks/` in a screen or hook, and never import `@bis/scoring` in a screen or hook; scoring runs on the server (only the sample data in `mocks/` uses it).
+
+When a function is added to the server, add it to `API_FUNCTIONS` in `packages/shared/src/api.ts`, give it a role in `backend/src/registry.ts`, and add its client function in `frontend/src/api/client.ts` (and a sample version in `mocks/api.ts` if screens use it). Tests fail if these drift.
 
 ## Stack
 
-- pnpm monorepo: `frontend/`, `backend/` (later), `packages/shared`, `packages/scoring` (later)
+- pnpm monorepo: `frontend/`, `backend/`, `packages/shared`, `packages/scoring`
 - TypeScript everywhere (strict mode)
 - React + Vite, React Router, TanStack Query, Zustand
 - Tailwind CSS v4
 - Vitest + Testing Library
+- Backend: Node 24, Fastify, SQLite (better-sqlite3) with Drizzle, Socket.IO
 
 ## Design rules
 

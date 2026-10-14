@@ -10,6 +10,14 @@ describe('parseCompetitorCsv', () => {
     ])
   })
 
+  it('keeps commas, quotes and line breaks inside quoted fields', () => {
+    const rows = parseCompetitorCsv('"Cruz, Mia",,"Naga ""Elite"", Dance Academy"\n"Ana\nUy",Leo Co,Club')
+    expect(rows).toEqual([
+      { names: ['Cruz, Mia'], clubName: 'Naga "Elite", Dance Academy' },
+      { names: ['Ana\nUy', 'Leo Co'], clubName: 'Club' },
+    ])
+  })
+
   it('returns nothing for an empty file', () => {
     expect(parseCompetitorCsv('')).toEqual([])
   })

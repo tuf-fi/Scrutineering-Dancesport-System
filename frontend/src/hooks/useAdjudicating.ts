@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { MarkSubmission } from '@bis/shared'
 import * as api from '../api/index.ts'
+import { usingMocks } from '../api/mode.ts'
+import { usePoll } from './usePoll.ts'
 
-// TODO: phase 3 pushes round changes over the venue socket; until then the phone asks every few seconds
+// The server pushes round changes over the socket; the sample app has no server, so the phone asks every few seconds
 const POLL_MS = 3000
 
 export const useAdjudicatorState = (adjudicatorId: string) =>
   useQuery({
     queryKey: ['adjudicator-state', adjudicatorId],
     queryFn: () => api.getAdjudicatorState(adjudicatorId),
-    refetchInterval: POLL_MS,
+    refetchInterval: usePoll(POLL_MS),
   })
 
 export function useSubmitMarks(adjudicatorId: string) {
@@ -22,7 +24,7 @@ export function useSubmitMarks(adjudicatorId: string) {
 }
 
 export const useDemoRounds = () =>
-  useQuery({ queryKey: ['demo-rounds'], queryFn: api.getDemoRounds, enabled: import.meta.env.DEV })
+  useQuery({ queryKey: ['demo-rounds'], queryFn: api.getDemoRounds, enabled: import.meta.env.DEV && usingMocks })
 
 export function useStartDemoRound() {
   const queryClient = useQueryClient()

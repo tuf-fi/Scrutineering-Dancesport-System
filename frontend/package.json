@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev:sample": "vite --mode mock",
+    "build:sample": "tsc -b && vite build --mode mock"
   },
   "dependencies": {
     "@bis/scoring": "workspace:*",
@@ -21,6 +23,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router": "^8.4.0",
+    "socket.io-client": "^4.8.4",
     "sonner": "^2.0.8",
     "zustand": "^5.0.15"
   },

@@ -1,9 +1,10 @@
+import { usingMocks } from '../../api/mode.ts'
 import { useSampleCredentials } from '../../hooks/index.ts'
 
-// Development only: shows the sample sign-ins so the app can be walked through
+// Sample app only: shows the sample sign-ins so the app can be walked through
 export function DevHint({ kind }: { kind: 'staff' | 'club' | 'pin' }) {
   const { data } = useSampleCredentials()
-  if (!import.meta.env.DEV || !data) return null
+  if (!import.meta.env.DEV || !usingMocks || !data) return null
 
   const sample =
     kind === 'staff'

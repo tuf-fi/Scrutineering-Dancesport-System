@@ -16,6 +16,7 @@ function readText(file: File): Promise<string> {
 function ImportBody({ onClose }: { onClose: () => void }) {
   const importRows = useImportCompetitors()
   const [fileName, setFileName] = useState<string | null>(null)
+  const [text, setText] = useState('')
   const [rows, setRows] = useState<CompetitorCsvRow[]>([])
   const [result, setResult] = useState<ImportResult | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
@@ -26,7 +27,10 @@ function ImportBody({ onClose }: { onClose: () => void }) {
     setResult(null)
     setFailure(null)
     try {
-      setRows(parseCompetitorCsv(await readText(file)))
+      const content = await readText(file)
+      setText(content)
+      // Only for the count shown here; the server reads the file itself
+      setRows(parseCompetitorCsv(content))
       setFileName(file.name)
     } catch {
       setFailure('That file could not be read.')
@@ -34,7 +38,7 @@ function ImportBody({ onClose }: { onClose: () => void }) {
   }
 
   function submit() {
-    importRows.mutate(rows, {
+    importRows.mutate(text, {
       onSuccess: (r) => {
         setResult(r)
         toast.success(`Imported ${r.created} competitor${r.created === 1 ? '' : 's'}`)

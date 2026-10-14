@@ -49,11 +49,9 @@ export const useSetBackNumber = () =>
 export const useAssignBackNumbers = () =>
   useWrite(() => api.assignBackNumbers(actor()), ['competitor-rows', 'entry-rows'])
 
+// The file's text goes to the server, which reads it (quoted fields with commas included)
 export const useImportCompetitors = () =>
-  useWrite(
-    (rows: Array<{ names: string[]; clubName: string }>) => api.importCompetitors(actor(), rows),
-    ['competitor-rows'],
-  )
+  useWrite((csv: string) => api.importCompetitorsCsv(actor(), csv), ['competitor-rows'])
 
 export const useCreateLateEntry = () =>
   useWrite(
