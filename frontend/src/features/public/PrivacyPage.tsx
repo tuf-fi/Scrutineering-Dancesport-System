@@ -5,7 +5,7 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
     title: 'What we keep',
     body: [
       'For a club: the club name, a contact person, an email address, a mobile number and a password (stored scrambled, never readable). If the club connects Facebook Messenger, an id that lets the organizer’s Page message it about payments; the club can disconnect at any time.',
-      'For dancers: the names, the age group and the club. Birth dates are not collected.',
+      'For dancers: the names, the age group and the club. Birth dates are not collected; a year of birth is typed only to work out the age group and is not saved.',
       'For payments: the amount, the reference number and a screenshot of the receipt.',
     ],
   },

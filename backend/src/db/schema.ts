@@ -63,7 +63,7 @@ export const competitors = sqliteTable(
     id: id(),
     // A couple has two names; a solo dancer has one
     names: text('names', { mode: 'json' }).$type<string[]>().notNull(),
-    // TODO: derive from the birth date once the real registration form collects it
+    // Worked out in the club's form from the dancers' birth years, which are not kept
     ageGroup: text('age_group', { enum: oneOf(AgeGroup) }),
     birthDate: text('birth_date'),
     // Null until the secretariat assigns one; unique once assigned
