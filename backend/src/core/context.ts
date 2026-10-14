@@ -3,6 +3,7 @@ import type { Config } from '../config.ts'
 import type { Db, Sqlite } from '../db/client.ts'
 import type { Backups } from '../backup.ts'
 import type { Hub } from '../realtime/hub.ts'
+import type { SyncService } from '../sync/venue.ts'
 
 // A request the API turns into a message for the user; the status is the HTTP status it is sent with
 export class HttpError extends Error {
@@ -30,6 +31,8 @@ export interface Ctx {
   sqlite: Sqlite
   hub: Hub
   backups: Backups
+  // Venue only: talks to the cloud; null online
+  sync: SyncService | null
   config: Config
   user: SessionUser | null
   // Runs after the request's transaction has committed: tell screens, start a backup

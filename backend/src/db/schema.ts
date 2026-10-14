@@ -17,6 +17,10 @@ export const competitions = sqliteTable('competitions', {
   organizer: text('organizer').notNull(),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
+  // Cloud only: the venue that downloaded this competition and now runs it. While held, entries and payments for it
+  // cannot change online, so there is only ever one place making changes.
+  heldBy: text('held_by'),
+  heldAt: text('held_at'),
 })
 
 export const clubs = sqliteTable('clubs', {

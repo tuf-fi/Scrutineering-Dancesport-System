@@ -30,7 +30,19 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   date: r.date,
   venue: r.venue,
   organizer: r.organizer,
+  heldBy: r.heldBy,
+  heldAt: r.heldAt,
 })
+
+// Online, a competition that a venue has downloaded is run from there: entries and payments for it are closed here,
+// so there is only ever one place making changes. A venue is never held, so this does nothing at a venue.
+export function assertNotHeld(ctx: Ctx, competitionId: string | null | undefined) {
+  if (ctx.config.mode !== 'cloud' || !competitionId) return
+  const competition = ctx.db.select().from(t.competitions).where(eq(t.competitions.id, competitionId)).get()
+  if (competition?.heldBy) {
+    fail(`${competition.name} is being run at ${competition.heldBy}, so entries and payments can no longer change online.`, 409)
+  }
+}
 
 export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
   id: r.id,

@@ -19,6 +19,7 @@ import { newId, now } from '../ids.ts'
 import {
   clean,
   cleanNames,
+  assertNotHeld,
   feeFor,
   getClubRow,
   getCompetitorRow,
@@ -152,6 +153,7 @@ export const secretariat = {
   setEntryScratched(ctx: Ctx, entryId: string, scratched: boolean): EntryRow {
     const entry = found(ctx.db.select().from(t.entries).where(eq(t.entries.id, entryId)).get(), 'Entry')
     const event = getEventRow(ctx, entry.eventId)
+    assertNotHeld(ctx, event.competitionId)
     checkNotStarted(ctx, event.id)
     ctx.db.update(t.entries).set({ scratched: Boolean(scratched) }).where(eq(t.entries.id, entryId)).run()
     const row = entryRow(ctx, { ...entry, scratched: Boolean(scratched) })
@@ -241,6 +243,7 @@ export const secretariat = {
   // A late entry gets its own payment, either paid in cash now or left unpaid
   createLateEntry(ctx: Ctx, input: { competitorId: string; eventId: string; paidInCash: boolean }): LateEntryRow {
     const event = getEventRow(ctx, input?.eventId)
+    assertNotHeld(ctx, event.competitionId)
     const competitor = getCompetitorRow(ctx, input.competitorId)
     checkEligible(ctx, competitor.id, event)
     if (ctx.db.select().from(t.entries).where(and(eq(t.entries.eventId, event.id), eq(t.entries.competitorId, competitor.id))).get()) {
@@ -289,6 +292,7 @@ export const secretariat = {
   getSchedule: (ctx: Ctx, competitionId: string) => scheduleOf(ctx, competitionId),
 
   moveScheduledEvent(ctx: Ctx, competitionId: string, eventId: string, direction: 'up' | 'down'): ScheduleItem[] {
+    assertNotHeld(ctx, competitionId)
     const order = ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).orderBy(asc(t.events.position)).all()
     const from = order.findIndex((e) => e.id === eventId)
     const to = direction === 'up' ? from - 1 : from + 1
@@ -326,6 +330,7 @@ export const secretariat = {
   deleteLateEntry(ctx: Ctx, entryId: string): void {
     const entry = lateEntry(ctx, entryId)
     const event = getEventRow(ctx, entry.eventId)
+    assertNotHeld(ctx, event.competitionId)
     checkNotStarted(ctx, event.id)
     const names = entryRow(ctx, entry).names.join(' & ')
     ctx.db.delete(t.entries).where(eq(t.entries.id, entryId)).run()
@@ -337,6 +342,7 @@ export const secretariat = {
   updateLateEntry(ctx: Ctx, entryId: string, input: { eventId: string; paidInCash: boolean }): LateEntryRow {
     const entry = lateEntry(ctx, entryId)
     const event = getEventRow(ctx, input?.eventId)
+    assertNotHeld(ctx, event.competitionId)
     checkNotStarted(ctx, entry.eventId)
     if (event.id !== entry.eventId) {
       checkEligible(ctx, entry.competitorId, event)
@@ -369,6 +375,7 @@ export const secretariat = {
   },
 
   saveEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: string): Event {
+    assertNotHeld(ctx, competitionId)
     found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, competitionId)).get(), 'Competition')
     checkEvent(ctx, competitionId, input, id)
     const values = {
@@ -398,6 +405,7 @@ export const secretariat = {
 
   deleteEvent(ctx: Ctx, id: string): void {
     const event = getEventRow(ctx, id)
+    assertNotHeld(ctx, event.competitionId)
     if (ctx.db.select().from(t.entries).where(eq(t.entries.eventId, id)).get() || roundsOfEvent(ctx, id).length > 0) {
       return fail('This event has entries or rounds. Remove them first.', 409)
     }

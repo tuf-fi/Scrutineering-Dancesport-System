@@ -20,6 +20,9 @@ export interface Competition {
   date: string
   venue: string
   organizer: string
+  // Online only: the venue that downloaded this competition and runs it. While set, entries and payments are closed online.
+  heldBy?: string | null
+  heldAt?: Timestamp | null
 }
 
 export interface Event {
@@ -454,4 +457,43 @@ export interface SampleCredentials {
   usernames: string[]
   clubEmail: string
   pins: Array<{ letter: string; pin: string }>
+}
+
+// ---- Syncing the venue with the cloud ----
+
+export interface SyncStatus {
+  // False when this server has no cloud address: it works on its own
+  enabled: boolean
+  venueId: string
+  cloudUrl: string | null
+  // Changes waiting to go to the cloud, and how many of them have already failed once
+  pending: number
+  failing: number
+  lastUploadAt: Timestamp | null
+  lastError: string | null
+  // Whether the cloud answered the last time it was tried; null before the first try
+  reachable: boolean | null
+  // Competitions downloaded here, and so run from here
+  held: Id[]
+}
+
+// A competition on the cloud, as the venue sees it when choosing one to download
+export interface CloudCompetition {
+  id: Id
+  name: string
+  date: string
+  venue: string
+  organizer: string
+  // The venue that has downloaded it, if any
+  heldBy: string | null
+  heldAt: Timestamp | null
+  entries: number
+}
+
+export interface PullSummary {
+  competitionId: Id
+  // How many rows of each kind were new here
+  added: Record<string, number>
+  // Entries not downloaded because they are not paid yet
+  excludedEntries: number
 }

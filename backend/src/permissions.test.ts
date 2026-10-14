@@ -45,6 +45,11 @@ describe('every function against every role', () => {
       const crashed: string[] = []
       const wrong: string[] = []
       for (const name of endpointNames()) {
+        // Functions that exist only online are not there on a venue server, whoever asks
+        if (endpoint(name)!.mode === 'cloud') {
+          expect((await app.call(name, [], role === 'none' ? undefined : cookies[role])).status).toBe(404)
+          continue
+        }
         const rule = endpoint(name)!.access
         const may = rule === 'public' || (role !== 'none' && (rule === 'signedIn' || rule.includes(role as Role)))
         const reply = await app.call(name, [], role === 'none' ? undefined : cookies[role])

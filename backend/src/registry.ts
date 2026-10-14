@@ -6,6 +6,7 @@ import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
 import { scrutiny } from './services/scrutiny.ts'
 import { secretariat } from './services/secretariat.ts'
+import { syncFunctions } from './services/sync.ts'
 import { isStaff, toClub } from './services/shared.ts'
 import * as t from './db/schema.ts'
 import { asc } from 'drizzle-orm'
@@ -39,6 +40,7 @@ const handlers: Record<string, Handler> = {
   ...rounds,
   ...scrutiny,
   ...club,
+  ...syncFunctions,
   getClubs,
   getBackupStatus,
 } as unknown as Record<string, Handler>
@@ -135,6 +137,15 @@ const access: Record<string, Access> = {
   getAdjudicatorState: [Role.Adjudicator],
   submitAdjudicatorMarks: [Role.Adjudicator],
 
+  // Syncing the venue with the cloud
+  getSyncStatus: [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson],
+  getCloudCompetitions: ADMIN_OR_SECRETARIAT,
+  pullCompetition: ADMIN_OR_SECRETARIAT,
+  syncNow: [Role.Admin, Role.Secretariat, Role.Scrutineer],
+  uploadCompetition: ADMIN,
+  releaseCompetition: ADMIN,
+  unlockCompetition: ADMIN,
+
   // Clubs, each only for their own club
   getClubDancers: [Role.Club],
   saveClubDancer: [Role.Club],
@@ -151,9 +162,42 @@ const reading = new Set(
   Object.keys(handlers).filter((name) => /^get/.test(name)),
 )
 
+// Things that only make sense at the venue: running rounds and marking, and syncing with the cloud
+const VENUE_ONLY = new Set([
+  'getAdjudicatorState',
+  'submitAdjudicatorMarks',
+  'enterAdjudicatorMarks',
+  'getMarkingTask',
+  'getCurrentRoundId',
+  'getSubmissions',
+  'getAnnouncements',
+  'startRound',
+  'clearFloor',
+  'planRounds',
+  'saveHeats',
+  'getHeatAssignments',
+  'proposeTieDecision',
+  'confirmTieDecision',
+  'approveRound',
+  'publishRound',
+  'getSyncStatus',
+  'getCloudCompetitions',
+  'pullCompetition',
+  'syncNow',
+  'uploadCompetition',
+  'releaseCompetition',
+])
+// Things that only make sense online
+const CLOUD_ONLY = new Set(['unlockCompetition'])
+// These talk to the other server, so they wait for an answer and manage their own database work
+const ASYNC = new Set(['getCloudCompetitions', 'pullCompetition', 'syncNow', 'uploadCompetition', 'releaseCompetition'])
+
 export interface Endpoint {
   access: Access
   write: boolean
+  async: boolean
+  // Switched off in the other mode
+  mode: 'both' | 'venue' | 'cloud'
   run: (ctx: Ctx, args: unknown[]) => unknown
 }
 
@@ -164,6 +208,8 @@ export function endpoint(name: string): Endpoint | undefined {
   return {
     access: rule,
     write: !reading.has(name),
+    async: ASYNC.has(name),
+    mode: VENUE_ONLY.has(name) ? 'venue' : CLOUD_ONLY.has(name) ? 'cloud' : 'both',
     run: (ctx, args) => (handler as (ctx: Ctx, ...a: unknown[]) => unknown)(ctx, ...args),
   }
 }
