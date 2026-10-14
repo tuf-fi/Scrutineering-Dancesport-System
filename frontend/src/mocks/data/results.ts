@@ -1,21 +1,12 @@
-import type { PointsRow, RankingPoint, Result } from '@bis/shared'
+import type { RankingPoint, Result } from '@bis/shared'
 import { currentCompetitionId } from './competitions.ts'
 import { entries } from './entries.ts'
 import { events } from './events.ts'
-import { completedResults } from './progress.ts'
+import { completedPoints, completedResults } from './progress.ts'
+import { pointsTable } from './pointsTable.ts'
 import { at, createRng, shuffle } from './rng.ts'
 
-// Starting table from ROLES_README, pending client approval
-export const pointsTable: PointsRow[] = [
-  { place: 1, label: '1st', points: 10 },
-  { place: 2, label: '2nd', points: 8 },
-  { place: 3, label: '3rd', points: 6 },
-  { place: 4, label: '4th', points: 5 },
-  { place: 5, label: '5th', points: 4 },
-  { place: 6, label: '6th', points: 3 },
-  { place: 7, label: '7th (7-competitor final)', points: 2 },
-  { place: null, label: 'Semi-final', points: 1 },
-]
+export { pointsTable }
 
 const FINAL_SIZE = 6
 const SEMI_SIZE = 12
@@ -42,6 +33,7 @@ const pastResults: Result[] = events
 
 export const results: Result[] = [...completedResults, ...pastResults]
 
+// Past competitions have no marks, so their points come from the place alone
 function pointsFor(place: number): number {
   if (place <= FINAL_SIZE) return pointsTable.find((r) => r.place === place)?.points ?? 0
   // Knocked out in the semi-final
@@ -52,7 +44,7 @@ const eventById = new Map(events.map((e) => [e.id, e]))
 
 export const rankingPoints: RankingPoint[] = results.flatMap((r) => {
   const event = eventById.get(r.eventId)
-  const points = pointsFor(r.place)
+  const points = completedPoints.get(r.id) ?? pointsFor(r.place)
   if (!event || points === 0) return []
   return [
     {

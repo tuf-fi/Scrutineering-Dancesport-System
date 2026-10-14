@@ -24,8 +24,7 @@ export function ScoresPage() {
             competition={competition}
             adjudicators={adjudicators}
             footer={
-              // TODO: places are a static sample order until the Skating System engine exists (phase 2)
-              placing ? 'Placings are 1 for best. The Skating System calculation is not built yet.' : 'An X is 1; the total is the number of X marks.'
+              placing ? 'Placings are 1 for best. A shared place is read at its best place.' : 'An X is 1; the total is the number of X marks.'
             }
           >
             <table className="w-full border-collapse text-[9pt]">

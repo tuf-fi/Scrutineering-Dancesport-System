@@ -1,3 +1,4 @@
+import { placeFinal, tallyCallback } from '@bis/scoring'
 import {
   Role,
   RoundStatus,
@@ -93,31 +94,32 @@ export function saveHeatAssignments(roundId: string, assignments: HeatAssignment
 
 const tieDecisions = new Map<string, TieDecision>()
 
-function xTotals(roundId: string): Map<string, number> {
-  const totals = new Map<string, number>()
-  for (const m of visibleMarks(roundId)) {
-    if (m.kind === 'x') totals.set(m.competitorId, (totals.get(m.competitorId) ?? 0) + 1)
-  }
-  return totals
+const panelOf = (round: Round) => panels.find((p) => p.eventId === round.eventId)?.adjudicatorIds ?? []
+const dancesIn = (list: Mark[]) => [...new Set(list.map((m) => m.dance))]
+
+// The engine only needs the adjudicators who have submitted, so partial rounds give a provisional tally
+function callbackFor(round: Round, roundId: string, recall: number) {
+  const roundMarks = visibleMarks(roundId).filter((m) => m.kind === 'x')
+  const field = roundField(roundId)
+  const result = tallyCallback({
+    competitorIds: field.map((c) => c.id),
+    adjudicatorIds: panelOf(round).filter((id) => roundMarks.some((m) => m.adjudicatorId === id)),
+    dances: dancesIn(roundMarks),
+    recallNumber: recall,
+    marks: roundMarks.map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, dance: m.dance })),
+  })
+  return { result, field }
 }
 
 export function recallTable(roundId: string): RecallTable {
   const round = roundOf(roundId)
   if (round.recallNumber === null) throw new Error('A final is placed, not recalled.')
   const recall = round.recallNumber
-  const totals = xTotals(roundId)
-  const adjudicatorIds = panels.find((p) => p.eventId === round.eventId)?.adjudicatorIds ?? []
+  const { result, field } = callbackFor(round, roundId, recall)
+  const adjudicatorIds = panelOf(round)
   const submitted = new Set(visibleMarks(roundId).map((m) => m.adjudicatorId))
-
-  const sorted = roundField(roundId)
-    .map((c) => ({ competitorId: c.id, backNumber: c.backNumber, xCount: totals.get(c.id) ?? 0 }))
-    .sort((a, b) => b.xCount - a.xCount || (a.backNumber ?? 0) - (b.backNumber ?? 0))
-
-  const cutoff = sorted[recall - 1]?.xCount
-  const tied = sorted.filter((r) => r.xCount === cutoff)
-  const hasTie = cutoff !== undefined && sorted[recall] !== undefined && sorted[recall].xCount === cutoff
-  const above = sorted.filter((r) => r.xCount > (cutoff ?? 0)).length
-  const decision = hasTie ? (tieDecisions.get(roundId) ?? null) : null
+  const backNumber = new Map(field.map((c) => [c.id, c.backNumber]))
+  const decision = result.tie ? (tieDecisions.get(roundId) ?? null) : null
 
   // A round that is already decided has its recall in the next round's heats, whatever the counts say
   const sequence = rounds.filter((r) => r.eventId === round.eventId)
@@ -126,25 +128,40 @@ export function recallTable(roundId: string): RecallTable {
   const through = decided && nextRound
     ? new Set(heats.filter((h) => h.roundId === nextRound.id).flatMap((h) => h.competitorIds))
     : null
+  const settled = through !== null && through.size > 0
 
-  const rows: RecallRow[] = sorted.map((r, i) => {
-    let outcome: RecallRow['outcome']
-    if (through && through.size > 0) outcome = through.has(r.competitorId) ? 'recalled' : 'out'
-    else if (!hasTie) outcome = i < recall ? 'recalled' : 'out'
-    else if (r.xCount > cutoff) outcome = 'recalled'
-    else if (r.xCount < cutoff) outcome = 'out'
-    else outcome = decision ? (decision.choice === 'more' ? 'recalled' : 'out') : 'tied'
-    return { ...r, names: person(r.competitorId)?.names ?? [], rank: i + 1, outcome }
-  })
+  const rows: RecallRow[] = [...result.rows]
+    .sort((a, b) => b.xCount - a.xCount || (backNumber.get(a.competitorId) ?? 0) - (backNumber.get(b.competitorId) ?? 0))
+    .map((r, i) => {
+      let outcome = r.outcome
+      if (settled) outcome = through.has(r.competitorId) ? 'recalled' : 'out'
+      else if (r.outcome === 'tied' && decision) outcome = decision.choice === 'more' ? 'recalled' : 'out'
+      return {
+        competitorId: r.competitorId,
+        backNumber: backNumber.get(r.competitorId) ?? null,
+        names: person(r.competitorId)?.names ?? [],
+        xCount: r.xCount,
+        // Position in the list, so the cutoff line sits under the last recalled row
+        rank: i + 1,
+        outcome,
+      }
+    })
 
+  const tie = result.tie
   return {
     roundId,
     recallNumber: recall,
     adjudicatorCount: adjudicatorIds.length,
     submittedCount: adjudicatorIds.filter((id) => submitted.has(id)).length,
     rows,
-    recalled: through && through.size > 0 ? through.size : !hasTie ? Math.min(recall, sorted.length) : decision ? (decision.choice === 'more' ? above + tied.length : above) : recall,
-    tie: hasTie && !(through && through.size > 0) ? { xCount: cutoff, count: tied.length, decision } : null,
+    recalled: settled
+      ? through.size
+      : !tie
+        ? rows.filter((r) => r.outcome === 'recalled').length
+        : decision
+          ? decision.choice === 'more' ? tie.moreCount : tie.fewerCount
+          : recall,
+    tie: tie && !settled ? { xCount: tie.xCount, count: tie.competitorIds.length, decision } : null,
   }
 }
 
@@ -167,42 +184,77 @@ export function confirmTie(actorId: string, roundId: string): void {
   decision.confirmedBy = actorId
 }
 
-// TODO: the real Skating System arrives in phase 2; places here are a static sample order (lowest total wins)
 export function skatingTable(roundId: string): SkatingTable {
   const round = roundOf(roundId)
-  const panel = panels.find((p) => p.eventId === round.eventId)?.adjudicatorIds ?? []
+  const panel = panelOf(round)
   const roundMarks = visibleMarks(roundId)
   const isPlacing = roundMarks.some((m) => m.kind === 'placing') || round.recallNumber === null
   const adjudicatorList = panel.map((id) => ({ id, letter: adjudicators.find((a) => a.id === id)?.letter ?? '?' }))
   const markedBy = new Set(roundMarks.map((m) => m.adjudicatorId))
+  const complete = panel.length > 0 && panel.every((id) => markedBy.has(id))
 
-  const value = (m: Mark) => (m.kind === 'placing' ? m.placing : 1)
-  const finalists = isPlacing
-    ? [...new Set(roundMarks.map((m) => m.competitorId))]
-    : roundField(roundId).map((c) => c.id)
-  const places = isPlacing ? finalists.length : 0
-
-  const rows: SkatingRow[] = finalists.map((competitorId) => {
+  const cellsFor = (competitorId: string) => {
     const cells: Record<string, number | null> = {}
     for (const { id } of adjudicatorList) {
       const own = roundMarks.filter((m) => m.adjudicatorId === id && m.competitorId === competitorId)
-      cells[id] = markedBy.has(id) ? own.reduce((sum, m) => sum + value(m), 0) : null
+      cells[id] = markedBy.has(id) ? own.reduce((sum, m) => sum + (m.kind === 'placing' ? m.placing : 1), 0) : null
     }
-    const given = Object.values(cells).filter((v): v is number => v !== null)
+    return cells
+  }
+  const base = (competitorId: string) => {
+    const marks = cellsFor(competitorId)
     return {
       competitorId,
       backNumber: person(competitorId)?.backNumber ?? null,
       names: person(competitorId)?.names ?? [],
-      marks: cells,
-      majority: isPlacing ? Array.from({ length: places }, (_, k) => given.filter((v) => v <= k + 1).length) : [],
-      total: given.reduce((a, b) => a + b, 0),
-      place: 0,
+      marks,
+      total: Object.values(marks).reduce<number>((sum, v) => sum + (v ?? 0), 0),
     }
-  })
+  }
+  const byBackNumber = (a: SkatingRow, b: SkatingRow) => (a.backNumber ?? 0) - (b.backNumber ?? 0)
 
-  rows.sort((a, b) => (isPlacing ? a.total - b.total : b.total - a.total) || (a.backNumber ?? 0) - (b.backNumber ?? 0))
-  rows.forEach((r, i) => (r.place = i + 1))
-  return { roundId, kind: isPlacing ? 'placing' : 'x', adjudicators: adjudicatorList, places, rows }
+  if (!isPlacing) {
+    const { result } = callbackFor(round, roundId, round.recallNumber ?? 0)
+    const rows = result.rows.map<SkatingRow>((r) => ({
+      ...base(r.competitorId),
+      majority: [],
+      place: r.rank,
+      shared: false,
+      dancePlaces: [],
+      decidedBy: null,
+    }))
+    rows.sort((a, b) => b.total - a.total || byBackNumber(a, b))
+    return { roundId, kind: 'x', complete, adjudicators: adjudicatorList, places: 0, rows }
+  }
+
+  const placings = roundMarks.filter((m) => m.kind === 'placing')
+  const finalists = [...new Set(placings.map((m) => m.competitorId))]
+  if (finalists.length === 0) return { roundId, kind: 'placing', complete, adjudicators: adjudicatorList, places: 0, rows: [] }
+
+  const dances = dancesIn(placings)
+  const final = placeFinal({
+    competitorIds: finalists,
+    adjudicatorIds: panel.filter((id) => markedBy.has(id)),
+    dances: dances.map((dance) => ({
+      dance,
+      marks: placings
+        .filter((m) => m.dance === dance)
+        .map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, placing: m.kind === 'placing' ? m.placing : 0 })),
+    })),
+  })
+  const single = dances.length === 1
+
+  const rows = final.rows.map<SkatingRow>((r) => ({
+    ...base(r.competitorId),
+    // The column counts are the Skating System working; a multi-dance final shows dance places instead
+    majority: single ? (final.dances[0]?.result.columns[r.competitorId] ?? []).map((c) => c.count) : [],
+    place: r.announcedPlace,
+    shared: r.shared,
+    dancePlaces: single ? [] : final.dances.map((d) => ({ dance: d.dance, place: r.dancePlaces[d.dance] ?? 0 })),
+    decidedBy: r.decidedBy,
+  }))
+  rows.sort((a, b) => a.place - b.place || byBackNumber(a, b))
+  return { roundId, kind: 'placing', complete, adjudicators: adjudicatorList, places: single ? finalists.length : 0, rows }
 }
 
 export function approveRoundResults(actorId: string, roundId: string): void {

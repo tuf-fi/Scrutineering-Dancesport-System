@@ -1,3 +1,4 @@
+import { placeEliminated, placeFinal, rankingPoints, type RoundOutcome } from '@bis/scoring'
 import {
   RoundStatus,
   RoundType,
@@ -11,6 +12,7 @@ import { panels } from './adjudicators.ts'
 import { competitors } from './competitors.ts'
 import { completedEvent, currentEvents, featuredEvent } from './events.ts'
 import { entries } from './entries.ts'
+import { pointsTable } from './pointsTable.ts'
 import { at, createRng } from './rng.ts'
 
 const rng = createRng(2026)
@@ -113,13 +115,16 @@ interface Progress {
   heats: Heat[]
   marks: Mark[]
   results: Result[]
+  // Ranking points by result id
+  points: Map<string, number>
 }
 
 function build(event: Event, statuses: RoundStatus[], withResults: boolean): Progress {
   const active = entries.filter((e) => e.eventId === event.id && !e.scratched).map((e) => e.competitorId)
   const adjudicatorIds = panels.find((p) => p.eventId === event.id)?.adjudicatorIds ?? []
-  const out: Progress = { rounds: [], heats: [], marks: [], results: [] }
-  const placed = new Map<string, number>()
+  const out: Progress = { rounds: [], heats: [], marks: [], results: [], points: new Map() }
+  const outcomes: RoundOutcome[] = []
+  let finalists: ReturnType<typeof placeFinal>['rows'] = []
   let field = active
   let minute = 30
 
@@ -140,26 +145,34 @@ function build(event: Event, statuses: RoundStatus[], withResults: boolean): Pro
     if (plan.recall === null) {
       const marks = placingMarks(round.id, event, adjudicatorIds, field, minute)
       out.marks.push(...marks)
-      const total = new Map<string, number>()
-      for (const m of marks) {
-        if (m.kind === 'placing') total.set(m.competitorId, (total.get(m.competitorId) ?? 0) + m.placing)
-      }
-      // TODO: static sample order (lowest placing total wins); the real Skating System arrives in phase 2
-      ;[...field]
-        .sort((a, b) => (total.get(a) ?? 0) - (total.get(b) ?? 0) || power(b) - power(a))
-        .forEach((id, rank) => placed.set(id, rank + 1))
+      finalists = placeFinal({
+        competitorIds: field,
+        adjudicatorIds,
+        dances: [
+          {
+            dance: event.dances[0],
+            marks: marks.flatMap((m) =>
+              m.kind === 'placing' ? [{ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, placing: m.placing }] : [],
+            ),
+          },
+        ],
+      }).rows
     } else {
       const marks = xMarks(round.id, event, adjudicatorIds, field, plan.recall, minute)
       out.marks.push(...marks)
       const next = recall(marks, field, plan.recall)
-      // Dancers knocked out here share the place after everyone who went through
-      for (const id of field) if (!next.includes(id)) placed.set(id, plan.recall + 1)
+      const xCounts: Record<string, number> = {}
+      for (const m of marks) xCounts[m.competitorId] = (xCounts[m.competitorId] ?? 0) + 1
+      outcomes.push({ roundType: plan.type, competitorIds: field, recalledIds: next, xCounts })
       field = next
     }
     minute += 40
   })
 
   if (withResults) {
+    // Cut competitors share a range and are stored at its best place; finalists come from the Skating System
+    const eliminated = placeEliminated(outcomes)
+    const placed = new Map([...eliminated, ...finalists].map((p) => [p.competitorId, p.announcedPlace]))
     out.results = [...placed].map(([competitorId, place]) => ({
       id: `res:${event.id}:${competitorId}`,
       eventId: event.id,
@@ -168,6 +181,9 @@ function build(event: Event, statuses: RoundStatus[], withResults: boolean): Pro
       approvedBy: 'staff-scrutineer',
       approvedAt: at(minute),
     }))
+    for (const p of rankingPoints(pointsTable, finalists, eliminated)) {
+      out.points.set(`res:${event.id}:${p.competitorId}`, p.points)
+    }
   }
   return out
 }
@@ -197,3 +213,14 @@ export const rounds: Round[] = [...featured.rounds, ...completed.rounds, ...plan
 export const heats: Heat[] = [...featured.heats, ...completed.heats]
 export const marks: Mark[] = [...featured.marks, ...completed.marks]
 export const completedResults: Result[] = completed.results
+export const completedPoints = completed.points
+// The competitors who actually danced each round, which marks and heats are built on
+export const roundFields = new Map<string, string[]>(
+  [featured, completed].flatMap((p) =>
+    p.rounds.flatMap((r) => {
+      const heated = p.heats.filter((h) => h.roundId === r.id).flatMap((h) => h.competitorIds)
+      const marked = [...new Set(p.marks.filter((m) => m.roundId === r.id).map((m) => m.competitorId))]
+      return heated.length > 0 ? [[r.id, heated] as [string, string[]]] : marked.length > 0 ? [[r.id, marked] as [string, string[]]] : []
+    }),
+  ),
+)

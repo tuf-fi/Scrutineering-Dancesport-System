@@ -10,7 +10,7 @@ import { panels } from './data/adjudicators.ts'
 import { competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { currentEvents, featuredEvent } from './data/events.ts'
-import { heats, liveRoundId, marks, rounds } from './data/progress.ts'
+import { heats, liveRoundId, marks, roundFields, rounds } from './data/progress.ts'
 
 const MAX_HEAT = 12
 
@@ -33,6 +33,13 @@ function fieldOf(round: Round): MarkingTask['competitors'] {
     return roundHeats.flatMap((h) =>
       h.competitorIds.map((id) => ({ id, backNumber: backNumber.get(id) ?? null, heat: h.number })),
     )
+  }
+  // Rounds with sample marks and no heats (the finals) keep the competitors who were actually marked
+  const marked = roundFields.get(round.id)
+  if (marked) {
+    return marked
+      .map((id) => ({ id, backNumber: backNumber.get(id) ?? null, heat: null }))
+      .sort((a, b) => (a.backNumber ?? Infinity) - (b.backNumber ?? Infinity))
   }
   const sequence = roundsOf(round.eventId)
   const previous = sequence[sequence.indexOf(round) - 1]

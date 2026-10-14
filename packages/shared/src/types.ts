@@ -348,15 +348,22 @@ export interface SkatingRow {
   names: string[]
   // Each adjudicator's placing, or 1 or 0 for an X in earlier rounds; null when they have not marked yet
   marks: Record<Id, number | null>
-  // How many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
+  // Single-dance final: how many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
   majority: number[]
   total: number
+  // The place as the MC reads it; a shared place shows its best place, e.g. 2 for a tie for 2nd and 3rd
   place: number
+  shared: boolean
+  // Multi-dance final: the place in each dance, and the rule that decided the overall place
+  dancePlaces: Array<{ dance: Dance; place: number }>
+  decidedBy: 'total' | 'rule10' | 'rule11' | 'shared' | null
 }
 
 export interface SkatingTable {
   roundId: Id
   kind: 'x' | 'placing'
+  // False until every adjudicator on the panel has submitted; places are provisional until then
+  complete: boolean
   adjudicators: Array<{ id: Id; letter: string }>
   places: number
   rows: SkatingRow[]
