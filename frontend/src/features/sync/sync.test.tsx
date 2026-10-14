@@ -2,6 +2,7 @@ import { Role } from '@bis/shared'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import * as api from '../../api/index.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 describe('cloud sync', () => {
@@ -31,5 +32,18 @@ describe('cloud sync', () => {
     renderApp('/admin/sync', Role.Admin)
     await userEvent.click(await screen.findByRole('button', { name: 'Send now' }))
     expect(await screen.findByText('Everything is on the cloud')).toBeInTheDocument()
+  })
+})
+
+describe('taking a competition back', () => {
+  it('lets an admin reopen a competition a venue is holding', async () => {
+    await api.pullCompetition('comp-naga-2025')
+    renderApp('/admin/competitions', Role.Admin)
+    await userEvent.click(await screen.findByRole('button', { name: /^Take back Naga Dancesport Invitational 2025 from / }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/Anything it has not sent yet will be missing/)).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Take back' }))
+    expect(await screen.findByText(/open for entries and payments again/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Take back Naga/ })).not.toBeInTheDocument()
   })
 })

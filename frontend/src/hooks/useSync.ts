@@ -25,4 +25,13 @@ function useSyncWrite<TVars, TData>(mutationFn: (vars: TVars) => Promise<TData>)
 export const usePullCompetition = () => useSyncWrite((competitionId: string) => api.pullCompetition(competitionId))
 export const useSyncNow = () => useSyncWrite(() => api.syncNow())
 export const useUploadCompetition = () => useSyncWrite((competitionId: string) => api.uploadCompetition(competitionId))
+// Online: an admin takes a competition back from a venue that will not return it
+export function useUnlockCompetition() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (competitionId: string) => api.unlockCompetition(competitionId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['competitions'] }),
+  })
+}
+
 export const useReleaseCompetition = () => useSyncWrite((competitionId: string) => api.releaseCompetition(competitionId))

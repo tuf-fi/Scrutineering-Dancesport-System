@@ -1,5 +1,5 @@
 import type { Competition } from '@bis/shared'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Unplug } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
   Button,
@@ -14,7 +14,7 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
-import { useCompetitions, useDeleteCompetition, useEvents } from '../../hooks/index.ts'
+import { useCompetitions, useDeleteCompetition, useEvents, useUnlockCompetition } from '../../hooks/index.ts'
 import { dateParts, formatDate } from '../../lib/format.ts'
 import { CompetitionDialog } from './CompetitionDialog.tsx'
 
@@ -22,6 +22,8 @@ export function CompetitionsPage() {
   const competitions = useCompetitions()
   const events = useEvents()
   const remove = useDeleteCompetition()
+  const unlock = useUnlockCompetition()
+  const [toUnlock, setToUnlock] = useState<Competition | null>(null)
   const [query, setQuery] = useState('')
   const [year, setYear] = useState('all')
   const [toDelete, setToDelete] = useState<Competition | null>(null)
@@ -43,6 +45,19 @@ export function CompetitionsPage() {
       (!needle || [c.name, c.venue, c.organizer].some((v) => v.toLowerCase().includes(needle))),
   )
   const eventCount = (id: string) => events.data?.filter((e) => e.competitionId === id).length
+
+  function confirmUnlock(competition: Competition) {
+    unlock.mutate(competition.id, {
+      onSuccess: () => {
+        setToUnlock(null)
+        toast.success(`${competition.name} is open for entries and payments again`)
+      },
+      onError: (e) => {
+        setToUnlock(null)
+        toast.error(e.message)
+      },
+    })
+  }
 
   function confirmDelete(competition: Competition) {
     remove.mutate(competition.id, {
@@ -113,6 +128,9 @@ export function CompetitionsPage() {
             align: 'right',
             hideBelow: 'sm',
           },
+          ...(all.some((c) => c.heldBy)
+            ? [{ key: 'held', header: 'Run at', cell: (c: Competition) => c.heldBy ?? '–', muted: true, hideBelow: 'md' as const }]
+            : []),
           {
             key: 'actions',
             header: '',
@@ -120,6 +138,7 @@ export function CompetitionsPage() {
             widthClass: 'w-24',
             cell: (c) => (
               <div className="flex justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
+                {c.heldBy && <IconButton icon={Unplug} label={`Take back ${c.name} from ${c.heldBy}`} onClick={() => setToUnlock(c)} />}
                 <IconButton icon={Pencil} label={`Edit ${c.name}`} onClick={() => setEditing(c)} />
                 <IconButton icon={Trash2} tone="danger" label={`Delete ${c.name}`} onClick={() => setToDelete(c)} />
               </div>
@@ -132,6 +151,23 @@ export function CompetitionsPage() {
         open={editing !== null}
         competition={editing === 'new' ? null : editing}
         onClose={() => setEditing(null)}
+      />
+
+      <Dialog
+        open={toUnlock !== null}
+        onClose={() => setToUnlock(null)}
+        title={`Take back ${toUnlock?.name ?? ''}?`}
+        description={`${toUnlock?.heldBy ?? 'The venue'} is running this competition, so entries and payments are closed online. Take it back only if that venue is gone and will not send its results. Anything it has not sent yet will be missing.`}
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setToUnlock(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" disabled={unlock.isPending} onClick={() => toUnlock && confirmUnlock(toUnlock)}>
+              {unlock.isPending ? 'Taking back…' : 'Take back'}
+            </Button>
+          </>
+        }
       />
 
       <Dialog

@@ -92,7 +92,9 @@ function found<T>(value: T | undefined, what: string): T {
   return value
 }
 
-export const getCompetitions = () => reply(competitions)
+// A competition downloaded by the sample venue shows as held, as it does online
+export const getCompetitions = () =>
+  reply(competitions.map((c) => (sampleSync.held.includes(c.id) ? { ...c, heldBy: 'sample-venue', heldAt: new Date().toISOString() } : c)))
 export const getCompetition = (id: string) =>
   reply(found(competitions.find((c) => c.id === id), 'Competition'))
 
