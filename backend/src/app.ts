@@ -3,9 +3,9 @@ import jwt from '@fastify/jwt'
 import fastifyStatic from '@fastify/static'
 import { ScoringError } from '@bis/scoring'
 import type { SessionUser } from '@bis/shared'
-import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify'
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
 import { sql } from 'drizzle-orm'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession } from './auth/signin.ts'
 import { noBackups, type Backups } from './backup.ts'
@@ -33,7 +33,10 @@ export interface AppDeps {
 const SESSION_HOURS = 12
 
 export async function buildApp({ config, sqlite, db, hub: givenHub, backups = noBackups(), liveBoardMs = 3000 }: AppDeps) {
-  const app = Fastify({ logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: false })
+  const options = { logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: false }
+  // With a certificate the server speaks HTTPS, so phones will keep an offline copy of the app
+  const tls = config.tlsCert && config.tlsKey ? { cert: readFileSync(config.tlsCert), key: readFileSync(config.tlsKey) } : null
+  const app = (tls ? Fastify({ ...options, https: tls }) : Fastify(options)) as unknown as FastifyInstance
   await app.register(cookie)
   await app.register(jwt, { secret: config.cookieSecret })
 
@@ -188,7 +191,16 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
 
   const frontend = config.frontendDir ? resolve(config.frontendDir) : null
   if (frontend && existsSync(resolve(frontend, 'index.html'))) {
-    await app.register(fastifyStatic, { root: frontend, wildcard: false })
+    await app.register(fastifyStatic, {
+      root: frontend,
+      wildcard: false,
+      // The page, the service worker and the manifest must always be checked with the server, or a phone could keep
+      // an old version for good. Files with a hash in their name never change, so they are kept.
+      setHeaders: (res, path) => {
+        const name = path.replace(/\\/g, '/')
+        res.header('cache-control', /\/assets\//.test(name) ? 'public, max-age=31536000, immutable' : 'no-cache')
+      },
+    })
     app.setNotFoundHandler((request, reply) => {
       if (request.method === 'GET' && !request.url.startsWith('/api/')) return reply.sendFile('index.html')
       return reply.code(404).send({ error: 'Unknown request.' })

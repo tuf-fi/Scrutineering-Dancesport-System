@@ -120,6 +120,33 @@ describe('live updates', () => {
     }
   })
 
+  it('shows the scrutineer a phone that is holding marks it has not been able to send', async () => {
+    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
+    const phone = await signIn('/api/auth/adjudicator', { pin: String(4100 + 5 * 111) })
+    const phoneSocket = await connect(phone)
+    const board = async () => ((await call('getSubmissions', [LIVE], scrutineer)).body.data as AdjudicatorSubmission[])[5]!
+
+    phoneSocket.emit('heartbeat', { holding: null })
+    await settle()
+    expect(await board()).toMatchObject({ status: 'marking', holdingMarks: false })
+
+    // The phone has confirmed marks and cannot send them yet
+    phoneSocket.emit('heartbeat', { holding: LIVE })
+    await settle()
+    expect(await board()).toMatchObject({ status: 'marking', holdingMarks: true })
+
+    // Marks held for some other round do not count for this one
+    phoneSocket.emit('heartbeat', { holding: 'another-round' })
+    await settle()
+    expect((await board()).holdingMarks).toBe(false)
+
+    // A garbage heartbeat does no harm
+    phoneSocket.emit('heartbeat', { holding: 42 })
+    phoneSocket.emit('heartbeat')
+    await settle()
+    expect((await board()).holdingMarks).toBe(false)
+  })
+
   it('refuses a socket with a forged cookie the same as a guest', async () => {
     const forged = await connect('bis_session=not.a.token')
     const got = listen(forged, ['changed'])

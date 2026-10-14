@@ -79,6 +79,7 @@ const access: Record<string, Access> = {
   getSubmissions: STAFF,
   getHeatAssignments: STAFF,
   getMarks: SCORING,
+  getMarkingTask: SCORING,
 
   // Admin
   getAdjudicatorPins: ADMIN,

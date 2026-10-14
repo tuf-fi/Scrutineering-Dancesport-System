@@ -12,7 +12,8 @@
     "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate-cli.ts",
     "db:snapshot": "tsx scripts/export-sample-data.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/db/seed-cli.ts",
-    "admin:create": "tsx --env-file-if-exists=.env src/db/create-admin-cli.ts"
+    "admin:create": "tsx --env-file-if-exists=.env src/db/create-admin-cli.ts",
+    "restore": "tsx --env-file-if-exists=.env src/db/restore-cli.ts"
   },
   "dependencies": {
     "@bis/scoring": "workspace:*",
@@ -29,6 +30,7 @@
     "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^24.13.3",
     "drizzle-kit": "^0.31.0",
+    "fake-indexeddb": "^6.2.5",
     "socket.io-client": "^4.8.4",
     "tsx": "^4.20.0",
     "typescript": "~6.0.2",

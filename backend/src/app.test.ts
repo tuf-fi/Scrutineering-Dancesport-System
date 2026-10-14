@@ -71,6 +71,25 @@ describe('serving the built frontend', () => {
     expect(res.body).toContain('<title>BIS</title>')
   })
 
+  it('makes phones re-check the page, the service worker and the manifest, but keep hashed files', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bis-web-'))
+    mkdirSync(join(dir, 'assets'))
+    for (const file of ['index.html', 'sw.js', 'manifest.webmanifest', 'workbox-abc123.js', 'assets/index-9f8e7d.js']) writeFileSync(join(dir, file), 'x')
+    const { db, sqlite } = openDatabase(':memory:')
+    runMigrations(db)
+    const app = await buildApp({ config: loadConfig({ FRONTEND_DIR: dir }), sqlite, db, hub: silentHub(), liveBoardMs: 0 })
+    closers.push(() => app.close(), () => sqlite.close(), () => rmSync(dir, { recursive: true, force: true }))
+
+    const cache = async (url: string) => (await app.inject({ method: 'GET', url })).headers['cache-control']
+    expect(await cache('/')).toBe('no-cache')
+    expect(await cache('/sw.js')).toBe('no-cache')
+    expect(await cache('/manifest.webmanifest')).toBe('no-cache')
+    expect(await cache('/workbox-abc123.js')).toBe('no-cache')
+    expect(await cache('/assets/index-9f8e7d.js')).toBe('public, max-age=31536000, immutable')
+    // A screen address that is really the page gets the same no-cache
+    expect(await cache('/scrutineer/live')).toBe('no-cache')
+  })
+
   it('still answers 404 as JSON for an unknown API path', async () => {
     const app = await withFrontend()
     const res = await app.inject({ method: 'GET', url: '/api/nope' })
@@ -92,6 +111,16 @@ describe('the cookie secret', () => {
 })
 
 describe('config', () => {
+  it('serves HTTPS only when both a certificate and a key are given, and then marks cookies secure', () => {
+    expect(loadConfig({}).tlsCert).toBeNull()
+    expect(loadConfig({}).cookieSecure).toBe(false)
+    expect(() => loadConfig({ TLS_CERT: 'a.crt' })).toThrow(/both TLS_CERT and TLS_KEY/)
+    expect(() => loadConfig({ TLS_KEY: 'a.key' })).toThrow(/both TLS_CERT and TLS_KEY/)
+    const tls = loadConfig({ TLS_CERT: 'a.crt', TLS_KEY: 'a.key' })
+    expect(tls).toMatchObject({ tlsCert: 'a.crt', tlsKey: 'a.key', cookieSecure: true })
+    expect(loadConfig({ TLS_CERT: 'a.crt', TLS_KEY: 'a.key', COOKIE_SECURE: 'false' }).cookieSecure).toBe(false)
+  })
+
   it('has working defaults for development', () => {
     expect(loadConfig({})).toMatchObject({ mode: 'venue', port: 4000, host: '0.0.0.0', databasePath: './data/bis.db' })
   })

@@ -166,6 +166,13 @@ export const rounds = {
 
   getSubmissions: (ctx: Ctx, roundId: string): AdjudicatorSubmission[] => submissionSnapshot(ctx, roundId),
 
+  // What there is to mark in a round that has started: used to type in an adjudicator's paper sheet
+  getMarkingTask(ctx: Ctx, roundId: string): MarkingTask {
+    const round = getRoundRow(ctx, roundId)
+    if (round.status === 'pending') return fail('This round has not started.', 409)
+    return markingTask(ctx, round)
+  },
+
   // ---- Adjudicator ----
 
   getAdjudicatorState(ctx: Ctx): AdjudicatorState {
@@ -240,6 +247,7 @@ export function submissionSnapshot(ctx: Ctx, roundId: string): AdjudicatorSubmis
       status: SubmissionStatus.Marking,
       submittedAt: null,
       quietSince: quiet ? new Date(seen).toISOString() : null,
+      holdingMarks: ctx.hub.holding(adjudicatorId) === roundId,
     }
   })
 }

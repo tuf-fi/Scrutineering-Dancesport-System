@@ -1,5 +1,6 @@
 import { Role, type SessionUser } from '@bis/shared'
 import type { Server as HttpServer } from 'node:http'
+import type { Server as HttpsServer } from 'node:https'
 import { Server } from 'socket.io'
 import { Presence, type Hub } from './hub.ts'
 
@@ -17,7 +18,7 @@ function cookieValue(header: string | undefined, name: string): string | null {
 }
 
 // Rooms: every connection is in "public"; a signed-in one is also in "signedin", staff roles in "staff", and "me:<id>"
-export function createSocketHub(server: HttpServer, verify: (token: string) => SessionUser | null): Hub {
+export function createSocketHub(server: HttpServer | HttpsServer, verify: (token: string) => SessionUser | null): Hub {
   const io = new Server(server, { serveClient: false })
   const presence = new Presence()
 
@@ -30,8 +31,8 @@ export function createSocketHub(server: HttpServer, verify: (token: string) => S
       if (STAFF_ROLES.includes(user.role)) socket.join('staff')
       socket.join(`me:${user.id}`)
       if (user.role === 'adjudicator') presence.seen(user.id)
-      socket.on('heartbeat', () => {
-        if (user.role === 'adjudicator') presence.seen(user.id)
+      socket.on('heartbeat', (message?: { holding?: string | null }) => {
+        if (user.role === 'adjudicator') presence.seen(user.id, typeof message?.holding === 'string' ? message.holding : null)
       })
     }
   })
@@ -42,8 +43,9 @@ export function createSocketHub(server: HttpServer, verify: (token: string) => S
     floor: (roundId) => void io.to('signedin').emit('floor', { roundId }),
     published: (info) => void io.to('public').emit('published', info),
     rankings: () => void io.to('public').emit('rankings', {}),
-    seen: (id) => presence.seen(id),
+    seen: (id, holding) => presence.seen(id, holding ?? null),
     lastSeen: (id) => presence.lastSeen(id),
+    holding: (id) => presence.holding(id),
     close: () =>
       new Promise<void>((resolve) => {
         io.close(() => resolve())

@@ -146,6 +146,8 @@ export interface AdjudicatorSubmission {
   submittedAt: Timestamp | null
   // Set when a phone that was marking has stopped sending heartbeats: when it was last heard from
   quietSince?: Timestamp | null
+  // The phone has confirmed marks for this round saved on it that the server does not have yet
+  holdingMarks?: boolean
 }
 
 export interface Result {

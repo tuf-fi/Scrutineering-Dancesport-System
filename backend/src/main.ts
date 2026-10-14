@@ -25,4 +25,4 @@ process.on('SIGINT', shutdown)
 process.on('SIGTERM', shutdown)
 
 await app.listen({ port: config.port, host: config.host })
-console.log(`BIS venue server on http://${config.host}:${config.port} (database ${config.databasePath})`)
+console.log(`BIS venue server on ${config.tlsCert ? 'https' : 'http'}://${config.host}:${config.port} (database ${config.databasePath})`)

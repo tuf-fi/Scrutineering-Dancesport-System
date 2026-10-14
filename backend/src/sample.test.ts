@@ -205,6 +205,31 @@ describe('the scrutineer\'s heats and floor', () => {
   })
 })
 
+describe('what there is to mark', () => {
+  it('gives the scrutineer the task of a round that has started, with back numbers and heats', async () => {
+    const task = await app.ok<{ recallNumber: number; dances: string[]; competitors: Array<{ id: string; backNumber: number | null; heat: number | null }> }>(
+      'getMarkingTask',
+      [`${COMP}:e11:round_2`],
+      scrutineer,
+    )
+    expect(task.recallNumber).toBe(12)
+    expect(task.dances).toEqual(['cha_cha_cha'])
+    expect(task.competitors).toHaveLength(24)
+    expect(task.competitors.every((c) => c.backNumber !== null && c.heat !== null)).toBe(true)
+    const numbers = task.competitors.map((c) => c.backNumber!)
+    expect(numbers).toEqual([...numbers].sort((a, b) => a - b))
+  })
+
+  it('refuses a round that has not started, and anyone but scoring staff', async () => {
+    const rounds = await app.ok<Array<{ roundId: string; status: string }>>('getCompetitionRounds', [COMP], scrutineer)
+    const pending = rounds.find((r) => r.status === 'pending')!
+    expect((await app.call('getMarkingTask', [pending.roundId], scrutineer)).error).toMatch(/not started/)
+    expect((await app.call('getMarkingTask', [`${COMP}:e11:round_2`], secretariat)).status).toBe(403)
+    expect((await app.call('getMarkingTask', [`${COMP}:e11:round_2`], adjudicator)).status).toBe(403)
+    expect((await app.call('getMarkingTask', [`${COMP}:e11:round_2`])).status).toBe(401)
+  })
+})
+
 describe('club portal', () => {
   it('registers entries, locks paid ones and recalculates the amount due', async () => {
     const clubs = await app.ok<Array<{ contactEmail: string }>>('getClubs', [], admin)

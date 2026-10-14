@@ -5,8 +5,11 @@ export interface Config {
   host: string
   databasePath: string
   cookieSecret: string
-  // Only over HTTPS; the venue network is plain HTTP
+  // Only over HTTPS; the venue network is plain HTTP unless a certificate is given
   cookieSecure: boolean
+  // Serve over HTTPS, which phones need before they will keep an offline copy of the app
+  tlsCert: string | null
+  tlsKey: string | null
   // Where database backups are copied: a USB drive and Laptop 3 on competition day
   backupDirs: string[]
   backupIntervalMinutes: number
@@ -26,13 +29,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.NODE_ENV === 'production' && cookieSecret === DEV_SECRET) {
     throw new Error('Set COOKIE_SECRET before running a real competition.')
   }
+  if (Boolean(env.TLS_CERT) !== Boolean(env.TLS_KEY)) throw new Error('Set both TLS_CERT and TLS_KEY, or neither.')
   return {
     mode: 'venue',
     port,
     host: env.HOST ?? '0.0.0.0',
     databasePath: env.DATABASE_PATH ?? './data/bis.db',
     cookieSecret,
-    cookieSecure: env.COOKIE_SECURE === 'true',
+    cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : Boolean(env.TLS_CERT),
+    tlsCert: env.TLS_CERT || null,
+    tlsKey: env.TLS_KEY || null,
     backupDirs: (env.BACKUP_DIRS ?? './data/backups').split(',').map((d) => d.trim()).filter(Boolean),
     backupIntervalMinutes: Number(env.BACKUP_INTERVAL_MINUTES ?? 5),
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),

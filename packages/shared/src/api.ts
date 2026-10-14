@@ -44,6 +44,7 @@ export const API_FUNCTIONS = [
   'getHeatAssignments',
   'getHeats',
   'getLateEntries',
+  'getMarkingTask',
   'getMarks',
   'getPanel',
   'getPanels',
