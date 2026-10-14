@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { buildApp } from './app.ts'
-import { persistedSecret } from './secret.ts'
+import { databaseSecret } from './secret.ts'
 import { loadConfig } from './config.ts'
 import { openDatabase } from './db/client.ts'
 import { silentHub } from './realtime/hub.ts'
@@ -99,14 +99,36 @@ describe('serving the built frontend', () => {
 })
 
 describe('the cookie secret', () => {
-  it('is made once, beside the database, and is the same after a restart', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'bis-secret-'))
-    closers.push(() => rmSync(dir, { recursive: true, force: true }))
-    const first = persistedSecret(join(dir, 'data', 'bis.db'))
+  it('is made once, kept in the database, and is the same after a restart', () => {
+    const { db, sqlite } = openDatabase(':memory:')
+    runMigrations(db)
+    closers.push(() => sqlite.close())
+    const first = databaseSecret(db)
     expect(first).toMatch(/^[0-9a-f]{64}$/)
-    expect(persistedSecret(join(dir, 'data', 'bis.db'))).toBe(first)
-    // A different database folder gets its own
-    expect(persistedSecret(join(dir, 'other', 'bis.db'))).not.toBe(first)
+    expect(databaseSecret(db)).toBe(first)
+    expect(sqlite.prepare('select count(*) as n from settings').get()).toEqual({ n: 1 })
+  })
+
+  it('travels with a backup, so a restored copy keeps everyone signed in', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bis-secret-'))
+    const live = openDatabase(join(dir, 'live.db'))
+    runMigrations(live.db)
+    const secret = databaseSecret(live.db)
+    await live.sqlite.backup(join(dir, 'copy.db'))
+    live.sqlite.close()
+    const restored = openDatabase(join(dir, 'copy.db'))
+    // Closed before the folder is removed: Windows will not delete a file that is open
+    closers.push(() => restored.sqlite.close(), () => rmSync(dir, { recursive: true, force: true }))
+    expect(databaseSecret(restored.db)).toBe(secret)
+  })
+
+  it('is different for each database', () => {
+    const a = openDatabase(':memory:')
+    const b = openDatabase(':memory:')
+    runMigrations(a.db)
+    runMigrations(b.db)
+    closers.push(() => a.sqlite.close(), () => b.sqlite.close())
+    expect(databaseSecret(a.db)).not.toBe(databaseSecret(b.db))
   })
 })
 

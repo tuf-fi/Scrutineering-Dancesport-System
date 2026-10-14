@@ -349,3 +349,9 @@ export const outbox = sqliteTable(
   },
   (t) => [index('outbox_unsent').on(t.sentAt)],
 )
+
+// Small server settings kept in the database, so a restored backup carries them: the key that signs sign-in cookies
+export const settings = sqliteTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+})

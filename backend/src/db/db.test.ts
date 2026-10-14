@@ -33,7 +33,7 @@ describe('database', () => {
       [
         'adjudicator_pins', 'adjudicators', 'audit_log', 'clubs', 'competitions', 'competitors', 'entries', 'events',
         'heat_competitors', 'heats', 'marks', 'outbox', 'panel_members', 'panels', 'payments', 'points_table',
-        'ranking_points', 'results', 'rounds', 'staff_users', 'submissions', 'tie_decisions',
+        'ranking_points', 'results', 'rounds', 'settings', 'staff_users', 'submissions', 'tie_decisions',
       ].sort(),
     )
   })

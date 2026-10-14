@@ -1,17 +1,17 @@
 import { randomBytes } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { eq } from 'drizzle-orm'
+import type { Db } from './db/client.ts'
+import * as t from './db/schema.ts'
 
-// A random signing key kept next to the database, made on the first start. It stays the same after a restart,
-// so adjudicators stay signed in if the server is restarted in the middle of a round.
-export function persistedSecret(databasePath: string): string {
-  const file = join(dirname(databasePath), 'cookie-secret')
-  if (existsSync(file)) {
-    const saved = readFileSync(file, 'utf8').trim()
-    if (saved.length >= 32) return saved
-  }
-  mkdirSync(dirname(file), { recursive: true })
-  const secret = randomBytes(32).toString('hex')
-  writeFileSync(file, secret, { mode: 0o600 })
-  return secret
+const KEY = 'cookie_secret'
+
+// A random signing key for sign-in cookies, made on the first start and kept in the database. It stays the same after
+// a restart, so adjudicators stay signed in if the server is restarted in the middle of a round. Because it lives in
+// the database, a backup restored on Laptop 3 carries it too, and nobody is signed out by the takeover.
+export function databaseSecret(db: Db): string {
+  const saved = db.select().from(t.settings).where(eq(t.settings.key, KEY)).get()
+  if (saved && saved.value.length >= 32) return saved.value
+  const value = randomBytes(32).toString('hex')
+  db.insert(t.settings).values({ key: KEY, value }).onConflictDoUpdate({ target: t.settings.key, set: { value } }).run()
+  return value
 }

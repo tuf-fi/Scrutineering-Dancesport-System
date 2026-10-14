@@ -48,6 +48,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     }
   }
   const hub = givenHub ?? createSocketHub(app.server, verifyToken)
+  // A backup folder that stops (or starts) working is shown on the scrutineer's screen at once
+  backups.onChange(() => hub.changed('backups'))
 
   const baseContext = (user: SessionUser | null, deferred: Array<() => void> = []): Ctx => ({
     db,
@@ -155,7 +157,11 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
           console.error(error)
         }
       }
-      if (route.write) hub.changed(name)
+      if (route.write) {
+        hub.changed(name)
+        // Every change is copied to the backup folders within a moment
+        backups.soon()
+      }
       return { data: data ?? null }
     } catch (error) {
       return sendError(reply, error)

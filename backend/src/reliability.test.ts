@@ -1,9 +1,10 @@
 import type { AdjudicatorSubmission, MarkSubmission } from '@bis/shared'
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { copiesToKeep } from './backup.ts'
 import { openDatabase } from './db/client.ts'
 import { runMigrations } from './db/migrate.ts'
 import { seedSampleData } from './db/seed.ts'
@@ -142,6 +143,31 @@ describe('backups', () => {
     expect((await app.call('getBackupStatus', [], await app.signIn.staff('mc'))).status).toBe(403)
   })
 
+  it('tells the screens when a backup folder stops working, and again when it works', async () => {
+    const good = temp()
+    const flaky = join(temp(), 'usb')
+    const app = await startTestApp({ backupDirs: [good, flaky] })
+    apps.push(app)
+    const heard = vi.fn()
+    app.backups.onChange(heard)
+    await app.backups.run()
+    // Nothing changed: both folders worked and still do
+    expect(heard).not.toHaveBeenCalled()
+
+    // The drive is pulled out: a file now sits where the folder was
+    rmSync(flaky, { recursive: true, force: true })
+    writeFileSync(flaky, 'not a folder')
+    await app.backups.run()
+    expect(heard).toHaveBeenCalledTimes(1)
+    await app.backups.run()
+    expect(heard).toHaveBeenCalledTimes(1)
+
+    // And plugged back in
+    rmSync(flaky, { force: true })
+    await app.backups.run()
+    expect(heard).toHaveBeenCalledTimes(2)
+  })
+
   it('keeps a copy taken while marks are being written consistent', async () => {
     const good = temp()
     const app = await startTestApp({ backupDirs: [good] })
@@ -159,13 +185,84 @@ describe('backups', () => {
     copy.sqlite.close()
   })
 
-  it('keeps only the newest thirty copies in a folder', async () => {
+  it('copies the database within a moment of every change, so a laptop that dies loses almost nothing', async () => {
+    const good = temp()
+    const app = await startTestApp({ backupDirs: [good] })
+    apps.push(app)
+    const phone = await app.signIn.adjudicator(PIN(3))
+    await app.ok('submitAdjudicatorMarks', [LIVE, await marksFor(app, phone)], phone)
+
+    // No timer is running and nobody approved anything: the copy comes from the change itself
+    await vi.waitFor(() => expect(readdirSync(good).filter((f) => f.endsWith('.db')).length).toBeGreaterThan(0), { timeout: 5000 })
+    const newest = readdirSync(good).filter((f) => f.endsWith('.db')).sort().at(-1)!
+    const copy = openDatabase(join(good, newest))
+    expect(copy.sqlite.prepare("select count(*) as n from submissions where round_id = ? and adjudicator_id = 'adj-d'").get(LIVE)).toEqual({ n: 1 })
+    expect(copy.sqlite.prepare("select count(*) as n from marks where round_id = ? and adjudicator_id = 'adj-d'").get(LIVE)).toEqual({ n: 12 })
+    copy.sqlite.close()
+  })
+
+  it('makes one copy for changes that arrive together, and none for reads', async () => {
+    const good = temp()
+    const app = await startTestApp({ backupDirs: [good] })
+    apps.push(app)
+    const scrutineer = await app.signIn.staff('scrutineer')
+    for (let i = 0; i < 5; i++) await app.call('getCompetitions', [], scrutineer)
+    await new Promise((r) => setTimeout(r, 1500))
+    expect(readdirSync(good).filter((f) => f.endsWith('.db'))).toHaveLength(0)
+
+    const phones = await Promise.all([3, 4, 5].map((i) => app.signIn.adjudicator(PIN(i))))
+    await Promise.all(phones.map(async (cookie) => app.call('submitAdjudicatorMarks', [LIVE, await marksFor(app, cookie)], cookie)))
+    await vi.waitFor(() => expect(readdirSync(good).filter((f) => f.endsWith('.db')).length).toBeGreaterThan(0), { timeout: 5000 })
+    await new Promise((r) => setTimeout(r, 1500))
+    expect(readdirSync(good).filter((f) => f.endsWith('.db'))).toHaveLength(1)
+  })
+
+  it('keeps recent copies close together and older ones further apart, so an old backup always survives', async () => {
     const dir = temp()
-    for (let i = 0; i < 35; i++) writeFileSync(join(dir, `bis-20260101-0000${String(i).padStart(2, '0')}.db`), 'old')
+    // 100 copies in the last 3 minutes, then one every 2 minutes going back 5 hours
+    const now = Date.now()
+    const names: string[] = []
+    const make = (ageMs: number, i: number) => {
+      const f = `bis-${String(i).padStart(4, '0')}.db`
+      const path = join(dir, f)
+      writeFileSync(path, 'x')
+      utimesSync(path, new Date(now - ageMs), new Date(now - ageMs))
+      names.push(f)
+    }
+    for (let i = 0; i < 100; i++) make(i * 1800, i)
+    for (let i = 1; i <= 150; i++) make(i * 2 * 60_000 + 3 * 60_000, 100 + i)
     const app = await startTestApp({ backupDirs: [dir] })
     apps.push(app)
     await app.backups.run()
-    expect(readdirSync(dir).filter((f) => f.endsWith('.db'))).toHaveLength(30)
-    expect(existsSync(dir)).toBe(true)
+    const left = readdirSync(dir).filter((f) => f.endsWith('.db'))
+    // The newest 60 are all there, the oldest of the 5 hours is still there, and the folder did not grow without bound
+    expect(left.length).toBeGreaterThan(60)
+    expect(left.length).toBeLessThan(60 + 40)
+    expect(left).toContain('bis-0000.db')
+    expect(left).toContain('bis-0058.db')
+    expect(left).not.toContain('bis-0099.db')
+    // Thinned to about one per 10 minutes, but the history still reaches back the full five hours
+    const oldestAgeMinutes = Math.max(...left.map((f) => (now - statSync(join(dir, f)).mtimeMs) / 60_000))
+    expect(oldestAgeMinutes).toBeGreaterThan(290)
+  })
+
+  it('works out which copies to keep', () => {
+    const t0 = Date.parse('2026-10-10T12:00:00Z')
+    const at = (minutesAgo: number) => t0 - minutesAgo * 60_000
+    const files = [
+      { f: 'now', at: at(0) },
+      { f: 'a', at: at(11) },
+      { f: 'a-twin', at: at(12) },
+      { f: 'b', at: at(29) },
+      { f: 'yesterday', at: at(25 * 60) },
+    ]
+    // Few copies: all are within the newest 60, so only age matters beyond that
+    expect([...copiesToKeep(files, t0)].sort()).toEqual(['a', 'a-twin', 'b', 'now', 'yesterday'])
+    const many = Array.from({ length: 200 }, (_, i) => ({ f: `c${i}`, at: at(i * 0.1) }))
+    const kept = copiesToKeep([...many, { f: 'five-hours', at: at(5 * 60) }, { f: 'ancient', at: at(48 * 60) }], t0)
+    expect(kept.has('c0')).toBe(true)
+    expect(kept.has('c59')).toBe(true)
+    expect(kept.has('ancient')).toBe(false)
+    expect(kept.has('five-hours')).toBe(true)
   })
 })
