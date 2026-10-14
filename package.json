@@ -4,6 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "pnpm -r --parallel --if-present dev",
+    "dev:sample": "pnpm --filter frontend dev:sample",
+    "build": "pnpm --filter frontend build",
+    "build:sample": "pnpm --filter frontend build:sample",
+    "seed": "pnpm --filter @bis/backend db:seed",
+    "venue": "pnpm --filter frontend build && pnpm --filter @bis/backend start",
     "test": "pnpm -r --if-present test"
   },
   "keywords": [],
