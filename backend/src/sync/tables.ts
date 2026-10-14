@@ -9,6 +9,8 @@ export interface SyncTable {
   // Columns that are sent
   columns: string[]
   primaryKey: string[]
+  // Other sets of columns that must be unique, such as an event and a round type
+  uniqueKeys: string[][]
 }
 
 function describe(table: SQLiteTable, skip: string[] = []): SyncTable {
@@ -19,6 +21,9 @@ function describe(table: SQLiteTable, skip: string[] = []): SyncTable {
     table,
     columns: config.columns.map((c) => c.name).filter((name) => !skip.includes(name)),
     primaryKey: composite ?? config.columns.filter((c) => c.primary).map((c) => c.name),
+    uniqueKeys: config.indexes
+      .filter((i) => i.config.unique)
+      .map((i) => i.config.columns.map((c) => ('name' in c ? c.name : ''))),
   }
 }
 

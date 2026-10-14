@@ -13,7 +13,10 @@ It starts the real server as separate processes and drives a real Chrome (a phon
 | 5 | The scrutineer types in a paper sheet |
 | 6 | Laptop 2 dies; Laptop 3 restores the newest backup, then (worst case) the oldest; phones stay signed in and put back marks the server lost |
 | 7 | The offline copy of the app on localhost, on a plain `http://<address>` (not available, as documented), and over HTTPS |
+| 8 | A second server in cloud mode and an empty venue: the venue downloads a competition, runs a round that reaches the cloud by itself, loses the cloud and sends everything once when it returns, then releases the competition (no browser needed) |
 
 Screenshots of the screens it visits are saved in `rehearsal/shots/`. The exit code is non-zero if any step fails.
 
 **What it does not cover:** real phones, a real Wi-Fi network, a certificate trusted by a phone (it uses Chrome's certificate-error flag instead), and iPhone Safari. Run the checklist by hand on the actual devices as well.
+
+`pnpm loadtest` is a separate check: ten phones marking at the same moment with a crowd reading the public pages. See [PHASE7_README.md](../PHASE7_README.md).

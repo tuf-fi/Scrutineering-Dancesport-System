@@ -15,7 +15,7 @@ Goal: nothing is lost when the Wi-Fi drops, a phone dies, a browser is closed or
 | 7 | Tests of a bad day: Wi-Fi off, browser killed, server restarted | Done |
 | 8 | The rehearsal, run for real (`pnpm rehearsal`) | Done on this machine; real phones still to do |
 
-Tests added in this phase: 37 frontend, 25 backend. All suites pass (50 scoring, 136 backend, 234 frontend), and the rehearsal passes all 15 steps.
+Tests added in this phase: 37 frontend, 25 backend. All suites pass (50 scoring, 136 backend, 234 frontend), and the rehearsal passed all 15 steps (it has 19 since the sync steps were added in Phase 5).
 
 ## What was built
 

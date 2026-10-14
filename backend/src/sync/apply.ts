@@ -28,6 +28,27 @@ function knownColumns(table: SyncTable, payload: Record<string, unknown>): strin
   return Object.keys(payload).filter((c) => table.columns.includes(c))
 }
 
+// When the venue sends a row whose natural key (an event and a round type, a competitor in an event) is already used by a
+// different row on the cloud, the venue's row wins: it is the one that holds the competition. The cloud's copy of a
+// round, a result or an entry is replaced; for a back number only the number is taken off, never the competitor.
+const REPLACE_ON_CONFLICT = new Set(['entries', 'rounds', 'heats', 'heat_competitors', 'submissions', 'marks', 'tie_decisions', 'results', 'ranking_points'])
+const CLEAR_ON_CONFLICT: Record<string, string> = { competitors: 'back_number' }
+
+function supersede(sqlite: Sqlite, table: SyncTable, columns: string[], payload: Record<string, Value>) {
+  for (const key of table.uniqueKeys) {
+    if (key.length === 0 || !key.every((c) => columns.includes(c))) continue
+    const same = key.map((c) => `${quote(c)} = ?`).join(' AND ')
+    const notMe = table.primaryKey.map((c) => `${quote(c)} = ?`).join(' AND ')
+    const args = [...key.map((c) => payload[c] ?? null), ...table.primaryKey.map((c) => payload[c] ?? null)]
+    if (key.some((c) => payload[c] === null || payload[c] === undefined)) continue
+    if (REPLACE_ON_CONFLICT.has(table.name)) {
+      sqlite.prepare(`DELETE FROM ${quote(table.name)} WHERE ${same} AND NOT (${notMe})`).run(...args)
+    } else if (CLEAR_ON_CONFLICT[table.name] && key.length === 1 && key[0] === CLEAR_ON_CONFLICT[table.name]) {
+      sqlite.prepare(`UPDATE ${quote(table.name)} SET ${quote(key[0])} = NULL WHERE ${same} AND NOT (${notMe})`).run(...args)
+    }
+  }
+}
+
 function upsertSql(table: SyncTable, columns: string[]): string {
   const rest = columns.filter((c) => !table.primaryKey.includes(c))
   const action = rest.length > 0 ? `DO UPDATE SET ${rest.map((c) => `${quote(c)} = excluded.${quote(c)}`).join(', ')}` : 'DO NOTHING'
@@ -55,6 +76,7 @@ export function applyChanges(sqlite: Sqlite, items: SyncItem[]): AppliedChanges 
       } else {
         const columns = knownColumns(table, item.payload)
         if (table.primaryKey.some((c) => !columns.includes(c))) throw new Error(`A change to ${table.name} is missing its key.`)
+        supersede(sqlite, table, columns, item.payload)
         sqlite.prepare(upsertSql(table, columns)).run(...columns.map((c) => item.payload[c] ?? null))
       }
       if (item.entity === 'rounds' && item.operation === 'upsert' && item.payload.status === 'published') {

@@ -46,6 +46,17 @@ The database is a single file in the `bis-data` volume. The server copies it int
 docker compose cp app:/data/backups ./offsite
 ```
 
+### Copying the backups to another place
+
+A second service copies the newest backups to storage outside the server every day. It uses rclone, which speaks to S3-compatible storage (Backblaze B2, Wasabi, DigitalOcean Spaces), Google Drive, SFTP and many more. Describe the place in `.env` as in `.env.example` (`OFFSITE_REMOTE` and the `RCLONE_CONFIG_OFFSITE_*` settings), then:
+
+```
+docker compose --profile offsite up -d
+docker compose logs offsite
+```
+
+The log should say "offsite copy done" once a day; "FAILED" means the copy did not happen, so look at the line above it. It only adds files, so the remote keeps the history. Set a lifecycle rule there (for example keep 90 days) so it does not grow forever. Check once in a while that you can open a copy from the remote and restore it.
+
 Restore: stop the app (`docker compose stop app`), put the chosen backup in the volume as `bis.db` and start it again.
 
 ## Updating

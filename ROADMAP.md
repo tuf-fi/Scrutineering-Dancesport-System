@@ -57,7 +57,7 @@ Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-ro
 - [x] Paper fallback: printable blank sheets and a Paper marks screen to type in an adjudicator's sheet
 - [x] Backup device: `restore` command for Laptop 3, takeover steps and a rehearsal checklist
 - [x] Tested: server stopped and restarted mid-round, browser killed, a lost reply, a refused send
-- [x] Rehearsal run for real on this machine (`pnpm rehearsal`: 15 steps, real server and Chrome); it found and fixed six problems
+- [x] Rehearsal run for real on this machine (`pnpm rehearsal`: 19 steps, real servers and Chrome, including a venue syncing with a cloud server); it found and fixed seven problems
 - [ ] Run the by-hand rehearsal on the real phones and laptops (offline copy, certificate on Android and iPhone, takeover timing)
 
 ## Phase 5: Cloud backend and sync (built)
@@ -71,9 +71,10 @@ Goal: the same server runs online, and venue and cloud stay in step. Details and
 - [x] Conflict rule: a competition downloaded by a venue is held; entries and payments close online until it is released.
 - [x] Sync status at the venue and the Cloud sync screen.
 - [x] Hosting files and online backups (`deploy/`).
-- [ ] Put it on a real server, connect the real venue laptop and add a sync step to `pnpm rehearsal`
-- [ ] Copy the online backups to a second place every day
-- [ ] A screen for an admin to take back a competition from a lost venue (the function exists)
+- [x] Sync step in `pnpm rehearsal`: a cloud server and a venue on their own databases; download, a round, the cloud lost and found again, release
+- [ ] Put it on a real server and connect the real venue laptop
+- [x] Copy the online backups to a second place every day (`docker compose --profile offsite up -d`; needs a place to copy to)
+- [x] A screen for an admin to take back a competition from a lost venue (Competitions, online)
 
 ## Phase 6: Registration and payments (cloud) (built, except emails)
 

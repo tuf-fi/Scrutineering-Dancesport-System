@@ -55,7 +55,7 @@ Tests added: 44 backend (19 on the sync building blocks, 25 with a real cloud se
 
 ## Not done
 
-- Real hosting (a VPS, DNS, copies of the online backups to another place) and a run against it from the real venue laptop. Add a sync step to `pnpm rehearsal`.
+- Real hosting (a VPS and DNS) and a run against it from the real venue laptop. The daily copy of backups to another place is built (deploy/README.md) but needs a place to copy to.
 - Rankings are uploaded as results come in; the download of rankings from other competitions for seeding is limited to the history rows needed for the entries downloaded.
-- No screen yet for an admin to take back a competition online (the `unlockCompetition` function exists and is tested).
-- Phase 6 items: club accounts with real email, payment proof storage, privacy notice.
+- Taking a competition back from a lost venue is on the admin Competitions screen online.
+- When the venue sends a round, entry or result the cloud already has under another id, the venue's copy replaces it; a back number already used is taken off the other competitor, never the competitor. Events that clash are still refused and reported (`sync/apply.ts`, `sync/conflicts.test.ts`). The rehearsal found this.

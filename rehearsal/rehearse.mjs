@@ -293,7 +293,11 @@ try {
   const subs = (db) => ['adj-a', 'adj-b', 'adj-c', 'adj-d', 'adj-e', 'adj-f'].map((a) => `${a.slice(-1).toUpperCase()}:${submitted(db, a)}`).join(' ')
 
   await step('6a. Laptop 2 dies a moment after the last marks; Laptop 3 restores the newest backup', async () => {
-    await sleep(2500) // the server copies the database about a second after each change
+    // The server copies the database a second or so after a change, and at least three seconds after the last copy
+    await until('a backup that has the paper marks', async () => {
+      const newest = readdirSync(share).filter((f) => /^bis-.*.db$/.test(f)).sort().at(-1)
+      return newest && submitted(join(share, newest), 'adj-f') === 1
+    }, 15000, 500)
     await kill(server)
     const r = restore(DB3, share)
     log('      ' + r.stdout.trim().split('\n').join('\n      '))
@@ -406,6 +410,119 @@ try {
       tls.kill('SIGKILL')
     }
   })
+
+  // ================= 8. The venue and the online server =================
+  // A cloud server and an empty venue server on their own databases: the venue downloads a competition, runs a round,
+  // loses the cloud for a while, and everything arrives once, with nothing lost.
+  const CLOUD_PORT = 4070
+  const VENUE_PORT = 4071
+  const CLOUD = `http://localhost:${CLOUD_PORT}`
+  const VENUE = `http://localhost:${VENUE_PORT}`
+  const TOKEN = 'rehearsal-token-0123456789'
+  const DB_CLOUD = join(work, 'cloud', 'bis.db')
+  const DB_VENUE = join(work, 'venue', 'bis.db')
+  mkdirSync(join(work, 'cloud'), { recursive: true })
+  mkdirSync(join(work, 'venue'), { recursive: true })
+  const COMP = 'comp-sorsogon-2026'
+  let cloud = null
+  let venueServer = null
+  const startCloud = () => startServer({ db: DB_CLOUD, port: CLOUD_PORT, backupDirs: [join(work, 'cloud-backups')], interval: '5', env: { MODE: 'cloud', SYNC_TOKENS: `rehearsal-venue=${TOKEN}` } })
+  const must = async (cookie, name, args = []) => {
+    const r = await fetch(`${VENUE}/api/call/${name}`, { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: JSON.stringify({ args }) })
+    const body = await r.json()
+    if (!r.ok) throw new Error(`${name} ${r.status}: ${body.error}`)
+    return body.data
+  }
+  const syncStatus = (cookie) => must(cookie, 'getSyncStatus')
+  try {
+    spawnSync(process.execPath, ['--import', 'tsx', 'src/db/seed-cli.ts'], { cwd: BACKEND, env: { ...process.env, DATABASE_PATH: DB_CLOUD, NODE_NO_WARNINGS: '1' } })
+    spawnSync(process.execPath, ['--import', 'tsx', 'src/db/create-admin-cli.ts', 'boss', 'Venue Boss', 'venue-pass-123'], { cwd: BACKEND, env: { ...process.env, DATABASE_PATH: DB_VENUE, NODE_NO_WARNINGS: '1' } })
+    cloud = startCloud()
+    await waitHealthy(CLOUD_PORT)
+    venueServer = startServer({
+      db: DB_VENUE,
+      port: VENUE_PORT,
+      backupDirs: [join(work, 'venue-backups')],
+      interval: '5',
+      env: { CLOUD_URL: CLOUD, SYNC_TOKEN: TOKEN, VENUE_ID: 'rehearsal-venue', SYNC_DELAY_MS: '500' },
+    })
+    await waitHealthy(VENUE_PORT)
+    const boss = await apiCookie('boss', 'venue-pass-123', VENUE)
+    // The admin made the competition ready; the scrutineer runs the round
+    const made = await must(boss, 'createStaffUser', [{ name: 'Rehearsal Scrutineer', username: 'rscr', role: 'scrutineer' }])
+    const scr8 = await apiCookie('rscr', made.tempPassword, VENUE)
+    const madeSec = await must(boss, 'createStaffUser', [{ name: 'Rehearsal Secretariat', username: 'rsec', role: 'secretariat' }])
+    const sec8 = await apiCookie('rsec', madeSec.tempPassword, VENUE)
+
+    await step('8a. The venue downloads the competition from the cloud: paid entries, panels and PINs', async () => {
+      const list = await must(boss, 'getCloudCompetitions')
+      if (!list.some((c) => c.id === COMP)) throw new Error('the cloud did not list the competition')
+      const summary = await must(boss, 'pullCompetition', [COMP])
+      const entries = q(DB_VENUE, 'select count(*) as n from entries')[0].n
+      const pins = q(DB_VENUE, 'select count(*) as n from adjudicator_pins where competition_id = ?', COMP)[0].n
+      if (entries === 0 || pins === 0) throw new Error(`entries ${entries}, pins ${pins}`)
+      const held = q(DB_CLOUD, 'select held_by as h from competitions where id = ?', COMP)[0].h
+      if (held !== 'rehearsal-venue') throw new Error('the cloud does not show the venue holding it: ' + held)
+      return `${entries} entries, ${summary.excludedEntries} unpaid left out, held by ${held}`
+    })
+
+    let roundId = ''
+    await step('8b. A round is run at the venue and reaches the cloud by itself', async () => {
+      await must(scr8, 'planRounds', [COMP])
+      const rounds = await must(scr8, 'getCompetitionRounds', [COMP])
+      const round = rounds.find((r) => r.status === 'pending')
+      roundId = round.roundId
+      const panel = q(DB_VENUE, 'select m.adjudicator_id as a from panel_members m join panels p on p.id = m.panel_id where p.event_id = ?', round.eventId).map((r) => r.a)
+      await must(scr8, 'startRound', [roundId])
+      for (const adjudicator of panel) {
+        const pin = q(DB_VENUE, 'select pin from adjudicator_pins where competition_id = ? and adjudicator_id = ?', COMP, adjudicator)[0].pin
+        const res = await fetch(`${VENUE}/api/auth/adjudicator`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pin }) })
+        const phone = res.headers.get('set-cookie').split(';')[0]
+        const state = await must(phone, 'getAdjudicatorState')
+        const ordered = [...state.task.competitors].sort((a, b) => (a.backNumber ?? 0) - (b.backNumber ?? 0)).map((c) => c.id)
+        const chosen = state.task.recallNumber === null ? ordered : ordered.slice(0, state.task.recallNumber)
+        await must(phone, 'submitAdjudicatorMarks', [roundId, state.task.dances.map((dance) => ({ dance, competitorIds: chosen }))])
+      }
+      await must(scr8, 'approveRound', [roundId])
+      await must(scr8, 'publishRound', [roundId])
+      // Nobody presses anything: it goes up within moments
+      await until('the cloud to have the round', async () => q(DB_CLOUD, "select count(*) as n from rounds where id = ? and status = 'published'", roundId)[0].n === 1, 20000, 500)
+      const here = q(DB_VENUE, 'select count(*) as n from marks where round_id = ?', roundId)[0].n
+      const there = q(DB_CLOUD, 'select count(*) as n from marks where round_id = ?', roundId)[0].n
+      if (here === 0 || here !== there) throw new Error(`marks here ${here}, in the cloud ${there}`)
+      return `${panel.length} adjudicators, ${there} marks on both`
+    })
+
+    await step('8c. The cloud goes away: the venue carries on, and nothing is lost or doubled when it returns', async () => {
+      cloud.kill('SIGKILL')
+      await until('the cloud to stop', async () => fetch(`${CLOUD}/api/health`).then(() => false).catch(() => true), 10000)
+      const competitor = q(DB_VENUE, 'select id from competitors where back_number is not null limit 1')[0].id
+      await must(sec8, 'setBackNumber', [competitor, 9500])
+      const down = await must(boss, 'syncNow')
+      if (down.reachable !== false || down.pending === 0) throw new Error('expected changes waiting: ' + JSON.stringify(down))
+      cloud = startCloud()
+      await waitHealthy(CLOUD_PORT)
+      const up = await must(boss, 'syncNow')
+      if (up.pending !== 0 || up.reachable !== true) throw new Error('expected everything sent: ' + JSON.stringify(up))
+      const there = q(DB_CLOUD, 'select back_number as b from competitors where id = ?', competitor)[0].b
+      if (there !== 9500) throw new Error('the cloud has back number ' + there)
+      const doubled = q(DB_CLOUD, 'select count(*) as n from (select round_id, adjudicator_id, dance, competitor_id from marks group by 1,2,3,4 having count(*) > 1)')[0].n
+      if (doubled !== 0) throw new Error(doubled + ' marks doubled')
+      return `${down.pending} changes waited, then arrived once`
+    })
+
+    await step('8d. Afterwards the competition is released and opens for entries again', async () => {
+      await must(boss, 'syncNow', [], VENUE)
+      await must(boss, 'releaseCompetition', [COMP], VENUE)
+      const held = q(DB_CLOUD, 'select held_by as h from competitions where id = ?', COMP)[0].h
+      if (held !== null) throw new Error('still held by ' + held)
+      const status = await syncStatus(boss)
+      if (status.held.length !== 0) throw new Error('the venue still lists it: ' + status.held)
+    })
+  } finally {
+    cloud?.kill('SIGKILL')
+    venueServer?.kill('SIGKILL')
+  }
 } catch (e) {
   log('SCRIPT ERROR: ' + (e.stack ?? e))
 } finally {
