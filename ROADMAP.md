@@ -11,8 +11,8 @@ Where the build stands and what is left. Details for each phase are in the linke
 | 3 | Venue backend | Built; four items open | [PHASE3_README.md](PHASE3_README.md), [VENUE.md](VENUE.md) |
 | 4 | Offline safety | Built; rehearsed on this machine, not yet on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
 | 5 | Cloud backend and sync | Built; not yet on a real server | [PHASE5_README.md](PHASE5_README.md), [deploy/README.md](deploy/README.md) |
-| 6 | Registration and payments | Built, except emails to clubs | [PHASE6_README.md](PHASE6_README.md) |
-| 7 | Testing and pilot | Not started | below |
+| 6 | Registration and payments | Built; Messenger messages not yet tried against Facebook | [PHASE6_README.md](PHASE6_README.md) |
+| 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](PILOT.md) |
 
 ## Decisions still needed from the client
 
@@ -86,15 +86,20 @@ Goal: clubs register and pay before the event, and the admin confirms payments b
 - [x] Only approved or paid-at-venue entries can dance: the download takes only those, and a round will not start with an unpaid entry in its event.
 - [x] Data Privacy Act of 2012: consent at sign-up, a privacy notice, no birth dates, erasure of a club's contact details, payment proofs deleted 90 days after the competition.
 - [x] Fake club passwords, fees and payment accounts removed from the real server (only the sample data has them).
-- [ ] Emails or messages to clubs when a payment is approved or rejected: decide the channel (see PHASE6_README.md)
+- [x] Messages to clubs when a payment is approved or rejected: Facebook Messenger (chosen by the client). Built and tested with a stand-in for Facebook; set-up steps in deploy/README.md. Needs trying with the real Page, and may need Meta app review.
 
 ## Phase 7: Testing and pilot
 
-- [ ] Re-run a past competition through BIS end to end, with real sheets once the client provides them.
-- [ ] Load test: 10 phones marking at once on the venue Wi-Fi, plus spectators on the guest network.
-- [ ] Pilot at a real competition, with the current method running alongside, and compare every result.
-- [ ] Training: a one-page guide per role and a rehearsal with the actual secretariat, scrutineer, chairperson and adjudicators.
-- [ ] Fix list from the pilot, then a second, smaller event before the system is relied on alone.
+Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is [PILOT.md](PILOT.md).
+
+- [x] A whole competition run through BIS end to end (the sample one; `backend/src/fullcompetition.test.ts`)
+- [ ] The same with real sheets from a past competition, once the client provides them
+- [x] Load test: 10 phones marking at once with 100 spectators reading (`pnpm loadtest`), no marks lost or doubled
+- [ ] Run the load test and the rehearsal on the real laptops and the by-hand rehearsal on the real phones
+- [x] Tool to compare BIS with the paper result sheets (`results:compare`)
+- [ ] Pilot at a real competition, with the current method running alongside, and compare every result
+- [ ] Training: a one-page guide per role and a rehearsal with the actual secretariat, scrutineer, chairperson and adjudicators
+- [ ] Fix list from the pilot, then a second, smaller event before the system is relied on alone
 
 ## Carried over from earlier phases
 

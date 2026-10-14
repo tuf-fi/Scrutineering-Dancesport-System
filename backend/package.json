@@ -13,6 +13,7 @@
     "db:snapshot": "tsx scripts/export-sample-data.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/db/seed-cli.ts",
     "admin:create": "tsx --env-file-if-exists=.env src/db/create-admin-cli.ts",
+    "results:compare": "tsx --env-file-if-exists=.env src/db/compare-results-cli.ts",
     "restore": "tsx --env-file-if-exists=.env src/db/restore-cli.ts",
     "db:sync-migration": "tsx scripts/write-sync-migration.ts"
   },

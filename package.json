@@ -11,7 +11,8 @@
     "seed": "pnpm --filter @bis/backend db:seed",
     "venue": "pnpm --filter frontend build && pnpm --filter @bis/backend start",
     "test": "pnpm -r --if-present test",
-    "rehearsal": "pnpm build && node rehearsal/rehearse.mjs"
+    "rehearsal": "pnpm build && node rehearsal/rehearse.mjs",
+    "loadtest": "node rehearsal/loadtest.mjs"
   },
   "keywords": [],
   "author": "",
