@@ -25,6 +25,7 @@ let cloudSqlite: Sqlite
 let cloudHub = silentHub()
 let venue: Awaited<ReturnType<typeof buildApp>>
 let venueSqlite: Sqlite
+let venueCfg: ReturnType<typeof venueConfig>
 let venueHub = silentHub()
 
 type Reply<T> = { status: number; data: T; error?: string }
@@ -46,7 +47,7 @@ async function signIn(app: typeof cloud, url: string, payload: object): Promise<
 const staff = (app: typeof cloud, username: string, password: string) => signIn(app, '/api/auth/staff', { username, password })
 
 const venueConfig = (overrides: Record<string, string> = {}) =>
-  loadConfig({ FRONTEND_DIR: '', CLOUD_URL: `http://127.0.0.1:${port}`, SYNC_TOKEN: TOKEN_A, VENUE_ID: 'venue-a', ...overrides })
+  loadConfig({ FRONTEND_DIR: '', CLOUD_URL: `http://127.0.0.1:${port}`, SYNC_TOKEN: TOKEN_A, VENUE_ID: 'venue-a', SYNC_DELAY_MS: '600000', ...overrides })
 
 async function startCloud(listenOn = 0) {
   cloudHub = silentHub()
@@ -69,7 +70,8 @@ async function startVenue(overrides: Record<string, string> = {}) {
   const opened = openDatabase(join(dir, 'venue.db'))
   venueSqlite = opened.sqlite
   runMigrations(opened.db)
-  venue = await buildApp({ config: venueConfig(overrides), sqlite: opened.sqlite, db: opened.db, hub: venueHub, liveBoardMs: 0 })
+  venueCfg = venueConfig(overrides)
+  venue = await buildApp({ config: venueCfg, sqlite: opened.sqlite, db: opened.db, hub: venueHub, liveBoardMs: 0 })
 }
 
 let cloudAdmin = ''
@@ -318,6 +320,7 @@ describe('running an event at the venue and sending it to the cloud', () => {
   })
 
   it('sends changes within moments of making them, without being asked', async () => {
+    venueCfg.syncDelayMs = 300
     const competitor = venueSqlite.prepare('select id from competitors where back_number = 9001').get() as { id: string }
     await ok(venue, 'setBackNumber', [competitor.id, 9100], venueSecretariat)
     const stamp = () => cloudSqlite.prepare('select back_number as b from competitors where id = ?').get(competitor.id) as { b: number }

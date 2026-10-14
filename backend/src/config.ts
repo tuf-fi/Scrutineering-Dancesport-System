@@ -27,6 +27,8 @@ export interface Config {
   syncTokens: Record<string, string>
   // Cloud behind a proxy such as Caddy: trust it for the visitor's address (used to limit sign-in guesses)
   trustProxy: boolean
+  // Venue: how long after a change before it is sent to the cloud (tests slow it down to control when sending happens)
+  syncDelayMs: number
 }
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
@@ -69,5 +71,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     syncToken: env.SYNC_TOKEN || null,
     syncTokens,
     trustProxy: env.TRUST_PROXY === 'true',
+    syncDelayMs: Number(env.SYNC_DELAY_MS ?? 2000),
   }
 }

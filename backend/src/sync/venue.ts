@@ -41,7 +41,6 @@ export interface SyncService {
 const BATCH = 200
 const REQUEST_MS = 30_000
 const LOOP_MS = 20_000
-const SOON_MS = 2000
 const KEEP_SENT_MS = 3 * 24 * 3_600_000
 
 const setting = (sqlite: Sqlite, key: string): string | null =>
@@ -80,6 +79,7 @@ export function createSyncService({ config, sqlite, hub }: Deps): SyncService {
   let sending: Promise<SyncStatus> | undefined
   let loop: ReturnType<typeof setInterval> | undefined
   let soonTimer: ReturnType<typeof setTimeout> | undefined
+  let soonDue = 0
 
   async function cloud<T>(path: string, body: unknown): Promise<T> {
     if (!enabled) throw new SyncError(503, 'This laptop is not set up to talk to the cloud.')
@@ -122,6 +122,9 @@ export function createSyncService({ config, sqlite, hub }: Deps): SyncService {
 
   async function sendAll(): Promise<SyncStatus> {
     if (!enabled) return status()
+    // Sending now makes a send that was waiting for its moment unnecessary
+    if (soonTimer) clearTimeout(soonTimer)
+    soonTimer = undefined
     for (;;) {
       const rows = sqlite
         .prepare('SELECT rowid AS seq, id, entity, operation, payload FROM outbox WHERE sent_at IS NULL ORDER BY rowid LIMIT ?')
@@ -198,11 +201,16 @@ export function createSyncService({ config, sqlite, hub }: Deps): SyncService {
     },
 
     soon() {
-      if (!enabled || soonTimer) return
+      if (!enabled) return
+      // A send already due sooner than this one stays; a later one is brought forward
+      const due = Date.now() + config.syncDelayMs
+      if (soonTimer && soonDue <= due) return
+      if (soonTimer) clearTimeout(soonTimer)
+      soonDue = due
       soonTimer = setTimeout(() => {
         soonTimer = undefined
         void service.uploadNow()
-      }, SOON_MS)
+      }, config.syncDelayMs)
       soonTimer.unref()
     },
 
