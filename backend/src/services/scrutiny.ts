@@ -9,6 +9,7 @@ import {
   RoundStatus,
   type Announcement,
   type Event,
+  type FinalTie,
   type Mark,
   type RecallRow,
   type RecallTable,
@@ -227,6 +228,51 @@ export const scrutiny = {
     record(ctx.db, user.id, 'Confirmed tie decision', roundId, { after: { choice: decision.choice } })
   },
 
+// Ties in a final that the Skating System leaves shared, and what has been decided about them
+  getFinalTie(ctx: Ctx, roundId: string): FinalTie {
+    const round = getRoundRow(ctx, roundId)
+    if (round.recallNumber !== null) return { roundId, groups: [], decision: null }
+    const groups = tiedGroups(finalOf(ctx, round))
+    const ids = groups.flatMap((g) => g.ids)
+    const numbers = backNumbers(ctx, ids)
+    const people = peopleOf(ctx, ids)
+    const row = finalDecisionOf(ctx, roundId)
+    return {
+      roundId,
+      groups: groups.map((g) => ({
+        place: g.place,
+        competitors: g.ids.map((id) => ({ competitorId: id, backNumber: numbers.get(id) ?? null, names: people.get(id)?.names ?? [] })),
+      })),
+      decision: row ? { mode: row.mode, order: row.order, proposedBy: row.proposedBy, confirmedBy: row.confirmedBy } : null,
+    }
+  },
+
+  // Keep the shared place, or settle it with a tie-break whose order (best first) was typed in
+  proposeFinalTie(ctx: Ctx, roundId: string, mode: 'keep' | 'order', order: string[] = []): void {
+    const round = getRoundRow(ctx, roundId)
+    if (round.recallNumber !== null) return fail('Only a final can have a tie to decide here.', 409)
+    if (round.status !== 'marking' && round.status !== 'review') return fail('This round is already decided.', 409)
+    if (mode !== 'keep' && mode !== 'order') return fail('Choose to keep the shared place or to settle it with a tie-break.')
+    const tied = tiedGroups(finalOf(ctx, round)).flatMap((g) => g.ids)
+    if (tied.length === 0) return fail('There is no tie to decide.', 409)
+    const list = Array.isArray(order) ? order.map(String) : []
+    if (mode === 'order' && !sameSet(list, tied)) return fail('Put every tied competitor in the order the tie-break gave, each once.')
+    const user = actor(ctx)
+    const previous = finalDecisionOf(ctx, roundId)
+    ctx.db.delete(t.finalTieDecisions).where(eq(t.finalTieDecisions.roundId, roundId)).run()
+    ctx.db.insert(t.finalTieDecisions).values({ roundId, mode, order: mode === 'order' ? list : [], proposedBy: user.id, proposedAt: now() }).run()
+    record(ctx.db, user.id, 'Proposed final tie decision', roundId, { before: previous, after: { mode, order: mode === 'order' ? list : [] } })
+  },
+
+  confirmFinalTie(ctx: Ctx, roundId: string): void {
+    const round = getRoundRow(ctx, roundId)
+    if (round.status !== 'marking' && round.status !== 'review') return fail('This round is already decided.', 409)
+    const decision = found(finalDecisionOf(ctx, roundId), 'Tie decision')
+    const user = actor(ctx)
+    ctx.db.update(t.finalTieDecisions).set({ confirmedBy: user.id, confirmedAt: now() }).where(eq(t.finalTieDecisions.roundId, roundId)).run()
+    record(ctx.db, user.id, 'Confirmed final tie decision', roundId, { after: { mode: decision.mode, order: decision.order } })
+  },
+
   approveRound(ctx: Ctx, roundId: string): void {
     const user = actor(ctx)
     const round = getRoundRow(ctx, roundId)
@@ -241,6 +287,7 @@ export const scrutiny = {
       const next = found(roundsOfEvent(ctx, round.eventId).find((r) => r.position === round.position + 1), 'Next round')
       saveHeats(ctx, next.id, groupsFor(ctx, next, recalled))
     } else {
+      assertFinalTieSettled(ctx, round)
       writeResults(ctx, round, event, user.id)
     }
 
@@ -279,12 +326,15 @@ function assertCanView<T>(ctx: Ctx, roundId: string, build: () => T): T {
   return build()
 }
 
-// Works out the final places and the places of everyone cut before it, and stores them
-function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: typeof t.events.$inferSelect, approvedBy: string) {
-  const roundMarks = marksOf(ctx, round.id)
-  const panel = panelAdjudicatorIds(ctx, event.id)
-  const placings = roundMarks.filter((m) => m.kind === 'placing')
-  const final = placeFinal({
+function finalDecisionOf(ctx: Ctx, roundId: string) {
+  return ctx.db.select().from(t.finalTieDecisions).where(eq(t.finalTieDecisions.roundId, roundId)).get() ?? null
+}
+
+// The final's places by the Skating System, before any tie decision
+function finalOf(ctx: Ctx, round: typeof t.rounds.$inferSelect) {
+  const panel = panelAdjudicatorIds(ctx, round.eventId)
+  const placings = marksOf(ctx, round.id).filter((m) => m.kind === 'placing')
+  return placeFinal({
     competitorIds: [...new Set(placings.map((m) => m.competitorId))],
     adjudicatorIds: panel,
     dances: dancesIn(placings).map((dance) => ({
@@ -294,6 +344,49 @@ function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: type
         .map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, placing: m.kind === 'placing' ? m.placing : 0 })),
     })),
   })
+}
+
+// Competitors who share a place after Rules 9 to 11, by the place they share
+function tiedGroups(final: ReturnType<typeof finalOf>): Array<{ place: number; ids: string[] }> {
+  const groups = new Map<number, string[]>()
+  for (const r of final.rows) if (r.shared) groups.set(r.announcedPlace, [...(groups.get(r.announcedPlace) ?? []), r.competitorId])
+  return [...groups].map(([place, ids]) => ({ place, ids })).sort((a, b) => a.place - b.place)
+}
+
+// A tie-break order spreads each shared place over the places it covers, best first
+function placesWithDecision(final: ReturnType<typeof finalOf>, decision: { mode: 'keep' | 'order'; order: string[] } | null) {
+  const sharing = (place: number) => final.rows.filter((r) => r.announcedPlace === place).length
+  const settled = new Map<string, number>()
+  if (decision?.mode === 'order') {
+    for (const group of tiedGroups(final)) {
+      const ordered = decision.order.filter((id) => group.ids.includes(id))
+      ordered.forEach((id, i) => settled.set(id, group.place + i))
+    }
+  }
+  return final.rows.map((r) => {
+    const own = settled.get(r.competitorId)
+    return own !== undefined
+      ? { competitorId: r.competitorId, place: own, placeFrom: own, placeTo: own }
+      : { competitorId: r.competitorId, place: r.announcedPlace, placeFrom: r.announcedPlace, placeTo: r.announcedPlace + sharing(r.announcedPlace) - 1 }
+  })
+}
+
+const sameSet = (a: string[], b: string[]) => new Set(a).size === a.length && a.length === b.length && a.every((id) => b.includes(id))
+
+// Stops an approval while a tie in the final has no confirmed decision, or the decision no longer fits the marks
+function assertFinalTieSettled(ctx: Ctx, round: typeof t.rounds.$inferSelect) {
+  const groups = tiedGroups(finalOf(ctx, round))
+  if (groups.length === 0) return
+  const decision = finalDecisionOf(ctx, round.id)
+  if (!decision?.confirmedBy) return fail('The final has a tie. Decide it, and get the chairperson to confirm, before approving.', 409)
+  if (decision.mode === 'order' && !sameSet(decision.order, groups.flatMap((g) => g.ids))) {
+    return fail('The marks changed since the tie was decided. Decide it again.', 409)
+  }
+}
+
+// Works out the final places and the places of everyone cut before it, and stores them
+function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: typeof t.events.$inferSelect, approvedBy: string) {
+  const final = finalOf(ctx, round)
 
   const sequence = roundsOfEvent(ctx, event.id)
   const outcomes: RoundOutcome[] = sequence
@@ -313,17 +406,16 @@ function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: type
 
   const at = now()
   ctx.db.delete(t.results).where(eq(t.results.eventId, event.id)).run()
-  const sharing = (place: number) => final.rows.filter((r) => r.announcedPlace === place).length
-  for (const r of final.rows) {
+  for (const r of placesWithDecision(final, finalDecisionOf(ctx, round.id))) {
     ctx.db
       .insert(t.results)
       .values({
         id: newId(),
         eventId: event.id,
         competitorId: r.competitorId,
-        place: r.announcedPlace,
-        placeFrom: r.announcedPlace,
-        placeTo: r.announcedPlace + sharing(r.announcedPlace) - 1,
+        place: r.place,
+        placeFrom: r.placeFrom,
+        placeTo: r.placeTo,
         stage: 'final',
         approvedBy,
         approvedAt: at,

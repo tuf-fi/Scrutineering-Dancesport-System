@@ -21,7 +21,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | Real result sheets with every adjudicator's marks | Phase 3 testing | The scoring engine is only checked against the Skating System guide's examples |
 | Approved points table | Phase 3 | The table in the app is a suggestion |
 | Rule for ranking points when places are shared | Phase 3 | The app splits the points of the shared places equally; not confirmed against WDSF |
-| Who decides an unbreakable tie in a final, and how | Phase 3 | The guide says the chairperson; the screens need the exact flow |
+| How an unbreakable tie in a final is settled | Phase 3 | Built so the chairperson confirms either keeping the shared place or a tie-break order typed in by the scrutineer; the organizer should confirm that is their rule |
 | GCash, Maya and bank account details for entry fees | Phase 6 | Shown to clubs when they register |
 | Which paper forms must still be printed | Phase 3 | Heat lists, qualified lists, scores sheets and final results are built |
 
@@ -44,7 +44,7 @@ Full list in [PHASE3_README.md](PHASE3_README.md). Summary:
 - [x] 12. Testing: full competition, permissions, concurrency, crash
 - [x] 13. Running at the venue
 
-Open from Phase 3: age group from birth date, the unbreakable-tie decision, the paper-marks screen (Phase 4), and enforcing paid entries when a round starts.
+Open from Phase 3 (all since built): age group from birth year, the unbreakable-tie decision, the paper-marks screen, and enforcing paid entries when a round starts.
 
 ## Phase 4: Offline safety (built)
 
@@ -108,4 +108,5 @@ Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is 
 - [ ] Confirm the scoring engine's Rules 1 and 5-11 against the current WDSF rulebook and record the version used.
 - [ ] Confirm the shared-place ranking points rule (`pointsForRange` in `packages/scoring/src/points.ts`).
 - [ ] Store shared place ranges on results so printouts can show a tie, not only its best place.
-- [ ] Chairperson decision flow for an unbreakable tie in a final.
+- [x] Chairperson decision flow for an unbreakable tie in a final: built (see below). The rule for settling it is the organizer's to confirm.
+- [ ] Confirm the age-group limits in `packages/shared/src/ageGroup.ts` with the organizer.

@@ -262,6 +262,21 @@ export const tieDecisions = sqliteTable('tie_decisions', {
   confirmedAt: text('confirmed_at'),
 })
 
+// A tie in a final that the Skating System leaves as a shared place. The chairperson decides: keep it shared, or settle
+// it with a tie-break (an extra dance) whose order the scrutineer types in. Only kept at the venue.
+export const finalTieDecisions = sqliteTable('final_tie_decisions', {
+  roundId: text('round_id')
+    .primaryKey()
+    .references(() => rounds.id, { onDelete: 'cascade' }),
+  mode: text('mode', { enum: ['keep', 'order'] }).notNull(),
+  // For 'order': the tied competitors, best first
+  order: text('order', { mode: 'json' }).$type<string[]>().notNull(),
+  proposedBy: text('proposed_by').notNull(),
+  proposedAt: text('proposed_at').notNull(),
+  confirmedBy: text('confirmed_by'),
+  confirmedAt: text('confirmed_at'),
+})
+
 export const results = sqliteTable(
   'results',
   {

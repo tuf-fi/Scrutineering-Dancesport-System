@@ -11,7 +11,8 @@ You run the rounds from Laptop 2. Keep its window open all day.
 1. **Rounds**: choose the round, press **Start round**. It appears on the phones. If every entry in the event is not paid, it will not start; the message says how many.
 2. **Live board**: watch each phone go from waiting to submitted. A phone quiet for 20 seconds is flagged. "Marks saved on the phone, not sent yet" means it has them and is waiting for Wi-Fi.
 3. **Recall** (early rounds) or **Results** (final): check the table. A tie at the cut-off: pick how to settle it, press **Propose decision**, and the chairperson presses **Confirm tie decision**.
-4. **Approve**, then **Publish results**. Approving saves the result, the ranking points and a backup. Publishing makes it public and shows it to the MC.
+4. **Tie in the final:** if the marks cannot separate two couples, a **Tie in the final** section appears on **Results** and approving is blocked. Choose to keep the shared place, or settle it with a tie-break (the couples dance once more; type each couple's place from the sheet), press **Propose decision**, and the chairperson confirms.
+5. **Approve**, then **Publish results**. Approving saves the result, the ranking points and a backup. Publishing makes it public and shows it to the MC.
 
 ## Problems
 - **Wrong round started:** **Take off the floor**, possible until a phone has submitted.

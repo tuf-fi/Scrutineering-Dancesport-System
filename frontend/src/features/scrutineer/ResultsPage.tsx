@@ -2,8 +2,9 @@ import { RoundStatus, type SkatingRow, type SkatingTable } from '@bis/shared'
 import { useState } from 'react'
 import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
 import { Button, Dialog, ErrorState, PageHeader, Skeleton, Table, Toolbar, toast } from '../../components/ui/index.ts'
-import { useApproveRound, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
+import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
 import { DANCE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
+import { FinalTieSection } from './FinalTieSection.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -61,8 +62,10 @@ function columnsFor(table: SkatingTable) {
 }
 
 export function ResultsPage() {
-  const { rounds, list, roundId, row, setRoundId, readOnly } = useRoundChoice()
+  const { rounds, list, roundId, row, setRoundId, readOnly, isChairperson } = useRoundChoice()
   const skating = useSkatingTable(roundId)
+  const undecided = row?.status === RoundStatus.Marking || row?.status === RoundStatus.Review
+  const finalTie = useFinalTie(roundId, Boolean(row) && row?.recallNumber === null && undecided)
   const approve = useApproveRound()
   const publish = usePublishRound()
   const [confirming, setConfirming] = useState<'approve' | 'publish' | null>(null)
@@ -104,6 +107,10 @@ export function ResultsPage() {
           </div>
         )}
       </Toolbar>
+
+      {finalTie.data && finalTie.data.groups.length > 0 && undecided && (
+        <FinalTieSection key={JSON.stringify(finalTie.data.decision)} tie={finalTie.data} readOnly={readOnly} isChairperson={isChairperson} />
+      )}
 
       {!skating.data ? (
         <Skeleton className="h-40 w-full" />

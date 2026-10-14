@@ -27,6 +27,7 @@ import type {
   EntryOption,
   DemoRound,
   EntryRow,
+  FinalTie,
   Event,
   EventInput,
   HeatAssignment,
@@ -169,6 +170,10 @@ export const getRecallTable = (roundId: string) => call<RecallTable>('getRecallT
 export const proposeTieDecision = (_actorId: string, roundId: string, choice: TieDecision['choice']) =>
   call<void>('proposeTieDecision', roundId, choice)
 export const confirmTieDecision = (_actorId: string, roundId: string) => call<void>('confirmTieDecision', roundId)
+export const getFinalTie = (roundId: string) => call<FinalTie>('getFinalTie', roundId)
+export const proposeFinalTie = (_actorId: string, roundId: string, mode: 'keep' | 'order', order: string[]) =>
+  call<void>('proposeFinalTie', roundId, mode, order)
+export const confirmFinalTie = (_actorId: string, roundId: string) => call<void>('confirmFinalTie', roundId)
 export const getSkatingTable = (roundId: string) => call<SkatingTable>('getSkatingTable', roundId)
 export const approveRound = (_actorId: string, roundId: string) => call<void>('approveRound', roundId)
 export const publishRound = (_actorId: string, roundId: string) => call<void>('publishRound', roundId)

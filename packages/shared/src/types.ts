@@ -341,6 +341,22 @@ export interface TieDecision {
   confirmedBy: Id | null
 }
 
+// A tie in a final that the Skating System leaves as a shared place
+export interface FinalTieDecision {
+  mode: 'keep' | 'order'
+  // For 'order': the tied competitors, best first
+  order: Id[]
+  proposedBy: Id
+  confirmedBy: Id | null
+}
+
+export interface FinalTie {
+  roundId: Id
+  // Each shared place and the competitors who share it; empty when the final has no tie
+  groups: Array<{ place: number; competitors: Array<{ competitorId: Id; backNumber: number | null; names: string[] }> }>
+  decision: FinalTieDecision | null
+}
+
 export interface RecallTable {
   roundId: Id
   recallNumber: number

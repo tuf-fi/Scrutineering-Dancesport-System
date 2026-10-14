@@ -93,7 +93,7 @@ Progress: steps 0 and 1 are done except the seed script. Install of `better-sqli
 ### 6. Scoring in the server
 - [x] Recall table and Skating System table are computed by `@bis/scoring` on each request from the stored marks, using only adjudicators who have submitted so far (provisional until all have). Move the adapter logic from `frontend/src/mocks/scrutinizing.ts` into the backend.
 - [x] Tie at the recall cutoff: scrutineer proposes fewer or more, chairperson confirms; both are logged.
-- [ ] Unbreakable tie in a final (shared place from Rule 11): the chairperson decides, and the decision is recorded. Not built: a shared place is approved as shared and shown as such (e.g. "2nd–3rd"). The client needs to say how a tie for 1st is settled before this can be built
+- [x] Unbreakable tie in a final (shared place from Rule 11): built later. Approval stops until the scrutineer proposes and the chairperson confirms either keeping the shared place (shown as e.g. "2nd–3rd") or settling it with a tie-break order typed from the sheet. Both are recorded in the audit log. The organizer should confirm that this is how they settle a tie.
 - [x] Approve: lock the marks, compute results with `placeFinal` and `placeEliminated`, store `results` and `ranking_points` in one transaction.
 - [x] Publish: make the round public and broadcast it.
 - [x] Re-opening an approved round is refused; corrections are a new audited action by the scrutineer with the chairperson's confirmation.

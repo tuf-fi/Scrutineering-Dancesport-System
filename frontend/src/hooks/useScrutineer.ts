@@ -61,6 +61,14 @@ export const useProposeTie = () =>
 
 export const useConfirmTie = () => useWrite((roundId: string) => api.confirmTieDecision(actor(), roundId), ['recall'])
 
+export const useFinalTie = (roundId: string, enabled = true) =>
+  useQuery({ queryKey: ['final-tie', roundId], queryFn: () => api.getFinalTie(roundId), enabled: enabled && roundId !== '' })
+
+export const useProposeFinalTie = () =>
+  useWrite((v: { roundId: string; mode: 'keep' | 'order'; order: string[] }) => api.proposeFinalTie(actor(), v.roundId, v.mode, v.order), ['final-tie'])
+
+export const useConfirmFinalTie = () => useWrite((roundId: string) => api.confirmFinalTie(actor(), roundId), ['final-tie'])
+
 export const useApproveRound = () =>
   useWrite((roundId: string) => api.approveRound(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'skating', 'recall'])
 

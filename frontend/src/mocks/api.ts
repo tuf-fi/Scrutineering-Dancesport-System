@@ -22,6 +22,7 @@ import {
   type CompetitorRow,
   type HeatAssignment,
   type MarkSubmission,
+  type FinalTie,
   type TieDecision,
   type Entry,
   type EntryRow,
@@ -932,6 +933,11 @@ export const confirmTieDecision = (actorId: string, roundId: string) =>
     confirmTie(actorId, roundId)
     record(actorId, 'Confirmed tie decision', roundId)
   })
+
+// The sample finals have no shared places, so there is never a final tie to decide
+export const getFinalTie = (roundId: string) => reply<FinalTie>({ roundId, groups: [], decision: null })
+export const proposeFinalTie = (_actorId: string, _roundId: string, _mode: 'keep' | 'order', _order: string[]) => settle<void>(() => undefined)
+export const confirmFinalTie = (_actorId: string, _roundId: string) => settle<void>(() => undefined)
 
 export const getSkatingTable = (roundId: string) => reply(skatingTable(roundId))
 

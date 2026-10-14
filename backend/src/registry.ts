@@ -66,6 +66,7 @@ const access: Record<string, Access> = {
   // Public only once the round is published; staff see them as the round runs
   getRecallTable: 'public',
   getSkatingTable: 'public',
+  getFinalTie: [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson],
   getCurrentRoundId: 'signedIn',
 
   // Staff
@@ -131,9 +132,11 @@ const access: Record<string, Access> = {
   clearFloor: SCRUTINEER,
   enterAdjudicatorMarks: SCRUTINEER,
   proposeTieDecision: SCRUTINEER,
+  proposeFinalTie: SCRUTINEER,
   approveRound: SCRUTINEER,
   publishRound: SCRUTINEER,
   confirmTieDecision: [Role.Chairperson],
+  confirmFinalTie: [Role.Chairperson],
 
   // Adjudicators, each only for themselves
   getAdjudicatorState: [Role.Adjudicator],
@@ -190,6 +193,9 @@ const VENUE_ONLY = new Set([
   'getHeatAssignments',
   'proposeTieDecision',
   'confirmTieDecision',
+  'getFinalTie',
+  'proposeFinalTie',
+  'confirmFinalTie',
   'approveRound',
   'publishRound',
   'getSyncStatus',
