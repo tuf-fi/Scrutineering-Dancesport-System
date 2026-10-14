@@ -144,6 +144,8 @@ export interface AdjudicatorSubmission {
   adjudicatorId: Id
   status: SubmissionStatus
   submittedAt: Timestamp | null
+  // Set when a phone that was marking has stopped sending heartbeats: when it was last heard from
+  quietSince?: Timestamp | null
 }
 
 export interface Result {
@@ -152,6 +154,9 @@ export interface Result {
   competitorId: Id
   // Shared places such as 13 for a 13th to 18th tie are stored as the lowest place number
   place: number
+  // The whole shared range, e.g. 13 to 18; equal to place when not shared. Absent in sample data.
+  placeFrom?: number
+  placeTo?: number
   approvedBy: Id
   approvedAt: Timestamp
 }
@@ -423,4 +428,28 @@ export interface ClubSignUp {
   contactEmail: string
   contactPhone: string
   password: string
+}
+
+export type CompetitionInput = Omit<Competition, 'id'>
+
+export type EventInput = Omit<Event, 'id' | 'competitionId'>
+
+export interface RankingFilter {
+  ageGroup?: AgeGroup
+  class?: Class
+  discipline?: Discipline
+}
+
+// What the venue server says about its database copies
+export interface BackupStatus {
+  targets: Array<{ path: string; ok: boolean; lastBackupAt: Timestamp | null; error: string | null }>
+  lastBackupAt: Timestamp | null
+}
+
+// The sample app's sign-in hints; the real server never sends these
+export interface SampleCredentials {
+  password: string
+  usernames: string[]
+  clubEmail: string
+  pins: Array<{ letter: string; pin: string }>
 }
