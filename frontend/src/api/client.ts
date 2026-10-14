@@ -29,6 +29,7 @@ import type {
   ImportResult,
   LateEntryRow,
   Mark,
+  MarkingTask,
   MarkSubmission,
   Panel,
   Payment,
@@ -155,6 +156,7 @@ export const clearFloor = (_actorId: string, competitionId?: string) => call<voi
 export const getHeatAssignments = (roundId: string) => call<HeatAssignment[]>('getHeatAssignments', roundId)
 export const saveHeats = (_actorId: string, roundId: string, assignments: HeatAssignment[]) =>
   call<void>('saveHeats', roundId, assignments)
+export const getMarkingTask = (roundId: string) => call<MarkingTask>('getMarkingTask', roundId)
 export const getSubmissions = (roundId: string) => call<AdjudicatorSubmission[]>('getSubmissions', roundId)
 export const enterAdjudicatorMarks = (_actorId: string, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
   call<void>('enterAdjudicatorMarks', adjudicatorId, roundId, submissions)

@@ -93,6 +93,7 @@ function Board({ roundId, final, select }: { roundId: string; final: boolean; se
               const sinceServer = s.quietSince ? Math.max(0, Date.now() - new Date(s.quietSince).getTime()) : null
               const silent = sinceServer ?? quietFor(s.adjudicatorId)
               const quiet = s.status === SubmissionStatus.Marking && (sinceServer !== null || silent > QUIET_MS)
+              if (s.holdingMarks) return <Badge tone="warning">Marks saved on the phone, not sent yet</Badge>
               return quiet ? (
                 <Badge tone="warning">No response for {Math.floor(silent / 1000)} s</Badge>
               ) : (

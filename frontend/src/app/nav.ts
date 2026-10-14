@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Clock,
   ClipboardCheck,
+  ClipboardPen,
   Layers,
   LayoutGrid,
   ListChecks,
@@ -34,6 +35,7 @@ const scrutineerNav: NavItem[] = [
   { to: '/scrutineer/live', label: 'Live board', icon: Activity },
   { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
   { to: '/scrutineer/results', label: 'Results', icon: Award },
+  { to: '/scrutineer/paper', label: 'Paper marks', icon: ClipboardPen },
 ]
 
 export const staffNav: Record<StaffRole, NavItem[]> = {
@@ -51,8 +53,8 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
   ],
   scrutineer: scrutineerNav,
-  // The chairperson sees the scrutineer's screens, read-only
-  chairperson: scrutineerNav,
+  // The chairperson sees the scrutineer's screens, read-only, and cannot enter marks
+  chairperson: scrutineerNav.filter((item) => item.to !== '/scrutineer/paper'),
 }
 
 export const publicNav: NavItem[] = [

@@ -6,6 +6,7 @@ import { usingMocks } from '../api/mode.ts'
 import { connectRealtime } from '../api/realtime.ts'
 import { useAuth } from '../stores/auth.ts'
 import { useConnection } from '../stores/connection.ts'
+import { useOutbox } from '../stores/outbox.ts'
 
 // Many changes can arrive at once (ten phones submitting); refetch once they settle
 const SETTLE_MS = 300
@@ -29,6 +30,7 @@ export function useRealtime() {
     let timer: ReturnType<typeof setTimeout> | undefined
     const stop = connectRealtime({
       heartbeat: role === Role.Adjudicator,
+      holding: () => useOutbox.getState().pending?.roundId ?? null,
       onConnect: () => {
         setOnline(true)
         void queryClient.invalidateQueries()

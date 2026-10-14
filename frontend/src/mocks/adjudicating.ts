@@ -56,7 +56,7 @@ function fieldOf(round: Round): MarkingTask['competitors'] {
   }))
 }
 
-function taskFor(roundId: string): MarkingTask | null {
+export function taskFor(roundId: string): MarkingTask | null {
   const round = rounds.find((r) => r.id === roundId)
   const event = currentEvents.find((e) => e.id === round?.eventId)
   if (!round || !event) return null

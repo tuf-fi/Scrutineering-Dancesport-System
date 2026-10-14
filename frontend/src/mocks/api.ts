@@ -64,7 +64,7 @@ import {
   saveHeatAssignments,
   skatingTable,
 } from './scrutinizing.ts'
-import { adjudicatorState, demoRounds, startDemoRound, submitMarks } from './adjudicating.ts'
+import { adjudicatorState, demoRounds, startDemoRound, submitMarks, taskFor } from './adjudicating.ts'
 import { heats, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
@@ -874,6 +874,11 @@ export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, s
 // TODO: dev-only controls that stand in for the scrutineer starting a round
 export const getDemoRounds = () => reply(demoRounds())
 export const startDemoRoundOnFloor = (roundId: string | null) => settle<void>(() => startDemoRound(roundId))
+
+// Typing in a paper sheet: the sample takes it the same way as a phone's marks
+export const getMarkingTask = (roundId: string) => reply(found(taskFor(roundId) ?? undefined, 'Round'))
+export const enterAdjudicatorMarks = (_actorId: string, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
+  settle<void>(() => submitMarks(adjudicatorId, roundId, submissions))
 
 // The sample rounds are all planned already; starting one puts it on the adjudicators' phones
 export const planRounds = (_actorId: string, _competitionId: string) => settle<number>(() => 0)

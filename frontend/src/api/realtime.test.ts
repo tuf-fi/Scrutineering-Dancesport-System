@@ -10,8 +10,10 @@ class FakeSocket {
     this.handlers.set(event, [...(this.handlers.get(event) ?? []), handler])
     return this
   }
-  emit(event: string) {
+  payloads: unknown[] = []
+  emit(event: string, payload?: unknown) {
     this.emitted.push(event)
+    this.payloads.push(payload)
   }
   removeAllListeners() {
     this.handlers.clear()
@@ -72,6 +74,19 @@ describe('the venue socket', () => {
     socket.fire('disconnect')
     vi.advanceTimersByTime(20_000)
     expect(socket.emitted).toHaveLength(3)
+  })
+
+  it('says which round the phone is holding unsent marks for', () => {
+    let holding: string | null = null
+    connectRealtime({ ...options(true), holding: () => holding })
+    socket.fire('connect')
+    expect(socket.payloads.at(-1)).toEqual({ holding: null })
+    holding = 'round-2'
+    vi.advanceTimersByTime(5000)
+    expect(socket.payloads.at(-1)).toEqual({ holding: 'round-2' })
+    holding = null
+    vi.advanceTimersByTime(5000)
+    expect(socket.payloads.at(-1)).toEqual({ holding: null })
   })
 
   it('sends no heartbeat from anyone but an adjudicator', () => {

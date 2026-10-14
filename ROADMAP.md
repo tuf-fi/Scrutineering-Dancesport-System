@@ -9,7 +9,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | 1 | Screens with sample data | Done | [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md), [WALKTHROUGH.md](WALKTHROUGH.md) |
 | 2 | Scoring engine | Done, except real result sheets as fixtures | [PHASE2_README.md](PHASE2_README.md) |
 | 3 | Venue backend | Built; four items open | [PHASE3_README.md](PHASE3_README.md), [VENUE.md](VENUE.md) |
-| 4 | Offline safety | Not started | below |
+| 4 | Offline safety | Built; not tried on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
 | 5 | Cloud backend and sync | Not started | below |
 | 6 | Registration and payments | Not started | below |
 | 7 | Testing and pilot | Not started | below |
@@ -46,17 +46,18 @@ Full list in [PHASE3_README.md](PHASE3_README.md). Summary:
 
 Open from Phase 3: age group from birth date, the unbreakable-tie decision, the paper-marks screen (Phase 4), and enforcing paid entries when a round starts.
 
-## Phase 4: Offline safety
+## Phase 4: Offline safety (built)
 
-Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-round.
+Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-round. Details in [PHASE4_README.md](PHASE4_README.md).
 
-- [ ] Make the web app a PWA (`vite-plugin-pwa`) so it opens with no connection.
-- [ ] Adjudicator marks are saved on the phone first, then sent. Keep them in IndexedDB so a refresh cannot lose them (the current outbox in `frontend/src/stores/outbox.ts` is in memory).
-- [ ] Resend automatically after a Wi-Fi drop. The server accepts a repeated submission as a repeat.
-- [ ] The scrutineer's live board shows any phone that has gone quiet, and which marks are still waiting on a phone.
-- [ ] Paper fallback: printable blank mark sheets, and a scrutineer screen to type in an adjudicator's marks. The server endpoint is built in Phase 3.
-- [ ] Backup device: Laptop 3 can take over as the server if Laptop 2 fails. Write and rehearse the steps.
-- [ ] Test by switching the Wi-Fi off and on during a round, killing a phone's browser, and restarting the server.
+- [x] Offline copy of the app (PWA) with a service worker, manifest and icons, plus optional HTTPS. Browsers only keep it over HTTPS, so by default phones do not (see PHASE4_README)
+- [x] Marks are saved on the phone first (IndexedDB), including answers in progress, and survive a refresh or a closed browser
+- [x] Resend automatically after a Wi-Fi drop; the server stores a repeat once
+- [x] The scrutineer's board shows a quiet phone and a phone holding unsent marks
+- [x] Paper fallback: printable blank sheets and a Paper marks screen to type in an adjudicator's sheet
+- [x] Backup device: `restore` command for Laptop 3, takeover steps and a rehearsal checklist
+- [x] Tested: server stopped and restarted mid-round, browser killed, a lost reply, a refused send
+- [ ] Run the rehearsal on the real phones and laptops (service worker, certificate on Android and iPhone, takeover timing)
 
 ## Phase 5: Cloud backend and sync
 

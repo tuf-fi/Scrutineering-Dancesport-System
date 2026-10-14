@@ -9,6 +9,8 @@ const HEARTBEAT_MS = 5000
 export interface RealtimeOptions {
   // Adjudicators' phones tell the server they are alive
   heartbeat: boolean
+  // The round this phone holds unsent marks for, told with every heartbeat so the scrutineer can see it
+  holding?: () => string | null
   // The socket (re)connected: fetch everything again, anything could have changed
   onConnect: () => void
   onDisconnect: () => void
@@ -32,8 +34,9 @@ export function connectRealtime(options: RealtimeOptions): () => void {
   socket.on('connect', () => {
     options.onConnect()
     if (options.heartbeat) {
-      socket.emit('heartbeat')
-      beat = setInterval(() => socket.emit('heartbeat'), HEARTBEAT_MS)
+      const beatOnce = () => socket.emit('heartbeat', { holding: options.holding?.() ?? null })
+      beatOnce()
+      beat = setInterval(beatOnce, HEARTBEAT_MS)
     }
   })
   socket.on('disconnect', () => {
