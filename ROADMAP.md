@@ -98,7 +98,8 @@ Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is 
 - [ ] Run the load test and the rehearsal on the real laptops and the by-hand rehearsal on the real phones
 - [x] Tool to compare BIS with the paper result sheets (`results:compare`)
 - [ ] Pilot at a real competition, with the current method running alongside, and compare every result
-- [ ] Training: a one-page guide per role and a rehearsal with the actual secretariat, scrutineer, chairperson and adjudicators
+- [x] Training: a one-page guide per role in [guides/](guides/)
+- [ ] Rehearsal with the actual secretariat, scrutineer, chairperson and adjudicators, using the guides (and fix any step a guide gets wrong)
 - [ ] Fix list from the pilot, then a second, smaller event before the system is relied on alone
 
 ## Carried over from earlier phases
