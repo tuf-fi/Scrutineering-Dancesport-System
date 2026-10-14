@@ -37,7 +37,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`PORT must be 1 to 65535, got "${env.PORT}"`)
   }
-  const cookieSecret = env.COOKIE_SECRET ?? DEV_SECRET
+  const cookieSecret = env.COOKIE_SECRET || DEV_SECRET
   if (env.NODE_ENV === 'production' && cookieSecret === DEV_SECRET) {
     throw new Error('Set COOKIE_SECRET before running a real competition.')
   }

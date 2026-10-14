@@ -90,7 +90,7 @@ scrutineering-system/
     shared/       Types and data shapes used by frontend and backend
 ```
 
-The same server code runs in **venue mode** (no internet needed) or **cloud mode** (adds registration, payments and public pages), set by one setting. Venue mode uses SQLite and cloud mode uses PostgreSQL, with the same table design defined once in Drizzle.
+The same server code runs in **venue mode** (no internet needed) or **cloud mode** (adds registration, payments and public pages), set by one setting. Both modes use SQLite with the same table design defined once in Drizzle. PostgreSQL was planned for the cloud but would have meant rewriting every service to be asynchronous, so the cloud runs SQLite as one server with a backup after every change (see PHASE5_README.md). Moving to PostgreSQL later is possible if the cloud ever needs more than one server.
 
 ## Build order, frontend to backend
 

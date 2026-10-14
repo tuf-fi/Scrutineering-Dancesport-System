@@ -126,7 +126,19 @@ If the command does not work: stop the server; in `backend\data` move `bis.db`, 
 
 ## After the event
 
-The results are in the database on Laptop 2. Uploading them to the online site arrives in Phase 5; until then, keep `backend\data\bis.db` and the backup folders safe.
+The results are in the database on Laptop 2. If the laptop is set up for the cloud (below), they go to the online site by themselves once the internet is back. Open **Cloud sync** and check that nothing is waiting, then ask an admin to **Release** the competition so entries and payments can change online again. Keep `backend\data\bis.db` and the backup folders safe either way.
+
+## Syncing with the cloud
+
+Optional; the venue works the same without it. To set a laptop up, see [deploy/README.md](deploy/README.md) for the secret, then add to `backend/.env` and restart:
+
+```
+CLOUD_URL=https://<the online address>
+SYNC_TOKEN=<this laptop's secret>
+VENUE_ID=<this laptop's name>
+```
+
+Before the event, with internet: sign in as secretariat or admin, open **Cloud sync** and download the competition. Only paid entries come down, and the screen says how many were left out. The competition is then held by this laptop; downloading again is safe and does not undo anything done here. From then on every change is saved here first and sent in the background. If the cloud cannot be reached a notice shows how many changes are waiting; the competition carries on. **Send now** tries straight away. If something looks missing online, an admin can use **Send all again**.
 
 ## Settings
 
@@ -141,3 +153,5 @@ The results are in the database on Laptop 2. Uploading them to the online site a
 | `FRONTEND_DIR` | `../frontend/dist` | The built screens; empty turns serving them off |
 | `TLS_CERT`, `TLS_KEY` | (off) | Serve HTTPS with this certificate and key; both or neither. Cookies are then `Secure` |
 | `COOKIE_SECURE` | false, or true with a certificate | Set `true` only behind HTTPS |
+| `CLOUD_URL`, `SYNC_TOKEN` | (off) | The online server and this laptop's secret; set both to sync |
+| `VENUE_ID` | the computer's name | The name the cloud knows this laptop by |

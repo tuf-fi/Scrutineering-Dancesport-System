@@ -10,7 +10,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | 2 | Scoring engine | Done, except real result sheets as fixtures | [PHASE2_README.md](PHASE2_README.md) |
 | 3 | Venue backend | Built; four items open | [PHASE3_README.md](PHASE3_README.md), [VENUE.md](VENUE.md) |
 | 4 | Offline safety | Built; rehearsed on this machine, not yet on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
-| 5 | Cloud backend and sync | Not started | below |
+| 5 | Cloud backend and sync | Built; not yet on a real server | [PHASE5_README.md](PHASE5_README.md), [deploy/README.md](deploy/README.md) |
 | 6 | Registration and payments | Not started | below |
 | 7 | Testing and pilot | Not started | below |
 
@@ -60,17 +60,20 @@ Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-ro
 - [x] Rehearsal run for real on this machine (`pnpm rehearsal`: 15 steps, real server and Chrome); it found and fixed six problems
 - [ ] Run the by-hand rehearsal on the real phones and laptops (offline copy, certificate on Android and iPhone, takeover timing)
 
-## Phase 5: Cloud backend and sync
+## Phase 5: Cloud backend and sync (built)
 
-Goal: the same server runs online, and venue and cloud stay in step.
+Goal: the same server runs online, and venue and cloud stay in step. Details and decisions in [PHASE5_README.md](PHASE5_README.md).
 
-- [ ] Deploy the server in cloud mode with PostgreSQL. The schema is the same Drizzle definition.
-- [ ] Upload queue: approved results, ranking points, entries and scratches go into the `outbox` table on the venue server and are sent when internet is available. Safe to repeat.
-- [ ] Download before an event: the secretariat pulls the confirmed, paid entry list and the current rankings to the venue server.
-- [ ] Public pages read from the cloud: latest results, past competitions, couple and solo profiles, rankings per category.
-- [ ] Conflict rules: what wins when the same record changed at the venue and in the cloud (late entries, scratches, back numbers).
-- [ ] Show sync status at the venue ("3 results waiting to upload") and on the admin screen.
-- [ ] Hosting: a small VPS, HTTPS, automatic backups of PostgreSQL.
+- [x] Cloud mode of the same server, run in Docker behind Caddy (HTTPS). It uses SQLite, not PostgreSQL: see the decisions in PHASE5_README.
+- [x] Upload queue: every change to results, ranking points, entries and scratches is captured into the `outbox` by database triggers and sent when the cloud can be reached. Safe to repeat.
+- [x] Download before an event: the paid entries, panels and history rankings of one competition.
+- [x] Public pages read from the cloud's database (same pages).
+- [x] Conflict rule: a competition downloaded by a venue is held; entries and payments close online until it is released.
+- [x] Sync status at the venue and the Cloud sync screen.
+- [x] Hosting files and online backups (`deploy/`).
+- [ ] Put it on a real server, connect the real venue laptop and add a sync step to `pnpm rehearsal`
+- [ ] Copy the online backups to a second place every day
+- [ ] A screen for an admin to take back a competition from a lost venue (the function exists)
 
 ## Phase 6: Registration and payments (cloud)
 
