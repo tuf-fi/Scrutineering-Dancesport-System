@@ -4,6 +4,7 @@ import {
   Award,
   CalendarClock,
   CalendarDays,
+  Cloud,
   Clock,
   ClipboardCheck,
   ClipboardPen,
@@ -45,12 +46,14 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck },
     { to: '/admin/points', label: 'Points table', icon: ListOrdered },
     { to: '/admin/payments', label: 'Payments', icon: Wallet },
+    { to: '/admin/sync', label: 'Cloud sync', icon: Cloud },
   ],
   secretariat: [
     { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays },
     { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound },
     { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
     { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
+    { to: '/secretariat/sync', label: 'Cloud sync', icon: Cloud },
   ],
   scrutineer: scrutineerNav,
   // The chairperson sees the scrutineer's screens, read-only, and cannot enter marks

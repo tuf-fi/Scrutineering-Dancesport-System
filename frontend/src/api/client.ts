@@ -10,6 +10,9 @@ import type {
   AgeGroup,
   AuditEntry,
   BackupStatus,
+  CloudCompetition,
+  PullSummary,
+  SyncStatus,
   Club,
   ClubDancer,
   ClubSignUp,
@@ -202,3 +205,13 @@ export const getSession = () => getSessionFromServer<SessionUser | null>()
 export const getDemoRounds = async (): Promise<DemoRound[]> => []
 export const startDemoRoundOnFloor = async (_roundId: string | null): Promise<void> => {}
 export const getSampleCredentials = async (): Promise<SampleCredentials> => ({ password: '', usernames: [], clubEmail: '', pins: [] })
+
+// ---- Syncing with the cloud ----
+
+export const getSyncStatus = () => call<SyncStatus>('getSyncStatus')
+export const getCloudCompetitions = () => call<CloudCompetition[]>('getCloudCompetitions')
+export const pullCompetition = (competitionId: string) => call<PullSummary>('pullCompetition', competitionId)
+export const syncNow = () => call<SyncStatus>('syncNow')
+export const uploadCompetition = (competitionId: string) => call<SyncStatus>('uploadCompetition', competitionId)
+export const releaseCompetition = (competitionId: string) => call<void>('releaseCompetition', competitionId)
+export const unlockCompetition = (competitionId: string) => call<void>('unlockCompetition', competitionId)
