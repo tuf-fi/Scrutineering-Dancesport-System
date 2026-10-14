@@ -11,7 +11,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | 3 | Venue backend | Built; four items open | [PHASE3_README.md](PHASE3_README.md), [VENUE.md](VENUE.md) |
 | 4 | Offline safety | Built; rehearsed on this machine, not yet on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
 | 5 | Cloud backend and sync | Built; not yet on a real server | [PHASE5_README.md](PHASE5_README.md), [deploy/README.md](deploy/README.md) |
-| 6 | Registration and payments | Not started | below |
+| 6 | Registration and payments | Built, except emails to clubs | [PHASE6_README.md](PHASE6_README.md) |
 | 7 | Testing and pilot | Not started | below |
 
 ## Decisions still needed from the client
@@ -75,18 +75,18 @@ Goal: the same server runs online, and venue and cloud stay in step. Details and
 - [ ] Copy the online backups to a second place every day
 - [ ] A screen for an admin to take back a competition from a lost venue (the function exists)
 
-## Phase 6: Registration and payments (cloud)
+## Phase 6: Registration and payments (cloud) (built, except emails)
 
-Goal: clubs register and pay before the event, and the admin confirms payments by hand. BIS never handles card details or money. Flow and statuses are in [BUILD_README.md](BUILD_README.md#payment-system-checked-manually-by-the-admin).
+Goal: clubs register and pay before the event, and the admin confirms payments by hand. BIS never handles card details or money. Details and decisions in [PHASE6_README.md](PHASE6_README.md).
 
-- [ ] Club accounts: sign up, sign in, manage dancers.
-- [ ] Register dancers to events, see the total fee, see payment details.
-- [ ] Upload proof of payment (screenshot and reference number), stored privately and visible only to admins.
-- [ ] Admin payment checking: approve, or reject with a reason; every decision is logged with name and time.
-- [ ] Only approved or paid-at-venue entries can dance, unless the admin allows an exception.
-- [ ] Data Privacy Act of 2012: collect only what is needed, because many dancers are minors; retention and deletion rules.
-- [ ] Emails or messages to clubs when a payment is approved or rejected (decide the channel first).
-- [ ] Remove the fake club passwords and payment stubs left from Phase 3.
+- [x] Club accounts: sign up, sign in, manage dancers, change password; an admin can give a temporary one.
+- [x] Register dancers to events, see the total fee, see payment details (set by the organizer on the Fees and payment details screen).
+- [x] Upload proof of payment (screenshot and reference number), visible only to admins and the club that sent it.
+- [x] Admin payment checking: approve, or reject with a reason; every decision is logged with name and time.
+- [x] Only approved or paid-at-venue entries can dance: the download takes only those, and a round will not start with an unpaid entry in its event.
+- [x] Data Privacy Act of 2012: consent at sign-up, a privacy notice, no birth dates, erasure of a club's contact details, payment proofs deleted 90 days after the competition.
+- [x] Fake club passwords, fees and payment accounts removed from the real server (only the sample data has them).
+- [ ] Emails or messages to clubs when a payment is approved or rejected: decide the channel (see PHASE6_README.md)
 
 ## Phase 7: Testing and pilot
 

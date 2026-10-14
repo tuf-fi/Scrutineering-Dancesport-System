@@ -12,6 +12,7 @@ import {
   type AgeGroup,
   type BackupStatus,
   type CloudCompetition,
+  type PaymentSettings,
   type PullSummary,
   type SyncStatus,
   type Competition,
@@ -1026,3 +1027,33 @@ export const releaseCompetition = (competitionId: string) =>
     sampleSync.held = sampleSync.held.filter((id) => id !== competitionId)
   })
 export const unlockCompetition = (competitionId: string) => releaseCompetition(competitionId)
+
+// ---- Fees, payment details and club accounts ----
+
+let samplePaymentSettings: PaymentSettings = { fees: { solo: 500, couple: 800 }, methods: paymentMethods() }
+
+export const getPaymentSettings = () => reply(samplePaymentSettings)
+export const savePaymentSettings = (actorId: string, input: PaymentSettings) =>
+  settle<PaymentSettings>(() => {
+    samplePaymentSettings = structuredClone(input)
+    record(actorId, 'Changed fees and payment details', 'Payment settings')
+    return samplePaymentSettings
+  })
+export const changeClubPassword = (_current: string, _next: string) => settle<void>(() => undefined)
+export const resetClubPassword = (actorId: string, id: string) =>
+  settle<{ tempPassword: string }>(() => {
+    const club = found(clubs.find((c) => c.id === id), 'Club')
+    record(actorId, 'Reset a club password', club.name)
+    return { tempPassword: tempPassword() }
+  })
+export const eraseClubAccount = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const club = found(clubs.find((c) => c.id === id), 'Club')
+    Object.assign(club, { contactName: 'Removed', contactEmail: `removed-${id}@removed.invalid`, contactPhone: '' })
+    record(actorId, 'Erased a club account', club.name)
+  })
+export const clearOldReceipts = (actorId: string) =>
+  settle<number>(() => {
+    record(actorId, 'Removed old payment proofs', '0 proofs')
+    return 0
+  })

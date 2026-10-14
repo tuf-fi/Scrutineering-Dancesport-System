@@ -2,6 +2,8 @@ import { Role } from '@bis/shared'
 import {
   Activity,
   Award,
+  Banknote,
+  Building2,
   CalendarClock,
   CalendarDays,
   Cloud,
@@ -46,6 +48,8 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck },
     { to: '/admin/points', label: 'Points table', icon: ListOrdered },
     { to: '/admin/payments', label: 'Payments', icon: Wallet },
+    { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote },
+    { to: '/admin/clubs', label: 'Clubs', icon: Building2 },
     { to: '/admin/sync', label: 'Cloud sync', icon: Cloud },
   ],
   secretariat: [
@@ -70,6 +74,7 @@ export const clubNav: NavItem[] = [
   { to: '/club', label: 'Dancers', end: true },
   { to: '/club/events', label: 'Events' },
   { to: '/club/payments', label: 'Payments' },
+  { to: '/club/account', label: 'Account' },
 ]
 
 export const isStaffRole = (role: Role): role is StaffRole => role in staffNav

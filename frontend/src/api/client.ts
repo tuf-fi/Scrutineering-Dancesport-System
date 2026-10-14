@@ -11,6 +11,7 @@ import type {
   AuditEntry,
   BackupStatus,
   CloudCompetition,
+  PaymentSettings,
   PullSummary,
   SyncStatus,
   Club,
@@ -215,3 +216,12 @@ export const syncNow = () => call<SyncStatus>('syncNow')
 export const uploadCompetition = (competitionId: string) => call<SyncStatus>('uploadCompetition', competitionId)
 export const releaseCompetition = (competitionId: string) => call<void>('releaseCompetition', competitionId)
 export const unlockCompetition = (competitionId: string) => call<void>('unlockCompetition', competitionId)
+
+// ---- Fees, payment details and club accounts ----
+
+export const getPaymentSettings = () => call<PaymentSettings>('getPaymentSettings')
+export const savePaymentSettings = (_adminId: string, input: PaymentSettings) => call<PaymentSettings>('savePaymentSettings', input)
+export const changeClubPassword = (current: string, next: string) => call<void>('changeClubPassword', current, next)
+export const resetClubPassword = (_adminId: string, id: string) => call<{ tempPassword: string }>('resetClubPassword', id)
+export const eraseClubAccount = (_adminId: string, id: string) => call<void>('eraseClubAccount', id)
+export const clearOldReceipts = (_adminId: string) => call<number>('clearOldReceipts')

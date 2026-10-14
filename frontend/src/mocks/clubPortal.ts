@@ -193,7 +193,7 @@ export function registerEntries(clubId: string, dancerId: string, eventIds: stri
 export const clubPayments = (clubId: string): PaymentDetail[] =>
   payments.filter((p) => p.clubId === clubId).map(paymentDetail)
 
-// TODO: the real details come from the organizer's settings
+// Sample payment details; a real server has the organizer's own
 export const paymentMethods = (): PaymentMethod[] => [
   { name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' },
   { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' },

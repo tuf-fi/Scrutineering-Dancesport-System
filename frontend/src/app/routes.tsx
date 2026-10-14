@@ -4,6 +4,10 @@ import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { SyncPage } from '../features/sync/SyncPage.tsx'
+import { FeesPage } from '../features/admin/FeesPage.tsx'
+import { ClubsPage } from '../features/admin/ClubsPage.tsx'
+import { AccountPage } from '../features/club/AccountPage.tsx'
+import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
 import { AdjudicatorSignIn } from '../features/adjudicator/AdjudicatorSignIn.tsx'
@@ -91,6 +95,8 @@ export const routes: RouteObject[] = [
               { path: 'adjudicators', element: <AdjudicatorsPage /> },
               { path: 'points', element: <PointsPage /> },
               { path: 'payments', element: <PaymentsPage /> },
+              { path: 'fees', element: <FeesPage /> },
+              { path: 'clubs', element: <ClubsPage /> },
               { path: 'sync', element: <SyncPage /> },
             ],
           },
@@ -171,6 +177,7 @@ export const routes: RouteObject[] = [
               { index: true, element: <DancersPage /> },
               { path: 'events', element: <EntriesPage /> },
               { path: 'payments', element: <ClubPaymentsPage /> },
+              { path: 'account', element: <AccountPage /> },
             ],
           },
         ],
@@ -187,6 +194,7 @@ export const routes: RouteObject[] = [
           { path: 'competitions/:competitionId', element: <CompetitionPage /> },
           { path: 'competitions/:competitionId/events/:eventId', element: <EventResultsPage /> },
           { path: 'rankings', element: <RankingsPage /> },
+          { path: 'privacy', element: <PrivacyPage /> },
           { path: 'competitors/:id', element: <CompetitorPage /> },
         ],
       },

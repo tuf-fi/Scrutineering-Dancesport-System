@@ -12,6 +12,7 @@ export function ClubSignUp() {
   const navigate = useNavigate()
   const signUp = useSignUpClub()
   const [values, setValues] = useState({ name: '', contactName: '', contactEmail: '', contactPhone: '', password: '' })
+  const [agreed, setAgreed] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   if (user) return <Navigate to={roleHome[user.role]} replace />
@@ -22,7 +23,7 @@ export function ClubSignUp() {
   function submit(event: FormEvent) {
     event.preventDefault()
     setError(null)
-    signUp.mutate(values, {
+    signUp.mutate({ ...values, agreed }, {
       onSuccess: (session) => {
         signIn(session)
         navigate(roleHome[session.role], { replace: true })
@@ -57,7 +58,17 @@ export function ClubSignUp() {
           onChange={set('password')}
           error={error ?? undefined}
         />
-        <Button type="submit" size="lg" disabled={signUp.isPending} className="mt-1 w-full">
+        <label className="flex items-start gap-3 text-small text-neutral-700">
+          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-neutral-900" />
+          <span>
+            I have read the{' '}
+            <Link to="/privacy" target="_blank" className="font-semibold text-neutral-900 underline underline-offset-4">
+              privacy notice
+            </Link>{' '}
+            and agree.
+          </span>
+        </label>
+        <Button type="submit" size="lg" disabled={signUp.isPending || !agreed} className="mt-1 w-full">
           {signUp.isPending ? 'Creating account…' : 'Create account'}
         </Button>
       </form>

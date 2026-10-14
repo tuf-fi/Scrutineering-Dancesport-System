@@ -187,7 +187,7 @@ describe('the session', () => {
     expect(await client.signInStaff('admin', 'pw')).toMatchObject({ role: 'admin' })
     await client.signInAdjudicator('4100')
     await client.signInClub('a@b.c', 'pw')
-    await client.signUpNewClub({ name: 'n', contactName: 'c', contactEmail: 'e@e.e', contactPhone: '1', password: 'longenough' })
+    await client.signUpNewClub({ name: 'n', contactName: 'c', contactEmail: 'e@e.e', contactPhone: '1', password: 'longenough', agreed: true })
     await client.signOut()
     expect(sent.map((s) => s.url)).toEqual([
       '/api/auth/staff',

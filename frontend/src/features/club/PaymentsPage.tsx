@@ -142,6 +142,7 @@ export function PaymentsPage() {
         <>
           <section aria-label="How to pay" className="flex flex-col gap-4">
             <h2 className="text-title font-semibold">How to pay</h2>
+            {methods.data?.length === 0 && <p className="text-small text-neutral-600">The organizer has not added payment details yet. Check back soon.</p>}
             <dl className="grid gap-x-10 gap-y-5 sm:grid-cols-3">
               {(methods.data ?? []).map((m) => (
                 <div key={m.name} className="flex flex-col gap-1">

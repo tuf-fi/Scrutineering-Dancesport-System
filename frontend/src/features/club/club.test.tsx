@@ -14,6 +14,7 @@ async function registerClub(name: string) {
   await userEvent.type(screen.getByLabelText('Email'), `${name.toLowerCase().replace(/\W+/g, '')}@example.com`)
   await userEvent.type(screen.getByLabelText('Mobile number'), '0917 123 4567')
   await userEvent.type(screen.getByLabelText('Password'), 'longenough1')
+  await userEvent.click(screen.getByRole('checkbox', { name: /privacy notice/ }))
   await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
   await screen.findByRole('heading', { name: 'Dancers' })
   return router
@@ -36,6 +37,8 @@ describe('club sign-up', () => {
     await userEvent.type(screen.getByLabelText('Contact person'), 'Test Person')
     await userEvent.type(screen.getByLabelText('Email'), 'shortpass@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'short')
+    expect(screen.getByRole('button', { name: 'Create account' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('checkbox', { name: /privacy notice/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     expect(await screen.findByText('Use a password of at least 8 characters.')).toBeInTheDocument()
 
@@ -52,6 +55,7 @@ describe('club sign-up', () => {
     await userEvent.type(screen.getByLabelText('Contact person'), 'Test Person')
     await userEvent.type(screen.getByLabelText('Email'), 'club1@example.com')
     await userEvent.type(screen.getByLabelText('Password'), 'longenough1')
+    await userEvent.click(screen.getByRole('checkbox', { name: /privacy notice/ }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     expect(await screen.findByText(/already exists/)).toBeInTheDocument()
   })

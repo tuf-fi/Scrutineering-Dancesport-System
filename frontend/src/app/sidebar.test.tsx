@@ -38,6 +38,8 @@ describe('staff sidebar', () => {
       'Adjudicators and panels',
       'Points table',
       'Payments',
+      'Fees and payment details',
+      'Clubs',
       'Cloud sync',
     ])
     for (const link of links) expect(link.querySelector('svg')).not.toBeNull()
