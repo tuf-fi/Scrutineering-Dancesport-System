@@ -12,6 +12,7 @@ import {
   type AgeGroup,
   type BackupStatus,
   type CloudCompetition,
+  type MessengerLink,
   type PaymentSettings,
   type PullSummary,
   type SyncStatus,
@@ -1051,6 +1052,13 @@ export const eraseClubAccount = (actorId: string, id: string) =>
     const club = found(clubs.find((c) => c.id === id), 'Club')
     Object.assign(club, { contactName: 'Removed', contactEmail: `removed-${id}@removed.invalid`, contactPhone: '' })
     record(actorId, 'Erased a club account', club.name)
+  })
+let sampleMessengerLinked = false
+export const getMessengerLink = () =>
+  reply<MessengerLink>({ available: true, linked: sampleMessengerLinked, url: sampleMessengerLinked ? null : 'https://m.me/SamplePage?ref=sample' })
+export const unlinkMessenger = () =>
+  settle<void>(() => {
+    sampleMessengerLinked = false
   })
 export const clearOldReceipts = (actorId: string) =>
   settle<number>(() => {

@@ -18,6 +18,7 @@ import { createSocketHub, SESSION_COOKIE } from './realtime/socket.ts'
 import type { Hub } from './realtime/hub.ts'
 import { allowed, endpoint } from './registry.ts'
 import { submissionSnapshot } from './services/rounds.ts'
+import { registerMessengerWebhook } from './messengerWebhook.ts'
 import { registerCloudSync } from './sync/cloud.ts'
 import { createSyncService } from './sync/venue.ts'
 
@@ -149,6 +150,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   // ---- Online: venues download competitions and send results back ----
 
   if (config.mode === 'cloud') registerCloudSync(app, { config, sqlite, db, hub, sendError })
+  if (config.mode === 'cloud' && config.messenger.verifyToken) registerMessengerWebhook(app, { config, db })
 
   // ---- Every other call: POST /api/call/<name> with { args: [...] } ----
 

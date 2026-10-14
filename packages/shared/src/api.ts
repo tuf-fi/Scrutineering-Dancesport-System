@@ -95,6 +95,8 @@ export const API_FUNCTIONS = [
   'resetClubPassword',
   'eraseClubAccount',
   'clearOldReceipts',
+  'getMessengerLink',
+  'unlinkMessenger',
   'updateAdjudicator',
   'updateCompetitor',
   'updateLateEntry',

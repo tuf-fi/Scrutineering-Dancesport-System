@@ -1,9 +1,10 @@
-import type { PaymentMethod, PaymentSettings } from '@bis/shared'
+import type { MessengerLink, PaymentMethod, PaymentSettings } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { hashPassword, temporaryPassword, verifyPassword } from '../auth/password.ts'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
+import { linkUrl, messengerEnabled } from '../messenger.ts'
 import { readPaymentSettings, writePaymentSettings } from '../paymentSettings.ts'
 import { clean } from './shared.ts'
 
@@ -36,6 +37,18 @@ export const accountFunctions = {
     return next
   },
 
+  getMessengerLink(ctx: Ctx): MessengerLink {
+    const club = found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, actor(ctx).id)).get(), 'Club')
+    const available = messengerEnabled(ctx.config)
+    return { available, linked: Boolean(club.messengerId), url: available && !club.messengerId ? linkUrl(ctx.config, club.id) : null }
+  },
+
+  unlinkMessenger(ctx: Ctx): void {
+    const user = actor(ctx)
+    ctx.db.update(t.clubs).set({ messengerId: null }).where(eq(t.clubs.id, user.id)).run()
+    record(ctx.db, user.id, 'Club unlinked Messenger', user.name)
+  },
+
   // A club changes its own password
   changeClubPassword(ctx: Ctx, current: string, next: string): void {
     const user = actor(ctx)
@@ -63,7 +76,7 @@ export const accountFunctions = {
     if (waiting) return fail('This club has a payment waiting to be checked. Decide it first.', 409)
     ctx.db
       .update(t.clubs)
-      .set({ contactName: 'Removed', contactEmail: `removed-${club.id}@removed.invalid`, contactPhone: '', passwordHash: null, consentAt: null })
+      .set({ contactName: 'Removed', contactEmail: `removed-${club.id}@removed.invalid`, contactPhone: '', passwordHash: null, consentAt: null, messengerId: null })
       .where(eq(t.clubs.id, club.id))
       .run()
     ctx.db.update(t.payments).set({ receipt: null }).where(eq(t.payments.clubId, club.id)).run()

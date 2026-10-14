@@ -500,6 +500,13 @@ export interface PullSummary {
   excludedEntries: number
 }
 
+// Whether a club can get payment news on Messenger, and the link that connects it
+export interface MessengerLink {
+  available: boolean
+  linked: boolean
+  url: string | null
+}
+
 // What clubs pay and where to send it, set by the organizer. No fees means registration is closed until they are set.
 export interface PaymentSettings {
   fees: { solo: number; couple: number } | null

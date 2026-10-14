@@ -6,6 +6,7 @@ import { record } from '../core/audit.ts'
 import { hashPassword, temporaryPassword } from '../auth/password.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
+import { notifyClub } from '../messenger.ts'
 import { recomputeAllPoints } from './ranking.ts'
 import { assertNotHeld, clean, getPaymentRow, paymentDetail, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
@@ -206,6 +207,7 @@ export const admin = {
       .run()
     const detail = paymentDetail(ctx, getPaymentRow(ctx, id))
     record(ctx.db, actor(ctx).id, 'Approved payment', detail.clubName, { before: { status: payment.status }, after: { status: PaymentStatus.Approved } })
+    tellClub(ctx, payment, `Your payment of ₱${payment.amountPaid ?? payment.amountDue} was approved. Your entries are confirmed.`)
     return detail
   },
 
@@ -220,8 +222,14 @@ export const admin = {
       .run()
     const detail = paymentDetail(ctx, getPaymentRow(ctx, id))
     record(ctx.db, actor(ctx).id, 'Rejected payment', detail.clubName, { before: { status: payment.status }, after: { status: PaymentStatus.Rejected, reason: trimmed } })
+    tellClub(ctx, payment, `Your payment was not accepted: ${trimmed}. Open BIS, fix it and send it again.`)
     return detail
   },
+}
+
+// A message on Messenger after the decision is saved; if it cannot be sent, the club still sees the status in BIS
+function tellClub(ctx: Ctx, payment: { clubId: string }, text: string) {
+  ctx.defer(() => void notifyClub(ctx.config, ctx.db, payment.clubId, text))
 }
 
 function checkable(ctx: Ctx, id: string) {

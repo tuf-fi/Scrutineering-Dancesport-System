@@ -28,4 +28,11 @@ export function useEraseClubAccount() {
   })
 }
 
+export const useMessengerLink = () => useQuery({ queryKey: ['messenger-link'], queryFn: api.getMessengerLink })
+
+export function useUnlinkMessenger() {
+  const queryClient = useQueryClient()
+  return useMutation({ mutationFn: () => api.unlinkMessenger(), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messenger-link'] }) })
+}
+
 export const useClearOldReceipts = () => useMutation({ mutationFn: () => api.clearOldReceipts(actor()) })

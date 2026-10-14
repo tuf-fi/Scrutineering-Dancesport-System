@@ -44,7 +44,7 @@ export const UPLOAD_TABLES: SyncTable[] = [
 // the venue's own state (the round on the floor, who holds the competition) are never sent.
 export const DOWNLOAD_TABLES: SyncTable[] = [
   describe(t.competitions, ['floor_round_id', 'held_by', 'held_at']),
-  describe(t.clubs, ['password_hash', 'consent_at']),
+  describe(t.clubs, ['password_hash', 'consent_at', 'messenger_id']),
   describe(t.competitors),
   describe(t.events),
   describe(t.payments, ['receipt']),

@@ -20,3 +20,11 @@ describe('club account', () => {
     expect(screen.getByText(/deleted 90 days after the competition/)).toBeInTheDocument()
   })
 })
+
+describe('club Messenger', () => {
+  it('offers the link, and disconnects after linking', async () => {
+    renderApp('/club/account', Role.Club)
+    const link = await screen.findByRole('link', { name: 'Connect Messenger' })
+    expect(link).toHaveAttribute('href', expect.stringContaining('https://m.me/'))
+  })
+})

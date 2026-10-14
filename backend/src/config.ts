@@ -29,6 +29,8 @@ export interface Config {
   trustProxy: boolean
   // Venue: how long after a change before it is sent to the cloud (tests slow it down to control when sending happens)
   syncDelayMs: number
+  // Cloud only: the organizer's Facebook Page, used to message clubs about their payments. Without a token it is off.
+  messenger: { pageToken: string | null; pageUsername: string | null; verifyToken: string | null; appSecret: string | null }
 }
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
@@ -72,5 +74,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     syncTokens,
     trustProxy: env.TRUST_PROXY === 'true',
     syncDelayMs: Number(env.SYNC_DELAY_MS ?? 2000),
+    messenger: {
+      pageToken: env.MESSENGER_PAGE_TOKEN || null,
+      pageUsername: env.MESSENGER_PAGE_USERNAME || null,
+      verifyToken: env.MESSENGER_VERIFY_TOKEN || null,
+      appSecret: env.MESSENGER_APP_SECRET || null,
+    },
   }
 }

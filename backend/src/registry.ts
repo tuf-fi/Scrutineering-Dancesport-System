@@ -155,6 +155,8 @@ const access: Record<string, Access> = {
   resetClubPassword: ADMIN,
   eraseClubAccount: ADMIN,
   clearOldReceipts: ADMIN,
+  getMessengerLink: [Role.Club],
+  unlinkMessenger: [Role.Club],
 
   // Clubs, each only for their own club
   getClubDancers: [Role.Club],
@@ -198,7 +200,7 @@ const VENUE_ONLY = new Set([
   'releaseCompetition',
 ])
 // Things that only make sense online
-const CLOUD_ONLY = new Set(['unlockCompetition', 'savePaymentSettings', 'changeClubPassword', 'resetClubPassword', 'eraseClubAccount', 'clearOldReceipts'])
+const CLOUD_ONLY = new Set(['unlockCompetition', 'savePaymentSettings', 'changeClubPassword', 'resetClubPassword', 'eraseClubAccount', 'clearOldReceipts', 'getMessengerLink', 'unlinkMessenger'])
 // These talk to the other server, so they wait for an answer and manage their own database work
 const ASYNC = new Set(['getCloudCompetitions', 'pullCompetition', 'syncNow', 'uploadCompetition', 'releaseCompetition'])
 

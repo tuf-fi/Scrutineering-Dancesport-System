@@ -1,0 +1,1 @@
+ALTER TABLE `clubs` ADD `messenger_id` text;

@@ -11,6 +11,7 @@ import type {
   AuditEntry,
   BackupStatus,
   CloudCompetition,
+  MessengerLink,
   PaymentSettings,
   PullSummary,
   SyncStatus,
@@ -224,4 +225,6 @@ export const savePaymentSettings = (_adminId: string, input: PaymentSettings) =>
 export const changeClubPassword = (current: string, next: string) => call<void>('changeClubPassword', current, next)
 export const resetClubPassword = (_adminId: string, id: string) => call<{ tempPassword: string }>('resetClubPassword', id)
 export const eraseClubAccount = (_adminId: string, id: string) => call<void>('eraseClubAccount', id)
+export const getMessengerLink = () => call<MessengerLink>('getMessengerLink')
+export const unlinkMessenger = () => call<void>('unlinkMessenger')
 export const clearOldReceipts = (_adminId: string) => call<number>('clearOldReceipts')

@@ -33,6 +33,8 @@ export const clubs = sqliteTable('clubs', {
   passwordHash: text('password_hash'),
   // When the club agreed to the privacy notice at sign-up; null for clubs added by staff
   consentAt: text('consent_at'),
+  // The club's Messenger id for the organizer's Page, once it has linked; payment decisions are sent there
+  messengerId: text('messenger_id'),
 }, (t) => [uniqueIndex('clubs_email').on(t.contactEmail)])
 
 export const events = sqliteTable(
