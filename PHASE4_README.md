@@ -10,11 +10,12 @@ Goal: nothing is lost when the Wi-Fi drops, a phone dies, a browser is closed or
 | 2 | Sending that never loses marks and never counts them twice | Done |
 | 3 | Scrutineer's board shows a phone holding unsent marks | Done |
 | 4 | Paper marks screen for the scrutineer | Done |
-| 5 | Offline copy of the app (PWA) and optional HTTPS | Built; **not checked in a real browser** |
+| 5 | Offline copy of the app (PWA) and optional HTTPS | Built; checked in a real desktop Chrome, not on phones |
 | 6 | Laptop 3 takeover command and rehearsal | Done |
 | 7 | Tests of a bad day: Wi-Fi off, browser killed, server restarted | Done |
+| 8 | The rehearsal, run for real (`pnpm rehearsal`) | Done on this machine; real phones still to do |
 
-Tests added: 21 frontend, 18 backend. All suites pass (50 scoring, 129 backend, 218 frontend).
+Tests added in this phase: 37 frontend, 25 backend. All suites pass (50 scoring, 136 backend, 234 frontend), and the rehearsal passes all 15 steps.
 
 ## What was built
 
@@ -53,8 +54,26 @@ The app has a manifest, icons and a service worker that caches the screens and f
 - **Restore** is tested against real backups taken by the server, plus a command-line run: server makes a backup, `restore` puts it on a second path, a second run refuses to overwrite.
 - **The production build** was served by the real server and checked for the service worker, manifest, icons and cache headers.
 
+## The rehearsal, and what it found
+
+`pnpm rehearsal` ([rehearsal/README.md](rehearsal/README.md)) runs the [VENUE.md](VENUE.md) checklist for real: the actual server as separate processes, killed and restarted, and a real Chrome with phone-sized windows. It found six problems that the tests had not, all now fixed and tested:
+
+| Found | Fix |
+| --- | --- |
+| Marks adjudicators were told were "Submitted" were **missing after Laptop 3 took over**, because backups ran at startup and every 5 minutes | A backup about a second after every change; and each phone keeps a copy of acknowledged marks for a day and sends them again if the server does not have them |
+| **Everyone was signed out** by a takeover: the cookie secret lived in a file, not in the backup | The secret is kept in the database, so it travels with every backup |
+| With a backup on every change, "keep the newest 30" covered only minutes, so **no older backup survived** | Keep the newest 60 copies plus one per 10 minutes for a day |
+| A **hung request** (weak Wi-Fi that neither answers nor fails) blocked the retry and left the phone saying "Online" | Requests give up after 12 seconds and count as network trouble |
+| The browser's own offline flag made the query library **pause sending**, so the phone never tried, never failed and never said "No connection" | The app decides from what the server answers; the browser's offline and online events update the badge at once; a timed retry no longer waits for a signal that may not come |
+| The scrutineer learned a backup folder had failed only on the next minute's check (55 seconds in the rehearsal) | The server tells the screens the moment a folder starts or stops working |
+
+It also showed a real screen problem: the Paper marks page said "No round chosen" while still loading. It now shows a skeleton.
+
+What the rehearsal confirmed: a phone that is offline holds its marks, survives a killed browser, and sends them once; a stopped server is survived; a takeover from the newest backup loses nothing; a takeover from the oldest backup is repaired by the phones; the offline copy of the app opens with no connection on `localhost` and over HTTPS, and is not available on a plain `http://<address>` (as documented).
+
 ## Not verified, and open
-- **No real browser or phone was used.** The service worker registering, the app opening offline, installing to the home screen and trusting a certificate on Android and iPhone are untested. Run the rehearsal in [VENUE.md](VENUE.md) on the actual phones before relying on any of it.
+- **Real phones.** The rehearsal drives desktop Chrome. Real phones, a real Wi-Fi network, iPhone Safari, and a certificate trusted by a phone are untested; it uses Chrome's certificate-error flag in place of a trusted certificate. Do the by-hand checks in [VENUE.md](VENUE.md) on the actual devices.
+- **Paper sheets after a takeover.** A phone puts back its own marks; a sheet the scrutineer typed in after the newest backup (about a second) is not kept on any phone. The paper is the record.
 - **The mark screen's draft** is restored from the phone, but a draft is not shown to the scrutineer; only confirmed marks are.
 - **Pending marks across rounds:** if a phone holds marks for a round that has closed, the server refuses them and they are dropped with a message. The scrutineer can then enter the paper sheet.
 - **Not started by itself:** the server does not start when Windows starts, and Laptop 3 does not watch Laptop 2 and take over automatically; the takeover is a few minutes of manual steps.

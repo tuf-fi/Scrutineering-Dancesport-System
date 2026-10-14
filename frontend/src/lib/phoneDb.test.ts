@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { useOutbox } from '../stores/outbox.ts'
-import { closePhoneDb, loadDraft, loadPending, removeDraft, removePending, saveDraft, savePending } from './phoneDb.ts'
+import { closePhoneDb, loadDraft, loadPending, loadSent, pruneSent, removeDraft, removePending, removeSent, saveDraft, savePending, saveSent } from './phoneDb.ts'
 
 const marks = (competitorIds: string[]) => [{ dance: 'samba' as const, competitorIds }]
 const pending = (roundId: string, savedAt: string) => ({ adjudicatorId: 'adj-a', roundId, submissions: marks(['c1', 'c2']), savedAt })
@@ -86,6 +86,60 @@ describe('answers being made', () => {
     expect(await loadDraft('adj-a', 'r2')).toBeNull()
     await removeDraft({ adjudicatorId: 'adj-a', roundId: 'r1' })
     expect(await loadDraft('adj-a', 'r1')).toBeNull()
+  })
+})
+
+describe('copies of marks the server acknowledged', () => {
+  it('are kept after the browser is closed, per adjudicator and round', async () => {
+    await saveSent(pending('r1', new Date().toISOString()))
+    restartBrowser()
+    expect((await loadSent('adj-a', 'r1'))!.submissions).toEqual(marks(['c1', 'c2']))
+    expect(await loadSent('adj-a', 'r2')).toBeNull()
+    expect(await loadSent('adj-b', 'r1')).toBeNull()
+    await removeSent({ adjudicatorId: 'adj-a', roundId: 'r1' })
+    expect(await loadSent('adj-a', 'r1')).toBeNull()
+  })
+
+  it('are forgotten after a day, so the phone does not collect them', async () => {
+    const hours = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString()
+    await saveSent(pending('old', hours(30)))
+    await saveSent(pending('recent', hours(2)))
+    await pruneSent(24 * 3_600_000)
+    expect(await loadSent('adj-a', 'old')).toBeNull()
+    expect(await loadSent('adj-a', 'recent')).not.toBeNull()
+  })
+
+  it('are not mistaken for marks still waiting to be sent', async () => {
+    await saveSent(pending('r1', new Date().toISOString()))
+    expect(await loadPending()).toBeNull()
+  })
+})
+
+describe('a phone that had the first version of the storage', () => {
+  it('gains the new store without losing what it was holding', async () => {
+    const factory = new IDBFactory()
+    globalThis.indexedDB = factory
+    closePhoneDb()
+    // Version 1, as an earlier release created it: no "sent" store
+    await new Promise<void>((resolve, reject) => {
+      const request = factory.open('bis-phone', 1)
+      request.onupgradeneeded = () => {
+        request.result.createObjectStore('outbox', { keyPath: 'key' })
+        request.result.createObjectStore('drafts', { keyPath: 'key' })
+      }
+      request.onsuccess = () => {
+        const tx = request.result.transaction('outbox', 'readwrite')
+        tx.objectStore('outbox').put({ ...pending('r1', '2026-10-10T01:00:00Z'), key: 'adj-a:r1' })
+        tx.oncomplete = () => {
+          request.result.close()
+          resolve()
+        }
+      }
+      request.onerror = () => reject(request.error)
+    })
+    expect((await loadPending())!.roundId).toBe('r1')
+    await saveSent(pending('r2', new Date().toISOString()))
+    expect((await loadSent('adj-a', 'r2'))!.roundId).toBe('r2')
   })
 })
 

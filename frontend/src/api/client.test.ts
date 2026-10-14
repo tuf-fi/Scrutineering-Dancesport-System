@@ -1,7 +1,7 @@
 import { API_FUNCTIONS } from '@bis/shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as client from './client.ts'
-import { ApiError, isNetworkError, onReachability, onSessionEnded } from './http.ts'
+import { ApiError, isNetworkError, onReachability, onSessionEnded, REQUEST_TIMEOUT_MS } from './http.ts'
 
 // What the client sent, one entry per request
 const sent: Array<{ url: string; body: unknown; method: string }> = []
@@ -139,6 +139,28 @@ describe('answers', () => {
     expect(reach).toHaveBeenLastCalledWith(false)
     await client.getCompetitions()
     expect(reach).toHaveBeenLastCalledWith(true)
+  })
+
+  it('treats a request that never gets an answer as network trouble, so held marks are tried again', async () => {
+    vi.useFakeTimers()
+    try {
+      const reach = vi.fn()
+      onReachability(reach)
+      // A weak Wi-Fi: the request is neither answered nor failed until the client gives up on it
+      vi.mocked(fetch).mockImplementationOnce((url, init) => {
+        record(String(url), init)
+        return new Promise<Response>((_, reject) => init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))))
+      })
+      const pending = client.getCompetitions().catch((e: unknown) => e)
+      await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS - 1)
+      expect(reach).not.toHaveBeenCalled()
+      await vi.advanceTimersByTimeAsync(2)
+      const error = await pending
+      expect(isNetworkError(error)).toBe(true)
+      expect(reach).toHaveBeenLastCalledWith(false)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('copes with something other than the venue server answering', async () => {

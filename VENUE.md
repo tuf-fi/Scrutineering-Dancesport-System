@@ -18,7 +18,7 @@ One program serves the screens and the data, so nothing else needs installing on
 1. Install [Node.js 24](https://nodejs.org) and pnpm 10 (`npm install -g pnpm@10`).
 2. In the project folder: `pnpm install`.
 3. Copy `backend/.env.example` to `backend/.env` and set:
-   - `COOKIE_SECRET` is optional. Left out, the server makes a random one beside the database on first start and keeps it, so everyone stays signed in if the server is restarted.
+   - `COOKIE_SECRET` is optional. Left out, the server makes a random one on first start and keeps it in the database, so everyone stays signed in if the server is restarted, and even after Laptop 3 takes over from a backup.
    - `BACKUP_DIRS`: where copies of the database go, separated by commas. Use the USB drive and a shared folder on Laptop 3, for example `E:\bis-backups,\\LAPTOP3\bis-backups`.
 4. Create the first admin: `pnpm --filter @bis/backend admin:create admin "Your Name"`. It prints a password; the admin changes it from the Staff screen. (An empty database has no accounts, so this step is needed once.)
 5. Allow other devices through the Windows firewall, once, in an administrator PowerShell: `netsh advfirewall firewall add rule name="BIS" dir=in action=allow protocol=TCP localport=4000`.
@@ -87,16 +87,22 @@ Laptop 3 needs the same setup as Laptop 2 (the project, `pnpm install`, and a `b
 
 To restore by hand instead, or to go back to an earlier copy, name the file: `pnpm --filter @bis/backend restore E:\bis-backups\bis-20261010-103000.db --replace`.
 
-A backup is made when the server starts, every 5 minutes (`BACKUP_INTERVAL_MINUTES`), and after every approval. The newest 30 copies in each folder are kept.
+A backup is made when the server starts, every 5 minutes (`BACKUP_INTERVAL_MINUTES`), and about a second after every change (an adjudicator submitting, a paper sheet, an approval), so a laptop that dies loses at most the last moment of work. Each folder keeps the newest 60 copies, plus one copy for every 10 minutes of the last day, so an older state is always there to go back to.
 
-### Rehearsal (do it once, a day before)
+Marks an adjudicator was told were submitted cannot be lost this way even in the worst case: each phone keeps a copy of what the server acknowledged for a day, and if the server it later talks to does not have those marks (it was restored from an older backup), the phone sends them again when its page is opened. Paper sheets typed in by the scrutineer are not kept on the phones; the paper is the record, so re-enter any sheet missing after a takeover.
 
-1. On Laptop 2, run a few rounds of the sample (`pnpm seed` on a spare database) with two phones.
-2. Pull the USB drive out and plug it in again. The scrutineer screen shows the backup notice, then clears.
-3. Switch a phone's Wi-Fi off, confirm marks, close the browser, switch Wi-Fi on, open the page. The marks arrive.
-4. Stop the server mid-round (close its window) and start it again. Phones keep their place.
-5. Stop Laptop 2 for good. On Laptop 3, run the steps above. Time it; it should take a few minutes.
-6. Type in a paper sheet from the Paper marks screen.
+### Rehearsal
+
+Run `pnpm rehearsal` on Laptop 2 a day before, and again after any update (see [rehearsal/README.md](rehearsal/README.md)). In a few minutes it runs the checks below for real, on a spare sample database with the real server and a real Chrome, and saves screenshots. It must finish with every step passing.
+
+1. A backup folder is unplugged and plugged back in: the scrutineer is told straight away, and the notice clears.
+2. A phone loses its Wi-Fi, confirms marks, has its browser killed, and reopens: the marks arrive once.
+3. The server stops while a phone confirms and starts again: the phone sends by itself and stays signed in.
+4. A paper sheet is typed in from the Paper marks screen.
+5. Laptop 2 dies and Laptop 3 restores the newest backup, then (worst case) the oldest: phones stay signed in and put back marks the server lost.
+6. The offline copy of the app on `localhost`, on a plain `http://<address>` (not available, as above), and over HTTPS.
+
+It uses a spare database, never the real one, and cannot test real phones, a real Wi-Fi network, or a certificate trusted by a phone. So also do this by hand, with the real devices, once: switch a real phone's Wi-Fi off and on during a sample round; pull the real USB drive; stop Laptop 2 and take over on Laptop 3, timing it (it should take a few minutes); open the page on every phone you will use and, if you chose HTTPS, check it opens with the Wi-Fi off.
 
 ## Phones, and the offline copy of the app
 
@@ -129,7 +135,7 @@ The results are in the database on Laptop 2. Uploading them to the online site a
 | `PORT` | 4000 | Port the server listens on |
 | `HOST` | 0.0.0.0 | `0.0.0.0` lets other devices connect |
 | `DATABASE_PATH` | `./data/bis.db` | The database file |
-| `COOKIE_SECRET` | random, kept beside the database | Signs sign-in cookies |
+| `COOKIE_SECRET` | random, kept in the database | Signs sign-in cookies |
 | `BACKUP_DIRS` | `./data/backups` | Comma-separated backup folders |
 | `BACKUP_INTERVAL_MINUTES` | 5 | `0` turns the timer off |
 | `FRONTEND_DIR` | `../frontend/dist` | The built screens; empty turns serving them off |

@@ -2,9 +2,10 @@ import { Outlet } from 'react-router'
 import { usingMocks } from '../api/mode.ts'
 import { Toaster } from '../components/ui/index.ts'
 import { RoleSwitcher } from '../features/dev/RoleSwitcher.tsx'
-import { useRealtime } from '../hooks/index.ts'
+import { useBrowserConnection, useRealtime } from '../hooks/index.ts'
 
 export function RootLayout() {
+  useBrowserConnection()
   useRealtime()
   return (
     <>

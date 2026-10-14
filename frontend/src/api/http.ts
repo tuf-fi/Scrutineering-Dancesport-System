@@ -25,26 +25,38 @@ export const onSessionEnded = (listener: () => void) => void (ended = listener)
 
 const SERVER_DOWN = 'Cannot reach the venue server. Check the Wi-Fi.'
 
+// A weak Wi-Fi often does not fail a request, it just never answers. After this long it counts as unreachable, so the
+// phone says so and its held marks are tried again instead of waiting for ever.
+export const REQUEST_TIMEOUT_MS = 12_000
+
 async function send<T>(method: 'GET' | 'POST', url: string, body?: unknown, signingIn = false): Promise<T> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   let res: Response
+  let payload: { data?: T; error?: string } = {}
   try {
     res = await fetch(url, {
       method,
       credentials: 'same-origin',
       headers: body === undefined ? undefined : { 'content-type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
     })
-  } catch {
+    reachability(true)
+    try {
+      payload = (await res.json()) as typeof payload
+    } catch (error) {
+      // The connection dropped while the answer was coming
+      if (controller.signal.aborted) throw error
+      // A reply that is not JSON means something other than BIS answered
+      throw new ApiError(res.status, res.ok ? 'The server sent something unexpected.' : `The server answered ${res.status}.`)
+    }
+  } catch (error) {
+    if (error instanceof ApiError) throw error
     reachability(false)
     throw new ApiError(0, SERVER_DOWN)
-  }
-  reachability(true)
-  let payload: { data?: T; error?: string } = {}
-  try {
-    payload = (await res.json()) as typeof payload
-  } catch {
-    // A reply that is not JSON means something other than BIS answered
-    throw new ApiError(res.status, res.ok ? 'The server sent something unexpected.' : `The server answered ${res.status}.`)
+  } finally {
+    clearTimeout(timer)
   }
   if (!res.ok) {
     if (res.status === 401 && !signingIn) ended()

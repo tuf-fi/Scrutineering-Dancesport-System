@@ -41,7 +41,7 @@ Phase 3 is built and tested: 111 backend tests (including the real frontend clie
 **Done differently**
 - **One call route.** Instead of 85 separate URLs, the server has `POST /api/call/<name>` with `{ "args": [...] }`, plus separate `/api/auth/*` routes for signing in. Every function has its allowed roles in one table (`backend/src/registry.ts`), and a test checks the table, the server and the client against one list (`API_FUNCTIONS` in `@bis/shared`).
 - **The mocks were kept**, not deleted: they run the frontend tests and the client preview. Real builds contain no sample data.
-- **A random cookie secret** is created beside the database on first start, so it works without configuration and a restart does not sign anyone out.
+- **A random cookie secret** is created on first start and kept in the database, so it works without configuration, and neither a restart nor a restore from backup signs anyone out.
 
 **Left open**
 - Age group from birth date; the unbreakable-tie decision; the screen for typing in an adjudicator's paper marks (the server endpoint exists; the screen is Phase 4); and enforcing "only paid entries can dance" when a round starts (a policy decision for the client).

@@ -86,7 +86,9 @@ export function PaperMarksPage() {
         )}
       </Toolbar>
 
-      {!row ? (
+      {rounds.isLoading ? (
+        <Skeleton className="h-40 w-full" />
+      ) : !row ? (
         <EmptyState title="No round chosen" description="Pick a round that is on the floor." />
       ) : !open ? (
         <EmptyState

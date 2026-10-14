@@ -2,6 +2,7 @@ import type { Role, SessionUser } from '@bis/shared'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
+import { queryDefaults } from './app/queryClient.ts'
 import { routes } from './app/routes.tsx'
 import { useAuth } from './stores/auth.ts'
 
@@ -12,7 +13,7 @@ export function renderApp(path: string, role?: Role, user: Partial<SessionUser> 
   })
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(
-    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { ...queryDefaults, queries: { ...queryDefaults?.queries, staleTime: 0 } } })}>
       <RouterProvider router={router} />
     </QueryClientProvider>,
   )

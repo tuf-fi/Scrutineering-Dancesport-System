@@ -19,13 +19,13 @@ export interface Draft {
   savedAt: string
 }
 
-type Store = 'outbox' | 'drafts'
+type Store = 'outbox' | 'drafts' | 'sent'
 
 const DB_NAME = 'bis-phone'
 const keyOf = (v: { adjudicatorId: string; roundId: string }) => `${v.adjudicatorId}:${v.roundId}`
 
 // Used when the browser has no IndexedDB (private windows in some browsers): marks then survive only until a refresh
-const fallback: Record<Store, Map<string, unknown>> = { outbox: new Map(), drafts: new Map() }
+const fallback: Record<Store, Map<string, unknown>> = { outbox: new Map(), drafts: new Map(), sent: new Map() }
 
 let opened: Promise<IDBDatabase | null> | undefined
 
@@ -33,10 +33,12 @@ function open(): Promise<IDBDatabase | null> {
   opened ??= new Promise((resolve) => {
     if (typeof indexedDB === 'undefined') return resolve(null)
     try {
-      const request = indexedDB.open(DB_NAME, 1)
+      const request = indexedDB.open(DB_NAME, 2)
       request.onupgradeneeded = () => {
-        request.result.createObjectStore('outbox', { keyPath: 'key' })
-        request.result.createObjectStore('drafts', { keyPath: 'key' })
+        // Also runs for a phone that already has version 1: only the missing stores are made
+        for (const store of ['outbox', 'drafts', 'sent'] as const) {
+          if (!request.result.objectStoreNames.contains(store)) request.result.createObjectStore(store, { keyPath: 'key' })
+        }
       }
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => resolve(null)
@@ -86,6 +88,23 @@ export const removePending = (pending: Pick<PendingSubmission, 'adjudicatorId' |
 export async function loadPending(): Promise<PendingSubmission | null> {
   const list = await all<PendingSubmission>('outbox')
   return list.sort((a, b) => b.savedAt.localeCompare(a.savedAt))[0] ?? null
+}
+
+// A copy of marks the server has acknowledged. If the server later turns out not to have them (it was restored from
+// an older backup after Laptop 2 failed), the phone sends them again.
+export const saveSent = (pending: PendingSubmission) => put('sent', pending)
+
+export const removeSent = (pending: Pick<PendingSubmission, 'adjudicatorId' | 'roundId'>) => remove('sent', pending)
+
+export async function loadSent(adjudicatorId: string, roundId: string): Promise<PendingSubmission | null> {
+  const list = await all<PendingSubmission>('sent')
+  return list.find((p) => p.adjudicatorId === adjudicatorId && p.roundId === roundId) ?? null
+}
+
+// Copies older than this are forgotten, so the phone does not collect them for ever
+export async function pruneSent(maxAgeMs: number): Promise<void> {
+  const cutoff = new Date(Date.now() - maxAgeMs).toISOString()
+  for (const old of (await all<PendingSubmission>('sent')).filter((p) => p.savedAt < cutoff)) await remove('sent', old)
 }
 
 export const saveDraft = (draft: Draft) => put('drafts', draft)

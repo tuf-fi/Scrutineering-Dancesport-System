@@ -10,10 +10,14 @@
     "build:sample": "pnpm --filter frontend build:sample",
     "seed": "pnpm --filter @bis/backend db:seed",
     "venue": "pnpm --filter frontend build && pnpm --filter @bis/backend start",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test",
+    "rehearsal": "pnpm build && node rehearsal/rehearse.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.11.0",
+  "devDependencies": {
+    "playwright-core": "^1.64.0"
+  }
 }

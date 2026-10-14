@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/ui/index.ts'
 import { useAdjudicatorState, useSubmitMarks } from '../../hooks/index.ts'
-import { removeDraft } from '../../lib/phoneDb.ts'
+import { removeDraft, removeSent, saveSent } from '../../lib/phoneDb.ts'
+import { lostMarksToResend, rememberSent } from '../../lib/recoverSent.ts'
 import { classifySendError } from '../../lib/sendPending.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useConnection } from '../../stores/connection.ts'
@@ -29,18 +30,42 @@ export function useOutboxFlush(adjudicatorId: string) {
 
   useEffect(() => () => clearTimeout(timer.current), [])
 
+  // The server says this adjudicator has not submitted, but the phone remembers sending: the server lost them
+  // (restored from an older backup). Send them again; the server stores a repeat once.
+  const state = useAdjudicatorState(adjudicatorId)
+  const round = state.data?.status === 'marking' ? state.data.task.round.id : null
+  const save = useOutbox((s) => s.save)
   useEffect(() => {
-    if (!online || !pending || pending.adjudicatorId !== adjudicatorId || submit.isPending) return
+    if (!round || pending) return
+    let active = true
+    void lostMarksToResend(adjudicatorId, round).then((marks) => {
+      if (active && marks) void save(marks)
+    })
+    return () => {
+      active = false
+    }
+  }, [adjudicatorId, round, pending, save])
+
+  useEffect(() => {
+    // A retry after a failure goes ahead even if the screen says offline: that flag is what the failure set, and only
+    // a successful request can clear it
+    const mayTry = online || attempt > 0
+    if (!mayTry || !pending || pending.adjudicatorId !== adjudicatorId || submit.isPending) return
     submit.mutate(
       { roundId: pending.roundId, submissions: pending.submissions },
       {
         onSuccess: async () => {
+          // The server has them. A copy stays on the phone in case the server is later restored from an older backup.
+          await saveSent(pending)
+          rememberSent(pending)
           await removeDraft(pending)
           await clear()
         },
         onError: async (error) => {
           const outcome = classifySendError(error)
           if (outcome.result === 'dropped') {
+            // Also forget the saved copy, or the phone would offer these marks again and be refused again
+            await removeSent(pending)
             await clear()
             toast.error(`Your marks could not be sent: ${outcome.message}`)
             return

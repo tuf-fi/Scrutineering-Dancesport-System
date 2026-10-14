@@ -9,7 +9,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | 1 | Screens with sample data | Done | [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md), [WALKTHROUGH.md](WALKTHROUGH.md) |
 | 2 | Scoring engine | Done, except real result sheets as fixtures | [PHASE2_README.md](PHASE2_README.md) |
 | 3 | Venue backend | Built; four items open | [PHASE3_README.md](PHASE3_README.md), [VENUE.md](VENUE.md) |
-| 4 | Offline safety | Built; not tried on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
+| 4 | Offline safety | Built; rehearsed on this machine, not yet on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
 | 5 | Cloud backend and sync | Not started | below |
 | 6 | Registration and payments | Not started | below |
 | 7 | Testing and pilot | Not started | below |
@@ -57,7 +57,8 @@ Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-ro
 - [x] Paper fallback: printable blank sheets and a Paper marks screen to type in an adjudicator's sheet
 - [x] Backup device: `restore` command for Laptop 3, takeover steps and a rehearsal checklist
 - [x] Tested: server stopped and restarted mid-round, browser killed, a lost reply, a refused send
-- [ ] Run the rehearsal on the real phones and laptops (service worker, certificate on Android and iPhone, takeover timing)
+- [x] Rehearsal run for real on this machine (`pnpm rehearsal`: 15 steps, real server and Chrome); it found and fixed six problems
+- [ ] Run the by-hand rehearsal on the real phones and laptops (offline copy, certificate on Android and iPhone, takeover timing)
 
 ## Phase 5: Cloud backend and sync
 

@@ -6,7 +6,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import * as client from '../../frontend/src/api/client.ts'
-import { closePhoneDb, loadPending } from '../../frontend/src/lib/phoneDb.ts'
+import { closePhoneDb, loadPending, saveSent } from '../../frontend/src/lib/phoneDb.ts'
+import { forgetSentThisSession, lostMarksToResend, rememberSent } from '../../frontend/src/lib/recoverSent.ts'
 import { sendPending } from '../../frontend/src/lib/sendPending.ts'
 import { useOutbox } from '../../frontend/src/stores/outbox.ts'
 import { buildApp } from './app.ts'
@@ -54,6 +55,11 @@ async function phoneTick() {
   const pending = useOutbox.getState().pending
   if (!pending) return null
   const outcome = await sendPending(pending, (roundId, submissions) => client.submitAdjudicatorMarks(pending.adjudicatorId, roundId, submissions))
+  if (outcome.result === 'sent') {
+    // As the app does: keep a copy of what the server acknowledged
+    await saveSent(pending)
+    rememberSent(pending)
+  }
   if (outcome.result !== 'kept') await useOutbox.getState().clear()
   return outcome
 }
@@ -84,7 +90,9 @@ beforeAll(async () => {
     const headers = new Headers(init?.headers)
     const cookie = jar.get('phone')
     if (cookie) headers.set('cookie', cookie)
-    const res = await realFetch(`http://127.0.0.1:${port}${url}`, { ...init, headers })
+    // A browser quietly retries once when a kept-open connection turns out to have been closed by a restarted server
+    const send = () => realFetch(`http://127.0.0.1:${port}${url}`, { ...init, headers })
+    const res = await send().catch(() => send())
     const set = res.headers.get('set-cookie')
     if (set) jar.set('phone', set.split(';')[0]!)
     // The server did the work, but the reply never reached the phone
@@ -158,6 +166,38 @@ describe('an adjudicator on a bad day', () => {
     expect(await phoneTick()).toEqual({ result: 'sent' })
     expect(count()).toBe(12)
     expect(useOutbox.getState().pending).toBeNull()
+  })
+
+  it('puts back marks the server lost when it was restored from an older backup', async () => {
+    // Adjudicator D's marks were acknowledged (first test). Laptop 2 then died and the newest backup, taken a moment
+    // earlier, did not have them: the same as removing them from the database.
+    jar.clear()
+    await client.signInAdjudicator('4433')
+    expect((await client.getAdjudicatorState('x')).status).toBe('submitted')
+    await stopServer()
+    const raw = openDatabase(dbPath).sqlite
+    raw.prepare("delete from marks where round_id = ? and adjudicator_id = 'adj-d'").run(LIVE)
+    raw.prepare("delete from submissions where round_id = ? and adjudicator_id = 'adj-d'").run(LIVE)
+    raw.prepare("update rounds set status = 'marking' where id = ?").run(LIVE)
+    raw.close()
+    await startServer(false)
+    expect(submissionsInDb()).toBe(0)
+
+    // The phone's page is opened again after the takeover. The server says D has not submitted...
+    forgetSentThisSession()
+    const state = await client.getAdjudicatorState('x')
+    expect(state.status).toBe('marking')
+    if (state.status !== 'marking') return
+    // ...but the phone remembers sending, so it offers the same marks again, and they arrive once
+    const again = await lostMarksToResend('adj-d', state.task.round.id)
+    expect(again).not.toBeNull()
+    await useOutbox.getState().save(again!)
+    expect(await phoneTick()).toEqual({ result: 'sent' })
+    expect(marksInDb()).toBe(12)
+    expect(submissionsInDb()).toBe(1)
+    expect((await client.getAdjudicatorState('x')).status).toBe('submitted')
+    // Nothing is offered for a round the phone never sent marks for
+    expect(await lostMarksToResend('adj-d', 'some-other-round')).toBeNull()
   })
 
   it('shows the scrutineer both phones in once the marks arrive', async () => {

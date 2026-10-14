@@ -1,7 +1,9 @@
 import { create } from 'zustand'
-import { loadPending, removePending, savePending, type PendingSubmission } from '../lib/phoneDb.ts'
+import { loadPending, pruneSent, removePending, savePending, type PendingSubmission } from '../lib/phoneDb.ts'
 
 export type { PendingSubmission } from '../lib/phoneDb.ts'
+
+const KEEP_SENT_MS = 24 * 3_600_000
 
 interface OutboxStore {
   pending: PendingSubmission | null
@@ -30,5 +32,9 @@ export const useOutbox = create<OutboxStore>((set, get) => ({
     await removePending(current)
     set({ pending: await loadPending() })
   },
-  restore: async () => set({ pending: await loadPending() }),
+  restore: async () => {
+    // Copies of acknowledged marks are kept for a day, in case the server has to be restored from an older backup
+    await pruneSent(KEEP_SENT_MS)
+    set({ pending: await loadPending() })
+  },
 }))
