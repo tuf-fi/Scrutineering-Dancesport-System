@@ -28,6 +28,7 @@ import {
   splitIntoHeats,
   toEvent,
   toRound,
+  unpaidEntries,
 } from './shared.ts'
 
 const competitionRow = (ctx: Ctx, id: string) =>
@@ -131,6 +132,10 @@ export const rounds = {
 
     const field = fieldOf(ctx, round)
     if (field.length === 0) return fail('Nobody is entered in this round.', 409)
+    const unpaid = unpaidEntries(ctx, event.id)
+    if (unpaid > 0) {
+      return fail(`${unpaid} ${unpaid === 1 ? 'entry in this event has' : 'entries in this event have'} not been paid. Record the payment or scratch the entry first.`, 409)
+    }
     if (round.recallNumber !== null && field.length <= round.recallNumber) {
       return fail(`Only ${field.length} are in this round, so recalling ${round.recallNumber} would recall everyone.`, 409)
     }

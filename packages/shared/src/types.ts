@@ -433,6 +433,8 @@ export interface ClubSignUp {
   contactEmail: string
   contactPhone: string
   password: string
+  // Agreed to the privacy notice
+  agreed: boolean
 }
 
 export type CompetitionInput = Omit<Competition, 'id'>
@@ -496,4 +498,10 @@ export interface PullSummary {
   added: Record<string, number>
   // Entries not downloaded because they are not paid yet
   excludedEntries: number
+}
+
+// What clubs pay and where to send it, set by the organizer. No fees means registration is closed until they are set.
+export interface PaymentSettings {
+  fees: { solo: number; couple: number } | null
+  methods: PaymentMethod[]
 }

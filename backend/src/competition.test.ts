@@ -1,4 +1,5 @@
 import type { Announcement, MarkSubmission, RecallTable, RoundRow, SkatingTable } from '@bis/shared'
+import { writePaymentSettings } from './paymentSettings.ts'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -39,6 +40,7 @@ beforeAll(async () => {
   for (const [id, name, username, role] of staff) {
     app.db.insert(t.staffUsers).values({ id, name, username, role, passwordHash: hashPassword('pw-' + username), disabled: false }).run()
   }
+  writePaymentSettings(app.sqlite, { fees: { solo: 500, couple: 800 }, methods: [] })
   // Every approval should trigger a backup
   backupRuns = vi.spyOn(app.backups, 'run')
   admin = await app.signIn.staff('admin', 'pw-admin')
@@ -70,7 +72,7 @@ describe('before the competition', () => {
     const signup = await app.app.inject({
       method: 'POST',
       url: '/api/auth/club-signup',
-      payload: { name: 'Test Club', contactName: 'Coach', contactEmail: 'coach@test.example', contactPhone: '1', password: 'long-password-1' },
+      payload: { name: 'Test Club', contactName: 'Coach', contactEmail: 'coach@test.example', contactPhone: '1', password: 'long-password-1', agreed: true },
     })
     expect(signup.statusCode).toBe(200)
     club = await app.signIn.club('coach@test.example', 'long-password-1')

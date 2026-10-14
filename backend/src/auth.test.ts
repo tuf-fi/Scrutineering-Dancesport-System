@@ -134,7 +134,7 @@ describe('adjudicator PIN sign-in', () => {
 })
 
 describe('club accounts', () => {
-  const club = { name: 'Bulan Dance Studio', contactName: 'Ana Reyes', contactEmail: 'ana@bulan.example', contactPhone: '0917 111 2222', password: 'long-enough-1' }
+  const club = { name: 'Bulan Dance Studio', contactName: 'Ana Reyes', contactEmail: 'ana@bulan.example', contactPhone: '0917 111 2222', password: 'long-enough-1', agreed: true }
 
   it('signs up, signs in and only sees its own club', async () => {
     const signup = await post('/api/auth/club-signup', club)

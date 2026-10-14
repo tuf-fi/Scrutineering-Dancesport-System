@@ -18,6 +18,8 @@ export interface TestOptions {
   seed?: boolean
   path?: string
   backupDirs?: string[]
+  // Settings as if from the environment, such as MODE=cloud
+  env?: Record<string, string>
 }
 
 // Starts the whole server on an in-memory (or file) database with a silent hub, for tests
@@ -28,7 +30,7 @@ export async function startTestApp(options: TestOptions = {}) {
   const hub = silentHub()
   const backups: Backups = options.backupDirs ? createBackups(sqlite, options.backupDirs, 0) : createBackups(sqlite, [], 0)
   const app = await buildApp({
-    config: loadConfig({ FRONTEND_DIR: '' }),
+    config: loadConfig({ FRONTEND_DIR: '', ...options.env }),
     sqlite,
     db,
     hub,

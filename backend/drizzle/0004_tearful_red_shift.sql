@@ -1,0 +1,1 @@
+ALTER TABLE `clubs` ADD `consent_at` text;

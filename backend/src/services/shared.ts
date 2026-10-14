@@ -23,6 +23,7 @@ import {
 import { and, asc, eq, inArray } from 'drizzle-orm'
 import { fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
+import { readPaymentSettings } from '../paymentSettings.ts'
 
 export const toCompetition = (r: typeof t.competitions.$inferSelect): Competition => ({
   id: r.id,
@@ -134,10 +135,26 @@ export const toPin = (r: typeof t.adjudicatorPins.$inferSelect): AdjudicatorPin 
   pin: r.pin,
 })
 
-// TODO: entry fees should come from the organizer's settings
-const FEE_SOLO = 500
-const FEE_COUPLE = 800
-export const feeFor = (event: { isSolo: boolean }) => (event.isSolo ? FEE_SOLO : FEE_COUPLE)
+// The organizer's fee for an event; 0 until they have set fees (registration and late entries refuse to start then)
+export function feeFor(ctx: Ctx, event: { isSolo: boolean }): number {
+  const fees = readPaymentSettings(ctx.sqlite).fees
+  return fees ? (event.isSolo ? fees.solo : fees.couple) : 0
+}
+
+// Entries of an event whose payment is not settled; only paid entries may dance
+export function unpaidEntries(ctx: Ctx, eventId: string): number {
+  const row = ctx.sqlite
+    .prepare(
+      `SELECT count(*) AS n FROM entries e JOIN payments p ON p.id = e.payment_id
+       WHERE e.event_id = ? AND e.scratched = 0 AND p.status IN ('unpaid', 'for_checking', 'rejected')`,
+    )
+    .get(eventId) as { n: number }
+  return row.n
+}
+
+export function assertFeesSet(ctx: Ctx) {
+  if (!readPaymentSettings(ctx.sqlite).fees) fail('The organizer has not set the entry fees yet, so entries are closed.', 409)
+}
 
 export const clean = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
 
@@ -291,7 +308,8 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
     amountDue: row.amountDue,
     amountPaid: row.amountPaid,
     referenceNumber: row.referenceNumber,
-    receiptUrl: row.receipt,
+    // Payment proofs are private: only admins and the club that sent them see the image
+    receiptUrl: ctx.user?.role === 'admin' || ctx.user?.role === 'club' ? row.receipt : null,
     status: row.status,
     rejectionReason: row.rejectionReason,
     checkedBy: row.checkedBy,
@@ -306,7 +324,7 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
       eventNumber: l.eventNumber,
       dances: l.dances,
       competitorNames: l.names,
-      fee: feeFor(l),
+      fee: feeFor(ctx, l),
     })),
   }
 }

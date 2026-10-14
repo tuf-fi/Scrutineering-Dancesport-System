@@ -31,6 +31,8 @@ export const clubs = sqliteTable('clubs', {
   contactPhone: text('contact_phone').notNull(),
   // Null for clubs added by staff who have no portal account yet
   passwordHash: text('password_hash'),
+  // When the club agreed to the privacy notice at sign-up; null for clubs added by staff
+  consentAt: text('consent_at'),
 }, (t) => [uniqueIndex('clubs_email').on(t.contactEmail)])
 
 export const events = sqliteTable(

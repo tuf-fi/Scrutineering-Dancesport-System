@@ -7,6 +7,7 @@ import { rounds } from './services/rounds.ts'
 import { scrutiny } from './services/scrutiny.ts'
 import { secretariat } from './services/secretariat.ts'
 import { syncFunctions } from './services/sync.ts'
+import { accountFunctions } from './services/accounts.ts'
 import { isStaff, toClub } from './services/shared.ts'
 import * as t from './db/schema.ts'
 import { asc } from 'drizzle-orm'
@@ -41,6 +42,7 @@ const handlers: Record<string, Handler> = {
   ...scrutiny,
   ...club,
   ...syncFunctions,
+  ...accountFunctions,
   getClubs,
   getBackupStatus,
 } as unknown as Record<string, Handler>
@@ -146,6 +148,14 @@ const access: Record<string, Access> = {
   releaseCompetition: ADMIN,
   unlockCompetition: ADMIN,
 
+  // Fees, payment details and club accounts
+  getPaymentSettings: [Role.Admin, Role.Secretariat],
+  savePaymentSettings: ADMIN,
+  changeClubPassword: [Role.Club],
+  resetClubPassword: ADMIN,
+  eraseClubAccount: ADMIN,
+  clearOldReceipts: ADMIN,
+
   // Clubs, each only for their own club
   getClubDancers: [Role.Club],
   saveClubDancer: [Role.Club],
@@ -188,7 +198,7 @@ const VENUE_ONLY = new Set([
   'releaseCompetition',
 ])
 // Things that only make sense online
-const CLOUD_ONLY = new Set(['unlockCompetition'])
+const CLOUD_ONLY = new Set(['unlockCompetition', 'savePaymentSettings', 'changeClubPassword', 'resetClubPassword', 'eraseClubAccount', 'clearOldReceipts'])
 // These talk to the other server, so they wait for an answer and manage their own database work
 const ASYNC = new Set(['getCloudCompetitions', 'pullCompetition', 'syncNow', 'uploadCompetition', 'releaseCompetition'])
 

@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import { fail, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
-import { newId } from '../ids.ts'
+import { newId, now } from '../ids.ts'
 import { currentCompetition } from '../services/shared.ts'
 import { hashPassword, verifyPassword } from './password.ts'
 
@@ -49,6 +49,7 @@ export function signUpClub(ctx: Ctx, input: ClubSignUp): SessionUser {
   if (!name || !contactName) return fail('Enter the club name and a contact person.')
   if (!/^\S+@\S+\.\S+$/.test(email)) return fail('Enter a valid email address.')
   if (password.length < 8) return fail('Use a password of at least 8 characters.')
+  if (input?.agreed !== true) return fail('Agree to the privacy notice to sign up.')
   const clubs = ctx.db.select().from(t.clubs).all()
   if (clubs.some((c) => c.contactEmail === email)) return fail('A club with this email already exists. Sign in instead.', 409)
   if (clubs.some((c) => c.name.toLowerCase() === name.toLowerCase())) return fail('A club with this name already exists.', 409)
@@ -59,6 +60,7 @@ export function signUpClub(ctx: Ctx, input: ClubSignUp): SessionUser {
     contactEmail: email,
     contactPhone: String(input?.contactPhone ?? '').trim(),
     passwordHash: hashPassword(password),
+    consentAt: now(),
   }
   ctx.db.insert(t.clubs).values(row).run()
   record(ctx.db, row.id, 'Club signed up', name)

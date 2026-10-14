@@ -1,6 +1,7 @@
 import { HttpError } from '../core/context.ts'
 import type { Sqlite } from '../db/client.ts'
 import type { SyncSnapshot } from './apply.ts'
+import { readPaymentSettings } from '../paymentSettings.ts'
 import { DOWNLOAD_TABLES } from './tables.ts'
 
 type Row = Record<string, string | number | null>
@@ -59,5 +60,5 @@ export function buildSnapshot(sqlite: Sqlite, competitionId: string): SyncSnapsh
     results,
     ranking_points: rankingPoints,
   }
-  return { tables, excluded: { entries: excluded } }
+  return { tables, excluded: { entries: excluded }, paymentSettings: readPaymentSettings(sqlite) }
 }

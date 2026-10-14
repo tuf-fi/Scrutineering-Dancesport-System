@@ -62,10 +62,22 @@ export function hasData(db: Db): boolean {
 }
 
 // Loads the same sample competition the frontend shows, so the real app can be tried before real data exists
+const SAMPLE_PAYMENT_SETTINGS = {
+  fees: { solo: 500, couple: 800 },
+  methods: [
+    { name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' },
+    { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' },
+    { name: 'Bank transfer', accountName: 'BN IT Scrutineer', number: '0000 0000 0000', note: 'BDO Savings, Sorsogon branch' },
+  ],
+}
+
 export function seedSampleData(db: Db) {
   const data = JSON.parse(readFileSync(snapshotPath, 'utf8')) as SampleData
   const passwordHash = hashPassword(SAMPLE_PASSWORD)
   const competition = (id: string) => data.competitions.find((c) => c.id === id)
+
+  // Sample fees and accounts; a real server has the organizer enter their own
+  db.insert(t.settings).values({ key: 'payment_settings', value: JSON.stringify(SAMPLE_PAYMENT_SETTINGS) }).onConflictDoNothing().run()
 
   db.transaction((tx) => {
     insertAll(data.competitions, (batch) =>

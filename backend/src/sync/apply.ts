@@ -1,4 +1,6 @@
+import type { PaymentSettings } from '@bis/shared'
 import type { Sqlite } from '../db/client.ts'
+import { writePaymentSettings } from '../paymentSettings.ts'
 import { withoutCapture } from './capture.ts'
 import { DOWNLOAD_TABLES, uploadTable, type SyncTable } from './tables.ts'
 
@@ -15,6 +17,8 @@ export interface SyncSnapshot {
   tables: Record<string, Array<Record<string, Value>>>
   // Entries left out because they are not paid yet
   excluded: { entries: number }
+  // The organizer's fees and payment details; the venue needs the fees for late entries
+  paymentSettings: PaymentSettings
 }
 
 const quote = (name: string) => `"${name}"`
@@ -90,6 +94,7 @@ export function applySnapshot(sqlite: Sqlite, snapshot: SyncSnapshot): AppliedSn
     }
   })
   withoutCapture(sqlite, () => run())
+  if (snapshot.paymentSettings) writePaymentSettings(sqlite, snapshot.paymentSettings)
   return { added }
 }
 

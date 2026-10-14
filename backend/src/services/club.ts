@@ -12,7 +12,8 @@ import { fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { assertNotHeld, clean, cleanNames, currentCompetition, feeFor, paymentCanBeChanged, paymentDetail, roundsOfEvent } from './shared.ts'
+import { readPaymentSettings } from '../paymentSettings.ts'
+import { assertFeesSet, assertNotHeld, clean, cleanNames, currentCompetition, feeFor, paymentCanBeChanged, paymentDetail, roundsOfEvent } from './shared.ts'
 
 const MAX_RECEIPT_BYTES = 4_000_000
 
@@ -74,7 +75,7 @@ function entryOptionsFor(ctx: Ctx, club: string, dancerId: string): EntryOption[
         ageGroup: e.ageGroup,
         class: e.class,
         discipline: e.discipline,
-        fee: feeFor(e),
+        fee: feeFor(ctx, e),
         entered: Boolean(entry),
         locked: Boolean(entry) && !paymentCanBeChanged(payment?.status),
       }
@@ -88,15 +89,8 @@ function recomputeDue(ctx: Ctx, paymentId: string) {
     .innerJoin(t.events, eq(t.events.id, t.entries.eventId))
     .where(and(eq(t.entries.paymentId, paymentId), eq(t.entries.scratched, false)))
     .all()
-  ctx.db.update(t.payments).set({ amountDue: rows.reduce((sum, e) => sum + feeFor(e), 0) }).where(eq(t.payments.id, paymentId)).run()
+  ctx.db.update(t.payments).set({ amountDue: rows.reduce((sum, e) => sum + feeFor(ctx, e), 0) }).where(eq(t.payments.id, paymentId)).run()
 }
-
-// TODO: the real details come from the organizer's settings (a client decision, phase 6)
-const PAYMENT_METHODS: PaymentMethod[] = [
-  { name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' },
-  { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' },
-  { name: 'Bank transfer', accountName: 'BN IT Scrutineer', number: '0000 0000 0000', note: 'BDO Savings, Sorsogon branch' },
-]
 
 export const club = {
   getClubDancers: (ctx: Ctx): ClubDancer[] =>
@@ -135,6 +129,7 @@ export const club = {
   registerClubEntries(ctx: Ctx, dancerId: string, eventIds: string[]): void {
     const owner = clubId(ctx)
     assertNotHeld(ctx, currentCompetition(ctx)?.id)
+    assertFeesSet(ctx)
     ownDancer(ctx, owner, dancerId)
     const options = entryOptionsFor(ctx, owner, dancerId)
     const wanted = new Set(Array.isArray(eventIds) ? eventIds : [])
@@ -173,7 +168,7 @@ export const club = {
     return ctx.db.select().from(t.payments).where(eq(t.payments.clubId, owner)).all().map((p) => paymentDetail(ctx, p))
   },
 
-  getPaymentMethods: (): PaymentMethod[] => PAYMENT_METHODS,
+  getPaymentMethods: (ctx: Ctx): PaymentMethod[] => readPaymentSettings(ctx.sqlite).methods,
 
   submitClubPayment(ctx: Ctx, input: { amountPaid: number; referenceNumber: string; receiptUrl: string }): void {
     const owner = clubId(ctx)

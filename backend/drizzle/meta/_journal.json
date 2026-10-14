@@ -29,6 +29,13 @@
       "when": 1791953594256,
       "tag": "0003_sync_capture",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791956161805,
+      "tag": "0004_tearful_red_shift",
+      "breakpoints": true
     }
   ]
 }

@@ -20,6 +20,7 @@ import {
   clean,
   cleanNames,
   assertNotHeld,
+  assertFeesSet,
   feeFor,
   getClubRow,
   getCompetitorRow,
@@ -84,7 +85,7 @@ function lateRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): LateEntryRow {
     eventId: event.id,
     eventNumber: event.number,
     dances: event.dances,
-    fee: feeFor(event),
+    fee: feeFor(ctx, event),
     paymentId: entry.paymentId ?? '',
   }
 }
@@ -244,6 +245,7 @@ export const secretariat = {
   createLateEntry(ctx: Ctx, input: { competitorId: string; eventId: string; paidInCash: boolean }): LateEntryRow {
     const event = getEventRow(ctx, input?.eventId)
     assertNotHeld(ctx, event.competitionId)
+    assertFeesSet(ctx)
     const competitor = getCompetitorRow(ctx, input.competitorId)
     checkEligible(ctx, competitor.id, event)
     if (ctx.db.select().from(t.entries).where(and(eq(t.entries.eventId, event.id), eq(t.entries.competitorId, competitor.id))).get()) {
@@ -251,7 +253,7 @@ export const secretariat = {
     }
     checkNotStarted(ctx, event.id)
     const user = actor(ctx)
-    const fee = feeFor(event)
+    const fee = feeFor(ctx, event)
     const paid = Boolean(input.paidInCash)
     const paymentId = newId()
     ctx.db
@@ -352,7 +354,7 @@ export const secretariat = {
       }
     }
     const payment = getPaymentRow(ctx, entry.paymentId ?? '')
-    const fee = feeFor(event)
+    const fee = feeFor(ctx, event)
     const paid = Boolean(input.paidInCash)
     ctx.db.update(t.entries).set({ eventId: event.id }).where(eq(t.entries.id, entryId)).run()
     ctx.db
