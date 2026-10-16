@@ -7,7 +7,6 @@
 Read these first:
 - [ROLES_README.md](ROLES_README.md): roles, devices and result-sheet terms
 - [BUILD_README.md](BUILD_README.md): tech stack, architecture, data model and build phases
-- [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md): step-by-step frontend build (current focus)
 
 ## Current phase
 

@@ -6,10 +6,10 @@ Where the build stands and what is left. Details for each phase are in the linke
 
 | Phase | What | Status | Details |
 | --- | --- | --- | --- |
-| 1 | Screens with sample data | Done | [FRONTEND_GUIDE.md](FRONTEND_GUIDE.md), [WALKTHROUGH.md](WALKTHROUGH.md) |
+| 1 | Screens with sample data | Done | n/a |
 | 2 | Scoring engine | Done, except real result sheets as fixtures | [PHASE2_README.md](PHASE2_README.md) |
-| 3 | Venue backend | Built; four items open | [PHASE3_README.md](PHASE3_README.md), [VENUE.md](VENUE.md) |
-| 4 | Offline safety | Built; rehearsed on this machine, not yet on real phones | [PHASE4_README.md](PHASE4_README.md), [VENUE.md](VENUE.md) |
+| 3 | Venue backend | Built; four items open | [VENUE.md](VENUE.md) |
+| 4 | Offline safety | Built; rehearsed on this machine, not yet on real phones | [VENUE.md](VENUE.md) |
 | 5 | Cloud backend and sync | Built; not yet on a real server | [PHASE5_README.md](PHASE5_README.md), [deploy/README.md](deploy/README.md) |
 | 6 | Registration and payments | Built; Messenger messages not yet tried against Facebook | [PHASE6_README.md](PHASE6_README.md) |
 | 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](PILOT.md) |
@@ -27,7 +27,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 
 ## Phase 3: Venue backend (built)
 
-Full list in [PHASE3_README.md](PHASE3_README.md). Summary:
+Summary:
 
 - [x] 0. Backend package: Fastify, config, health endpoint, scripts
 - [x] 1. Database: Drizzle schema, WAL, migrations and the sample-data seed
@@ -48,9 +48,9 @@ Open from Phase 3 (all since built): age group from birth year, the unbreakable-
 
 ## Phase 4: Offline safety (built)
 
-Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-round. Details in [PHASE4_README.md](PHASE4_README.md).
+Goal: nothing is lost when Wi-Fi drops, a phone dies or a refresh happens mid-round.
 
-- [x] Offline copy of the app (PWA) with a service worker, manifest and icons, plus optional HTTPS. Browsers only keep it over HTTPS, so by default phones do not (see PHASE4_README)
+- [x] Offline copy of the app (PWA) with a service worker, manifest and icons, plus optional HTTPS. Browsers only keep it over HTTPS, so by default phones do not
 - [x] Marks are saved on the phone first (IndexedDB), including answers in progress, and survive a refresh or a closed browser
 - [x] Resend automatically after a Wi-Fi drop; the server stores a repeat once
 - [x] The scrutineer's board shows a quiet phone and a phone holding unsent marks

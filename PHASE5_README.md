@@ -1,6 +1,6 @@
 # Phase 5: Cloud Backend and Sync
 
-Goal: the same server runs online, and the venue and the cloud stay in step. See [PHASE4_README.md](PHASE4_README.md) for the offline safety this builds on, [VENUE.md](VENUE.md) for running the venue laptop and [deploy/README.md](deploy/README.md) for the online server.
+Goal: the same server runs online, and the venue and the cloud stay in step. See [VENUE.md](VENUE.md) for running the venue laptop and [deploy/README.md](deploy/README.md) for the online server.
 
 ## Status: built
 
