@@ -5,23 +5,24 @@ import { describe, expect, it } from 'vitest'
 import { renderApp } from '../../test-utils.tsx'
 
 describe('fees and payment details', () => {
-  it('shows the saved fees, adds a way to pay and saves', async () => {
+  it('shows the saved fees, saves them, and saves a way to pay as soon as it is added', async () => {
     renderApp('/admin/fees', Role.Admin)
     expect(await screen.findByLabelText('Solo, per event (₱)')).toHaveValue('500')
     expect(screen.getByLabelText('Couple, per event (₱)')).toHaveValue('800')
 
     await userEvent.click(screen.getByRole('button', { name: 'Add a way to pay' }))
+    const dialog = await screen.findByRole('dialog')
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Union Bank')
+    await userEvent.type(within(dialog).getByLabelText('Account name'), 'Bicol Dance Org')
+    await userEvent.type(within(dialog).getByLabelText('Number'), '1234 5678')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
+    expect(await screen.findByText('Way to pay added')).toBeInTheDocument()
+    expect(await screen.findByText('Union Bank')).toBeInTheDocument()
+
     const save = screen.getByRole('button', { name: 'Save' })
-    expect(save).toBeDisabled()
-    const names = screen.getAllByLabelText('Name')
-    await userEvent.type(names[names.length - 1]!, 'Union Bank')
-    const accounts = screen.getAllByLabelText('Account name')
-    await userEvent.type(accounts[accounts.length - 1]!, 'Bicol Dance Org')
-    const numbers = screen.getAllByLabelText('Number')
-    await userEvent.type(numbers[numbers.length - 1]!, '1234 5678')
     expect(save).toBeEnabled()
     await userEvent.click(save)
-    expect(await screen.findByText('Saved')).toBeInTheDocument()
+    expect(await screen.findByText('Fees saved')).toBeInTheDocument()
   })
 
   it('refuses fees that are not whole pesos', async () => {

@@ -21,6 +21,7 @@ export function useRoundChoice() {
     rounds,
     list,
     roundId,
+    floorId: current.data ?? '',
     row: list.find((r) => r.roundId === roundId),
     setRoundId: (id: string) => setParams({ round: id }, { replace: true }),
     // The chairperson sees the same screens but cannot change anything

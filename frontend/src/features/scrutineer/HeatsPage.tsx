@@ -1,6 +1,6 @@
 import { RoundStatus, type CompetitorRow } from '@bis/shared'
 import { useMemo, useState, type ReactNode } from 'react'
-import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
+import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import {
   Button,
   EmptyState,
@@ -32,11 +32,13 @@ function HeatEditor({
   roundId,
   initial,
   editable,
+  status,
   roundSelect,
 }: {
   roundId: string
   initial: Array<{ competitorId: string; heat: number }>
   editable: boolean
+  status?: RoundStatus
   // Sits first in the toolbar, so the whole page has one row of controls
   roundSelect: ReactNode
 }) {
@@ -76,6 +78,45 @@ function HeatEditor({
 
   return (
     <div className="flex flex-col gap-6">
+      <div
+        role="status"
+        className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-brown-950 bg-[radial-gradient(36rem_12rem_at_100%_0%,rgb(228_178_46/0.14),transparent_60%)] p-5 text-white sm:px-8 sm:py-6"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <p className="flex items-baseline gap-3">
+            <span className="font-mono text-4xl leading-none tabular-nums">{heatNumbers.length}</span>{' '}
+            <span className="text-body text-brown-100">
+              heat{heatNumbers.length === 1 ? '' : 's'} · <span className="font-mono tabular-nums">{rows.length}</span> competitors
+            </span>
+          </p>
+          {status && (
+            <p className="flex items-center gap-2.5 text-small font-semibold">
+              <span className="relative flex size-2">
+                {status === RoundStatus.Marking && (
+                  <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-gold-400 opacity-60 motion-reduce:hidden" />
+                )}
+                <span aria-hidden className="relative size-2 rounded-full bg-gold-400" />
+              </span>
+              {ROUND_STATUS_LABEL[status]}
+            </p>
+          )}
+        </div>
+        <ul className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-[repeat(auto-fit,minmax(7rem,1fr))]">
+          {heatNumbers.map((n, i) => (
+            <li key={n} className="flex min-w-0 flex-col gap-2">
+              <span aria-hidden className="h-0.5 overflow-hidden rounded-full bg-white/15">
+                <span className="block h-full bg-gold-400" style={{ width: `${(sizes[i] / Math.max(...sizes)) * 100}%` }} />
+              </span>
+              <span className="flex items-baseline justify-between gap-2 text-xs text-brown-100/70">
+                <span className="truncate">Heat {n}</span>
+                <span className="font-mono tabular-nums text-white">{sizes[i]}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+
       <Toolbar>
         {roundSelect}
         {editable && (
@@ -89,10 +130,10 @@ function HeatEditor({
                 className="font-mono tabular-nums"
               />
             </div>
-            <Button variant="secondary" onClick={split}>
-              Split evenly
-            </Button>
             <ToolbarActions>
+              <Button variant="secondary" onClick={split}>
+                Split evenly
+              </Button>
               <Button disabled={!dirty || save.isPending} onClick={onSave}>
                 {save.isPending ? 'Saving…' : 'Save heats'}
               </Button>
@@ -100,23 +141,6 @@ function HeatEditor({
           </>
         )}
       </Toolbar>
-
-      <div role="status" className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-small text-neutral-600">
-          <span className="font-mono tabular-nums text-neutral-900">{heatNumbers.length}</span> heat
-          {heatNumbers.length === 1 ? '' : 's'}
-        </span>
-        {heatNumbers.map((n, i) => (
-          <span
-            key={n}
-            className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600"
-          >
-            Heat {n}
-            <span className="font-mono font-medium tabular-nums text-neutral-900">{sizes[i]}</span>
-          </span>
-        ))}
-      </div>
-
       <Table<Row>
         loading={people.isLoading}
         rows={rows}
@@ -174,7 +198,6 @@ export function HeatsPage() {
       <PageHeader
         title="Heats"
         description="Split the round's competitors into heats, then move anyone who needs a different one."
-        actions={row ? <RoundStatusBadge status={row.status} /> : undefined}
       />
       {!heats.data || heats.data.length === 0 ? (
         <>
@@ -193,6 +216,7 @@ export function HeatsPage() {
           roundId={roundId}
           initial={heats.data}
           editable={!readOnly && !closed}
+          status={row?.status}
           roundSelect={roundSelect}
         />
       )}

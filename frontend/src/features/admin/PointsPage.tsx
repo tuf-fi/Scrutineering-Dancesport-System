@@ -25,7 +25,7 @@ function PointsEditor({ rows }: { rows: PointsRow[] }) {
   }
 
   return (
-    <div className="max-w-xl overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
       <table className="w-full border-collapse text-small">
         <thead>
           <tr className="border-b border-neutral-200 bg-neutral-50">
@@ -39,7 +39,7 @@ function PointsEditor({ rows }: { rows: PointsRow[] }) {
         </thead>
         <tbody className="divide-y divide-neutral-100">
           {rows.map((row, i) => (
-            <tr key={row.label}>
+            <tr key={row.label} className="hover:bg-neutral-50">
               <th scope="row" className="px-5 py-2 text-left font-normal text-neutral-900">
                 {row.label}
               </th>
@@ -93,7 +93,7 @@ export function PointsPage() {
         // Remount after a save so "unchanged" is measured against the saved values
         <PointsEditor key={table.data.map((r) => r.points).join('-')} rows={table.data} />
       ) : (
-        <div className="flex max-w-xl flex-col gap-3">
+        <div className="flex flex-col gap-3">
           {Array.from({ length: 8 }, (_, i) => (
             <Skeleton key={i} className="h-11 w-full" />
           ))}

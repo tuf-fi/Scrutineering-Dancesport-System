@@ -5,7 +5,7 @@ import { loadEnv, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
-const BACKEND = 'http://localhost:4000'
+const BACKEND = 'http://127.0.0.1:4000'
 
 const slashes = (path: string) => path.replace(/\\/g, '/')
 

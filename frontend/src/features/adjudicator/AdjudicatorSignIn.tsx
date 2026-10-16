@@ -39,17 +39,17 @@ export function AdjudicatorSignIn() {
   }
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-2">
-      <div className="mx-auto flex w-full max-w-md flex-col justify-between gap-10 px-4 py-8 sm:max-w-xl sm:px-8 sm:py-12 lg:max-w-none lg:px-20">
-        <div className="flex flex-col items-start gap-2">
-          <Brand size="lg" />
-          <p className="text-small text-neutral-600">{competitions?.[0]?.name}</p>
+    <div className="grid h-dvh overflow-hidden lg:grid-cols-2">
+      <div className="mx-auto flex w-full max-w-md flex-col justify-between gap-[3dvh] px-4 py-[3dvh] sm:max-w-xl sm:px-8 lg:max-w-none lg:px-20">
+        <div className="flex items-center gap-4">
+          <Brand size="md" />
+          <p className="border-l border-neutral-200 pl-4 text-small text-neutral-600">{competitions?.[0]?.name}</p>
         </div>
 
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-10 sm:gap-12">
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-[4dvh]">
           <div className="flex flex-col gap-2 text-center">
-            <h1 className="text-display font-semibold text-neutral-900">Enter your PIN</h1>
-            <p className="text-body text-neutral-600">The scrutineer gave you a {PIN_LENGTH}-digit PIN.</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Enter your PIN</h1>
+            <p className="text-small text-neutral-500">The scrutineer gave you a {PIN_LENGTH}-digit PIN.</p>
           </div>
           <PinKeypad
             value={pin}

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Button, Dialog, Tabs } from '../../components/ui/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
 import { PlacingBoard } from './PlacingBoard.tsx'
-import { XBoard } from './XBoard.tsx'
+import { XTable } from './XTable.tsx'
 
 export type Answers = Partial<Record<Dance, string[]>>
 
@@ -48,30 +48,42 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
       return updated
     })
 
+  // An X round is one table with a column for every dance; a final has a tab and a board for each dance
+  const table = !isFinal
+  const several = table && task.dances.length > 1
+  const doneDances = task.dances.filter((d) => countOf(d) === total).length
+  const over = several ? task.dances.some((d) => countOf(d) > total) : current.length > total
+
   const counter = isFinal
     ? `${current.length} of ${total} placed`
-    : current.length > total
-      ? `${current.length - total} too many`
-      : `${current.length} of ${total} marked`
+    : several
+      ? over
+        ? 'Too many X in a dance'
+        : `${doneDances} of ${task.dances.length} dances done`
+      : current.length > total
+        ? `${current.length - total} too many`
+        : `${current.length} of ${total} marked`
 
-  const progress = Math.min(100, Math.round((current.length / total) * 100))
+  const progress = several
+    ? Math.round((task.dances.reduce((sum, d) => sum + Math.min(countOf(d), total), 0) / (total * task.dances.length)) * 100)
+    : Math.min(100, Math.round((current.length / total) * 100))
 
   return (
-    <div className="flex flex-1 flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
-          {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
-        </p>
-        <h1 className="flex flex-col gap-1 text-display font-semibold leading-tight text-neutral-900">
-          <span className="font-mono text-small font-medium text-neutral-500">{eventCode(task.event)}</span>
+    <div className="flex flex-1 flex-col gap-8">
+      <header className="flex flex-col gap-3">
+        <h1 className="flex items-baseline gap-3 text-3xl font-semibold leading-tight tracking-tight text-neutral-900">
+          <span className="font-mono text-title font-medium tabular-nums text-gold-700">{eventCode(task.event)}</span>
           {eventDances(task.event)}
         </h1>
-        <p className="text-small text-neutral-600">
+        <p className="text-small text-neutral-500">
+          {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
+        </p>
+        <p className="text-body text-neutral-900">
           {isFinal ? `Place all ${total} finalists, 1st to ${ordinal(total)}.` : `Mark an X for exactly ${total} in each dance.`}
         </p>
       </header>
 
-      {task.dances.length > 1 && (
+      {isFinal && task.dances.length > 1 && (
         <Tabs
           large
           label="Dance"
@@ -81,30 +93,39 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
         />
       )}
 
-      <section aria-label={DANCE_LABEL[dance]} className="flex-1 pb-4">
+      <section aria-label={several ? 'Marks' : DANCE_LABEL[dance]} className="flex-1 pb-4">
         {isFinal ? (
           <PlacingBoard key={dance} competitors={task.competitors} ranking={current} onChange={set} />
         ) : (
-          <XBoard
+          <XTable
             competitors={task.competitors}
-            selected={current}
-            onToggle={(id) => set(current.includes(id) ? current.filter((x) => x !== id) : [...current, id])}
+            dances={task.dances}
+            answers={answers}
+            total={total}
+            onToggle={(d, id) =>
+              setAnswers((a) => {
+                const list = a[d] ?? []
+                const updated = { ...a, [d]: list.includes(id) ? list.filter((x) => x !== id) : [...list, id] }
+                onChange?.(updated)
+                return updated
+              })
+            }
           />
         )}
       </section>
 
-      <div className="sticky bottom-0 -mx-4 border-t border-neutral-200 bg-white sm:-mx-8">
+      <div className="sticky bottom-0 -mx-4 border-t border-neutral-100 bg-white sm:-mx-8">
         <div aria-hidden className="h-0.5 bg-neutral-100">
           <div
-            className={`h-full transition-[width] duration-200 ${current.length > total ? 'bg-danger' : 'bg-gold-400'}`}
+            className={`h-full transition-[width] duration-200 ${over ? 'bg-danger' : 'bg-gold-400'}`}
             style={{ width: `${progress}%` }}
           />
         </div>
         <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-8">
-          <p role="status" className={`whitespace-nowrap text-small ${current.length > total ? 'text-danger' : 'text-neutral-600'}`}>
+          <p role="status" className={`whitespace-nowrap text-body font-medium tabular-nums ${over ? 'text-danger' : 'text-neutral-900'}`}>
             {counter}
           </p>
-          <Button size="xl" className="min-w-40 rounded-xl text-xl" disabled={!ready} onClick={() => setConfirming(true)}>
+          <Button size="xl" className="min-w-40 rounded-2xl text-xl" disabled={!ready} onClick={() => setConfirming(true)}>
             Submit
           </Button>
         </div>

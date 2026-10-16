@@ -15,10 +15,10 @@ export function AdjudicatorLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-neutral-200">
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-8">
+      <header className="border-b border-neutral-100">
+        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-8">
           <div className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-full bg-neutral-900 font-mono text-small font-semibold text-white">
+            <span className="grid size-8 place-items-center rounded-full bg-neutral-900 font-mono text-xs font-semibold text-white">
               {user.letter}
             </span>
             <span className="text-small font-medium text-neutral-900">{user.name}</span>
@@ -31,7 +31,7 @@ export function AdjudicatorLayout() {
           </div>
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8 sm:px-8 sm:py-12">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-6 sm:px-8 sm:py-10">
         <Outlet />
       </main>
     </div>

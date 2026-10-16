@@ -1,7 +1,8 @@
 import { RoundStatus, type SkatingRow, type SkatingTable } from '@bis/shared'
+import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
-import { Button, Dialog, ErrorState, PageHeader, Skeleton, Table, Toolbar, toast } from '../../components/ui/index.ts'
+import { Button, ButtonLink, Dialog, ErrorState, PageHeader, Skeleton, Table, Toolbar, toast } from '../../components/ui/index.ts'
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
 import { DANCE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
@@ -54,7 +55,7 @@ function columnsFor(table: SkatingTable) {
       hideBelow: 'md' as const,
       group: 'Dance places',
     })),
-    { key: 'total', header: isPlacing ? 'Total' : 'X', cell: (r: SkatingRow) => r.total, mono: true, align: 'right' as const },
+    { key: 'total', header: isPlacing ? 'Total' : 'X', cell: (r: SkatingRow) => r.total, mono: true, bold: !isPlacing, align: 'right' as const },
     ...(showRule
       ? [{ key: 'rule', header: 'Rule', cell: (r: SkatingRow) => (r.decidedBy ? RULE_LABEL[r.decidedBy] : ''), hideBelow: 'md' as const }]
       : []),
@@ -99,13 +100,26 @@ export function ResultsPage() {
       />
       <Toolbar>
         <RoundSelect rounds={list} value={roundId} onChange={setRoundId} />
-        {!readOnly && action && (
-          <div className="w-full sm:ml-auto sm:w-auto">
-            <Button className="w-full sm:w-auto" onClick={() => setConfirming(action)}>
-              {action === 'approve' ? 'Approve results' : 'Publish results'}
+        <div className="flex w-full flex-wrap gap-3 sm:ml-auto sm:w-auto">
+          {row && status !== RoundStatus.Pending ? (
+            <ButtonLink
+              className="rounded-lg"
+              to={row.recallNumber === null ? `/print/results/${row.eventId}` : `/print/recall/${row.eventId}?round=${roundId}`}
+              target="_blank"
+            >
+              Print summary
+              <ArrowUpRight aria-hidden size={16} strokeWidth={2} />
+            </ButtonLink>
+          ) : (
+            <Button className="rounded-lg" disabled>
+              Print summary
+              <ArrowUpRight aria-hidden size={16} strokeWidth={2} />
             </Button>
-          </div>
-        )}
+          )}
+          {!readOnly && action && (
+            <Button onClick={() => setConfirming(action)}>{action === 'approve' ? 'Approve results' : 'Publish results'}</Button>
+          )}
+        </div>
       </Toolbar>
 
       {finalTie.data && finalTie.data.groups.length > 0 && undecided && (

@@ -1,3 +1,4 @@
+import { Delete } from 'lucide-react'
 import { useEffect } from 'react'
 import { cn } from '../../lib/cn.ts'
 
@@ -10,11 +11,11 @@ interface PinKeypadProps {
 }
 
 const digit =
-  'grid h-16 place-items-center rounded-2xl bg-neutral-100 text-3xl font-medium tabular-nums text-neutral-900 ' +
-  'transition-colors hover:bg-neutral-200/70 active:bg-neutral-200 disabled:opacity-40 sm:h-20'
+  'mx-auto grid size-[max(3.5rem,min(5rem,9.5dvh))] place-items-center rounded-full text-[length:clamp(1.5rem,4dvh,1.875rem)] font-normal tabular-nums text-neutral-900 ' +
+  'transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-40'
 const action =
-  'h-16 rounded-2xl text-small font-medium text-neutral-600 transition-colors hover:text-neutral-900 ' +
-  'active:bg-neutral-100 disabled:opacity-40 sm:h-20'
+  'mx-auto grid size-[max(3.5rem,min(5rem,9.5dvh))] place-items-center rounded-full text-small font-medium text-neutral-500 transition-colors ' +
+  'hover:text-neutral-900 active:bg-neutral-100 disabled:opacity-40'
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -38,15 +39,15 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
   })
 
   return (
-    <div className="flex flex-col items-center gap-8">
-      <div className="flex flex-col items-center gap-3">
-        <div role="img" aria-label={`${value.length} of ${length} digits entered`} className="flex gap-5">
+    <div className="flex flex-col items-center gap-[4dvh]">
+      <div className="flex flex-col items-center gap-4">
+        <div role="img" aria-label={`${value.length} of ${length} digits entered`} className="flex gap-6">
           {Array.from({ length }, (_, i) => (
             <span
               key={i}
               className={cn(
-                'size-3.5 rounded-full border-2 transition-colors',
-                i < value.length ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300',
+                'size-3 rounded-full border transition-all duration-150',
+                i < value.length ? 'scale-110 border-neutral-900 bg-neutral-900' : 'border-neutral-300',
               )}
             />
           ))}
@@ -56,7 +57,7 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
         </p>
       </div>
 
-      <div className="grid w-full max-w-xs grid-cols-3 gap-3 sm:max-w-sm sm:gap-4">
+      <div className="grid w-full max-w-xs grid-cols-3 gap-x-4 gap-y-[1dvh] sm:max-w-sm">
         {DIGITS.map((d) => (
           <button key={d} type="button" disabled={disabled} onClick={() => press(d)} className={digit}>
             {d}
@@ -68,8 +69,8 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
         <button type="button" disabled={disabled} onClick={() => press('0')} className={digit}>
           0
         </button>
-        <button type="button" disabled={disabled} onClick={remove} className={action}>
-          Delete
+        <button type="button" disabled={disabled} onClick={remove} aria-label="Delete" className={action}>
+          <Delete aria-hidden className="size-6" strokeWidth={1.5} />
         </button>
       </div>
     </div>

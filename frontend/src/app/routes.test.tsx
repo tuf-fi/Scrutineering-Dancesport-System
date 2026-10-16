@@ -125,7 +125,8 @@ describe('adjudicator PIN sign-in', () => {
   it('makes every keypad key at least 56px tall', async () => {
     renderAt('/adjudicator')
     const key = await screen.findByRole('button', { name: '5' })
-    expect(key.className).toMatch(/\bh-16\b/)
+    // The keys scale with the window height but never drop below 3.5rem (56px); they are round, so width and height are the same
+    expect(key.className).toMatch(/size-\[max\(3\.5rem,/)
   })
 })
 

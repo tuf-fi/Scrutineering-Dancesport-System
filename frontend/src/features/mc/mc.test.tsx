@@ -10,7 +10,8 @@ describe('MC screen', () => {
   it('starts on the next event call and steps with the keyboard', async () => {
     renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
     expect(await screen.findByText('Next to the floor')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('E11')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Next to the floor')
+    expect(screen.getByText('E11')).toBeInTheDocument()
     expect(within(screen.getByLabelText('Back numbers')).getAllByRole('listitem').length).toBeGreaterThan(0)
     expect(counter()).toHaveTextContent(/^1 \//)
 

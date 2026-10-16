@@ -15,6 +15,8 @@ export interface Column<T> {
   mono?: boolean
   // Quieter secondary text, for supporting columns
   muted?: boolean
+  // Bold header and values, for the column a table is read by
+  bold?: boolean
   // Hides the column on screens narrower than this breakpoint
   hideBelow?: 'sm' | 'md'
   // Fixed width class for narrow columns such as a rank
@@ -93,6 +95,7 @@ export function Table<T>({
                   className={cn(
                     'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200 bg-neutral-50 px-5 py-3.5',
                     'text-xs font-medium uppercase tracking-wider text-neutral-500 first:pl-6 last:pr-6',
+                    c.bold && 'font-bold text-neutral-900',
                     align[c.align ?? 'left'],
                     c.hideBelow && hide[c.hideBelow],
                     c.widthClass,
@@ -148,6 +151,7 @@ export function Table<T>({
                           c.muted ? 'text-neutral-600' : 'text-neutral-900',
                           align[c.align ?? 'left'],
                           c.mono && 'font-mono tabular-nums',
+                          c.bold && 'font-bold',
                           c.hideBelow && hide[c.hideBelow],
                         )}
                       >
@@ -172,28 +176,34 @@ export function Table<T>({
           className="max-w-lg"
         >
           {detail && (
-            <div className="flex flex-col gap-6">
-              <dl className="grid grid-cols-2 gap-x-8 gap-y-5">
+            <div className="flex flex-col gap-8">
+              <dl className="flex flex-wrap gap-x-10 gap-y-5">
                 {columns
                   .filter((c) => c.header && c.detail !== false && !c.group)
                   .map((c) => (
-                    <div key={c.key} className="flex min-w-0 flex-col gap-1">
+                    <div key={c.key} className="flex min-w-0 flex-col gap-1.5">
                       <dt className="text-xs text-neutral-500">{c.header}</dt>
-                      <dd className={cn('min-w-0 break-words text-small text-neutral-900', c.mono && 'font-mono tabular-nums')}>
+                      <dd
+                        className={cn(
+                          'min-w-0 break-words text-neutral-900',
+                          c.mono ? 'font-mono text-title tabular-nums' : 'text-small',
+                          c.bold && 'font-bold',
+                        )}
+                      >
                         {c.cell(detail)}
                       </dd>
                     </div>
                   ))}
               </dl>
               {[...new Set(columns.flatMap((c) => (c.group ? [c.group] : [])))].map((group) => (
-                <section key={group} className="flex flex-col gap-3 border-t border-neutral-100 pt-5">
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-neutral-500">{group}</h3>
-                  <dl className="grid grid-cols-[repeat(auto-fill,minmax(3.5rem,1fr))] gap-2">
+                <section key={group} className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
+                  <h3 className="text-small font-semibold text-neutral-900">{group}</h3>
+                  <dl className="flex flex-wrap gap-x-7 gap-y-5">
                     {columns
                       .filter((c) => c.group === group)
                       .map((c) => (
-                        <div key={c.key} className="flex flex-col items-center gap-1 rounded-lg bg-neutral-50 px-2 py-2.5">
-                          <dt className="text-xs text-neutral-500">{c.header}</dt>
+                        <div key={c.key} className="flex min-w-8 flex-col items-start gap-1.5">
+                          <dt className="font-mono text-xs text-neutral-500">{c.header}</dt>
                           <dd className="font-mono text-small font-medium tabular-nums text-neutral-900">{c.cell(detail)}</dd>
                         </div>
                       ))}

@@ -86,6 +86,18 @@ describe('live board', () => {
 })
 
 describe('results', () => {
+  it('offers the printed summary for a round that has started, and disables it for one that has not', async () => {
+    renderApp('/scrutineer/results', Role.Scrutineer, scrutineer)
+    const link = await screen.findByRole('link', { name: 'Print summary' })
+    expect(link).toHaveAttribute('href', expect.stringContaining('/print/recall/'))
+
+    const select = screen.getByLabelText('Round')
+    const pending = within(select).getAllByRole('option').find((o) => /E13/.test(o.textContent ?? '') && /Round 1/.test(o.textContent ?? ''))
+    expect(pending).toBeDefined()
+    await userEvent.selectOptions(select, pending!)
+    expect(await screen.findByRole('button', { name: 'Print summary' })).toBeDisabled()
+  })
+
   it('shows each adjudicator’s marks, then approves and publishes after confirming', async () => {
     renderApp('/scrutineer/results', Role.Scrutineer, scrutineer)
     expect(await screen.findByRole('columnheader', { name: 'A' })).toBeInTheDocument()

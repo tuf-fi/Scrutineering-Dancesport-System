@@ -44,7 +44,7 @@ export function ScoresPage() {
                         {i === 0 ? '1' : `1-${i + 1}`}
                       </th>
                     ))}
-                  <th className={`${th} text-right`}>{placing ? 'Total' : 'X'}</th>
+                  <th className={`${th} text-right ${placing ? '' : 'font-bold'}`}>{placing ? 'Total' : 'X'}</th>
                 </tr>
               </thead>
               <tbody>

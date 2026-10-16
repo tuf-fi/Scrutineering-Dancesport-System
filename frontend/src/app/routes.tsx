@@ -26,7 +26,6 @@ import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
 import { RankingsPage } from '../features/public/RankingsPage.tsx'
 import { HeatsPage } from '../features/scrutineer/HeatsPage.tsx'
 import { LivePage } from '../features/scrutineer/LivePage.tsx'
-import { PaperMarksPage } from '../features/scrutineer/PaperMarksPage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
 import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
@@ -131,11 +130,6 @@ export const routes: RouteObject[] = [
               { path: 'live', element: <LivePage /> },
               { path: 'recall', element: <RecallPage /> },
               { path: 'results', element: <ResultsPage /> },
-              {
-                path: 'paper',
-                element: <RequireRole roles={[Role.Scrutineer]} signInPath="/login" />,
-                children: [{ index: true, element: <PaperMarksPage /> }],
-              },
             ],
           },
         ],

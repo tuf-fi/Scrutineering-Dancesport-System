@@ -67,7 +67,7 @@ export function ClubsPage() {
       <Toolbar>
         <SearchField className="w-full sm:w-72" value={query} onChange={setQuery} />
         <ToolbarActions>
-          <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setClearing(true)}>
+          <Button className="w-full rounded-lg sm:w-auto" onClick={() => setClearing(true)}>
             Remove old payment proofs
           </Button>
         </ToolbarActions>
