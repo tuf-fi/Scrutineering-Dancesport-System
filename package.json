@@ -9,7 +9,7 @@
     "build": "pnpm --filter frontend build",
     "build:sample": "pnpm --filter frontend build:sample",
     "seed": "pnpm --filter @bis/backend db:seed",
-    "venue": "pnpm --filter frontend build && pnpm --filter @bis/backend start",
+    "start": "pnpm --filter frontend build && pnpm --filter @bis/backend start",
     "test": "pnpm -r --if-present test",
     "rehearsal": "pnpm build && node rehearsal/rehearse.mjs",
     "loadtest": "node rehearsal/loadtest.mjs"

@@ -10,7 +10,7 @@ import * as t from './db/schema.ts'
 
 const GRAPH = 'https://graph.facebook.com/v21.0'
 
-export const messengerEnabled = (config: Config): boolean => config.mode === 'cloud' && Boolean(config.messenger.pageToken && config.messenger.pageUsername)
+export const messengerEnabled = (config: Config): boolean => Boolean(config.messenger.pageToken && config.messenger.pageUsername)
 
 // The link a club opens to connect. The code in it proves which club opened it; it is signed so it cannot be guessed.
 function sign(config: Config, clubId: string): string {

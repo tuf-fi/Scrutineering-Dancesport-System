@@ -92,7 +92,7 @@ export const useStartRound = () =>
 export const useClearFloor = () =>
   useWrite((competitionId: string) => api.clearFloor(actor(), competitionId), ['competition-rounds', 'round', 'rounds', 'current-round'])
 
-// Whether the database copies (USB drive, Laptop 3) are being written; checked once a minute
+// Whether the database copies (the backup folders) are being written; checked once a minute
 const BACKUP_CHECK_MS = 60_000
 export const useBackupStatus = (enabled: boolean) =>
   useQuery({ queryKey: ['backup-status'], queryFn: api.getBackupStatus, enabled, refetchInterval: BACKUP_CHECK_MS })

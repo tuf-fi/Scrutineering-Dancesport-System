@@ -1,6 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 
-// scrypt is built into Node, so there is no native module to install on the venue laptop
+// scrypt is built into Node, so there is no native module to install on the server
 const KEY_LENGTH = 64
 const COST = 16384
 

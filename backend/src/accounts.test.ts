@@ -1,16 +1,15 @@
 import type { PaymentSettings } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { SAMPLE_PASSWORD } from './db/seed.ts'
-import { readPaymentSettings, writePaymentSettings } from './paymentSettings.ts'
+import { writePaymentSettings } from './paymentSettings.ts'
 import { removeOldReceipts } from './services/accounts.ts'
-import { applySnapshot } from './sync/apply.ts'
-import { buildSnapshot } from './sync/snapshot.ts'
 import { startTestApp, type TestApp } from './testing.ts'
 
-// The online server: fees, payment details, club accounts and what is kept about people
+// Fees, payment details, club accounts and what is kept about people
 
 let cloud: TestApp
-let venue: TestApp
+// A second server on its own database, for the test that starts a round and changes payments
+let floor: TestApp
 let admin = ''
 let secretariat = ''
 let club = ''
@@ -19,15 +18,15 @@ const clubEmail = () => (cloud.sqlite.prepare('select contact_email as e from cl
 const clubId = () => (cloud.sqlite.prepare('select id from clubs where contact_email = ?').get(clubEmail()) as { id: string }).id
 
 beforeAll(async () => {
-  cloud = await startTestApp({ env: { MODE: 'cloud' } })
-  venue = await startTestApp()
+  cloud = await startTestApp()
+  floor = await startTestApp()
   admin = await cloud.signIn.staff('admin')
   secretariat = await cloud.signIn.staff('secretariat')
   club = await cloud.signIn.club(clubEmail())
 })
 afterAll(async () => {
   await cloud.close()
-  await venue.close()
+  await floor.close()
 })
 
 describe('fees and payment details', () => {
@@ -61,20 +60,6 @@ describe('fees and payment details', () => {
     writePaymentSettings(cloud.sqlite, next)
   })
 
-  it('reach the venue with the download, since late entries there need the fees', async () => {
-    const sent: PaymentSettings = { fees: { solo: 700, couple: 1000 }, methods: [] }
-    writePaymentSettings(cloud.sqlite, sent)
-    const competition = (cloud.sqlite.prepare('select id from competitions limit 1').get() as { id: string }).id
-    venue.sqlite.prepare("delete from settings where key = 'payment_settings'").run()
-    applySnapshot(venue.sqlite, buildSnapshot(cloud.sqlite, competition))
-    expect(readPaymentSettings(venue.sqlite)).toEqual(sent)
-    writePaymentSettings(cloud.sqlite, next)
-  })
-
-  it('are not set by a venue, which only receives them', async () => {
-    const venueAdmin = await venue.signIn.staff('admin')
-    expect((await venue.call('savePaymentSettings', [next], venueAdmin)).status).toBe(404)
-  })
 })
 
 describe('club accounts', () => {
@@ -151,22 +136,22 @@ describe('what is kept about people', () => {
 
 describe('only paid entries dance', () => {
   it('refuses to start a round while an entry of the event is unpaid, until it is paid', async () => {
-    const scrutineer = await venue.signIn.staff('scrutineer')
-    const target = venue.sqlite
+    const scrutineer = await floor.signIn.staff('scrutineer')
+    const target = floor.sqlite
       .prepare(
         `SELECT r.id AS roundId, e.id AS entryId, e.payment_id AS paymentId FROM rounds r JOIN entries e ON e.event_id = r.event_id
          WHERE r.status = 'pending' AND r.position = 1 AND e.scratched = 0 AND e.payment_id IS NOT NULL LIMIT 1`,
       )
       .get() as { roundId: string; entryId: string; paymentId: string } | undefined
     expect(target, 'the sample competition has a round waiting to start').toBeDefined()
-    venue.sqlite.prepare("update payments set status = 'unpaid' where id = ?").run(target!.paymentId)
-    venue.sqlite.prepare('update competitions set floor_round_id = null').run()
+    floor.sqlite.prepare("update payments set status = 'unpaid' where id = ?").run(target!.paymentId)
+    floor.sqlite.prepare('update competitions set floor_round_id = null').run()
 
-    const refused = await venue.call('startRound', [target!.roundId], scrutineer)
+    const refused = await floor.call('startRound', [target!.roundId], scrutineer)
     expect(refused.status).toBe(409)
     expect(refused.error).toMatch(/not been paid/)
 
-    venue.sqlite.prepare("update payments set status = 'paid_at_venue' where status in ('unpaid', 'for_checking', 'rejected')").run()
-    expect((await venue.call('startRound', [target!.roundId], scrutineer)).error ?? '').not.toMatch(/not been paid/)
+    floor.sqlite.prepare("update payments set status = 'paid_at_venue' where status in ('unpaid', 'for_checking', 'rejected')").run()
+    expect((await floor.call('startRound', [target!.roundId], scrutineer)).error ?? '').not.toMatch(/not been paid/)
   })
 })

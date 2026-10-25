@@ -1,4 +1,4 @@
-// The real API: every function the screens use, sent to the venue server.
+// The real API: every function the screens use, sent to the server.
 // Names and arguments match the sample API in ../mocks/api.ts, so screens and hooks do not change.
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
@@ -10,11 +10,8 @@ import type {
   AgeGroup,
   AuditEntry,
   BackupStatus,
-  CloudCompetition,
   MessengerLink,
   PaymentSettings,
-  PullSummary,
-  SyncStatus,
   Club,
   ClubDancer,
   ClubSignUp,
@@ -232,13 +229,6 @@ export const getSampleCredentials = async (): Promise<SampleCredentials> => ({ p
 
 // ---- Syncing with the cloud ----
 
-export const getSyncStatus = () => call<SyncStatus>('getSyncStatus')
-export const getCloudCompetitions = () => call<CloudCompetition[]>('getCloudCompetitions')
-export const pullCompetition = (competitionId: string) => call<PullSummary>('pullCompetition', competitionId)
-export const syncNow = () => call<SyncStatus>('syncNow')
-export const uploadCompetition = (competitionId: string) => call<SyncStatus>('uploadCompetition', competitionId)
-export const releaseCompetition = (competitionId: string) => call<void>('releaseCompetition', competitionId)
-export const unlockCompetition = (competitionId: string) => call<void>('unlockCompetition', competitionId)
 
 // ---- Fees, payment details and club accounts ----
 

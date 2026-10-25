@@ -25,7 +25,6 @@ export const API_FUNCTIONS = [
   'getAnnouncements',
   'getAuditLog',
   'getBackupStatus',
-  'getCloudCompetitions',
   'getClubDancers',
   'getClubPayments',
   'getClubs',
@@ -73,7 +72,6 @@ export const API_FUNCTIONS = [
   'confirmFinalTie',
   'getStaffUsers',
   'getSubmissions',
-  'getSyncStatus',
   'importCompetitors',
   'importCompetitorsCsv',
   'markPaidAtVenue',
@@ -81,10 +79,8 @@ export const API_FUNCTIONS = [
   'planRounds',
   'proposeTieDecision',
   'publishRound',
-  'pullCompetition',
   'registerClubEntries',
   'rejectPayment',
-  'releaseCompetition',
   'resetStaffPassword',
   'saveClubDancer',
   'saveCompetition',
@@ -97,8 +93,6 @@ export const API_FUNCTIONS = [
   'startRound',
   'submitAdjudicatorMarks',
   'submitClubPayment',
-  'syncNow',
-  'unlockCompetition',
   'getPaymentSettings',
   'savePaymentSettings',
   'changeClubPassword',
@@ -111,7 +105,6 @@ export const API_FUNCTIONS = [
   'updateCompetitor',
   'updateLateEntry',
   'updateStaffUser',
-  'uploadCompetition',
 ] as const
 
 export type ApiFunction = (typeof API_FUNCTIONS)[number]

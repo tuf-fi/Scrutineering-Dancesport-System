@@ -2,8 +2,8 @@ import { Role } from '@bis/shared'
 import { useBackupStatus } from '../hooks/index.ts'
 import { useAuth } from '../stores/auth.ts'
 
-// Tells the scrutineer or admin when a backup folder (the USB drive, Laptop 3) cannot be written.
-// The competition carries on; this only says the copy on that device is out of date.
+// Tells the scrutineer or admin when a backup folder cannot be written.
+// The competition carries on; this only says the copy in that folder is out of date.
 export function BackupNotice() {
   const role = useAuth((s) => s.user?.role)
   const { data } = useBackupStatus(role === Role.Scrutineer || role === Role.Admin)
@@ -16,13 +16,13 @@ export function BackupNotice() {
         {failing.length === 1 ? 'One backup folder' : `${failing.length} backup folders`} cannot be reached
       </p>
       <p className="text-neutral-700">
-        Results are still saved on this laptop.{' '}
+        Results are still saved on the server.{' '}
         {failing.map((t) => (
           <span key={t.path} className="mr-3 whitespace-nowrap">
             <span className="font-mono">{t.path}</span>
           </span>
         ))}
-        Plug the drive back in or check the network.
+        Check that the folder is still there and has room.
       </p>
     </div>
   )

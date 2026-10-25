@@ -39,7 +39,7 @@ export function SubmittedPage() {
           {pending
             ? online
               ? 'Sending your marks to the scrutineer.'
-              : 'No connection. Your marks are saved on this phone and go out when the Wi-Fi is back.'
+              : 'No connection. Your marks are saved on this phone and go out when your connection is back.'
             : 'Your marks are with the scrutineer. This screen changes when the next round starts.'}
         </p>
       </div>

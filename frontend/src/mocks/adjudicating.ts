@@ -14,7 +14,7 @@ import { heats, liveRoundId, marks, roundFields, rounds } from './data/progress.
 
 const MAX_HEAT = 12
 
-// TODO: the venue server decides which round is on the floor; here a demo pointer stands in for the scrutineer
+// TODO: the server decides which round is on the floor; here a demo pointer stands in for the scrutineer
 let activeRoundId: string | null = liveRoundId
 // "adjudicator:round" pairs already submitted
 const submitted = new Set<string>()

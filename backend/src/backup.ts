@@ -7,7 +7,7 @@ import { now } from './ids.ts'
 export interface Backups {
   // Copies the database to every target; one missing target does not stop the others
   run(): Promise<BackupStatus>
-  // Copy again in a moment: after any change, so a laptop that dies loses at most the last second or two of work.
+  // Copy again in a moment: after any change, so a server that dies loses at most the last second or two of work.
   // Changes that arrive together share one copy.
   soon(): void
   status(): BackupStatus

@@ -30,7 +30,7 @@ describe('backup notice', () => {
     expect(alert).toHaveTextContent('One backup folder cannot be reached')
     expect(alert).toHaveTextContent('E:\\bis-backup')
     expect(alert).not.toHaveTextContent('D:\\laptop-3')
-    expect(alert).toHaveTextContent('Results are still saved on this laptop')
+    expect(alert).toHaveTextContent('Results are still saved on the server')
   })
 
   it('shows the admin as well', async () => {

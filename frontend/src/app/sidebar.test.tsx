@@ -40,7 +40,6 @@ describe('staff sidebar', () => {
       'Payments',
       'Fees and payment details',
       'Clubs',
-      'Cloud sync',
     ])
     for (const link of links) expect(link.querySelector('svg')).not.toBeNull()
     expect(nav.getByText('Amelia Rosales')).toBeInTheDocument()
@@ -134,7 +133,7 @@ describe('staff sidebar', () => {
   })
 
   it.each([
-    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Late entries', 'Schedule', 'Program', 'Cloud sync']],
+    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Late entries', 'Schedule', 'Program']],
     [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results']],
     [Role.Chairperson, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {

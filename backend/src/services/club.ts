@@ -13,7 +13,7 @@ import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
-import { assertFeesSet, assertNotHeld, clean, cleanNames, currentCompetition, feeFor, paymentCanBeChanged, paymentDetail, roundsOfEvent } from './shared.ts'
+import { assertFeesSet, clean, cleanNames, currentCompetition, feeFor, paymentCanBeChanged, paymentDetail, roundsOfEvent } from './shared.ts'
 
 const MAX_RECEIPT_BYTES = 4_000_000
 
@@ -128,7 +128,6 @@ export const club = {
 
   registerClubEntries(ctx: Ctx, dancerId: string, eventIds: string[]): void {
     const owner = clubId(ctx)
-    assertNotHeld(ctx, currentCompetition(ctx)?.id)
     assertFeesSet(ctx)
     ownDancer(ctx, owner, dancerId)
     const options = entryOptionsFor(ctx, owner, dancerId)
@@ -173,7 +172,6 @@ export const club = {
   submitClubPayment(ctx: Ctx, input: { amountPaid: number; referenceNumber: string; receiptUrl: string }): void {
     const owner = clubId(ctx)
     const payment = found(mainPayment(ctx, owner), 'Payment')
-    assertNotHeld(ctx, payment.competitionId)
     if (!paymentCanBeChanged(payment.status)) return fail('Your payment has already been sent for checking.', 409)
     if (payment.amountDue <= 0) return fail('Register dancers to events before paying.')
     if (!Number.isFinite(input?.amountPaid) || input.amountPaid <= 0) return fail('Enter the amount you sent.')

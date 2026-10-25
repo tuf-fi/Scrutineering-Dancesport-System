@@ -2,7 +2,7 @@ import { usingMocks } from '../api/mode.ts'
 import { useConnection } from '../stores/connection.ts'
 import { Badge } from './ui/index.ts'
 
-// Shows whether this device can reach the venue server. In the sample app, clicking flips it so offline screens can be reviewed.
+// Shows whether this device can reach the server. In the sample app, clicking flips it so offline screens can be reviewed.
 export function ConnectionStatus() {
   const { online, toggle } = useConnection()
   const badge = (
@@ -12,7 +12,7 @@ export function ConnectionStatus() {
   )
   if (!usingMocks) {
     return (
-      <span role="status" aria-label={online ? 'Connected to the venue server' : 'Cannot reach the venue server'}>
+      <span role="status" aria-label={online ? 'Connected to the server' : 'Cannot reach the server'}>
         {badge}
       </span>
     )

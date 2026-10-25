@@ -10,7 +10,7 @@ import { GoToFloor } from './GoToFloor.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
-// The venue server flags a phone that stopped sending its heartbeat (quietSince). The sample app has no
+// The server flags a phone that stopped sending its heartbeat (quietSince). The sample app has no
 // heartbeat, so it flags a phone that has been marking this long without sending.
 const QUIET_MS = 20_000
 

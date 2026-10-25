@@ -8,7 +8,7 @@ import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { notifyClub } from '../messenger.ts'
 import { recomputeAllPoints } from './ranking.ts'
-import { assertNotHeld, clean, getPaymentRow, paymentDetail, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { clean, getPaymentRow, paymentDetail, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 
@@ -164,7 +164,6 @@ export const admin = {
 
   setPanel(ctx: Ctx, eventId: string, adjudicatorIds: string[]) {
     const event = found(ctx.db.select().from(t.events).where(eq(t.events.id, eventId)).get(), 'Event')
-    assertNotHeld(ctx, event.competitionId)
     const ids = Array.isArray(adjudicatorIds)
       ? ctx.db.select({ id: t.adjudicators.id }).from(t.adjudicators).where(inArray(t.adjudicators.id, adjudicatorIds)).all().map((a) => a.id)
       : []
@@ -234,7 +233,6 @@ function tellClub(ctx: Ctx, payment: { clubId: string }, text: string) {
 
 function checkable(ctx: Ctx, id: string) {
   const payment = getPaymentRow(ctx, id)
-  assertNotHeld(ctx, payment.competitionId)
   if (payment.status !== PaymentStatus.ForChecking) return fail('Only payments waiting to be checked can be decided.', 409)
   return payment
 }

@@ -23,11 +23,11 @@ async function start() {
 }
 
 describe('health', () => {
-  it('reports the mode and that the database answers', async () => {
+  it('reports that the database answers', async () => {
     const { app } = await start()
     const res = await app.inject({ method: 'GET', url: '/api/health' })
     expect(res.statusCode).toBe(200)
-    expect(res.json()).toMatchObject({ status: 'ok', mode: 'venue', database: true })
+    expect(res.json()).toMatchObject({ status: 'ok', database: true })
   })
 
   it('reports an error when the database is gone', async () => {
@@ -133,18 +133,15 @@ describe('the cookie secret', () => {
 })
 
 describe('config', () => {
-  it('serves HTTPS only when both a certificate and a key are given, and then marks cookies secure', () => {
-    expect(loadConfig({}).tlsCert).toBeNull()
+  it('marks cookies secure by default in production, and lets the environment decide', () => {
     expect(loadConfig({}).cookieSecure).toBe(false)
-    expect(() => loadConfig({ TLS_CERT: 'a.crt' })).toThrow(/both TLS_CERT and TLS_KEY/)
-    expect(() => loadConfig({ TLS_KEY: 'a.key' })).toThrow(/both TLS_CERT and TLS_KEY/)
-    const tls = loadConfig({ TLS_CERT: 'a.crt', TLS_KEY: 'a.key' })
-    expect(tls).toMatchObject({ tlsCert: 'a.crt', tlsKey: 'a.key', cookieSecure: true })
-    expect(loadConfig({ TLS_CERT: 'a.crt', TLS_KEY: 'a.key', COOKIE_SECURE: 'false' }).cookieSecure).toBe(false)
+    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'a-real-secret' }).cookieSecure).toBe(true)
+    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'a-real-secret', COOKIE_SECURE: 'false' }).cookieSecure).toBe(false)
+    expect(loadConfig({ COOKIE_SECURE: 'true' }).cookieSecure).toBe(true)
   })
 
   it('has working defaults for development', () => {
-    expect(loadConfig({})).toMatchObject({ mode: 'venue', port: 4000, host: '0.0.0.0', databasePath: './data/bis.db' })
+    expect(loadConfig({})).toMatchObject({ port: 4000, host: '0.0.0.0', databasePath: './data/bis.db' })
   })
 
   it('reads the environment', () => {

@@ -6,7 +6,6 @@ import { startTestApp, type TestApp } from './testing.ts'
 
 const SECRET = 'app-secret-for-tests'
 const ENV = {
-  MODE: 'cloud',
   MESSENGER_PAGE_TOKEN: 'page-token',
   MESSENGER_PAGE_USERNAME: 'BicolDanceSport',
   MESSENGER_VERIFY_TOKEN: 'verify-me',
@@ -127,7 +126,7 @@ describe('turning it off', () => {
   })
 
   it('is unavailable without a Page, and has no webhook', async () => {
-    const plain = await startTestApp({ env: { MODE: 'cloud' } })
+    const plain = await startTestApp()
     const email = (plain.sqlite.prepare('select contact_email as e from clubs where password_hash is not null limit 1').get() as { e: string }).e
     const cookie = await plain.signIn.club(email)
     expect(await plain.ok<MessengerLink>('getMessengerLink', [], cookie)).toEqual({ available: false, linked: false, url: null })

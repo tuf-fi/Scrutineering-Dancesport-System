@@ -6,7 +6,6 @@ import {
   Building2,
   CalendarClock,
   CalendarDays,
-  Cloud,
   Clock,
   ClipboardCheck,
   Layers,
@@ -48,7 +47,6 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/payments', label: 'Payments', icon: Wallet },
     { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote },
     { to: '/admin/clubs', label: 'Clubs', icon: Building2 },
-    { to: '/admin/sync', label: 'Cloud sync', icon: Cloud },
   ],
   secretariat: [
     { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays },
@@ -56,7 +54,6 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
     { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
     { to: '/secretariat/program', label: 'Program', icon: ListOrdered },
-    { to: '/secretariat/sync', label: 'Cloud sync', icon: Cloud },
   ],
   scrutineer: scrutineerNav,
   // The chairperson sees the scrutineer's screens, read-only

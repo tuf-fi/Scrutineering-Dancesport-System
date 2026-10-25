@@ -263,7 +263,7 @@ function sameMarks(a: Array<[string, string, number]>, b: Array<[string, string,
 }
 
 // Validates and stores one adjudicator's marks for a round, all together. Sending the same marks again
-// (after a Wi-Fi drop) is accepted and changes nothing; different marks are refused.
+// (after a dropped connection) is accepted and changes nothing; different marks are refused.
 function storeMarks(ctx: Ctx, adjudicatorId: string, roundId: string, submissions: MarkSubmission[], enteredBy: string | null) {
   const round = getRoundRow(ctx, roundId)
   const event = getEventRow(ctx, round.eventId)

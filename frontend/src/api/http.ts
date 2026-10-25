@@ -11,7 +11,7 @@ export class ApiError extends Error {
   }
 }
 
-// True when the request never reached the venue server: the phone is offline or the server is down
+// True when the request never reached the server: the phone is offline or the server is down
 export const isNetworkError = (error: unknown): boolean => error instanceof ApiError && error.status === 0
 
 // Told after every request whether the server could be reached, so the "Online" badge is honest
@@ -23,7 +23,7 @@ export const onReachability = (listener: Listener) => void (reachability = liste
 let ended: () => void = () => {}
 export const onSessionEnded = (listener: () => void) => void (ended = listener)
 
-const SERVER_DOWN = 'Cannot reach the venue server. Check the Wi-Fi.'
+const SERVER_DOWN = 'Cannot reach the server. Check your connection.'
 
 // A weak Wi-Fi often does not fail a request, it just never answers. After this long it counts as unreachable, so the
 // phone says so and its held marks are tried again instead of waiting for ever.

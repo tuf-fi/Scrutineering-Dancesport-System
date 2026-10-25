@@ -11,7 +11,7 @@ import { useOutbox } from '../stores/outbox.ts'
 // Many changes can arrive at once (ten phones submitting); refetch once they settle
 const SETTLE_MS = 300
 
-// Keeps the screens in step with the venue server: connects the socket, refetches when something changes,
+// Keeps the screens in step with the server: connects the socket, refetches when something changes,
 // reports whether the server can be reached, and sends the phone's heartbeat
 export function useRealtime() {
   const queryClient = useQueryClient()

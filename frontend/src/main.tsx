@@ -5,7 +5,7 @@ import { RouterProvider } from 'react-router'
 import './index.css'
 import { queryClient } from './app/queryClient.ts'
 import { router } from './app/routes.tsx'
-import { registerServiceWorker } from './app/pwa.ts'
+import { removeOldServiceWorker } from './app/serviceWorker.ts'
 import { restoreSession } from './app/session.ts'
 import { useOutbox } from './stores/outbox.ts'
 
@@ -22,4 +22,4 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-void registerServiceWorker()
+void removeOldServiceWorker()

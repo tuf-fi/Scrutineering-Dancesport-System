@@ -45,16 +45,12 @@ describe('every function against every role', () => {
       const crashed: string[] = []
       const wrong: string[] = []
       for (const name of endpointNames()) {
-        // Functions that exist only online are not there on a venue server, whoever asks
-        if (endpoint(name)!.mode === 'cloud') {
-          expect((await app.call(name, [], role === 'none' ? undefined : cookies[role])).status).toBe(404)
-          continue
-        }
         const rule = endpoint(name)!.access
         const may = rule === 'public' || (role !== 'none' && (rule === 'signedIn' || rule.includes(role as Role)))
         const reply = await app.call(name, [], role === 'none' ? undefined : cookies[role])
         if (reply.status === 500) crashed.push(name)
-        const refused = reply.status === 401 || reply.status === 403
+        // A role refusal, not a 403 the function itself gives (such as a wrong current password)
+        const refused = (reply.status === 401 && reply.error === 'Sign in first.') || (reply.status === 403 && reply.error === 'Your account cannot do this.')
         if (may && refused && !(name === 'getRecallTable' || name === 'getSkatingTable')) wrong.push(`${name} refused ${role}`)
         if (!may && !refused) wrong.push(`${name} let ${role} through (${reply.status})`)
       }

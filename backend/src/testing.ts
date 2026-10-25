@@ -18,7 +18,7 @@ export interface TestOptions {
   seed?: boolean
   path?: string
   backupDirs?: string[]
-  // Settings as if from the environment, such as MODE=cloud
+  // Settings as if from the environment, such as COOKIE_SECURE=true
   env?: Record<string, string>
 }
 

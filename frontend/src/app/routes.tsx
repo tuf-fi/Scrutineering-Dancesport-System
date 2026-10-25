@@ -3,7 +3,6 @@ import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
-import { SyncPage } from '../features/sync/SyncPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
 import { ClubsPage } from '../features/admin/ClubsPage.tsx'
 import { AccountPage } from '../features/club/AccountPage.tsx'
@@ -99,7 +98,6 @@ export const routes: RouteObject[] = [
               { path: 'payments', element: <PaymentsPage /> },
               { path: 'fees', element: <FeesPage /> },
               { path: 'clubs', element: <ClubsPage /> },
-              { path: 'sync', element: <SyncPage /> },
             ],
           },
         ],
@@ -117,7 +115,6 @@ export const routes: RouteObject[] = [
               { path: 'late-entries', element: <LateEntriesPage /> },
               { path: 'schedule', element: <SchedulePage /> },
               { path: 'program', element: <ProgramPage /> },
-              { path: 'sync', element: <SyncPage /> },
             ],
           },
         ],

@@ -11,11 +11,8 @@ import {
   type AdjudicatorPin,
   type AgeGroup,
   type BackupStatus,
-  type CloudCompetition,
   type MessengerLink,
   type PaymentSettings,
-  type PullSummary,
-  type SyncStatus,
   type Competition,
   type Competitor,
   type ClubSignUp,
@@ -96,9 +93,7 @@ function found<T>(value: T | undefined, what: string): T {
   return value
 }
 
-// A competition downloaded by the sample venue shows as held, as it does online
-export const getCompetitions = () =>
-  reply(competitions.map((c) => (sampleSync.held.includes(c.id) ? { ...c, heldBy: 'sample-venue', heldAt: new Date().toISOString() } : c)))
+export const getCompetitions = () => reply(competitions)
 export const getCompetition = (id: string) =>
   reply(found(competitions.find((c) => c.id === id), 'Competition'))
 
@@ -944,8 +939,8 @@ export const clearFloor = (actorId: string, _competitionId?: string) =>
 export const getBackupStatus = () =>
   reply<BackupStatus>({
     targets: [
-      { path: 'USB drive', ok: true, lastBackupAt: new Date().toISOString(), error: null },
-      { path: 'Laptop 3', ok: true, lastBackupAt: new Date().toISOString(), error: null },
+      { path: '/data/backups', ok: true, lastBackupAt: new Date().toISOString(), error: null },
+      { path: '/mnt/offsite', ok: true, lastBackupAt: new Date().toISOString(), error: null },
     ],
     lastBackupAt: new Date().toISOString(),
   })
@@ -1023,59 +1018,6 @@ export const getClubPayments = (clubId: string) => reply(clubPayments(clubId))
 export const getPaymentMethods = () => reply(paymentMethods())
 export const submitClubPayment = (clubId: string, input: { amountPaid: number; referenceNumber: string; receiptUrl: string }) =>
   settle<void>(() => submitPaymentProof(clubId, input))
-
-// ---- Syncing with the cloud ----
-// The sample venue is connected to a sample cloud: downloading holds a competition, releasing lets it go.
-
-const sampleSync = { held: [] as string[], pending: 0 }
-
-const syncStatus = (): SyncStatus => ({
-  enabled: true,
-  venueId: 'sample-venue',
-  cloudUrl: 'https://cloud.example',
-  pending: sampleSync.pending,
-  failing: 0,
-  lastUploadAt: sampleSync.held.length ? new Date().toISOString() : null,
-  lastError: null,
-  reachable: true,
-  held: [...sampleSync.held],
-})
-
-export const getSyncStatus = () => reply(syncStatus())
-export const getCloudCompetitions = () =>
-  reply<CloudCompetition[]>(
-    competitions.map((c) => ({
-      id: c.id,
-      name: c.name,
-      date: c.date,
-      venue: c.venue,
-      organizer: c.organizer,
-      heldBy: sampleSync.held.includes(c.id) ? 'sample-venue' : null,
-      heldAt: sampleSync.held.includes(c.id) ? new Date().toISOString() : null,
-      entries: entries.filter((e) => events.find((ev) => ev.id === e.eventId)?.competitionId === c.id).length,
-    })),
-  )
-export const pullCompetition = (competitionId: string) =>
-  settle<PullSummary>(() => {
-    found(competitions.find((c) => c.id === competitionId), 'Competition')
-    if (!sampleSync.held.includes(competitionId)) sampleSync.held.push(competitionId)
-    return { competitionId, added: { entries: 0 }, excludedEntries: 0 }
-  })
-export const syncNow = () =>
-  settle<SyncStatus>(() => {
-    sampleSync.pending = 0
-    return syncStatus()
-  })
-export const uploadCompetition = (competitionId: string) =>
-  settle<SyncStatus>(() => {
-    found(competitions.find((c) => c.id === competitionId), 'Competition')
-    return syncStatus()
-  })
-export const releaseCompetition = (competitionId: string) =>
-  settle<void>(() => {
-    sampleSync.held = sampleSync.held.filter((id) => id !== competitionId)
-  })
-export const unlockCompetition = (competitionId: string) => releaseCompetition(competitionId)
 
 // ---- Fees, payment details and club accounts ----
 

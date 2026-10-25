@@ -64,6 +64,13 @@
       "when": 1792899084868,
       "tag": "0008_sync_program",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792902471033,
+      "tag": "0009_drop_sync",
+      "breakpoints": true
     }
   ]
 }

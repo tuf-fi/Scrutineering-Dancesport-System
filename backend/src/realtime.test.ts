@@ -173,6 +173,6 @@ describe('serving the app', () => {
   it('answers health over the network', async () => {
     const res = await fetch(`${base}/api/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toMatchObject({ status: 'ok', mode: 'venue' })
+    expect(await res.json()).toMatchObject({ status: 'ok' })
   })
 })

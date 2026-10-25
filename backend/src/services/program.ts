@@ -14,7 +14,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { activeEntryRows, assertNotHeld, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
+import { activeEntryRows, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
 
 type Slot = typeof t.programSlots.$inferSelect
 
@@ -131,7 +131,6 @@ export const program = {
 
   setProgramStart(ctx: Ctx, competitionId: string, start: string | null): Program {
     const competition = competitionRow(ctx, competitionId)
-    assertNotHeld(ctx, competitionId)
     if (start !== null && !PROGRAM_START.test(start)) return fail('The start time is hours and minutes, like 08:30.')
     const before = startOf(ctx, competitionId)
     if (start === null) ctx.db.delete(t.programStarts).where(eq(t.programStarts.competitionId, competitionId)).run()
@@ -144,7 +143,6 @@ export const program = {
   // Adds a line for every round that has none yet, after the ones already there. Safe to run again.
   generateProgram(ctx: Ctx, competitionId: string): Program {
     const competition = competitionRow(ctx, competitionId)
-    assertNotHeld(ctx, competitionId)
     const existing = slotsOf(ctx, competitionId)
     const has = new Set(existing.filter((s) => s.kind === ProgramKind.Round).map((s) => `${s.eventId}:${s.roundType}`))
 
@@ -185,7 +183,6 @@ export const program = {
     input: { kind: ProgramKind; label: string; minutes: number; afterSequence?: number },
   ): Program {
     competitionRow(ctx, competitionId)
-    assertNotHeld(ctx, competitionId)
     if (input?.kind !== ProgramKind.Break && input?.kind !== ProgramKind.Awarding) return fail('Choose a break or the awarding.')
     const label = typeof input.label === 'string' ? input.label.trim() : ''
     if (!label) return fail('Give it a name, like Lunch.')
@@ -202,7 +199,6 @@ export const program = {
 
   updateProgramSlot(ctx: Ctx, slotId: string, input: ProgramSlotInput): Program {
     const slot = slotRow(ctx, slotId)
-    assertNotHeld(ctx, slot.competitionId)
     const patch: Partial<Slot> = {}
     if (input?.minutes !== undefined) patch.minutes = checkMinutes(input.minutes)
     if (input?.label !== undefined) {
@@ -221,7 +217,6 @@ export const program = {
 
   moveProgramSlot(ctx: Ctx, slotId: string, direction: 'up' | 'down'): Program {
     const slot = slotRow(ctx, slotId)
-    assertNotHeld(ctx, slot.competitionId)
     const order = slotsOf(ctx, slot.competitionId)
     const from = order.findIndex((s) => s.id === slotId)
     const to = direction === 'up' ? from - 1 : from + 1
@@ -235,7 +230,6 @@ export const program = {
 
   removeProgramSlot(ctx: Ctx, slotId: string): Program {
     const slot = slotRow(ctx, slotId)
-    assertNotHeld(ctx, slot.competitionId)
     ctx.db.delete(t.programSlots).where(eq(t.programSlots.id, slotId)).run()
     renumber(ctx, slotsOf(ctx, slot.competitionId))
     record(ctx.db, actor(ctx).id, 'Removed program line', slot.label ?? `Line ${slot.sequence}`)

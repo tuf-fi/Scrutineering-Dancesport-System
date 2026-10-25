@@ -5,7 +5,7 @@ import { ScoringError } from '@bis/scoring'
 import type { SessionUser } from '@bis/shared'
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
 import { sql } from 'drizzle-orm'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession } from './auth/signin.ts'
 import { noBackups, type Backups } from './backup.ts'
@@ -19,8 +19,6 @@ import type { Hub } from './realtime/hub.ts'
 import { allowed, endpoint } from './registry.ts'
 import { submissionSnapshot } from './services/rounds.ts'
 import { registerMessengerWebhook } from './messengerWebhook.ts'
-import { registerCloudSync } from './sync/cloud.ts'
-import { createSyncService } from './sync/venue.ts'
 
 export interface AppDeps {
   config: Config
@@ -31,17 +29,13 @@ export interface AppDeps {
   backups?: Backups
   // How often the live board is checked for a phone that went quiet; 0 turns it off
   liveBoardMs?: number
-  // Venue with a cloud address: keep sending changes to the cloud in the background
-  startSync?: boolean
 }
 
 const SESSION_HOURS = 12
 
-export async function buildApp({ config, sqlite, db, hub: givenHub, backups = noBackups(), liveBoardMs = 3000, startSync = false }: AppDeps) {
+export async function buildApp({ config, sqlite, db, hub: givenHub, backups = noBackups(), liveBoardMs = 3000 }: AppDeps) {
   const options = { logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: config.trustProxy }
-  // With a certificate the server speaks HTTPS, so phones will keep an offline copy of the app
-  const tls = config.tlsCert && config.tlsKey ? { cert: readFileSync(config.tlsCert), key: readFileSync(config.tlsKey) } : null
-  const app = (tls ? Fastify({ ...options, https: tls }) : Fastify(options)) as unknown as FastifyInstance
+  const app = Fastify(options) as unknown as FastifyInstance
   await app.register(cookie)
   await app.register(jwt, { secret: config.cookieSecret })
 
@@ -56,15 +50,11 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   // A backup folder that stops (or starts) working is shown on the scrutineer's screen at once
   backups.onChange(() => hub.changed('backups'))
 
-  // At a venue: sends changes to the cloud. Online there is nothing to send.
-  const sync = config.mode === 'venue' ? createSyncService({ config, sqlite, hub }) : null
-
   const baseContext = (user: SessionUser | null, deferred: Array<() => void> = []): Ctx => ({
     db,
     sqlite,
     hub,
     backups,
-    sync,
     config,
     user,
     defer: (task) => void deferred.push(task),
@@ -96,14 +86,14 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     return { data: user }
   }
 
-  // The venue Wi-Fi and the online site both read this
+  // The host's health check reads this
   app.get('/api/health', async (_request, reply) => {
     try {
       sqlite.prepare('select 1').get()
     } catch {
-      return reply.code(503).send({ status: 'error', mode: config.mode, database: false, time: now() })
+      return reply.code(503).send({ status: 'error', database: false, time: now() })
     }
-    return { status: 'ok', mode: config.mode, database: true, time: now() }
+    return { status: 'ok', database: true, time: now() }
   })
 
   // ---- Sign-in ----
@@ -129,8 +119,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   app.post('/api/auth/club', (request, reply) =>
     attempt(request, reply, String(body(request).email ?? ''), (ctx) => clubSession(ctx, String(body(request).email ?? ''), String(body(request).password ?? ''))),
   )
-  // Adjudicators mark at the venue; online there is no PIN sign-in
-  if (config.mode === 'venue') app.post('/api/auth/adjudicator', (request, reply) =>
+  app.post('/api/auth/adjudicator', (request, reply) =>
     attempt(request, reply, 'pin', (ctx) => adjudicatorSession(ctx, String(body(request).pin ?? ''))),
   )
   app.post('/api/auth/club-signup', async (request, reply) => {
@@ -147,25 +136,22 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   })
   app.get('/api/auth/me', async (request) => ({ data: sessionOf(request) }))
 
-  // ---- Online: venues download competitions and send results back ----
+  // ---- Facebook Messenger: lets a club's Page conversation be linked to its account ----
 
-  if (config.mode === 'cloud') registerCloudSync(app, { config, sqlite, db, hub, sendError })
-  if (config.mode === 'cloud' && config.messenger.verifyToken) registerMessengerWebhook(app, { config, db })
+  if (config.messenger.verifyToken) registerMessengerWebhook(app, { config, db })
 
   // ---- Every other call: POST /api/call/<name> with { args: [...] } ----
 
   app.post('/api/call/:name', async (request, reply) => {
     const { name } = request.params as { name: string }
     const route = endpoint(name)
-    if (!route || (route.mode === 'venue' && config.mode === 'cloud') || (route.mode === 'cloud' && config.mode === 'venue')) {
-      return reply.code(404).send({ error: route ? 'This is not available here.' : 'Unknown request.' })
-    }
+    if (!route) return reply.code(404).send({ error: 'Unknown request.' })
     const deferred: Array<() => void> = []
     const ctx = baseContext(sessionOf(request), deferred)
     const args = Array.isArray((request.body as { args?: unknown } | null)?.args) ? ((request.body as { args: unknown[] }).args) : []
     try {
       allowed(route.access, ctx)
-      const data = route.async ? await route.run(ctx, args) : route.write ? sqlite.transaction(() => route.run(ctx, args))() : route.run(ctx, args)
+      const data = route.write ? sqlite.transaction(() => route.run(ctx, args))() : route.run(ctx, args)
       // Only after the change is saved do other screens hear about it
       for (const task of deferred) {
         try {
@@ -176,9 +162,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
       }
       if (route.write) {
         hub.changed(name)
-        // Every change is copied to the backup folders, and sent to the cloud, within a moment
+        // Every change is copied to the backup folders within a moment
         backups.soon()
-        sync?.soon()
       }
       return { data: data ?? null }
     } catch (error) {
@@ -218,8 +203,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     await app.register(fastifyStatic, {
       root: frontend,
       wildcard: false,
-      // The page, the service worker and the manifest must always be checked with the server, or a phone could keep
-      // an old version for good. Files with a hash in their name never change, so they are kept.
+      // The page must always be checked with the server, or a phone could keep an old version for good. Files with a
+      // hash in their name never change, so they are kept.
       setHeaders: (res, path) => {
         const name = path.replace(/\\/g, '/')
         res.header('cache-control', /\/assets\//.test(name) ? 'public, max-age=31536000, immutable' : 'no-cache')
@@ -233,10 +218,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     app.setNotFoundHandler((_request, reply) => reply.code(404).send({ error: 'Unknown request.' }))
   }
 
-  if (startSync) sync?.start()
-
   app.addHook('onClose', async () => {
-    sync?.stop()
     if (sweep) clearInterval(sweep)
     backups.stop()
     await hub.close()
