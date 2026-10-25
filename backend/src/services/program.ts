@@ -29,6 +29,9 @@ const defaultMinutes = (isSolo: boolean, type: RoundType) => (isSolo ? 3 : type 
 const competitionRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
 
+const startOf = (ctx: Ctx, competitionId: string): string | null =>
+  ctx.db.select().from(t.programStarts).where(eq(t.programStarts.competitionId, competitionId)).get()?.start ?? null
+
 const slotRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.programSlots).where(eq(t.programSlots.id, id)).get(), 'Program line')
 
@@ -67,11 +70,13 @@ function fieldFor(ctx: Ctx, eventId: string, type: RoundType): { entryCount: num
 function build(ctx: Ctx, competitionId: string): Program {
   const competition = competitionRow(ctx, competitionId)
   const slots = slotsOf(ctx, competitionId)
+  const start = startOf(ctx, competitionId)
   const events = new Map(ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).all().map((e) => [e.id, e]))
 
   const roundOf = (slot: Slot) =>
     slot.eventId && slot.roundType ? roundsOfEvent(ctx, slot.eventId).find((r) => r.type === slot.roundType) : undefined
 
+  // TODO: floorRoundId stays at the venue, so online no line is ever "current"; sync it to show the live line there
   const states = slots.map((slot) => {
     const round = roundOf(slot)
     if (slot.kind !== ProgramKind.Round) return null
@@ -90,7 +95,7 @@ function build(ctx: Ctx, competitionId: string): Program {
       slotId: slot.id,
       sequence: slot.sequence,
       kind: slot.kind,
-      startTime: competition.programStart ? clockTime(competition.programStart, elapsed) : null,
+      startTime: start ? clockTime(start, elapsed) : null,
       minutes: slot.minutes,
       label: slot.label,
       eventId: event?.id ?? null,
@@ -109,7 +114,7 @@ function build(ctx: Ctx, competitionId: string): Program {
     elapsed += slot.minutes
     return row
   })
-  return { start: competition.programStart, rows }
+  return { start, rows }
 }
 
 function checkMinutes(minutes: unknown): number {
@@ -128,8 +133,10 @@ export const program = {
     const competition = competitionRow(ctx, competitionId)
     assertNotHeld(ctx, competitionId)
     if (start !== null && !PROGRAM_START.test(start)) return fail('The start time is hours and minutes, like 08:30.')
-    ctx.db.update(t.competitions).set({ programStart: start }).where(eq(t.competitions.id, competitionId)).run()
-    record(ctx.db, actor(ctx).id, 'Set program start', competition.name, { before: { start: competition.programStart }, after: { start } })
+    const before = startOf(ctx, competitionId)
+    if (start === null) ctx.db.delete(t.programStarts).where(eq(t.programStarts.competitionId, competitionId)).run()
+    else ctx.db.insert(t.programStarts).values({ competitionId, start }).onConflictDoUpdate({ target: t.programStarts.competitionId, set: { start } }).run()
+    record(ctx.db, actor(ctx).id, 'Set program start', competition.name, { before: { start: before }, after: { start } })
     changed(ctx)
     return build(ctx, competitionId)
   },

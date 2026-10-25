@@ -53,6 +53,8 @@ const IN_EVENTS = '(SELECT id FROM events WHERE competition_id = @c)'
 const IN_ROUNDS = `(SELECT id FROM rounds WHERE event_id IN ${IN_EVENTS})`
 const SCOPE: Record<string, string> = {
   events: 'competition_id = @c',
+  program_slots: 'competition_id = @c',
+  program_starts: 'competition_id = @c',
   competitors: `id IN (SELECT competitor_id FROM entries WHERE event_id IN ${IN_EVENTS})`,
   payments: `id IN (SELECT payment_id FROM entries WHERE payment_id IS NOT NULL AND event_id IN ${IN_EVENTS})`,
   entries: `event_id IN ${IN_EVENTS}`,

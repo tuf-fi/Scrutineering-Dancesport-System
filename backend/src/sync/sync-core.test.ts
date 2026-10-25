@@ -8,7 +8,7 @@ import { applyChanges, applySnapshot, type SyncItem } from './apply.ts'
 import { captureIsOn, setCapture, withoutCapture } from './capture.ts'
 import { buildSnapshot } from './snapshot.ts'
 import { UPLOAD_TABLES } from './tables.ts'
-import { captureMigrationSql } from './triggers.ts'
+import { captureMigrationSql, programCaptureMigrationSql } from './triggers.ts'
 
 const COMP = 'comp-sorsogon-2026'
 const open: Sqlite[] = []
@@ -32,9 +32,10 @@ const one = <T = unknown>(s: Sqlite, sql: string, ...args: unknown[]) => s.prepa
 describe('the capture triggers', () => {
   it('are exactly what the schema calls for', () => {
     const dir = join(import.meta.dirname, '..', '..', 'drizzle')
-    const file = readdirSync(dir).find((f) => /_sync_capture\.sql$/.test(f))!
+    const read = (suffix: string) => readFileSync(join(dir, readdirSync(dir).find((f) => f.endsWith(suffix))!), 'utf8').replace(/\r\n/g, '\n')
     // If this fails, a synced table changed: run `pnpm --filter @bis/backend db:sync-migration`
-    expect(readFileSync(join(dir, file), 'utf8').replace(/\r\n/g, '\n')).toBe(captureMigrationSql())
+    expect(read('_sync_capture.sql')).toBe(captureMigrationSql())
+    expect(read('_sync_program.sql')).toBe(programCaptureMigrationSql())
   })
 
   it('queue nothing while capture is off, which is how the cloud and a fresh venue behave', () => {

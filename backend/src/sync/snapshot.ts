@@ -50,6 +50,8 @@ export function buildSnapshot(sqlite: Sqlite, competitionId: string): SyncSnapsh
     clubs,
     competitors,
     events: unique([...events, ...historyEvents]),
+    program_slots: pick('program_slots', 'competition_id = ?', competitionId),
+    program_starts: pick('program_starts', 'competition_id = ?', competitionId),
     payments,
     entries,
     adjudicators: sqlite.prepare(`SELECT ${columnsOf('adjudicators').map(q).join(', ')} FROM adjudicators`).all() as Row[],

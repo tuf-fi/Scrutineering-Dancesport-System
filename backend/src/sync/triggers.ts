@@ -1,4 +1,4 @@
-import { UPLOAD_TABLES, type SyncTable } from './tables.ts'
+import { FIRST_UPLOAD_TABLES, PROGRAM_UPLOAD_TABLES, type SyncTable } from './tables.ts'
 
 // Every change to an event-day table is written to the outbox by the database itself, so no part of the program can
 // forget to queue something for upload. The triggers do nothing unless the setting `sync_capture` is `on`, which only
@@ -28,11 +28,15 @@ function trigger(table: SyncTable, event: 'INSERT' | 'UPDATE' | 'DELETE'): strin
   ].join('\n')
 }
 
-// The SQL statements of the migration that creates the triggers
-export function captureTriggerStatements(): string[] {
-  return UPLOAD_TABLES.flatMap((table) => (['INSERT', 'UPDATE', 'DELETE'] as const).map((event) => trigger(table, event)))
+// The SQL statements of a migration that creates the triggers of these tables
+export function captureTriggerStatements(tables: SyncTable[]): string[] {
+  return tables.flatMap((table) => (['INSERT', 'UPDATE', 'DELETE'] as const).map((event) => trigger(table, event)))
 }
 
 // How a custom migration file holds several statements
 export const MIGRATION_BREAKPOINT = '--> statement-breakpoint'
-export const captureMigrationSql = () => captureTriggerStatements().join(`\n${MIGRATION_BREAKPOINT}\n`) + '\n'
+const migrationSql = (tables: SyncTable[]) => captureTriggerStatements(tables).join(`\n${MIGRATION_BREAKPOINT}\n`) + '\n'
+
+// A table that gets triggers later must have a migration of its own: an earlier one runs before the table exists
+export const captureMigrationSql = () => migrationSql(FIRST_UPLOAD_TABLES)
+export const programCaptureMigrationSql = () => migrationSql(PROGRAM_UPLOAD_TABLES)

@@ -29,7 +29,8 @@ function describe(table: SQLiteTable, skip: string[] = []): SyncTable {
 
 // Sent from the venue to the cloud, parents before children. This is everything that changes on the day.
 // A payment's receipt picture is never sent back: the cloud already has it, and it is large.
-export const UPLOAD_TABLES: SyncTable[] = [
+// The tables whose capture triggers were created with the sync feature itself (migration sync_capture)
+export const FIRST_UPLOAD_TABLES: SyncTable[] = [
   describe(t.events),
   describe(t.competitors),
   describe(t.payments, ['receipt']),
@@ -45,6 +46,11 @@ export const UPLOAD_TABLES: SyncTable[] = [
   describe(t.auditLog),
 ]
 
+// Created later, so their triggers have a migration of their own (sync_program) that runs after their tables exist
+export const PROGRAM_UPLOAD_TABLES: SyncTable[] = [describe(t.programSlots), describe(t.programStarts)]
+
+export const UPLOAD_TABLES: SyncTable[] = [...FIRST_UPLOAD_TABLES, ...PROGRAM_UPLOAD_TABLES]
+
 // Sent from the cloud to the venue when a competition is downloaded, parents before children. Passwords, receipts, and
 // the venue's own state (the round on the floor, who holds the competition) are never sent.
 export const DOWNLOAD_TABLES: SyncTable[] = [
@@ -52,6 +58,8 @@ export const DOWNLOAD_TABLES: SyncTable[] = [
   describe(t.clubs, ['password_hash', 'consent_at', 'messenger_id']),
   describe(t.competitors),
   describe(t.events),
+  describe(t.programSlots),
+  describe(t.programStarts),
   describe(t.payments, ['receipt']),
   describe(t.entries),
   describe(t.adjudicators),

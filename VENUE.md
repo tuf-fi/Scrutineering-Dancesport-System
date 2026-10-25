@@ -9,7 +9,7 @@ How to set up and run the BIS server on Laptop 2, connect everyone's devices, an
 | Laptop 2 (scrutineer) | Runs the BIS server and the database | `http://localhost:4000` |
 | Laptop 1 (secretariat), Laptop 3 (MC / backup) | Browser only | `http://<Laptop 2 address>:4000` |
 | Adjudicators' phones | Browser only | the same address |
-| Spectators' phones (guest network) | Browser only; results and rankings | the same address |
+| Spectators' phones (guest network) | Browser only; the program, results and rankings | the same address |
 
 One program serves the screens and the data, so nothing else needs installing on the other devices.
 
@@ -42,7 +42,7 @@ Check it is running: open `http://localhost:4000/api/health`. It shows `"status"
 | Network | Who joins | Notes |
 | --- | --- | --- |
 | Staff (password) | the three laptops, adjudicators' phones | no internet needed |
-| Guest (optional) | spectators | Only Laptop 2's port 4000 should be reachable from it. Set this in the router (client isolation, and a rule allowing the guest network to `192.168.1.10:4000` only). BIS itself shows guests only published results and rankings, but the router is what keeps them away from the staff laptops |
+| Guest (optional) | spectators | Only Laptop 2's port 4000 should be reachable from it. Set this in the router (client isolation, and a rule allowing the guest network to `192.168.1.10:4000` only). BIS itself shows guests only the program, published results and rankings, but the router is what keeps them away from the staff laptops |
 
 ## Before the first round
 

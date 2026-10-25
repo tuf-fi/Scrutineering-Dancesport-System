@@ -85,7 +85,7 @@ export function registerCloudSync(app: FastifyInstance, { config, sqlite, db, hu
     // Changes to a competition only count from the venue that holds it
     for (const item of items) {
       const competitionId = typeof item.payload?.competition_id === 'string' ? item.payload.competition_id : null
-      if (competitionId && (item.entity === 'events' || item.entity === 'ranking_points')) {
+      if (competitionId && (item.entity === 'events' || item.entity === 'ranking_points' || item.entity === 'program_slots' || item.entity === 'program_starts')) {
         const holder = competitionHolder(sqlite, competitionId)?.heldBy
         if (holder !== venue) throw new HttpError(409, `This venue does not hold that competition${holder ? ` (${holder} does)` : ''}. Download it first.`)
       }
@@ -103,6 +103,7 @@ export function registerCloudSync(app: FastifyInstance, { config, sqlite, db, hu
       if (event) hub.published({ competitionId: event.c, eventId: round.eventId, roundId: round.roundId })
     }
     if (applied.rankingsChanged) hub.rankings()
+    if (applied.programChanged) hub.program()
     if (applied.applied > 0) hub.changed('sync')
     return { applied: applied.applied }
   })

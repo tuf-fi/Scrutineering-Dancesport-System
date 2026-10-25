@@ -89,6 +89,18 @@ Goal: clubs register and pay before the event, and the admin confirms payments b
 - [x] Fake club passwords, fees and payment accounts removed from the real server (only the sample data has them).
 - [x] Messages to clubs when a payment is approved or rejected: Facebook Messenger (chosen by the client). Built and tested with a stand-in for Facebook; set-up steps in deploy/README.md. Needs trying with the real Page, and may need Meta app review.
 
+## Program (running order) (built)
+
+Goal: dancers, parents and the announcer can see what is on the floor, what is next and when everything starts, and the secretariat can print it.
+
+- [x] The secretariat lays out the program: start time, rounds in order, breaks and the awarding; times work out from the start time and each line's minutes.
+- [x] Public and club page with search and a round filter; Print and PDF carry the filter. PDF is the browser's Save as PDF from the print dialog, so no PDF library.
+- [x] MC screen: key 5 shows on the floor, up next and the three after.
+- [x] Program lines and the start time sync to the cloud, so the online page shows the order and times.
+- [ ] Online, no line is shown as on the floor now (the round on the floor stays at the venue); sync it.
+- [ ] A "my entries" filter by back number on the program page.
+- [ ] Set the real minutes per round with the client; the starting guesses are in `backend/src/services/program.ts`.
+
 ## Phase 7: Testing and pilot
 
 Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is [PILOT.md](PILOT.md).

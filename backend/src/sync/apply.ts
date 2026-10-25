@@ -61,11 +61,13 @@ export interface AppliedChanges {
   published: Array<{ roundId: string; eventId: string }>
   // Results or ranking points arrived
   rankingsChanged: boolean
+  // The running order, or the state of a round in it, changed
+  programChanged: boolean
 }
 
 // Applies the venue's changes, in order, all or nothing. Repeating a batch changes nothing, so a lost reply is harmless.
 export function applyChanges(sqlite: Sqlite, items: SyncItem[]): AppliedChanges {
-  const result: AppliedChanges = { applied: 0, published: [], rankingsChanged: false }
+  const result: AppliedChanges = { applied: 0, published: [], rankingsChanged: false, programChanged: false }
   const run = sqlite.transaction(() => {
     for (const item of items) {
       const table = uploadTable(item.entity)
@@ -83,6 +85,7 @@ export function applyChanges(sqlite: Sqlite, items: SyncItem[]): AppliedChanges 
         result.published.push({ roundId: String(item.payload.id), eventId: String(item.payload.event_id) })
       }
       if (item.entity === 'results' || item.entity === 'ranking_points') result.rankingsChanged = true
+      if (item.entity === 'program_slots' || item.entity === 'program_starts' || item.entity === 'rounds') result.programChanged = true
       result.applied++
     }
   })

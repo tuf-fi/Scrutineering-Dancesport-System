@@ -92,6 +92,14 @@ beforeAll(async () => {
     sqlite.prepare('delete from rounds where event_id in (select id from events where competition_id = ?)').run(COMP)
     sqlite.prepare('delete from results where event_id in (select id from events where competition_id = ?)').run(COMP)
     sqlite.prepare('delete from ranking_points where competition_id = ?').run(COMP)
+    // The organizers laid out the start of the program online before the venue downloaded it
+    sqlite.prepare("insert into program_starts (competition_id, start) values (?, '08:00')").run(COMP)
+    const first = sqlite.prepare('select id from events where competition_id = ? order by position limit 2').all(COMP) as Array<{ id: string }>
+    first.forEach((e, i) => {
+      sqlite
+        .prepare("insert into program_slots (id, competition_id, sequence, kind, event_id, round_type, label, minutes) values (?, ?, ?, 'round', ?, 'final', null, 5)")
+        .run(`online-slot-${i + 1}`, COMP, i + 1, e.id)
+    })
     sqlite.close()
   }
   await startCloud()
@@ -327,6 +335,45 @@ describe('running an event at the venue and sending it to the cloud', () => {
     const end = Date.now() + 8000
     while (Date.now() < end && stamp().b !== 9100) await new Promise((r) => setTimeout(r, 100))
     expect(stamp().b).toBe(9100)
+  })
+})
+
+describe('the running order', () => {
+  it('came down with the download, start time included', async () => {
+    const same = (sql: string) => expect(rows(venueSqlite, sql, COMP)).toEqual(rows(cloudSqlite, sql, COMP))
+    expect(count(venueSqlite, 'select count(*) as n from program_slots where competition_id = ?', COMP)).toBe(2)
+    same('select * from program_slots where competition_id = ? order by id')
+    same('select * from program_starts where competition_id = ?')
+  })
+
+  it('is edited at the venue and sent, and the public sees it online', async () => {
+    await ok(venue, 'setProgramStart', [COMP, '07:30'], venueSecretariat)
+    await ok(venue, 'addProgramBreak', [COMP, { kind: 'break', label: 'Lunch', minutes: 45, afterSequence: 1 }], venueSecretariat)
+    expect(count(venueSqlite, "select count(*) as n from outbox where entity in ('program_slots', 'program_starts') and sent_at is null")).toBeGreaterThanOrEqual(3)
+
+    cloudHub.sent.length = 0
+    const status = await ok<SyncStatus>(venue, 'syncNow', [], venueSecretariat)
+    expect(status).toMatchObject({ pending: 0, failing: 0, lastError: null })
+
+    const same = (sql: string) => expect(rows(cloudSqlite, sql, COMP)).toEqual(rows(venueSqlite, sql, COMP))
+    same('select * from program_slots where competition_id = ? order by id')
+    same('select * from program_starts where competition_id = ?')
+    expect(cloudHub.sent.some((m) => m.event === 'program')).toBe(true)
+
+    // A guest online gets the same order and times, with the break where it was put
+    const online = await ok<{ start: string; rows: Array<{ label: string | null; startTime: string }> }>(cloud, 'getProgram', [COMP])
+    expect(online.start).toBe('07:30')
+    expect(online.rows.map((r) => r.label)).toEqual([null, 'Lunch', null])
+    expect(online.rows[1]!.startTime).toBe('07:35')
+  })
+
+  it('is removed online when it is removed at the venue', async () => {
+    const lunch = (await ok<{ rows: Array<{ slotId: string; label: string | null }> }>(venue, 'getProgram', [COMP])).rows.find((r) => r.label === 'Lunch')!
+    await ok(venue, 'removeProgramSlot', [lunch.slotId], venueSecretariat)
+    await ok(venue, 'syncNow', [], venueSecretariat)
+    expect(count(cloudSqlite, 'select count(*) as n from program_slots where competition_id = ?', COMP)).toBe(2)
+    expect(venueSqlite.pragma('foreign_key_check')).toEqual([])
+    expect(cloudSqlite.pragma('foreign_key_check')).toEqual([])
   })
 })
 
