@@ -38,6 +38,13 @@ export function CompetitionPage() {
         description={`${formatDate(competition.data.date)} · ${competition.data.venue}`}
       />
 
+      <Link
+        to={`/competitions/${competitionId}/program`}
+        className="w-fit text-small font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
+      >
+        Program and running order <span aria-hidden>→</span>
+      </Link>
+
       <Toolbar>
         <SearchField className="w-full sm:w-72" label="Search events" value={query} onChange={setQuery} />
         <div className="w-full sm:w-52">

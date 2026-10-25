@@ -52,6 +52,12 @@ export function HomePage() {
   return (
     <div className="flex flex-col gap-12">
       <PageHeader title={current.name} description={`${formatDate(current.date)} · ${current.venue}`} />
+      <Link
+        to={`/competitions/${current.id}/program`}
+        className="-mt-8 w-fit text-small font-medium text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
+      >
+        Program <span aria-hidden>→</span>
+      </Link>
 
       {live && (
         <section aria-label="On the floor now" className="flex flex-col gap-2 border-y border-neutral-200 py-6">

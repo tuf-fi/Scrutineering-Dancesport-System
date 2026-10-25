@@ -180,3 +180,7 @@ export const programLineName = (row: ProgramRow) =>
   row.kind === 'round' && row.eventNumber !== null && row.roundType
     ? `${eventCode({ number: row.eventNumber })} ${eventDances(row)} · ${ROUND_TYPE_LABEL[row.roundType]}`
     : (row.label ?? PROGRAM_KIND_LABEL[row.kind])
+
+// What happens to the field in a round: "Select 24" while rounds remain, "Rank 6" in a final
+export const programAction = (row: Pick<ProgramRow, 'kind' | 'recallNumber' | 'entryCount'>) =>
+  row.kind !== 'round' ? '' : row.recallNumber !== null ? `Select ${row.recallNumber}` : `Rank ${row.entryCount}`

@@ -43,6 +43,7 @@ import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
 import { LateEntriesPage } from '../features/secretariat/LateEntriesPage.tsx'
+import { ProgramPage as ProgramPublicPage } from '../features/public/ProgramPage.tsx'
 import { ProgramPage } from '../features/secretariat/ProgramPage.tsx'
 import { SchedulePage } from '../features/secretariat/SchedulePage.tsx'
 import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
@@ -188,6 +189,7 @@ export const routes: RouteObject[] = [
           { index: true, element: <HomePage /> },
           { path: 'competitions', element: <PublicCompetitionsPage /> },
           { path: 'competitions/:competitionId', element: <CompetitionPage /> },
+          { path: 'competitions/:competitionId/program', element: <ProgramPublicPage /> },
           { path: 'competitions/:competitionId/events/:eventId', element: <EventResultsPage /> },
           { path: 'rankings', element: <RankingsPage /> },
           { path: 'privacy', element: <PrivacyPage /> },

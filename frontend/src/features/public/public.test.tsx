@@ -1,6 +1,7 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { generateProgram, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 // The table shows skeleton rows first, so wait until real rows (with a competitor link) arrive
@@ -169,5 +170,55 @@ describe('public site', () => {
     const [first] = await within(table).findAllByRole('link')
     await userEvent.click(first)
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
+  })
+})
+
+describe('program page', () => {
+  beforeAll(async () => {
+    await generateProgram('test', 'comp-sorsogon-2026')
+    await setProgramStart('test', 'comp-sorsogon-2026', '07:00')
+  })
+
+  const programRows = async () => {
+    const table = await screen.findByRole('table')
+    await within(table).findByText('7:00 AM')
+    return within(table).getAllByRole('row').slice(1)
+  }
+
+  it('shows the running order with times, 10 lines a page, and what is next', async () => {
+    renderApp('/competitions/comp-sorsogon-2026/program')
+    expect(await screen.findByRole('heading', { name: 'Program' })).toBeInTheDocument()
+    const rows = await programRows()
+    expect(rows).toHaveLength(10)
+    expect(within(rows[0]).getAllByRole('cell')[0]).toHaveTextContent('7:00 AM')
+    expect(screen.getByText(/^1–10$/)).toBeInTheDocument()
+
+    const strip = within(screen.getByRole('region', { name: 'On the floor and up next' }))
+    expect(strip.getByText('On the floor')).toBeInTheDocument()
+    expect(strip.getByText('Up next')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^Back$|Sorsogon/i })).toBeInTheDocument()
+  })
+
+  it('filters by round and by search', async () => {
+    renderApp('/competitions/comp-sorsogon-2026/program')
+    await programRows()
+
+    await userEvent.selectOptions(screen.getByLabelText('Round'), 'final')
+    await waitFor(() => {
+      const table = screen.getByRole('table')
+      const cells = within(table).getAllByRole('row').slice(1).map((r) => within(r).queryAllByRole('cell')[2]?.textContent)
+      expect(cells.length).toBeGreaterThan(0)
+      expect(cells.every((c) => c === 'Final' || c === undefined)).toBe(true)
+    })
+    await userEvent.selectOptions(screen.getByLabelText('Round'), 'all')
+
+    await userEvent.type(screen.getByLabelText('Search program'), 'nothing-matches-this')
+    expect(await screen.findByText('No lines match')).toBeInTheDocument()
+  })
+
+  it('says so when a competition has no program yet', async () => {
+    renderApp('/competitions/comp-legazpi-2026/program')
+    expect(await screen.findByText('No program yet')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'On the floor and up next' })).not.toBeInTheDocument()
   })
 })
