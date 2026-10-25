@@ -16,6 +16,9 @@ export interface Config {
   // An adjudicator's PIN works only this many days either side of the competition's date; null means any day, which is
   // for development, where the sample competitions are in the past
   pinWindowDays: number | null
+  // Requests a minute from one address for calls that need no sign-in, such as the public pages; null means no limit.
+  // Spectators on one mobile network can share an address, so this is generous.
+  publicRatePerMinute: number | null
   // The organizer's Facebook Page, used to message clubs about their payments. Without a token it is off.
   messenger: { pageToken: string | null; pageUsername: string | null; verifyToken: string | null; appSecret: string | null }
 }
@@ -38,6 +41,15 @@ function pinWindowDays(env: NodeJS.ProcessEnv): number | null {
   return days
 }
 
+function publicRate(env: NodeJS.ProcessEnv): number | null {
+  const value = env.PUBLIC_RATE_LIMIT
+  if (value === 'off') return null
+  if (value === undefined) return 600
+  const rate = Number(value)
+  if (!Number.isInteger(rate) || rate < 1) throw new Error(`PUBLIC_RATE_LIMIT must be a number of requests a minute or "off", got "${value}"`)
+  return rate
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const port = Number(env.PORT ?? 4000)
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -58,6 +70,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),
     trustProxy: trustProxy(env.TRUST_PROXY),
     pinWindowDays: pinWindowDays(env),
+    publicRatePerMinute: publicRate(env),
     messenger: {
       pageToken: env.MESSENGER_PAGE_TOKEN || null,
       pageUsername: env.MESSENGER_PAGE_USERNAME || null,

@@ -7,6 +7,7 @@ import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest }
 import { sql } from 'drizzle-orm'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { RequestLimiter } from './auth/ratelimit.ts'
 import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession, startVersion } from './auth/signin.ts'
 import { record } from './core/audit.ts'
 import { noBackups, type Backups } from './backup.ts'
@@ -168,12 +169,19 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
 
   // ---- Every other call: POST /api/call/<name> with { args: [...] } ----
 
+  // Signed-in people are not counted: they are known, and a scrutineer's screen asks often. Everyone else shares a cap
+  // per address, so a visitor hammering the public pages cannot slow the competition down.
+  const publicLimiter = config.publicRatePerMinute === null ? null : new RequestLimiter(config.publicRatePerMinute)
+
   app.post('/api/call/:name', async (request, reply) => {
     const { name } = request.params as { name: string }
     const route = endpoint(name)
     if (!route) return reply.code(404).send({ error: 'Unknown request.' })
     const deferred: Array<() => void> = []
     const ctx = baseContext(sessionOf(request), deferred)
+    if (!ctx.user && publicLimiter && !publicLimiter.take(request.ip)) {
+      return reply.code(429).header('retry-after', '60').send({ error: 'Too many requests. Wait a minute and try again.' })
+    }
     const args = Array.isArray((request.body as { args?: unknown } | null)?.args) ? ((request.body as { args: unknown[] }).args) : []
     try {
       allowed(route.access, ctx)
