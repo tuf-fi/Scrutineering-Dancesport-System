@@ -30,6 +30,9 @@ import {
   type ImportResult,
   type LateEntryRow,
   type ScheduleItem,
+  type Program,
+  type ProgramKind,
+  type ProgramSlotInput,
   type CompetitorHistoryLine,
   type Panel,
   type PaymentDetail,
@@ -75,6 +78,7 @@ import { heats, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
 import { isLiveRound, liveRoundComplete, visibleMarks } from './realtime.ts'
+import * as sampleProgram from './program.ts'
 
 export type { CompetitionInput, EventInput, RankingFilter } from '@bis/shared'
 export { getSubmissionSnapshot, resetLiveRound, subscribeSubmissions } from './realtime.ts'
@@ -754,6 +758,42 @@ export const moveScheduledEvent = (
     const event = found(events.find((e) => e.id === eventId), 'Event')
     record(actorId, 'Moved event in schedule', `Event ${event.number}`)
     return scheduleOf(competitionId)
+  })
+
+export const getProgram = (competitionId: string) => reply(sampleProgram.programOf(competitionId))
+export const setProgramStart = (actorId: string, competitionId: string, start: string | null) =>
+  settle<Program>(() => {
+    record(actorId, 'Set program start', competitionId)
+    return sampleProgram.setStart(competitionId, start)
+  })
+export const generateProgram = (actorId: string, competitionId: string) =>
+  settle<Program>(() => {
+    record(actorId, 'Generated program', competitionId)
+    return sampleProgram.generate(competitionId)
+  })
+export const addProgramBreak = (
+  actorId: string,
+  competitionId: string,
+  input: { kind: ProgramKind; label: string; minutes: number; afterSequence?: number },
+) =>
+  settle<Program>(() => {
+    record(actorId, 'Added to program', input.label)
+    return sampleProgram.addBreak(competitionId, input)
+  })
+export const updateProgramSlot = (actorId: string, slotId: string, input: ProgramSlotInput) =>
+  settle<Program>(() => {
+    record(actorId, 'Edited program line', slotId)
+    return sampleProgram.updateSlot(slotId, input)
+  })
+export const moveProgramSlot = (actorId: string, slotId: string, direction: 'up' | 'down') =>
+  settle<Program>(() => {
+    record(actorId, 'Moved program line', slotId)
+    return sampleProgram.moveSlot(slotId, direction)
+  })
+export const removeProgramSlot = (actorId: string, slotId: string) =>
+  settle<Program>(() => {
+    record(actorId, 'Removed program line', slotId)
+    return sampleProgram.removeSlot(slotId)
   })
 
 export const updateCompetitor = (actorId: string, id: string, input: { names: string[]; clubId: string }) =>

@@ -40,9 +40,14 @@ export function createSocketHub(server: HttpServer | HttpsServer, verify: (token
   return {
     changed: (scope) => void io.to('signedin').emit('changed', { scope: scope ?? null }),
     submissions: (roundId, snapshot) => void io.to('staff').emit('submissions', { roundId, snapshot }),
-    floor: (roundId) => void io.to('signedin').emit('floor', { roundId }),
+    // Guests get no round id, only a nudge to refetch the running order
+    floor: (roundId) => {
+      io.to('signedin').emit('floor', { roundId })
+      io.to('public').emit('program', {})
+    },
     published: (info) => void io.to('public').emit('published', info),
     rankings: () => void io.to('public').emit('rankings', {}),
+    program: () => void io.to('public').emit('program', {}),
     seen: (id, holding) => presence.seen(id, holding ?? null),
     lastSeen: (id) => presence.lastSeen(id),
     holding: (id) => presence.holding(id),

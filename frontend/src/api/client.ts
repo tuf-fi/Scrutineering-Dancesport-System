@@ -38,6 +38,9 @@ import type {
   MarkingTask,
   MarkSubmission,
   Panel,
+  Program,
+  ProgramKind,
+  ProgramSlotInput,
   Payment,
   PaymentDetail,
   PaymentMethod,
@@ -136,6 +139,20 @@ export const markPaidAtVenue = (_actorId: string, paymentId: string) => call<Pay
 export const getSchedule = (competitionId: string) => call<ScheduleItem[]>('getSchedule', competitionId)
 export const moveScheduledEvent = (_actorId: string, competitionId: string, eventId: string, direction: 'up' | 'down') =>
   call<ScheduleItem[]>('moveScheduledEvent', competitionId, eventId, direction)
+export const getProgram = (competitionId: string) => call<Program>('getProgram', competitionId)
+export const setProgramStart = (_actorId: string, competitionId: string, start: string | null) =>
+  call<Program>('setProgramStart', competitionId, start)
+export const generateProgram = (_actorId: string, competitionId: string) => call<Program>('generateProgram', competitionId)
+export const addProgramBreak = (
+  _actorId: string,
+  competitionId: string,
+  input: { kind: ProgramKind; label: string; minutes: number; afterSequence?: number },
+) => call<Program>('addProgramBreak', competitionId, input)
+export const updateProgramSlot = (_actorId: string, slotId: string, input: ProgramSlotInput) =>
+  call<Program>('updateProgramSlot', slotId, input)
+export const moveProgramSlot = (_actorId: string, slotId: string, direction: 'up' | 'down') =>
+  call<Program>('moveProgramSlot', slotId, direction)
+export const removeProgramSlot = (_actorId: string, slotId: string) => call<Program>('removeProgramSlot', slotId)
 export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; clubId: string }) =>
   call<CompetitorRow>('updateCompetitor', id, input)
 export const deleteCompetitor = (_actorId: string, id: string) => call<void>('deleteCompetitor', id)

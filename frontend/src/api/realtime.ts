@@ -44,7 +44,7 @@ export function connectRealtime(options: RealtimeOptions): () => void {
     beat = undefined
     options.onDisconnect()
   })
-  for (const event of ['changed', 'floor', 'published', 'rankings']) socket.on(event, options.onChange)
+  for (const event of ['changed', 'floor', 'published', 'rankings', 'program']) socket.on(event, options.onChange)
   socket.on('submissions', (message: { roundId: string; snapshot: AdjudicatorSubmission[] }) =>
     deliver(message.roundId, message.snapshot),
   )

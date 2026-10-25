@@ -22,7 +22,7 @@ const power = (id: string) => strength.get(id) ?? 0
 const MAX_HEAT = 12
 
 // recall is how many go through from the round; null for the final
-function planRounds(entryCount: number): Array<{ type: RoundType; recall: number | null }> {
+export function planRounds(entryCount: number): Array<{ type: RoundType; recall: number | null }> {
   const final = { type: RoundType.Final, recall: null }
   const semi = { type: RoundType.SemiFinal, recall: 6 }
   if (entryCount <= 7) return [final]

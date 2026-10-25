@@ -37,6 +37,21 @@ export const RoundStatus = {
 } as const
 export type RoundStatus = (typeof RoundStatus)[keyof typeof RoundStatus]
 
+export const ProgramKind = {
+  Round: 'round',
+  Break: 'break',
+  Awarding: 'awarding',
+} as const
+export type ProgramKind = (typeof ProgramKind)[keyof typeof ProgramKind]
+
+export const ProgramStatus = {
+  Upcoming: 'upcoming',
+  Next: 'next',
+  Current: 'current',
+  Completed: 'completed',
+} as const
+export type ProgramStatus = (typeof ProgramStatus)[keyof typeof ProgramStatus]
+
 export const SubmissionStatus = {
   Waiting: 'waiting',
   Marking: 'marking',

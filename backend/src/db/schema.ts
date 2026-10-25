@@ -1,4 +1,4 @@
-import { AgeGroup, Class, Dance, Discipline, PaymentStatus, Role, RoundStatus, RoundType } from '@bis/shared'
+import { AgeGroup, Class, Dance, Discipline, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Drizzle wants a non-empty tuple of the allowed strings
@@ -17,6 +17,8 @@ export const competitions = sqliteTable('competitions', {
   organizer: text('organizer').notNull(),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
+  // When the running order starts, "HH:MM"; each slot's time is worked out from it
+  programStart: text('program_start'),
   // Cloud only: the venue that downloaded this competition and now runs it. While held, entries and payments for it
   // cannot change online, so there is only ever one place making changes.
   heldBy: text('held_by'),
@@ -182,6 +184,27 @@ export const rounds = sqliteTable(
     publishedAt: text('published_at'),
   },
   (t) => [uniqueIndex('rounds_once_per_event').on(t.eventId, t.type)],
+)
+
+// The running order: rounds, breaks and awarding in the order they are danced. A round slot names an event and a round
+// type rather than a round row, because rounds only exist once the scrutineer has planned them.
+export const programSlots = sqliteTable(
+  'program_slots',
+  {
+    id: id(),
+    competitionId: text('competition_id')
+      .notNull()
+      .references(() => competitions.id, { onDelete: 'cascade' }),
+    // 1 is first; renumbered from 1 after every change
+    sequence: integer('sequence').notNull(),
+    kind: text('kind', { enum: oneOf(ProgramKind) }).notNull(),
+    eventId: text('event_id').references(() => events.id, { onDelete: 'cascade' }),
+    roundType: text('round_type', { enum: oneOf(RoundType) }),
+    // Names a break or the awarding
+    label: text('label'),
+    minutes: integer('minutes').notNull(),
+  },
+  (t) => [index('program_slots_order').on(t.competitionId, t.sequence)],
 )
 
 export const heats = sqliteTable(

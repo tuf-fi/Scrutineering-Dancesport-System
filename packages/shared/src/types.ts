@@ -4,6 +4,8 @@ import type {
   Dance,
   Discipline,
   PaymentStatus,
+  ProgramKind,
+  ProgramStatus,
   Role,
   RoundStatus,
   RoundType,
@@ -261,6 +263,46 @@ export interface ScheduleItem {
   dances: Dance[]
   isSolo: boolean
   rounds: Array<{ type: RoundType; status: RoundStatus }>
+}
+
+// One line of the running order: a round, a break or the awarding
+export interface ProgramRow {
+  slotId: Id
+  // 1 is first
+  sequence: number
+  kind: ProgramKind
+  // "HH:MM" on the 24 hour clock; null until the secretariat sets the start time
+  startTime: string | null
+  minutes: number
+  // Names a break or the awarding
+  label: string | null
+  // The rest is set for round slots only
+  eventId: Id | null
+  eventNumber: number | null
+  ageGroup: AgeGroup | null
+  class: Class | null
+  discipline: Discipline | null
+  isSolo: boolean | null
+  dances: Dance[]
+  roundType: RoundType | null
+  // How many each adjudicator marks X; null for a final
+  recallNumber: number | null
+  // Dancing in this round, as far as it is known
+  entryCount: number
+  // Letters of the adjudicators on the event's panel
+  panel: string[]
+  status: ProgramStatus
+}
+
+export interface Program {
+  // "HH:MM"; null until set
+  start: string | null
+  rows: ProgramRow[]
+}
+
+export interface ProgramSlotInput {
+  minutes?: number
+  label?: string
 }
 
 export interface ImportResult {

@@ -2,6 +2,7 @@ import { Role } from '@bis/shared'
 import { fail, type Ctx } from './core/context.ts'
 import { admin } from './services/admin.ts'
 import { club } from './services/club.ts'
+import { program } from './services/program.ts'
 import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
 import { scrutiny } from './services/scrutiny.ts'
@@ -38,6 +39,7 @@ const handlers: Record<string, Handler> = {
   ...reads,
   ...admin,
   ...secretariat,
+  ...program,
   ...rounds,
   ...scrutiny,
   ...club,
@@ -63,6 +65,7 @@ const access: Record<string, Access> = {
   getClubs: 'public',
   getResultEventIds: 'public',
   getCompetitionRounds: 'public',
+  getProgram: 'public',
   // Public only once the round is published; staff see them as the round runs
   getRecallTable: 'public',
   getSkatingTable: 'public',
@@ -118,6 +121,12 @@ const access: Record<string, Access> = {
   createLateEntry: ADMIN_OR_SECRETARIAT,
   markPaidAtVenue: ADMIN_OR_SECRETARIAT,
   moveScheduledEvent: ADMIN_OR_SECRETARIAT,
+  setProgramStart: ADMIN_OR_SECRETARIAT,
+  generateProgram: ADMIN_OR_SECRETARIAT,
+  addProgramBreak: ADMIN_OR_SECRETARIAT,
+  updateProgramSlot: ADMIN_OR_SECRETARIAT,
+  moveProgramSlot: ADMIN_OR_SECRETARIAT,
+  removeProgramSlot: ADMIN_OR_SECRETARIAT,
   updateCompetitor: ADMIN_OR_SECRETARIAT,
   deleteCompetitor: ADMIN_OR_SECRETARIAT,
   deleteLateEntry: ADMIN_OR_SECRETARIAT,

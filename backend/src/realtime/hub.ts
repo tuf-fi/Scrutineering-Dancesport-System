@@ -14,6 +14,8 @@ export interface Hub {
   // A round's results went public: the only thing the guest network receives, besides rankings
   published(info: { competitionId: string; eventId: string; roundId: string }): void
   rankings(): void
+  // The running order or what is on the floor changed: the only live signal besides results that guests receive
+  program(): void
   // A phone says it is alive, and which round it is holding unsent marks for, if any
   seen(adjudicatorId: string, holding?: string | null): void
   // The round a phone last said it holds unsent marks for
@@ -50,6 +52,7 @@ export function silentHub(presence = new Presence()): Hub & { sent: Array<{ even
     floor: (roundId) => void sent.push({ event: 'floor', payload: roundId }),
     published: (info) => void sent.push({ event: 'published', payload: info }),
     rankings: () => void sent.push({ event: 'rankings', payload: null }),
+    program: () => void sent.push({ event: 'program', payload: null }),
     seen: (id, holding) => presence.seen(id, holding ?? null),
     lastSeen: (id) => presence.lastSeen(id),
     holding: (id) => presence.holding(id),

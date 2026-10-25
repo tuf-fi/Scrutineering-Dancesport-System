@@ -32,7 +32,7 @@ describe('database', () => {
     expect(tableNames(sqlite)).toEqual(
       [
         'adjudicator_pins', 'adjudicators', 'audit_log', 'clubs', 'competitions', 'competitors', 'entries', 'events', 'final_tie_decisions',
-        'heat_competitors', 'heats', 'marks', 'outbox', 'panel_members', 'panels', 'payments', 'points_table',
+        'heat_competitors', 'heats', 'marks', 'outbox', 'panel_members', 'panels', 'payments', 'points_table', 'program_slots',
         'ranking_points', 'results', 'rounds', 'settings', 'staff_users', 'submissions', 'tie_decisions',
       ].sort(),
     )
