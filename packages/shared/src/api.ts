@@ -49,6 +49,7 @@ export const API_FUNCTIONS = [
   'getPanel',
   'getPanels',
   'getProgram',
+  'getEntriesByBackNumber',
   'setProgramStart',
   'generateProgram',
   'addProgramBreak',

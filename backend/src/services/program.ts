@@ -9,7 +9,7 @@ import {
   type ProgramRow,
   type ProgramSlotInput,
 } from '@bis/shared'
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
@@ -76,7 +76,6 @@ function build(ctx: Ctx, competitionId: string): Program {
   const roundOf = (slot: Slot) =>
     slot.eventId && slot.roundType ? roundsOfEvent(ctx, slot.eventId).find((r) => r.type === slot.roundType) : undefined
 
-  // TODO: floorRoundId stays at the venue, so online no line is ever "current"; sync it to show the live line there
   const states = slots.map((slot) => {
     const round = roundOf(slot)
     if (slot.kind !== ProgramKind.Round) return null
@@ -128,6 +127,21 @@ const changed = (ctx: Ctx) => ctx.defer(() => ctx.hub.program())
 
 export const program = {
   getProgram: (ctx: Ctx, competitionId: string): Program => build(ctx, competitionId),
+
+  // The events a back number is entered in, for "my entries" on the public program. Only event ids leave: heats and
+  // results are public anyway, and no names or clubs are given.
+  getEntriesByBackNumber(ctx: Ctx, competitionId: string, backNumber: number): string[] {
+    competitionRow(ctx, competitionId)
+    if (!Number.isInteger(backNumber)) return []
+    return ctx.db
+      .select({ eventId: t.events.id })
+      .from(t.entries)
+      .innerJoin(t.events, eq(t.events.id, t.entries.eventId))
+      .innerJoin(t.competitors, eq(t.competitors.id, t.entries.competitorId))
+      .where(and(eq(t.events.competitionId, competitionId), eq(t.competitors.backNumber, backNumber), eq(t.entries.scratched, false)))
+      .all()
+      .map((r) => r.eventId)
+  },
 
   setProgramStart(ctx: Ctx, competitionId: string, start: string | null): Program {
     const competition = competitionRow(ctx, competitionId)

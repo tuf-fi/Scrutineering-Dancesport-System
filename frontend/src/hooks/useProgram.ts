@@ -17,6 +17,14 @@ export const useProgram = (competitionId: string) =>
     refetchInterval: usePoll(POLL_MS),
   })
 
+// The events a back number is entered in; nothing is asked until the number is a whole number
+export const useEntriesByBackNumber = (competitionId: string, backNumber: number | null) =>
+  useQuery({
+    queryKey: ['entries-by-back-number', competitionId, backNumber],
+    queryFn: () => api.getEntriesByBackNumber(competitionId, backNumber as number),
+    enabled: competitionId !== '' && backNumber !== null,
+  })
+
 function useProgramWrite<TVars>(competitionId: string, mutationFn: (vars: TVars) => Promise<unknown>) {
   const queryClient = useQueryClient()
   return useMutation({

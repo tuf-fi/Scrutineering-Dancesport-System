@@ -64,6 +64,7 @@ const access: Record<string, Access> = {
   getResultEventIds: 'public',
   getCompetitionRounds: 'public',
   getProgram: 'public',
+  getEntriesByBackNumber: 'public',
   // Public only once the round is published; staff see them as the round runs
   getRecallTable: 'public',
   getSkatingTable: 'public',

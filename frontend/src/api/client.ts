@@ -137,6 +137,8 @@ export const getSchedule = (competitionId: string) => call<ScheduleItem[]>('getS
 export const moveScheduledEvent = (_actorId: string, competitionId: string, eventId: string, direction: 'up' | 'down') =>
   call<ScheduleItem[]>('moveScheduledEvent', competitionId, eventId, direction)
 export const getProgram = (competitionId: string) => call<Program>('getProgram', competitionId)
+export const getEntriesByBackNumber = (competitionId: string, backNumber: number) =>
+  call<string[]>('getEntriesByBackNumber', competitionId, backNumber)
 export const setProgramStart = (_actorId: string, competitionId: string, start: string | null) =>
   call<Program>('setProgramStart', competitionId, start)
 export const generateProgram = (_actorId: string, competitionId: string) => call<Program>('generateProgram', competitionId)

@@ -18,9 +18,24 @@ describe('filterProgram', () => {
   })
 })
 
+describe('filterProgram for my entries', () => {
+  const mine = (id: string, eventId: string) => ({ ...round(1, 'final'), slotId: id, eventId }) as ProgramRow
+  const list = [mine('a', 'e1'), lunch, mine('b', 'e2'), mine('c', 'e3')]
+
+  it('keeps only the events given, and the breaks', () => {
+    expect(filterProgram(list, '', 'all', new Set(['e2', 'e3'])).map((r) => r.slotId)).toEqual(['b1', 'b', 'c'])
+    expect(filterProgram(list, '', 'all', new Set()).map((r) => r.slotId)).toEqual(['b1'])
+  })
+
+  it('shows everything when no back number is set', () => {
+    expect(filterProgram(list, '', 'all', null)).toHaveLength(4)
+  })
+})
+
 describe('programPrintPath', () => {
   it('carries only the filters that are set', () => {
     expect(programPrintPath('c1', '', 'all')).toBe('/competitions/c1/program/print')
     expect(programPrintPath('c1', ' Samba ', 'final', true)).toBe('/competitions/c1/program/print?q=Samba&round=final&pdf=1')
+    expect(programPrintPath('c1', '', 'all', false, ' 42 ')).toBe('/competitions/c1/program/print?back=42')
   })
 })

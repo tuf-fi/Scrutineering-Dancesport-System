@@ -2,7 +2,7 @@ import { ProgramKind } from '@bis/shared'
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useProgram } from '../../hooks/index.ts'
+import { useCompetition, useEntriesByBackNumber, useProgram } from '../../hooks/index.ts'
 import {
   AGE_GROUP_LABEL,
   ROUND_TYPE_LABEL,
@@ -36,22 +36,29 @@ export function ProgramPrintPage() {
   const [printedAt] = useState(() => new Date())
   const query = params.get('q') ?? ''
   const round = params.get('round') ?? 'all'
+  const back = params.get('back') ?? ''
+  const number = /^\d+$/.test(back.trim()) ? Number(back) : null
+  const mine = useEntriesByBackNumber(competitionId, number)
   const pdf = params.get('pdf') === '1'
-  const ready = Boolean(competition.data && program.data)
+  const ready = Boolean(competition.data && program.data && (number === null || mine.data))
 
   useEffect(() => {
     if (pdf && ready) window.print()
   }, [pdf, ready])
 
-  if (competition.isError || program.isError) {
-    return <ErrorState onRetry={() => void Promise.all([competition.refetch(), program.refetch()])} />
+  if (competition.isError || program.isError || mine.isError) {
+    return <ErrorState onRetry={() => void Promise.all([competition.refetch(), program.refetch(), mine.refetch()])} />
   }
-  if (!competition.data || !program.data) return <Skeleton className="h-96 w-full" />
+  if (!competition.data || !program.data || (number !== null && !mine.data)) return <Skeleton className="h-96 w-full" />
 
   const all = program.data.rows
-  const rows = filterProgram(all, query, round)
+  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data))
   const filtered = rows.length !== all.length
-  const filter = [query.trim() && `“${query.trim()}”`, round !== 'all' && ROUND_TYPE_LABEL[round as keyof typeof ROUND_TYPE_LABEL]]
+  const filter = [
+    query.trim() && `“${query.trim()}”`,
+    round !== 'all' && ROUND_TYPE_LABEL[round as keyof typeof ROUND_TYPE_LABEL],
+    number !== null && `back number ${number}`,
+  ]
     .filter(Boolean)
     .join(', ')
 

@@ -6,6 +6,7 @@ import {
   Button,
   ButtonLink,
   ErrorState,
+  Input,
   PageHeader,
   SearchField,
   Select,
@@ -14,7 +15,7 @@ import {
   Toolbar,
   ToolbarActions,
 } from '../../components/ui/index.ts'
-import { useCompetition, useProgram } from '../../hooks/index.ts'
+import { useCompetition, useEntriesByBackNumber, useProgram } from '../../hooks/index.ts'
 import {
   ROUND_TYPE_LABEL,
   eventCode,
@@ -65,6 +66,10 @@ export function ProgramPage() {
   const program = useProgram(competitionId)
   const [query, setQuery] = useState('')
   const [round, setRound] = useState('all')
+  const [back, setBack] = useState('')
+  // A back number is a whole number; anything else filters nothing
+  const number = /^\d+$/.test(back.trim()) ? Number(back) : null
+  const mine = useEntriesByBackNumber(competitionId, number)
 
   if (competition.isError || program.isError) {
     return <ErrorState onRetry={() => void Promise.all([competition.refetch(), program.refetch()])} />
@@ -72,11 +77,11 @@ export function ProgramPage() {
   if (!competition.data) return <Skeleton className="h-24 w-full max-w-xl" />
 
   const all = program.data?.rows ?? []
-  const rows = filterProgram(all, query, round)
+  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data ?? []))
   const now = all.find((r) => r.status === ProgramStatus.Current)
   const next = all.find((r) => r.status === ProgramStatus.Next)
   const finished = all.length > 0 && all.every((r) => r.status === ProgramStatus.Completed)
-  const filtered = query.trim() !== '' || round !== 'all'
+  const filtered = query.trim() !== '' || round !== 'all' || back.trim() !== ''
 
   return (
     <div className="flex flex-col gap-8">
@@ -112,12 +117,15 @@ export function ProgramPage() {
             ))}
           </Select>
         </div>
+        <div className="w-full sm:w-36">
+          <Input label="Back number" inputMode="numeric" value={back} onChange={(e) => setBack(e.target.value)} className="font-mono tabular-nums" />
+        </div>
         {all.length > 0 && (
           <ToolbarActions>
-            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round)} target="_blank">
+            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, false, back)} target="_blank">
               Print
             </ButtonLink>
-            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, true)} target="_blank">
+            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, true, back)} target="_blank">
               PDF
             </ButtonLink>
           </ToolbarActions>
@@ -125,7 +133,7 @@ export function ProgramPage() {
       </Toolbar>
 
       <Table<ProgramRow>
-        loading={program.isLoading}
+        loading={program.isLoading || (number !== null && mine.isLoading)}
         rows={rows}
         rowKey={(r) => r.slotId}
         minWidthClass="min-w-0"
@@ -144,6 +152,7 @@ export function ProgramPage() {
                     onClick={() => {
                       setQuery('')
                       setRound('all')
+                      setBack('')
                     }}
                   >
                     Clear filters

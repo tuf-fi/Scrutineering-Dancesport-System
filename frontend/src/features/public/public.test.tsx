@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { generateProgram, setProgramStart } from '../../mocks/api.ts'
+import { generateProgram, getCompetitors, getEntriesByBackNumber, getProgram, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 // The table shows skeleton rows first, so wait until real rows (with a competitor link) arrive
@@ -230,6 +230,35 @@ describe('program page', () => {
     await userEvent.selectOptions(screen.getByLabelText('Round'), 'final')
     expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print?q=Samba&round=final')
     expect(screen.getByRole('link', { name: 'PDF' })).toHaveAttribute('target', '_blank')
+  })
+
+  it('shows only the events of a back number, keeps it in the printout link, and clears with the filters', async () => {
+    // A back number that is entered in some events but not all of them
+    let chosen = { number: 0, events: [] as string[] }
+    for (const c of await getCompetitors()) {
+      if (c.backNumber === null) continue
+      const events = await getEntriesByBackNumber('comp-sorsogon-2026', c.backNumber)
+      if (events.length > 0 && events.length < 5) {
+        chosen = { number: c.backNumber, events }
+        break
+      }
+    }
+    expect(chosen.number).toBeGreaterThan(0)
+    const program = await getProgram('comp-sorsogon-2026')
+    const expected = program.rows.filter((r) => r.eventId !== null && chosen.events.includes(r.eventId)).length
+
+    renderApp('/competitions/comp-sorsogon-2026/program')
+    await programRows()
+    await userEvent.type(screen.getByLabelText('Back number'), String(chosen.number))
+    await waitFor(() => expect(screen.getByText(new RegExp(`^1–${Math.min(expected, 10)}$`))).toBeInTheDocument())
+    expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', `/competitions/comp-sorsogon-2026/program/print?back=${chosen.number}`)
+
+    await userEvent.clear(screen.getByLabelText('Back number'))
+    await userEvent.type(screen.getByLabelText('Back number'), '999999')
+    expect(await screen.findByText('No lines match')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(screen.getByLabelText('Back number')).toHaveValue('')
+    expect(await programRows()).toHaveLength(10)
   })
 
   it('says so when a competition has no program yet', async () => {

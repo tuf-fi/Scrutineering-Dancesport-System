@@ -102,6 +102,30 @@ describe('the program', () => {
   })
 })
 
+describe('my entries', () => {
+  it('gives the events a back number is entered in, and nothing else', async () => {
+    const row = app.sqlite
+      .prepare('select c.back_number as b from competitors c join entries e on e.competitor_id = c.id join events ev on ev.id = e.event_id where ev.competition_id = ? and e.scratched = 0 and c.back_number is not null group by c.id having count(*) > 1 limit 1')
+      .get(COMP) as { b: number }
+    const expected = (app.sqlite
+      .prepare('select e.event_id as id from entries e join competitors c on c.id = e.competitor_id join events ev on ev.id = e.event_id where c.back_number = ? and ev.competition_id = ? and e.scratched = 0')
+      .all(row.b, COMP) as Array<{ id: string }>).map((r) => r.id)
+    expect(expected.length).toBeGreaterThan(1)
+    const guest = await app.ok<string[]>('getEntriesByBackNumber', [COMP, row.b])
+    expect([...guest].sort()).toEqual([...expected].sort())
+    expect(await app.ok<string[]>('getEntriesByBackNumber', [COMP, 999999])).toEqual([])
+    expect(await app.ok<string[]>('getEntriesByBackNumber', [COMP, 'abc'])).toEqual([])
+  })
+
+  it('leaves out a scratched entry', async () => {
+    const row = app.sqlite
+      .prepare('select e.id as entry, e.event_id as event, c.back_number as b from entries e join competitors c on c.id = e.competitor_id join events ev on ev.id = e.event_id where ev.competition_id = ? and e.scratched = 0 and c.back_number is not null limit 1')
+      .get(COMP) as { entry: string; event: string; b: number }
+    app.sqlite.prepare('update entries set scratched = 1 where id = ?').run(row.entry)
+    expect(await app.ok<string[]>('getEntriesByBackNumber', [COMP, row.b])).not.toContain(row.event)
+  })
+})
+
 describe('the status of each line', () => {
   beforeAll(async () => {
     await app.ok('planRounds', [COMP], scrutineer)

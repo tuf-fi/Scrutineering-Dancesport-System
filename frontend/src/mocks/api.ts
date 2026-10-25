@@ -756,6 +756,17 @@ export const moveScheduledEvent = (
   })
 
 export const getProgram = (competitionId: string) => reply(sampleProgram.programOf(competitionId))
+export const getEntriesByBackNumber = (competitionId: string, backNumber: number) =>
+  reply(
+    entries
+      .filter(
+        (e) =>
+          !e.scratched &&
+          competitors.find((c) => c.id === e.competitorId)?.backNumber === backNumber &&
+          events.find((ev) => ev.id === e.eventId)?.competitionId === competitionId,
+      )
+      .map((e) => e.eventId),
+  )
 export const setProgramStart = (actorId: string, competitionId: string, start: string | null) =>
   settle<Program>(() => {
     record(actorId, 'Set program start', competitionId)

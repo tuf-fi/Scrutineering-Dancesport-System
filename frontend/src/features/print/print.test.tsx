@@ -1,7 +1,7 @@
 import { Role } from '@bis/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
-import { generateProgram, setProgramStart } from '../../mocks/api.ts'
+import { generateProgram, getCompetitors, getEntriesByBackNumber, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 const staff = { id: 'staff-scrutineer', name: 'Teresita Quimpo' }
@@ -102,6 +102,20 @@ describe('program printout', () => {
     expect(rows.length).toBeGreaterThan(0)
     for (const row of rows) expect(within(row).getAllByRole('cell')[3]).toHaveTextContent('Final')
     expect(screen.getByText(/filtered by Final\.$/)).toBeInTheDocument()
+  })
+
+  it('prints only the events of a back number and says so', async () => {
+    let number = 0
+    for (const c of await getCompetitors()) {
+      if (c.backNumber !== null && (await getEntriesByBackNumber(COMP, c.backNumber)).length > 0) {
+        number = c.backNumber
+        break
+      }
+    }
+    renderApp(`/competitions/${COMP}/program/print?back=${number}`)
+    await screen.findByText(/filtered by back number/)
+    expect(screen.getByText(/filtered by back number/).textContent).toMatch(new RegExp(`back number ${number}[.]$`))
+    expect(sheetRows().length).toBeGreaterThan(0)
   })
 
   it('opens the print dialog at once for the PDF link', async () => {
