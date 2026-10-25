@@ -104,7 +104,7 @@ describe('every role, using the functions the screens call', () => {
 
   it('runs an adjudicator\'s phone', async () => {
     useDevice('phone-d')
-    await client.signInAdjudicator('4433')
+    await client.signInAdjudicator('443300')
     const state = await client.getAdjudicatorState('ignored-own-id')
     if (state.status !== 'marking') throw new Error(`expected marking, got ${state.status}`)
     const { task } = state

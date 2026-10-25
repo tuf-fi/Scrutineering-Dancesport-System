@@ -14,11 +14,11 @@ export const adjudicators: Adjudicator[] = NAMES.map((name, i) => ({
   letter: String.fromCharCode(65 + i),
 }))
 
-// Sample PINs: 4 digits, fixed so a tester can sign in
+// Sample PINs: six digits, fixed so a tester can sign in
 export const adjudicatorPins: AdjudicatorPin[] = adjudicators.map((a, i) => ({
   competitionId: currentCompetitionId,
   adjudicatorId: a.id,
-  pin: String(4100 + i * 111),
+  pin: `${4100 + i * 111}00`,
 }))
 
 // Solo events use seven adjudicators (A to G); couple events use nine (A to I)

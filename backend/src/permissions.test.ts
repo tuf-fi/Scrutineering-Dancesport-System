@@ -13,7 +13,7 @@ beforeAll(async () => {
   cookies.scrutineer = await app.signIn.staff('scrutineer')
   cookies.chairperson = await app.signIn.staff('chairperson')
   cookies.mc = await app.signIn.staff('mc')
-  cookies.adjudicator = await app.signIn.adjudicator('4100')
+  cookies.adjudicator = await app.signIn.adjudicator('410000')
   const club = (await app.ok<Array<{ contactEmail: string }>>('getClubs', [], cookies.admin))[0]!
   cookies.club = await app.signIn.club(club.contactEmail)
 })

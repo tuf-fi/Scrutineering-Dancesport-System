@@ -126,3 +126,23 @@ describe('program printout', () => {
     print.mockRestore()
   })
 })
+
+describe('PIN cards', () => {
+  const admin = { id: 'staff-admin', name: 'Amelia Rosales' }
+
+  it('prints a card for every adjudicator with a PIN and a QR code that carries it after a #', async () => {
+    renderApp('/print/pin-cards/comp-sorsogon-2026', Role.Admin, admin)
+    const list = await screen.findByRole('list', { name: 'PIN cards' })
+    const cards = within(list).getAllByRole('listitem')
+    expect(cards.length).toBeGreaterThan(5)
+    expect(within(cards[0]!).getByText('410000')).toBeInTheDocument()
+    const qr = await within(cards[0]!).findByRole('img', { name: /^Sign-in code for / })
+    const svg = decodeURIComponent(qr.getAttribute('src')!.replace('data:image/svg+xml;utf8,', ''))
+    expect(svg).toContain('<svg')
+  })
+
+  it('says so when no PINs exist yet', async () => {
+    renderApp('/print/pin-cards/comp-legazpi-2026', Role.Admin, admin)
+    expect(await screen.findByText('No PINs yet')).toBeInTheDocument()
+  })
+})

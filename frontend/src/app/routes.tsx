@@ -37,6 +37,7 @@ import { FinalResultsPage } from '../features/print/FinalResultsPage.tsx'
 import { HeatListPage } from '../features/print/HeatListPage.tsx'
 import { PrintIndexPage } from '../features/print/PrintIndexPage.tsx'
 import { ProgramPrintPage } from '../features/print/ProgramPrintPage.tsx'
+import { PinCardsPage } from '../features/print/PinCardsPage.tsx'
 import { QualifiedPage } from '../features/print/QualifiedPage.tsx'
 import { ScoresPage } from '../features/print/ScoresPage.tsx'
 import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
@@ -155,6 +156,7 @@ export const routes: RouteObject[] = [
               { path: 'scores/:eventId', element: <ScoresPage /> },
               { path: 'results/:eventId', element: <FinalResultsPage /> },
               { path: 'blank-sheets/:eventId', element: <BlankSheetsPage /> },
+              { path: 'pin-cards/:competitionId', element: <PinCardsPage /> },
             ],
           },
         ],

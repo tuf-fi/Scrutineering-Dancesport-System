@@ -16,7 +16,7 @@ const start = async (env: Record<string, string> = {}) => {
 const from = (app: TestApp, ip: string, url: string, payload: object) =>
   app.app.inject({ method: 'POST', url, payload, remoteAddress: ip })
 const pin = (app: TestApp, ip: string, value: string) => from(app, ip, '/api/auth/adjudicator', { pin: value })
-const wrongPin = (i: number) => String(1000 + i)
+const wrongPin = (i: number) => String(100000 + i)
 
 describe('guessing a PIN', () => {
   it('runs out across addresses, because one address at a time would never reach the limit', async () => {
@@ -24,14 +24,14 @@ describe('guessing a PIN', () => {
     for (let i = 0; i < 25; i++) expect((await pin(app, `10.0.0.${i}`, wrongPin(i))).statusCode).toBe(401)
     // The next guess from a fresh address is stopped, and so is a correct PIN: that is the price of the lock
     expect((await pin(app, '10.0.1.1', wrongPin(99))).statusCode).toBe(429)
-    expect((await pin(app, '10.0.1.2', '4100')).statusCode).toBe(429)
+    expect((await pin(app, '10.0.1.2', '410000')).statusCode).toBe(429)
   })
 
   it('is not reset by a success, so one valid PIN does not buy more guesses', async () => {
     const app = await start()
     for (let i = 0; i < 24; i++) {
       await pin(app, `10.0.0.${i}`, wrongPin(i))
-      if (i % 6 === 0) expect((await pin(app, `10.0.2.${i}`, '4100')).statusCode).toBe(200)
+      if (i % 6 === 0) expect((await pin(app, `10.0.2.${i}`, '410000')).statusCode).toBe(200)
     }
     expect((await pin(app, '10.0.3.1', wrongPin(50))).statusCode).toBe(401)
     expect((await pin(app, '10.0.3.2', wrongPin(51))).statusCode).toBe(429)
@@ -40,7 +40,7 @@ describe('guessing a PIN', () => {
   it('records every failed and successful sign-in', async () => {
     const app = await start()
     await pin(app, '10.0.0.1', '0000')
-    await pin(app, '10.0.0.2', '4100')
+    await pin(app, '10.0.0.2', '410000')
     const log = app.sqlite.prepare("select action, target from audit_log where action like '%sign-in%' or action like '%signed in%'").all()
     expect(log).toEqual(expect.arrayContaining([{ action: 'Failed PIN sign-in', target: '10.0.0.1' }]))
     expect(log.some((l) => (l as { action: string }).action === 'Adjudicator signed in')).toBe(true)
@@ -87,9 +87,9 @@ describe('the PIN window', () => {
   it('closes a PIN once the competition is more than a day away, and opens it on the day', async () => {
     const app = await start({ ADJUDICATOR_PIN_DAYS: '1' })
     // The sample competition is in the past, so its PINs are no use now
-    expect((await pin(app, '10.4.0.1', '4100')).statusCode).toBe(401)
+    expect((await pin(app, '10.4.0.1', '410000')).statusCode).toBe(401)
     app.sqlite.prepare('update competitions set date = ?').run(today())
-    expect((await pin(app, '10.4.0.2', '4100')).statusCode).toBe(200)
+    expect((await pin(app, '10.4.0.2', '410000')).statusCode).toBe(200)
   })
 
   it('is off by default outside production, and on (one day) in production', () => {

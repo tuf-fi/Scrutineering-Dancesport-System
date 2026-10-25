@@ -15,7 +15,7 @@ beforeAll(async () => {
   admin = await app.signIn.staff('admin')
   secretariat = await app.signIn.staff('secretariat')
   scrutineer = await app.signIn.staff('scrutineer')
-  adjudicator = await app.signIn.adjudicator('4877')
+  adjudicator = await app.signIn.adjudicator('487700')
 })
 afterAll(() => app.close())
 

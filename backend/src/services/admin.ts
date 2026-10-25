@@ -1,4 +1,4 @@
-import { PaymentStatus, Role, type AccountKind, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PaymentDetail, type PointsRow, type StaffUser } from '@bis/shared'
+import { PIN_LENGTH, PaymentStatus, Role, type AccountKind, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PaymentDetail, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -149,7 +149,7 @@ export const admin = {
     const taken = new Set(inCompetition().map((p) => p.pin))
     const nextPin = () => {
       for (;;) {
-        const pin = String(randomInt(1000, 10000))
+        const pin = String(randomInt(10 ** (PIN_LENGTH - 1), 10 ** PIN_LENGTH))
         if (!taken.has(pin)) {
           taken.add(pin)
           return pin

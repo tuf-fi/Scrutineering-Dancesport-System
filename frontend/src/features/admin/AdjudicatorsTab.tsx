@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Avatars } from '../../components/Avatars.tsx'
 import {
   Button,
+  ButtonLink,
   Dialog,
   ErrorState,
   IconButton,
@@ -81,6 +82,11 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
         <SearchField className="w-full sm:w-72" label="Search adjudicators" value={query} onChange={setQuery} />
         <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />
         <ToolbarActions>
+          {competitionId && pins.data && pins.data.length > 0 && (
+            <ButtonLink variant="secondary" to={`/print/pin-cards/${competitionId}`} target="_blank">
+              Print PIN cards
+            </ButtonLink>
+          )}
           <Button variant="secondary" disabled={missing === 0 || generate.isPending} onClick={() => run()}>
             {missing === 0 ? 'Everyone has a PIN' : `Generate ${missing} missing`}
           </Button>

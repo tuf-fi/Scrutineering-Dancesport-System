@@ -99,7 +99,7 @@ beforeAll(async () => {
     if (loseResponses) throw new TypeError('network connection lost')
     return res
   })
-  await client.signInAdjudicator('4433')
+  await client.signInAdjudicator('443300')
 })
 afterEach(() => {
   loseResponses = false
@@ -147,7 +147,7 @@ describe('an adjudicator on a bad day', () => {
   it('does not count marks twice when the server stored them but the reply was lost', async () => {
     // Another adjudicator on the same panel, on the same phone
     jar.clear()
-    await client.signInAdjudicator('4544')
+    await client.signInAdjudicator('454400')
     const state = await client.getAdjudicatorState('x')
     if (state.status !== 'marking') throw new Error('expected marking')
     const ids = state.task.competitors.slice(0, 12).map((c) => c.id)
@@ -172,7 +172,7 @@ describe('an adjudicator on a bad day', () => {
     // Adjudicator D's marks were acknowledged (first test). Laptop 2 then died and the newest backup, taken a moment
     // earlier, did not have them: the same as removing them from the database.
     jar.clear()
-    await client.signInAdjudicator('4433')
+    await client.signInAdjudicator('443300')
     expect((await client.getAdjudicatorState('x')).status).toBe('submitted')
     await stopServer()
     const raw = openDatabase(dbPath).sqlite
@@ -218,7 +218,7 @@ describe('an adjudicator on a bad day', () => {
     useOutbox.setState({ pending: null })
     await useOutbox.getState().save({ adjudicatorId: 'adj-d', roundId: LIVE, submissions: [{ dance: 'cha_cha_cha', competitorIds: ['c1'] }] })
     jar.clear()
-    await client.signInAdjudicator('4433')
+    await client.signInAdjudicator('443300')
     const refused = await phoneTick()
     expect(refused).toMatchObject({ result: 'dropped' })
     expect(useOutbox.getState().pending).toBeNull()

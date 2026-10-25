@@ -108,25 +108,25 @@ describe('accounts changing', () => {
 
 describe('adjudicator PIN sign-in', () => {
   it('signs in with a PIN for the current competition', async () => {
-    const res = await post('/api/auth/adjudicator', { pin: '4100' })
+    const res = await post('/api/auth/adjudicator', { pin: '410000' })
     expect(res.statusCode).toBe(200)
     expect(res.json().data).toMatchObject({ role: 'adjudicator', letter: 'A' })
   })
 
   it('refuses an unknown PIN and limits guessing', async () => {
     expect((await post('/api/auth/adjudicator', { pin: '0000' })).statusCode).toBe(401)
-    for (let i = 0; i < 7; i++) await post('/api/auth/adjudicator', { pin: String(1000 + i) })
-    expect((await post('/api/auth/adjudicator', { pin: '4100' })).statusCode).toBe(429)
+    for (let i = 0; i < 7; i++) await post('/api/auth/adjudicator', { pin: String(100000 + i) })
+    expect((await post('/api/auth/adjudicator', { pin: '410000' })).statusCode).toBe(429)
   })
 
   it('stops working when the admin changes the PIN', async () => {
     const admin = await app.signIn.staff('admin')
     const competition = (await app.ok<Array<{ id: string }>>('getCompetitions', [], admin)).find((c) => c.id === 'comp-sorsogon-2026')!
     await app.ok('generatePins', [competition.id, 'adj-a'], admin)
-    expect((await post('/api/auth/adjudicator', { pin: '4100' })).statusCode).toBe(401)
+    expect((await post('/api/auth/adjudicator', { pin: '410000' })).statusCode).toBe(401)
     const pins = await app.ok<Array<{ adjudicatorId: string; pin: string }>>('getAdjudicatorPins', [competition.id], admin)
     const fresh = pins.find((p) => p.adjudicatorId === 'adj-a')!.pin
-    expect(fresh).toMatch(/^\d{4}$/)
+    expect(fresh).toMatch(/^\d{6}$/)
     expect((await post('/api/auth/adjudicator', { pin: fresh })).statusCode).toBe(200)
     // PINs stay unique within the competition
     expect(new Set(pins.map((p) => p.pin)).size).toBe(pins.length)

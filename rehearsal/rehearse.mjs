@@ -185,7 +185,7 @@ try {
   phoneD.page.on('console', (m) => seen.push(`CONSOLE ${m.type()} ${m.text().slice(0, 160)}`))
   phoneD.page.on('pageerror', (e) => seen.push(`PAGEERROR ${String(e).slice(0, 160)}`))
   await step('1b. Adjudicator D signs in with a PIN and gets the mark screen', async () => {
-    await signInPhone(phoneD.page, '4433')
+    await signInPhone(phoneD.page, '443300')
     await phoneD.page.getByText('Mark an X for exactly 12').waitFor()
     await phoneD.page.screenshot({ path: join(SHOTS, '02-phone-mark.png') })
     return 'mark screen: X for exactly 12'
@@ -249,7 +249,7 @@ try {
   // ================= 4. Server stopped and restarted mid-round =================
   const phoneE = await phone(join(work, 'phone-e'))
   browsers.push(phoneE.ctx)
-  await signInPhone(phoneE.page, '4544')
+  await signInPhone(phoneE.page, '454400')
   await markX(phoneE.page)
   await step('4a. Server stopped while a phone confirms its marks: they are held', async () => {
     await kill(server)

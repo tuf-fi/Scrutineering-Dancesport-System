@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { PIN_LENGTH } from '@bis/shared'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { roleHome } from '../../app/nav.ts'
 import { Brand } from '../../components/Brand.tsx'
@@ -7,8 +8,6 @@ import { DevHint } from '../auth/DevHint.tsx'
 import { useCompetitions, useSignInAdjudicator } from '../../hooks/index.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { PinKeypad } from './PinKeypad.tsx'
-
-const PIN_LENGTH = 4
 
 // One column on phones and tablets; competition panel beside it from laptop width
 export function AdjudicatorSignIn() {
@@ -20,22 +19,37 @@ export function AdjudicatorSignIn() {
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)
 
+  const { mutate } = signInWithPin
+  const submit = useCallback(
+    (value: string) =>
+      mutate(value, {
+        onSuccess: (session) => {
+          signIn(session)
+          navigate(roleHome[session.role], { replace: true })
+        },
+        onError: (e) => {
+          setError(e.message)
+          setPin('')
+        },
+      }),
+    [mutate, signIn, navigate],
+  )
+
+  // A QR code on the PIN card opens /adjudicator#pin=123456. The PIN is after the #, which the browser never sends to
+  // the server, and it is taken off the address at once so it is not left in the history.
+  useEffect(() => {
+    const match = /^#pin=(\d+)$/.exec(window.location.hash)
+    if (!match) return
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    if (match[1]!.length === PIN_LENGTH) submit(match[1]!)
+  }, [submit])
+
   if (user) return <Navigate to={roleHome[user.role]} replace />
 
   function handleChange(next: string) {
     setError(null)
     setPin(next)
-    if (next.length < PIN_LENGTH) return
-    signInWithPin.mutate(next, {
-      onSuccess: (session) => {
-        signIn(session)
-        navigate(roleHome[session.role], { replace: true })
-      },
-      onError: (e) => {
-        setError(e.message)
-        setPin('')
-      },
-    })
+    if (next.length >= PIN_LENGTH) submit(next)
   }
 
   return (

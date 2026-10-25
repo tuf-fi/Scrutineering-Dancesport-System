@@ -106,7 +106,7 @@ describe('adjudicator PIN sign-in', () => {
   it('signs in with a valid PIN and shows the adjudicator letter', async () => {
     const router = renderAt('/adjudicator')
     await screen.findByRole('heading', { name: 'Enter your PIN' })
-    for (const digit of '4100') await userEvent.click(screen.getByRole('button', { name: digit }))
+    for (const digit of '410000') await userEvent.click(screen.getByRole('button', { name: digit }))
     // A round is on the floor, so the waiting screen hands over to marking
     await screen.findByText(/Mark an X for exactly 12/)
     expect(router.state.location.pathname).toBe('/adjudicator/mark')
@@ -116,10 +116,27 @@ describe('adjudicator PIN sign-in', () => {
   it('rejects an unknown PIN and clears the entry', async () => {
     renderAt('/adjudicator')
     await screen.findByRole('heading', { name: 'Enter your PIN' })
-    for (const digit of '0000') await userEvent.click(screen.getByRole('button', { name: digit }))
+    for (const digit of '000000') await userEvent.click(screen.getByRole('button', { name: digit }))
     expect(await screen.findByText(/That PIN isn't registered/)).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent("That PIN isn't registered")
-    expect(screen.getByRole('img', { name: '0 of 4 digits entered' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: '0 of 6 digits entered' })).toBeInTheDocument()
+  })
+
+  it('signs in from the QR code on a PIN card, and takes the PIN off the address', async () => {
+    window.location.hash = '#pin=410000'
+    const router = renderAt('/adjudicator')
+    await screen.findByText(/Mark an X for exactly 12/)
+    expect(router.state.location.pathname).toBe('/adjudicator/mark')
+    expect(useAuth.getState().user?.letter).toBe('A')
+    expect(window.location.hash).toBe('')
+  })
+
+  it('ignores a QR code with a PIN of the wrong length', async () => {
+    window.location.hash = '#pin=4100'
+    renderAt('/adjudicator')
+    await screen.findByRole('heading', { name: 'Enter your PIN' })
+    expect(window.location.hash).toBe('')
+    expect(useAuth.getState().user).toBeNull()
   })
 
   it('makes every keypad key at least 56px tall', async () => {

@@ -15,9 +15,9 @@ const me = async (cookie: string) => (await app.me(cookie))?.name ?? null
 
 describe('one phone at a time for an adjudicator', () => {
   it('signs the first phone out when the same PIN signs in on a second one', async () => {
-    const first = await app.signIn.adjudicator('4100')
+    const first = await app.signIn.adjudicator('410000')
     expect(await me(first)).not.toBeNull()
-    const second = await app.signIn.adjudicator('4100')
+    const second = await app.signIn.adjudicator('410000')
     expect(await me(second)).not.toBeNull()
     expect(await me(first)).toBeNull()
     expect((await app.call('getAdjudicatorState', [], first)).status).toBe(401)
@@ -25,16 +25,16 @@ describe('one phone at a time for an adjudicator', () => {
   })
 
   it('does not touch other adjudicators', async () => {
-    const a = await app.signIn.adjudicator('4100')
-    await app.signIn.adjudicator('4211')
+    const a = await app.signIn.adjudicator('410000')
+    await app.signIn.adjudicator('421100')
     expect(await me(a)).not.toBeNull()
   })
 
   it('signs the old phone out when the admin gives a new PIN', async () => {
-    const phone = await app.signIn.adjudicator('4211')
+    const phone = await app.signIn.adjudicator('421100')
     const competition = (await app.ok<Array<{ id: string }>>('getCompetitions', [], admin))[0]!.id
     const pins = await app.ok<Array<{ adjudicatorId: string; pin: string }>>('getAdjudicatorPins', [competition], admin)
-    const adjudicator = pins.find((p) => p.pin === '4211')!.adjudicatorId
+    const adjudicator = pins.find((p) => p.pin === '421100')!.adjudicatorId
     await app.ok('generatePins', [competition, adjudicator], admin)
     expect(await me(phone)).toBeNull()
   })

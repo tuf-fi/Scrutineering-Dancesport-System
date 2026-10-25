@@ -185,7 +185,7 @@ describe('the session', () => {
   it('signs in and out through the auth routes', async () => {
     answerNext(() => reply(200, { data: { id: 'u', name: 'Admin', role: 'admin' } }))
     expect(await client.signInStaff('admin', 'pw')).toMatchObject({ role: 'admin' })
-    await client.signInAdjudicator('4100')
+    await client.signInAdjudicator('410000')
     await client.signInClub('a@b.c', 'pw')
     await client.signUpNewClub({ name: 'n', contactName: 'c', contactEmail: 'e@e.e', contactPhone: '1', password: 'longenough', agreed: true })
     await client.signOut()

@@ -24,7 +24,7 @@ const temp = () => {
 
 // The seeded live round: round 2 of the featured event, seven adjudicators, three already submitted
 const LIVE = 'comp-sorsogon-2026:e11:round_2'
-const PIN = (letterIndex: number) => String(4100 + letterIndex * 111)
+const PIN = (letterIndex: number) => `${4100 + letterIndex * 111}00`
 
 async function marksFor(app: TestApp, cookie: string): Promise<MarkSubmission[]> {
   const state = await app.ok<{ task: { recallNumber: number; competitors: Array<{ id: string }>; dances: string[] } }>('getAdjudicatorState', [], cookie)

@@ -83,7 +83,7 @@ describe('live updates', () => {
     const d = snapshot[3]!
     expect(d.status).toBe('waiting')
 
-    const phone = await signIn('/api/auth/adjudicator', { pin: String(4100 + 3 * 111) })
+    const phone = await signIn('/api/auth/adjudicator', { pin: `${4100 + 3 * 111}00` })
     const phoneSocket = await connect(phone)
     // Connecting counts as being heard from; the phone is now marking
     snapshot = (await call('getSubmissions', [LIVE], scrutineer)).body.data
@@ -103,7 +103,7 @@ describe('live updates', () => {
 
   it('flags a phone that has gone quiet', async () => {
     const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
-    const phone = await signIn('/api/auth/adjudicator', { pin: String(4100 + 4 * 111) })
+    const phone = await signIn('/api/auth/adjudicator', { pin: `${4100 + 4 * 111}00` })
     await call('getAdjudicatorState', [], phone)
     const recent = (await call('getSubmissions', [LIVE], scrutineer)).body.data as AdjudicatorSubmission[]
     expect(recent[4]).toMatchObject({ status: 'marking', quietSince: null })
@@ -122,7 +122,7 @@ describe('live updates', () => {
 
   it('shows the scrutineer a phone that is holding marks it has not been able to send', async () => {
     const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
-    const phone = await signIn('/api/auth/adjudicator', { pin: String(4100 + 5 * 111) })
+    const phone = await signIn('/api/auth/adjudicator', { pin: `${4100 + 5 * 111}00` })
     const phoneSocket = await connect(phone)
     const board = async () => ((await call('getSubmissions', [LIVE], scrutineer)).body.data as AdjudicatorSubmission[])[5]!
 

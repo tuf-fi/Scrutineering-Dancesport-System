@@ -306,7 +306,7 @@ describe('adjudicators and panels', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Generate 1 missing' }))
     expect(await screen.findByText('PINs generated')).toBeInTheDocument()
     const row = await screen.findByRole('row', { name: /Cecilia R. Ventura/ })
-    expect(within(row).getByText(/^\d{4}$/)).toBeInTheDocument()
+    expect(within(row).getByText(/^\d{6}$/)).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Everyone has a PIN' })).toBeDisabled()
   })
 
@@ -353,10 +353,10 @@ describe('adjudicators and panels', () => {
   it('changes an adjudicator PIN', async () => {
     renderApp('/admin/adjudicators', Role.Admin)
     const row = await screen.findByRole('row', { name: /Patricia M. Dizon/ })
-    const before = within(row).getByText(/^\d{4}$/).textContent
+    const before = within(row).getByText(/^\d{6}$/).textContent
     await userEvent.click(within(row).getByRole('button', { name: 'New PIN for Patricia M. Dizon' }))
     expect(await screen.findByText('New PIN set')).toBeInTheDocument()
-    const after = within(await screen.findByRole('row', { name: /Patricia M. Dizon/ })).getByText(/^\d{4}$/).textContent
+    const after = within(await screen.findByRole('row', { name: /Patricia M. Dizon/ })).getByText(/^\d{6}$/).textContent
     expect(after).not.toBe(before)
   })
 

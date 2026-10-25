@@ -111,6 +111,9 @@ export const API_FUNCTIONS = [
 
 export type ApiFunction = (typeof API_FUNCTIONS)[number]
 
+// An adjudicator's PIN: six digits, so 900,000 values; it was four, which left only 9,000
+export const PIN_LENGTH = 6
+
 const PH_OFFSET_MS = 8 * 3_600_000
 
 // Whether a competition's date is within this many days of today, in Philippine time

@@ -16086,47 +16086,47 @@
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-a",
-   "pin": "4100"
+   "pin": "410000"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-b",
-   "pin": "4211"
+   "pin": "421100"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-c",
-   "pin": "4322"
+   "pin": "432200"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-d",
-   "pin": "4433"
+   "pin": "443300"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-e",
-   "pin": "4544"
+   "pin": "454400"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-f",
-   "pin": "4655"
+   "pin": "465500"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-g",
-   "pin": "4766"
+   "pin": "476600"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-h",
-   "pin": "4877"
+   "pin": "487700"
   },
   {
    "competitionId": "comp-sorsogon-2026",
    "adjudicatorId": "adj-i",
-   "pin": "4988"
+   "pin": "498800"
   }
  ],
  "panels": [

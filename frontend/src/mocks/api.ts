@@ -1,5 +1,6 @@
 import {
   DISCIPLINE_DANCES,
+  PIN_LENGTH,
   type AccountKind,
   parseCompetitorCsv,
   PaymentStatus,
@@ -337,7 +338,7 @@ export const generatePins = (actorId: string, competitionId: string, adjudicator
     const taken = new Set(inCompetition().map((p) => p.pin))
     const nextPin = () => {
       for (;;) {
-        const pin = String(1000 + Math.floor(Math.random() * 9000))
+        const pin = String(10 ** (PIN_LENGTH - 1) + Math.floor(Math.random() * 9 * 10 ** (PIN_LENGTH - 1)))
         if (!taken.has(pin)) {
           taken.add(pin)
           return pin
