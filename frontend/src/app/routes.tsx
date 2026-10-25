@@ -43,6 +43,7 @@ import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
 import { LateEntriesPage } from '../features/secretariat/LateEntriesPage.tsx'
+import { ProgramPage } from '../features/secretariat/ProgramPage.tsx'
 import { SchedulePage } from '../features/secretariat/SchedulePage.tsx'
 import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
 import { McLayout } from './layouts/McLayout.tsx'
@@ -113,6 +114,7 @@ export const routes: RouteObject[] = [
               { path: 'competitors', element: <CompetitorsPage /> },
               { path: 'late-entries', element: <LateEntriesPage /> },
               { path: 'schedule', element: <SchedulePage /> },
+              { path: 'program', element: <ProgramPage /> },
               { path: 'sync', element: <SyncPage /> },
             ],
           },

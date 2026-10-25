@@ -55,6 +55,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound },
     { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
     { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
+    { to: '/secretariat/program', label: 'Program', icon: ListOrdered },
     { to: '/secretariat/sync', label: 'Cloud sync', icon: Cloud },
   ],
   scrutineer: scrutineerNav,

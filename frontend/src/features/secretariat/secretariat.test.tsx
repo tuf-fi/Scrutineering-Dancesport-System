@@ -1,5 +1,5 @@
 import { Role } from '@bis/shared'
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderApp } from '../../test-utils.tsx'
@@ -263,5 +263,45 @@ describe('schedule', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Move E1 down' }))
     await waitFor(() => expect(within(bodyRows()[1]).getByText('E1')).toBeInTheDocument())
     expect(within(bodyRows()[0]).getByText('E2')).toBeInTheDocument()
+  })
+})
+
+describe('program', () => {
+  it('starts empty, generates from the events, sets the start time and adds a break', async () => {
+    renderApp('/secretariat/program', Role.Secretariat)
+    expect(await screen.findByText('No program yet')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }))
+    await waitFor(() => expect(bodyRows()).toHaveLength(10))
+    expect(screen.getByRole('button', { name: 'Add missing rounds' })).toBeInTheDocument()
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
+
+    const start = screen.getByLabelText('Starts at')
+    fireEvent.change(start, { target: { value: '07:00' } })
+    fireEvent.blur(start)
+    await waitFor(() => expect(within(bodyRows()[0]).getByText('7:00 AM')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add break' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add a break' })
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Lunch')
+    await userEvent.clear(within(dialog).getByLabelText('Minutes'))
+    await userEvent.type(within(dialog).getByLabelText('Minutes'), '45')
+    await userEvent.type(within(dialog).getByLabelText('After line'), '1')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
+    expect(await screen.findByText('Added Lunch')).toBeInTheDocument()
+    await waitFor(() => expect(within(bodyRows()[1]).getByText(/Lunch/)).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Move Lunch up' }))
+    await waitFor(() => expect(within(bodyRows()[0]).getByText(/Lunch/)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Move Lunch up' })).toBeDisabled()
+  })
+
+  it('refuses a break with no name and keeps the dialog open', async () => {
+    renderApp('/secretariat/program', Role.Secretariat)
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add break' })).toBeEnabled())
+    await userEvent.click(screen.getByRole('button', { name: 'Add break' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add a break' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Give it a name')
   })
 })

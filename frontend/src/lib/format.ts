@@ -4,6 +4,8 @@ import type {
   Discipline,
   Event,
   PaymentStatus,
+  ProgramRow,
+  ProgramStatus,
   Role,
   RoundType,
 } from '@bis/shared'
@@ -156,3 +158,25 @@ export function placeLabel(place: number): string {
   if (place === 7) return 'Semi-final'
   return 'Earlier round'
 }
+
+// "07:00" as "7:00 AM"; a dash until a start time is set
+export function formatClock(time: string | null): string {
+  if (!time) return '—'
+  const [h, m] = time.split(':').map(Number) as [number, number]
+  return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
+}
+
+export const PROGRAM_KIND_LABEL = { round: 'Round', break: 'Break', awarding: 'Awarding' } as const
+
+export const PROGRAM_STATUS_LABEL: Record<ProgramStatus, string> = {
+  upcoming: '',
+  next: 'Up next',
+  current: 'On the floor',
+  completed: 'Completed',
+}
+
+// What a program line is called in titles and messages
+export const programLineName = (row: ProgramRow) =>
+  row.kind === 'round' && row.eventNumber !== null && row.roundType
+    ? `${eventCode({ number: row.eventNumber })} ${eventDances(row)} · ${ROUND_TYPE_LABEL[row.roundType]}`
+    : (row.label ?? PROGRAM_KIND_LABEL[row.kind])
