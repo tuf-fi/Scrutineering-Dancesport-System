@@ -9,7 +9,8 @@ const searchText = (r: ProgramRow) =>
 // The lines a search and a round filter leave; the screen and the printout use the same rule
 export function filterProgram(rows: ProgramRow[], query: string, round: string): ProgramRow[] {
   const needle = query.trim().toLowerCase()
-  return rows.filter((r) => (round === 'all' || r.roundType === round) && (!needle || searchText(r).toLowerCase().includes(needle)))
+  // A break or the awarding has no round, so a round filter leaves them in: they still tell you when things happen
+  return rows.filter((r) => (round === 'all' || r.kind !== ProgramKind.Round || r.roundType === round) && (!needle || searchText(r).toLowerCase().includes(needle)))
 }
 
 // The address of the printout for a competition, carrying the filter so paper matches the screen

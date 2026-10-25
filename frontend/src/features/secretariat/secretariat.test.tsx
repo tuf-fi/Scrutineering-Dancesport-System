@@ -6,7 +6,8 @@ import { renderApp } from '../../test-utils.tsx'
 
 // The sample data is shared across tests in this file, so each test uses its own records
 
-const bodyRows = () => screen.getAllByRole('row').slice(1)
+// Role queries are slow on a big table, and a test that polls them can time out when the machine is busy
+const bodyRows = () => Array.from(document.querySelectorAll<HTMLElement>('tbody tr'))
 
 describe('events', () => {
   it('lists events 10 at a time with entry counts, filters, and opens one', async () => {

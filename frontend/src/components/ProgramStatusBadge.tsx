@@ -13,7 +13,7 @@ const TONE: Record<ProgramStatus, BadgeTone> = {
 export function ProgramStatusBadge({ status }: { status: ProgramStatus }) {
   if (status === ProgramStatus.Upcoming) return null
   return (
-    <Badge pill={status !== ProgramStatus.Completed} tone={TONE[status]}>
+    <Badge tone={TONE[status]}>
       {PROGRAM_STATUS_LABEL[status]}
     </Badge>
   )

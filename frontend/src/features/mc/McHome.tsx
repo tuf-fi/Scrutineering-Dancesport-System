@@ -407,7 +407,7 @@ export function McHome() {
 
       {showProgram || !current ? (
         <div key="program" className="flex flex-1 animate-fade-in flex-col">
-          <McProgram program={program.data} />
+          <McProgram program={program.data} error={program.isError} />
         </div>
       ) : (
         <>

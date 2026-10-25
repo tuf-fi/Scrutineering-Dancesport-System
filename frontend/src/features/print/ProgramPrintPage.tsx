@@ -20,8 +20,10 @@ const keep = 'whitespace-nowrap'
 
 // "25/Oct/2026, 10:52": when this copy was printed, so an old copy can be told from a new one
 function stamp(at: Date) {
-  const time = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
-  return `${sheetDate(at.toISOString().slice(0, 10))}, ${time}`
+  const pad = (n: number) => String(n).padStart(2, '0')
+  // The local date, not the UTC one: before 8 a.m. in the Philippines UTC is still yesterday
+  const date = `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`
+  return `${sheetDate(date)}, ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
 // The whole running order on A4, however many lines it has. Print and PDF both open this page; PDF asks for the
@@ -66,7 +68,7 @@ export function ProgramPrintPage() {
           ['Printed', stamp(printedAt)],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col">
-            <dt className="text-[8pt] uppercase tracking-wide text-neutral-600">{label}</dt>
+            <dt className="text-[8pt] text-neutral-600">{label}</dt>
             <dd className="font-medium">{value}</dd>
           </div>
         ))}

@@ -214,6 +214,10 @@ describe('program page', () => {
 
     await userEvent.type(screen.getByLabelText('Search program'), 'nothing-matches-this')
     expect(await screen.findByText('No lines match')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(await programRows()).toHaveLength(10)
+    expect(screen.getByLabelText('Search program')).toHaveValue('')
   })
 
   it('offers Print and PDF that carry the search and round to the printout', async () => {

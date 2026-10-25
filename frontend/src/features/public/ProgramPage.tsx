@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
 import {
+  Button,
   ButtonLink,
   ErrorState,
   PageHeader,
@@ -28,16 +29,16 @@ import {
 import { filterProgram, programPrintPath } from '../../lib/programFilter.ts'
 
 // The line itself in words, for the strip above the table
-function Line({ label, row }: { label: string; row: ProgramRow | undefined }) {
+function Line({ label, row, empty }: { label: string; row: ProgramRow | undefined; empty: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">{label}</p>
+      <h2 className="text-small font-semibold text-neutral-900">{label}</h2>
       {row ? (
         <>
-          <p className="truncate text-title font-semibold text-neutral-900">
+          <p className="text-balance text-title font-semibold text-neutral-900">
             {row.kind === ProgramKind.Round && row.eventNumber !== null ? (
               <>
-                <span className="mr-2 font-mono font-medium text-neutral-400">{eventCode({ number: row.eventNumber })}</span>
+                <span className="mr-2 font-mono font-medium text-neutral-600">{eventCode({ number: row.eventNumber })}</span>
                 {eventDances(row)}
               </>
             ) : (
@@ -47,10 +48,11 @@ function Line({ label, row }: { label: string; row: ProgramRow | undefined }) {
           <p className="text-small text-neutral-600">
             {formatClock(row.startTime)}
             {row.roundType && ` · ${ROUND_TYPE_LABEL[row.roundType]}`}
+            {programAction(row) && ` · ${programAction(row)}`}
           </p>
         </>
       ) : (
-        <p className="text-small text-neutral-600">Nothing yet</p>
+        <p className="text-small text-neutral-600">{empty}</p>
       )}
     </div>
   )
@@ -73,6 +75,8 @@ export function ProgramPage() {
   const rows = filterProgram(all, query, round)
   const now = all.find((r) => r.status === ProgramStatus.Current)
   const next = all.find((r) => r.status === ProgramStatus.Next)
+  const finished = all.length > 0 && all.every((r) => r.status === ProgramStatus.Completed)
+  const filtered = query.trim() !== '' || round !== 'all'
 
   return (
     <div className="flex flex-col gap-8">
@@ -81,11 +85,19 @@ export function ProgramPage() {
       </Link>
       <PageHeader title="Program" description={`${formatDate(competition.data.date)} · ${competition.data.venue}`} />
 
-      {all.length > 0 && (
-        <section aria-label="On the floor and up next" className="grid gap-6 border-y border-neutral-200 py-6 sm:grid-cols-2">
-          <Line label="On the floor" row={now} />
-          <Line label="Up next" row={next} />
-        </section>
+      {program.isLoading ? (
+        <Skeleton className="h-28 w-full" />
+      ) : (
+        all.length > 0 && (
+          <section
+            aria-label="On the floor and up next"
+            aria-live="polite"
+            className="grid gap-6 border-y border-neutral-200 py-6 sm:grid-cols-2"
+          >
+            <Line label="On the floor" row={now} empty={finished ? 'The program is complete' : 'Nothing on the floor right now'} />
+            <Line label="Up next" row={next} empty={finished ? 'Nothing left' : 'Nothing queued'} />
+          </section>
+        )
       )}
 
       <Toolbar>
@@ -123,7 +135,21 @@ export function ProgramPage() {
         empty={
           all.length === 0
             ? { title: 'No program yet', description: 'The running order appears here once the organizers publish it.' }
-            : { title: 'No lines match', description: 'Try a different round or search.' }
+            : {
+                title: 'No lines match',
+                description: 'Try a different round or search.',
+                action: filtered ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setQuery('')
+                      setRound('all')
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                ) : undefined,
+              }
         }
         columns={[
           { key: 'time', header: 'Time', cell: (r) => formatClock(r.startTime), mono: true, widthClass: 'w-28' },
@@ -134,10 +160,16 @@ export function ProgramPage() {
               r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline ? (
                 <div className="flex flex-col">
                   <span className="font-medium text-neutral-900">
-                    <span className="mr-2 font-mono tabular-nums text-neutral-500">{eventCode({ number: r.eventNumber })}</span>
+                    <span className="mr-2 font-mono tabular-nums text-neutral-600">{eventCode({ number: r.eventNumber })}</span>
                     {eventDances(r)}
                   </span>
-                  <span className="text-xs text-neutral-500">{eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}</span>
+                  <span className="text-xs text-neutral-600">{eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}</span>
+                  {r.roundType && (
+                    <span className="text-xs font-medium text-neutral-900 sm:hidden">
+                      {ROUND_TYPE_LABEL[r.roundType]}
+                      {programAction(r) && ` · ${programAction(r)}`}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <span className="font-medium text-neutral-900">{r.label}</span>

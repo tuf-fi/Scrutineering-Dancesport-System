@@ -25,7 +25,9 @@ describe('X table', () => {
     render(<MarkSheet task={task} onSubmit={() => {}} />)
     const table = within(screen.getByRole('table'))
     expect(within(table.getAllByRole('row')[0]).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['No.', 'Samba0/2', 'Cha Cha Cha0/2', 'Rumba0/2'])
-    expect(table.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['Heat 1', '11', '12', 'Heat 2', '13', '14'])
+    // The heat headings span the dance columns, so they are column group headers, not row headers
+    expect(table.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['11', '12', '13', '14'])
+    expect(table.getAllByRole('columnheader', { name: /^Heat \d$/ }).map((h) => h.textContent)).toEqual(['Heat 1', 'Heat 2'])
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
   })
 

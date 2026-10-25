@@ -76,7 +76,9 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/test-setup.ts'],
       css: false,
-      testTimeout: 15_000,
+      testTimeout: 30_000,
+      // Every file renders whole pages in jsdom; too many at once starves the timers the tests wait on
+      maxWorkers: '50%',
     },
   }
 })
