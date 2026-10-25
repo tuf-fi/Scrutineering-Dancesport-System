@@ -139,7 +139,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   const body = (request: FastifyRequest) => (request.body ?? {}) as Record<string, string>
 
   app.post('/api/auth/staff', small, (request, reply) =>
-    attempt(request, reply, String(body(request).username ?? ''), (ctx) => staffSession(ctx, String(body(request).username ?? ''), String(body(request).password ?? ''))),
+    attempt(request, reply, String(body(request).username ?? ''), (ctx) => staffSession(ctx, String(body(request).username ?? ''), String(body(request).password ?? ''), String(body(request).code ?? ''))),
   )
   app.post('/api/auth/club', small, (request, reply) =>
     attempt(request, reply, String(body(request).email ?? ''), (ctx) => clubSession(ctx, String(body(request).email ?? ''), String(body(request).password ?? ''))),

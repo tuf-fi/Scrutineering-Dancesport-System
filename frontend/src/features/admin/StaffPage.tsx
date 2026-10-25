@@ -1,5 +1,5 @@
 import type { StaffUser } from '@bis/shared'
-import { KeyRound, LogOut, Pencil, Trash2 } from 'lucide-react'
+import { KeyRound, LogOut, Pencil, ShieldOff, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Avatars } from '../../components/Avatars.tsx'
 import {
@@ -15,7 +15,7 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
-import { useDeleteStaff, useResetStaffPassword, useStaffUsers } from '../../hooks/index.ts'
+import { useDeleteStaff, useResetStaffPassword, useResetTotp, useStaffUsers } from '../../hooks/index.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { STAFF_ROLES } from './constants.ts'
@@ -35,6 +35,8 @@ export function StaffPage() {
   const [confirmReset, setConfirmReset] = useState<StaffUser | null>(null)
   const [toDelete, setToDelete] = useState<StaffUser | null>(null)
   const [signOut, setSignOut] = useState<SignOutTarget | null>(null)
+  const [toResetTotp, setToResetTotp] = useState<StaffUser | null>(null)
+  const resetTotp = useResetTotp()
   const [shown, setShown] = useState<{ title: string; person: string; password: string } | null>(null)
 
   if (staff.isError) return <ErrorState onRetry={() => void staff.refetch()} />
@@ -125,15 +127,17 @@ export function StaffPage() {
             ),
           },
           { key: 'role', header: 'Role', cell: (s) => ROLE_LABEL[s.role], muted: true },
+          { key: 'twoStep', header: 'Two-step', cell: (s) => (s.twoStep ? 'On' : '–'), muted: true, hideBelow: 'sm' },
           {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-32',
+            widthClass: 'w-40',
             cell: (s) => (
               <div className="flex justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
                 <IconButton icon={Pencil} label={`Edit ${s.name}`} onClick={() => setEditing(s)} />
                 <IconButton icon={KeyRound} label={`Reset password for ${s.name}`} onClick={() => setConfirmReset(s)} />
+                {s.twoStep && <IconButton icon={ShieldOff} label={`Reset two-step sign-in for ${s.name}`} onClick={() => setToResetTotp(s)} />}
                 <IconButton icon={LogOut} label={`Sign ${s.name} out everywhere`} onClick={() => setSignOut({ kind: 'staff', id: s.id, name: s.name })} />
                 <IconButton icon={Trash2} tone="danger" label={`Delete ${s.name}`} onClick={() => setToDelete(s)} />
               </div>
@@ -150,6 +154,39 @@ export function StaffPage() {
       />
 
       <SignOutDialog target={signOut} onClose={() => setSignOut(null)} />
+
+      <Dialog
+        open={toResetTotp !== null}
+        onClose={() => setToResetTotp(null)}
+        title={`Reset two-step sign-in for ${toResetTotp?.name ?? ''}?`}
+        description="Use this when they lost their phone and their recovery codes. They are signed out everywhere and can turn it on again."
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setToResetTotp(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={resetTotp.isPending}
+              onClick={() =>
+                toResetTotp &&
+                resetTotp.mutate(toResetTotp.id, {
+                  onSuccess: () => {
+                    toast.success(`Two-step sign-in is off for ${toResetTotp.name}`)
+                    setToResetTotp(null)
+                  },
+                  onError: (e) => {
+                    setToResetTotp(null)
+                    toast.error(e.message)
+                  },
+                })
+              }
+            >
+              Reset
+            </Button>
+          </>
+        }
+      />
 
       <Dialog
         open={confirmReset !== null}

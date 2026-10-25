@@ -6,16 +6,48 @@ import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { currentCompetition } from '../services/shared.ts'
 import { hashPassword, verifyPassword } from './password.ts'
+import { hashRecovery, verifyCode } from './totp.ts'
 
 // Checked even when the account does not exist, so a wrong username takes as long as a wrong password
 const DUMMY_HASH = hashPassword('not-a-real-password')
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 
-export function staffSession(ctx: Ctx, username: string, password: string): SessionUser {
+type StaffRow = typeof t.staffUsers.$inferSelect
+
+// Whether a typed code is one of the account's one-time codes (an authenticator app's, or an unused recovery code), and
+// what using it changes. Nothing is saved here: the caller saves it only once everything else has passed.
+export type SecondStep = { ok: false } | { ok: true; step?: number; recovery?: string[] }
+export function checkSecondStep(row: StaffRow, typed: string): SecondStep {
+  const step = row.totpSecret ? verifyCode(row.totpSecret, typed, row.totpLastStep) : null
+  if (step !== null) return { ok: true, step }
+  const hash = hashRecovery(typed)
+  if (row.totpRecovery.includes(hash)) return { ok: true, recovery: row.totpRecovery.filter((h) => h !== hash) }
+  return { ok: false }
+}
+
+export function saveSecondStep(ctx: Ctx, row: StaffRow, used: Extract<SecondStep, { ok: true }>) {
+  if (used.step !== undefined) ctx.db.update(t.staffUsers).set({ totpLastStep: used.step }).where(eq(t.staffUsers.id, row.id)).run()
+  if (used.recovery) {
+    ctx.db.update(t.staffUsers).set({ totpRecovery: used.recovery }).where(eq(t.staffUsers.id, row.id)).run()
+    record(ctx.db, row.id, 'Signed in with a recovery code', row.name)
+  }
+}
+
+export const SECOND_STEP_NEEDED = 'Enter the 6-digit code from your authenticator app, or a recovery code.'
+
+export function staffSession(ctx: Ctx, username: string, password: string, code?: string): SessionUser {
   const row = ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username.trim().toLowerCase())).get()
   const ok = verifyPassword(password, row?.passwordHash ?? DUMMY_HASH)
   if (!row || !ok || row.disabled) return fail('Wrong username or password.', 401)
+  if (row.totpEnabled) {
+    // 428 asks for the code and is not counted as a wrong guess; a wrong code (401) is
+    const typed = String(code ?? '').trim()
+    if (!typed) return fail(SECOND_STEP_NEEDED, 428)
+    const used = checkSecondStep(row, typed)
+    if (!used.ok) return fail('That code is not right.', 401)
+    saveSecondStep(ctx, row, used)
+  }
   return { id: row.id, name: row.name, role: row.role }
 }
 

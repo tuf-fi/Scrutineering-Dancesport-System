@@ -7,6 +7,7 @@ import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
 import { scrutiny } from './services/scrutiny.ts'
 import { secretariat } from './services/secretariat.ts'
+import { security } from './services/security.ts'
 import { accountFunctions } from './services/accounts.ts'
 import { isStaff, toClub } from './services/shared.ts'
 import * as t from './db/schema.ts'
@@ -39,6 +40,7 @@ const handlers: Record<string, Handler> = {
   ...admin,
   ...secretariat,
   ...program,
+  ...security,
   ...rounds,
   ...scrutiny,
   ...club,
@@ -98,6 +100,11 @@ const access: Record<string, Access> = {
   updateStaffUser: ADMIN,
   deleteStaffUser: ADMIN,
   revokeSessions: ADMIN,
+  resetTotp: ADMIN,
+  getTotpStatus: STAFF,
+  startTotpSetup: STAFF,
+  confirmTotpSetup: STAFF,
+  disableTotp: STAFF,
   resetStaffPassword: ADMIN,
   createAdjudicator: ADMIN,
   updateAdjudicator: ADMIN,

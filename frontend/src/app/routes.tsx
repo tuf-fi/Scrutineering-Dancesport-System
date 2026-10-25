@@ -44,6 +44,7 @@ import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
 import { LateEntriesPage } from '../features/secretariat/LateEntriesPage.tsx'
+import { SecurityPage } from '../features/account/SecurityPage.tsx'
 import { ProgramPage as ProgramPublicPage } from '../features/public/ProgramPage.tsx'
 import { ProgramPage } from '../features/secretariat/ProgramPage.tsx'
 import { SchedulePage } from '../features/secretariat/SchedulePage.tsx'
@@ -99,6 +100,7 @@ export const routes: RouteObject[] = [
               { path: 'payments', element: <PaymentsPage /> },
               { path: 'fees', element: <FeesPage /> },
               { path: 'clubs', element: <ClubsPage /> },
+              { path: 'security', element: <SecurityPage /> },
             ],
           },
         ],
@@ -116,6 +118,7 @@ export const routes: RouteObject[] = [
               { path: 'late-entries', element: <LateEntriesPage /> },
               { path: 'schedule', element: <SchedulePage /> },
               { path: 'program', element: <ProgramPage /> },
+              { path: 'security', element: <SecurityPage /> },
             ],
           },
         ],
@@ -132,6 +135,7 @@ export const routes: RouteObject[] = [
               { path: 'live', element: <LivePage /> },
               { path: 'recall', element: <RecallPage /> },
               { path: 'results', element: <ResultsPage /> },
+              { path: 'security', element: <SecurityPage /> },
             ],
           },
         ],

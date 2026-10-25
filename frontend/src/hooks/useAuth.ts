@@ -4,7 +4,7 @@ import { usingMocks } from '../api/mode.ts'
 
 export const useSignInStaff = () =>
   useMutation({
-    mutationFn: (v: { username: string; password: string }) => api.signInStaff(v.username, v.password),
+    mutationFn: (v: { username: string; password: string; code?: string }) => api.signInStaff(v.username, v.password, v.code),
   })
 
 export const useSignInClub = () =>

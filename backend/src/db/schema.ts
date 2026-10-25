@@ -371,6 +371,14 @@ export const staffUsers = sqliteTable('staff_users', {
   disabled: integer('disabled', { mode: 'boolean' }).notNull().default(false),
   // A signed token carries the version it was made at; raising it signs the person out everywhere
   sessionVersion: integer('session_version').notNull().default(0),
+  // Two-step sign-in: the shared secret of an authenticator app (base32). It is only asked for once totpEnabled is set,
+  // after the person has proved they hold the app by typing a code from it.
+  totpSecret: text('totp_secret'),
+  totpEnabled: integer('totp_enabled', { mode: 'boolean' }).notNull().default(false),
+  // The last 30-second step a code was accepted for, so a code cannot be used twice
+  totpLastStep: integer('totp_last_step').notNull().default(0),
+  // Hashes of the recovery codes still unused (JSON list); a code is shown once, when two-step is turned on
+  totpRecovery: text('totp_recovery', { mode: 'json' }).$type<string[]>().notNull().default([]),
 })
 
 export const auditLog = sqliteTable(

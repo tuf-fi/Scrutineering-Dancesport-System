@@ -40,6 +40,7 @@ describe('staff sidebar', () => {
       'Payments',
       'Fees and payment details',
       'Clubs',
+      'Security',
     ])
     for (const link of links) expect(link.querySelector('svg')).not.toBeNull()
     expect(nav.getByText('Amelia Rosales')).toBeInTheDocument()
@@ -133,9 +134,9 @@ describe('staff sidebar', () => {
   })
 
   it.each([
-    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Late entries', 'Schedule', 'Program']],
-    [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results']],
-    [Role.Chairperson, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results']],
+    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Late entries', 'Schedule', 'Program', 'Security']],
+    [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
+    [Role.Chairperson, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {
     renderApp(path, role)
     const links = (await sidebar()).getAllByRole('link')

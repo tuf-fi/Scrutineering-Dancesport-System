@@ -3,6 +3,8 @@
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
   AccountKind,
+  TotpSetup,
+  TotpStatus,
   Adjudicator,
   AdjudicatorPin,
   AdjudicatorState,
@@ -101,6 +103,11 @@ export const updateStaffUser = (_actorId: string, id: string, input: { name: str
   call<StaffUser>('updateStaffUser', id, input)
 export const deleteStaffUser = (_actorId: string, id: string) => call<{ id: string }>('deleteStaffUser', id)
 export const resetStaffPassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetStaffPassword', id)
+export const getTotpStatus = (_actorId: string) => call<TotpStatus>('getTotpStatus')
+export const startTotpSetup = (_actorId: string) => call<TotpSetup>('startTotpSetup')
+export const confirmTotpSetup = (_actorId: string, code: string) => call<{ recoveryCodes: string[] }>('confirmTotpSetup', code)
+export const disableTotp = (_actorId: string, password: string, code: string) => call<void>('disableTotp', password, code)
+export const resetTotp = (_actorId: string, id: string) => call<void>('resetTotp', id)
 export const revokeSessions = (_actorId: string, kind: AccountKind, id: string) => call<void>('revokeSessions', kind, id)
 export const createAdjudicator = (_actorId: string, input: { name: string; letter: string }) =>
   call<Adjudicator>('createAdjudicator', input)
@@ -217,7 +224,8 @@ export const submitClubPayment = (_clubId: string, input: { amountPaid: number; 
 
 // ---- Signing in and out: separate routes, because they set or clear the cookie ----
 
-export const signInStaff = (username: string, password: string) => auth<SessionUser>('staff', { username, password })
+export const signInStaff = (username: string, password: string, code?: string) =>
+  auth<SessionUser>('staff', { username, password, ...(code ? { code } : {}) })
 export const signInClub = (email: string, password: string) => auth<SessionUser>('club', { email, password })
 export const signInAdjudicator = (pin: string) => auth<SessionUser>('adjudicator', { pin })
 export const signUpNewClub = (input: ClubSignUp) => auth<SessionUser>('club-signup', input)

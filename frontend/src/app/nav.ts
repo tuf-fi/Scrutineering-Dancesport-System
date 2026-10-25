@@ -9,6 +9,7 @@ import {
   Clock,
   ClipboardCheck,
   Layers,
+  ShieldCheck,
   LayoutGrid,
   ListChecks,
   ListOrdered,
@@ -36,6 +37,7 @@ const scrutineerNav: NavItem[] = [
   { to: '/scrutineer/live', label: 'Live board', icon: Activity },
   { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
   { to: '/scrutineer/results', label: 'Results', icon: Award },
+  { to: '/scrutineer/security', label: 'Security', icon: ShieldCheck },
 ]
 
 export const staffNav: Record<StaffRole, NavItem[]> = {
@@ -47,6 +49,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/payments', label: 'Payments', icon: Wallet },
     { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote },
     { to: '/admin/clubs', label: 'Clubs', icon: Building2 },
+    { to: '/admin/security', label: 'Security', icon: ShieldCheck },
   ],
   secretariat: [
     { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays },
@@ -54,6 +57,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
     { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
     { to: '/secretariat/program', label: 'Program', icon: ListOrdered },
+    { to: '/secretariat/security', label: 'Security', icon: ShieldCheck },
   ],
   scrutineer: scrutineerNav,
   // The chairperson sees the scrutineer's screens, read-only

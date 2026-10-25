@@ -1,7 +1,10 @@
+import { ApiError } from '../api/http.ts'
 import {
   DISCIPLINE_DANCES,
   PIN_LENGTH,
   type AccountKind,
+  type TotpSetup,
+  type TotpStatus,
   parseCompetitorCsv,
   PaymentStatus,
   Role,
@@ -163,6 +166,8 @@ export const getCompetitorHistory = (competitorId: string) =>
             class: event.class,
             discipline: event.discipline,
             place: r.place,
+            placeFrom: r.placeFrom,
+            placeTo: r.placeTo,
             points: rankingPoints.find((p) => p.id === `rp:${r.id}`)?.points ?? 0,
           } satisfies CompetitorHistoryLine,
         ]
@@ -170,7 +175,7 @@ export const getCompetitorHistory = (competitorId: string) =>
       .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber),
   )
 
-export const getStaffUsers = () => reply(staffUsers)
+export const getStaffUsers = () => reply(staffUsers.map((s) => ({ ...s, twoStep: totpOf(s.id).enabled })))
 export const getAuditLog = () => reply(auditLog)
 
 export const getPaymentDetails = () => reply(payments.map(paymentDetail))
@@ -444,13 +449,52 @@ function settle<T>(produce: () => T): Promise<T> {
 // Passwords set by an admin reset; everyone else uses the sample password
 const passwords = new Map<string, string>()
 
-export const signInStaff = (username: string, password: string) =>
+// Two-step sign-in in the sample: the "authenticator app" always shows this code
+export const SAMPLE_TOTP_CODE = '123456'
+const sampleTotp = new Map<string, { enabled: boolean; secret: string | null; recovery: number }>()
+const totpOf = (id: string) => sampleTotp.get(id) ?? { enabled: false, secret: null, recovery: 0 }
+
+export const signInStaff = (username: string, password: string, code?: string) =>
   settle<SessionUser>(() => {
     const user = staffUsers.find((s) => s.username === username.trim().toLowerCase())
     if (!user || password !== (passwords.get(user.username) ?? SAMPLE_PASSWORD)) {
       throw new Error('Wrong username or password.')
     }
+    if (totpOf(user.id).enabled) {
+      if (!code) throw new ApiError(428, 'Enter the 6-digit code from your authenticator app, or a recovery code.')
+      if (code.trim() !== SAMPLE_TOTP_CODE) throw new Error('That code is not right.')
+    }
     return { id: user.id, name: user.name, role: user.role }
+  })
+
+export const getTotpStatus = (actorId: string) => reply<TotpStatus>({ enabled: totpOf(actorId).enabled, recoveryLeft: totpOf(actorId).recovery })
+export const startTotpSetup = (actorId: string) =>
+  settle<TotpSetup>(() => {
+    if (totpOf(actorId).enabled) throw new Error('Two-step sign-in is already on.')
+    const secret = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'
+    sampleTotp.set(actorId, { enabled: false, secret, recovery: 0 })
+    return { secret, uri: `otpauth://totp/BIS%3A${actorId}?secret=${secret}&issuer=BIS&algorithm=SHA1&digits=6&period=30` }
+  })
+export const confirmTotpSetup = (actorId: string, code: string) =>
+  settle<{ recoveryCodes: string[] }>(() => {
+    const state = totpOf(actorId)
+    if (!state.secret) throw new Error('Start the set-up first.')
+    if (code.trim() !== SAMPLE_TOTP_CODE) throw new Error('That code is not right. Check the app and try again.')
+    sampleTotp.set(actorId, { enabled: true, secret: state.secret, recovery: 8 })
+    return { recoveryCodes: ['ABCDE-FGHJK', 'KLMNP-QRSTU', 'VWXYZ-23456', '789AB-CDEFG', 'HJKLM-NPQRS', 'TUVWX-YZ234', '56789-ABCDE', 'FGHJK-LMNPQ'] }
+  })
+export const disableTotp = (actorId: string, password: string, code: string) =>
+  settle<void>(() => {
+    const user = staffUsers.find((s) => s.id === actorId)
+    if (!user || password !== (passwords.get(user.username) ?? SAMPLE_PASSWORD)) throw new Error('The password is not right.')
+    if (code.trim() !== SAMPLE_TOTP_CODE) throw new Error('That code is not right.')
+    sampleTotp.delete(actorId)
+  })
+export const resetTotp = (actorId: string, id: string) =>
+  settle<void>(() => {
+    if (!totpOf(id).enabled) throw new Error('Two-step sign-in is not on for this account.')
+    sampleTotp.delete(id)
+    record(actorId, 'Reset two-step sign-in', id)
   })
 
 export const signInClub = (email: string, password: string) =>

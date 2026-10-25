@@ -110,11 +110,12 @@ export const toRankingPoint = (r: typeof t.rankingPoints.$inferSelect): RankingP
   points: r.points,
 })
 
-export const toStaff = (r: Pick<typeof t.staffUsers.$inferSelect, 'id' | 'name' | 'username' | 'role'>): StaffUser => ({
+export const toStaff = (r: Pick<typeof t.staffUsers.$inferSelect, 'id' | 'name' | 'username' | 'role'> & { totpEnabled?: boolean }): StaffUser => ({
   id: r.id,
   name: r.name,
   username: r.username,
   role: r.role,
+  twoStep: r.totpEnabled ?? false,
 })
 
 export const toPin = (r: typeof t.adjudicatorPins.$inferSelect): AdjudicatorPin => ({
