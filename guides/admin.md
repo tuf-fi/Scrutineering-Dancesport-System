@@ -15,3 +15,7 @@
 
 ## Before a competition
 Check the server's clock, make sure `ADJUDICATOR_PIN_DAYS` suits the event, and take a backup (deploy/README.md). An adjudicator's PIN works only one day either side of the competition date.
+
+**PIN cards.** On Adjudicators and panels, generate the PINs, then choose Print PIN cards. Each card has the six-digit PIN and a QR code that signs the phone in. Hand them out privately. A new PIN, or Sign out everywhere (the arrow icon on a row), signs an adjudicator's phone out at once. Sign out everywhere also works for staff and clubs, for a lost phone or a shared password.
+
+**Two-step sign-in.** Open Security in the sidebar to turn it on with an authenticator app: you then enter a code after your password. Save the recovery codes it shows once. If someone loses their phone and their codes, reset it for them on Staff accounts.

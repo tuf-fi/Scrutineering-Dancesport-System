@@ -5,7 +5,7 @@ You run the rounds from your laptop. Keep its window open all day.
 ## Before the first round
 - `https://<the site address>/api/health` says ok. No warning about a backup folder at the top of the screen.
 - **Rounds**: press **Plan rounds** once. Every event gets its rounds.
-- Every adjudicator is signed in on a phone. Blank paper sheets are printed (**Paper marks**, print blank sheets).
+- Every adjudicator is signed in on a phone.
 
 ## Each round
 1. **Rounds**: choose the round, press **Start round**. It appears on the phones. If every entry in the event is not paid, it will not start; the message says how many.
@@ -16,6 +16,6 @@ You run the rounds from your laptop. Keep its window open all day.
 
 ## Problems
 - **Wrong round started:** **Take off the floor**, possible until a phone has submitted.
-- **A phone cannot send:** **Paper marks**, choose the adjudicator, type the paper sheet, confirm.
+- **A phone cannot send:** the marks are safe on the phone and go out by themselves when it has a connection again. Ask the adjudicator to switch to mobile data or another network, and watch the Live board.
 - **This laptop stops or loses internet:** sign in again on this or any other laptop. Nothing is stored on the laptop, and nothing saved is lost.
 - **Backup warning:** a backup folder failed. Tell the admin; results are still saved on the server.

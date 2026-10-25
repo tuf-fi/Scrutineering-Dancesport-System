@@ -177,6 +177,9 @@ export interface CompetitorHistoryLine {
   class: Class
   discipline: Discipline
   place: number
+  // The whole shared range when a final ended in a tie, e.g. 3 to 4; equal to place when not shared
+  placeFrom?: number
+  placeTo?: number
   points: number
 }
 
@@ -202,6 +205,8 @@ export interface StaffUser {
   name: string
   username: string
   role: Role
+  // Whether two-step sign-in is on for this account
+  twoStep?: boolean
 }
 
 // Who is signed in on this device
@@ -300,6 +305,19 @@ export interface Program {
 export interface ProgramSlotInput {
   minutes?: number
   label?: string
+}
+
+// Two-step sign-in for the signed-in staff member
+export interface TotpStatus {
+  enabled: boolean
+  // Recovery codes not used yet
+  recoveryLeft: number
+}
+
+// What an authenticator app needs to add the account: the secret to type, and the address a QR code carries
+export interface TotpSetup {
+  secret: string
+  uri: string
 }
 
 // Whose sessions an admin can end

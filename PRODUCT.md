@@ -30,7 +30,7 @@ Built for the Bicol competition circuit and the way these events actually run: o
 
 ## Operating Context
 
-- Competition day: staff laptops with a browser and internet, and up to 10 adjudicator phones signed in with a 4-digit PIN over mobile data or any Wi-Fi with internet. There is no separate venue network. Marks are held on the phone and resent if the connection drops.
+- Competition day: staff laptops with a browser and internet, and up to 10 adjudicator phones signed in with a 6-digit PIN over mobile data or any Wi-Fi with internet. There is no separate venue network. Marks are held on the phone and resent if the connection drops.
 - Before the event: clubs register and pay online; the admin approves payments; the secretariat assigns back numbers and builds the schedule and program.
 - Paper is the fallback: printable blank adjudicator mark sheets, and A4 printouts that match the existing result sheets.
 - Event sheets carry: event number, date, location, organizer, executor (scrutineer), grade (age group, class, dance), discipline, adjudicators by letter, then back number, name and club per competitor, with solo counts.

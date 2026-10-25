@@ -22,6 +22,7 @@ The compose file sets these for the server; change them in `.env` or the compose
 | Variable | What it does |
 | --- | --- |
 | `ADJUDICATOR_PIN_DAYS` | A PIN works only this many days either side of the competition date. Default 1. |
+| `PUBLIC_RATE_LIMIT` | Requests a minute from one address for calls that need no sign-in, such as the public pages. Default 600; `off` turns it off. Many spectators on one mobile network can share an address, so keep it generous. |
 | `TRUST_PROXY` | How many proxies sit in front of the server, used to tell visitors apart for the sign-in limits. 1 behind Caddy. |
 | `COOKIE_SECURE` | The session cookie travels only over HTTPS. On in production. |
 | `BACKUP_DIRS` | Folders the database is copied to, separated by commas. Default `/data/backups`. |

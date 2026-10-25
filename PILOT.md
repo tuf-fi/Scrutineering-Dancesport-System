@@ -53,7 +53,7 @@ BIS replaces paper only when all of these are true:
 
 | What happened | Do this |
 | --- | --- |
-| A phone cannot send | Marks are kept on the phone and sent when it can. The scrutineer can type them in from the paper sheet (Paper marks). |
+| A phone cannot send | Marks are kept on the phone and sent by themselves when it has a connection again. The adjudicator can switch to mobile data or another network. |
 | The server stops | It restarts by itself (`restart: unless-stopped`). If it will not come back, restore the newest backup (deploy/README.md) and use paper meanwhile. |
 | A connection fails | Phones keep their marks and resend them. Switch the phone between mobile data and Wi-Fi, or use another phone as a hotspot. |
 | BIS and paper disagree on the day | Paper is official. Keep the BIS result and note the difference for the comparison. |

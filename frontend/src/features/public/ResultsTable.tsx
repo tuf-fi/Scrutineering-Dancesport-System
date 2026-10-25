@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { ErrorState, Table } from '../../components/ui/index.ts'
 import { useCompetitorRows, useResults } from '../../hooks/index.ts'
-import { competitorName, placeLabel } from '../../lib/format.ts'
+import { competitorName, placeLabel, placeRange } from '../../lib/format.ts'
 
 // An event's placings, best first; each name opens that competitor's profile
 export function ResultsTable({ eventId }: { eventId: string }) {
@@ -25,7 +25,7 @@ export function ResultsTable({ eventId }: { eventId: string }) {
       detailTitle={(r) => competitorName(byId.get(r.competitorId)?.names ?? [])}
       empty={{ title: 'No results yet', description: 'Results appear here once the scrutineer publishes them.' }}
       columns={[
-        { key: 'place', header: 'Place', cell: (r) => placeLabel(r.place), widthClass: 'w-32' },
+        { key: 'place', header: 'Place', cell: (r) => placeRange(r) ?? placeLabel(r.place), widthClass: 'w-32' },
         { key: 'back', header: 'No.', cell: (r) => byId.get(r.competitorId)?.backNumber ?? '–', mono: true, hideBelow: 'sm' },
         {
           key: 'who',

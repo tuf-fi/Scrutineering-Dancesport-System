@@ -2,7 +2,7 @@ import { RoundType } from '@bis/shared'
 import { useParams } from 'react-router'
 import { EmptyState } from '../../components/ui/index.ts'
 import { useCompetitorRows, useResults, useRounds, useSkatingTable } from '../../hooks/index.ts'
-import { competitorName, ordinal } from '../../lib/format.ts'
+import { competitorName, ordinal, placeRange } from '../../lib/format.ts'
 import { PrintSheet } from './PrintSheet.tsx'
 import { PrintState } from './PrintState.tsx'
 import { num, td, th } from './tableStyles.ts'
@@ -65,9 +65,7 @@ export function FinalResultsPage() {
                     return (
                       <tr key={r.id}>
                         <td className={`${td} font-bold`}>
-                          {r.placeFrom !== undefined && r.placeTo !== undefined && r.placeTo > r.placeFrom
-                            ? `${ordinal(r.placeFrom)}–${ordinal(r.placeTo)}`
-                            : ordinal(r.place)}
+                          {placeRange(r) ?? ordinal(r.place)}
                         </td>
                         <td className={`${td} ${num}`}>{c?.backNumber}</td>
                         <td className={td}>{c ? competitorName(c.names) : ''}</td>

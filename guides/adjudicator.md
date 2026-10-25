@@ -4,7 +4,7 @@ You mark on your own phone. Nothing you do can be lost: your marks are saved on 
 
 ## Before the first round
 1. Connect to the internet (mobile data or any Wi-Fi). Open the address the scrutineer gives you.
-2. Type your PIN. It works only on the day of the competition, give or take a day. You see **Waiting for the next round**.
+2. Type your six-digit PIN, or scan the QR code on your PIN card with your phone's camera. It works only on the day of the competition, give or take a day, and on one phone at a time: signing in on another phone signs this one out. You see **Waiting for the next round**.
 3. Keep the screen on and the phone charged. Do not sign out.
 
 ## Marking

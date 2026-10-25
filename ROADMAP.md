@@ -82,9 +82,16 @@ Goal: dancers, parents and the announcer can see what is on the floor, what is n
 
 ## Sign-in security
 
-Built: a PIN-guess limit across all visitors, a per-account limit on wrong passwords, adjudicator PINs that work only one day either side of the competition date (`ADJUDICATOR_PIN_DAYS`), an audit of PIN sign-ins, security headers from Caddy (the Content-Security-Policy is report-only until checked in a browser) and a Secure session cookie.
+Built:
+- A PIN-guess limit across all visitors, and a per-account limit on wrong passwords.
+- Six-digit adjudicator PINs, printed on PIN cards with a QR code that signs the phone in. The PIN is after a `#` in the QR address, so it is never sent to the server or logged.
+- PINs that work only one day either side of the competition date (`ADJUDICATOR_PIN_DAYS`), an audit of PIN sign-ins, and one phone at a time per adjudicator: a new sign-in signs the old phone out.
+- Sign out everywhere: an admin can end every session of a staff member, adjudicator or club. A reset password or a new PIN does the same.
+- Two-step sign-in with an authenticator app (TOTP) for any staff account, with recovery codes; an admin can reset it for someone who lost their phone. It is optional, each person turns it on from the Security screen.
+- A cap per address on calls that need no sign-in (`PUBLIC_RATE_LIMIT`, default 600 a minute).
+- Security headers from Caddy (the Content-Security-Policy is report-only until checked in a browser) and a Secure session cookie.
 
-Not built: longer PINs or a QR link per adjudicator, one active session per adjudicator, two-step sign-in for admins, revoking a session, and a rate limit on public reads.
+Not built: making two-step sign-in compulsory for admins (today it is each person's choice), and a way to see and end individual sessions (sign out everywhere ends all of them).
 
 ## Phase 7: Testing and pilot
 
@@ -105,6 +112,6 @@ Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is 
 - [ ] Add each real result sheet as a fixture in `packages/scoring/fixtures/`.
 - [ ] Confirm the scoring engine's Rules 1 and 5-11 against the current WDSF rulebook and record the version used.
 - [ ] Confirm the shared-place ranking points rule (`pointsForRange` in `packages/scoring/src/points.ts`).
-- [ ] Store shared place ranges on results so printouts can show a tie, not only its best place.
+- [x] Shared place ranges are stored on results and shown as a range (such as 3rd–4th) on the final results printout, the public results and a dancer's history.
 - [x] Chairperson decision flow for an unbreakable tie in a final: built (see below). The rule for settling it is the organizer's to confirm.
 - [ ] Confirm the age-group limits in `packages/shared/src/ageGroup.ts` with the organizer.

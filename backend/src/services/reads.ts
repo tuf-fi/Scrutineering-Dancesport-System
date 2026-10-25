@@ -145,6 +145,8 @@ export const reads = {
         class: event.class,
         discipline: event.discipline,
         place: result.place,
+        placeFrom: result.placeFrom,
+        placeTo: result.placeTo,
         points: points.get(event.id) ?? 0,
       }))
       .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber)

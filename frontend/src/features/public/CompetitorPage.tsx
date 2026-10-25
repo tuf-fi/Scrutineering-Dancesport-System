@@ -17,6 +17,7 @@ import {
   eventGrade,
   formatDate,
   placeLabel,
+  placeRange,
 } from '../../lib/format.ts'
 import { categoriesOf, rankCategory, type CategoryFilter } from '../../lib/rankings.ts'
 
@@ -174,7 +175,7 @@ export function CompetitorPage() {
                 </div>
               ),
             },
-            { key: 'place', header: 'Result', cell: (l) => placeLabel(l.place) },
+            { key: 'place', header: 'Result', cell: (l) => placeRange(l) ?? placeLabel(l.place) },
             {
               key: 'points',
               header: 'Points',

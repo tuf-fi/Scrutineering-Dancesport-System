@@ -159,6 +159,12 @@ export function placeLabel(place: number): string {
   return 'Earlier round'
 }
 
+// A tie in a final as a range, "3rd–4th"; null when the place is not shared, or is from an earlier round
+export function placeRange(r: { placeFrom?: number; placeTo?: number }): string | null {
+  if (r.placeFrom === undefined || r.placeTo === undefined || r.placeTo <= r.placeFrom || r.placeFrom > 6) return null
+  return `${ordinal(r.placeFrom)}–${ordinal(r.placeTo)}`
+}
+
 // "07:00" as "7:00 AM"; a dash until a start time is set
 export function formatClock(time: string | null): string {
   if (!time) return '—'

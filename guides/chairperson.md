@@ -9,6 +9,6 @@ You oversee the scoring. You see the scrutineer's screens but cannot enter marks
 - **Live board:** shows who has submitted and who has not.
 
 ## You cannot
-- Start, approve or publish a round, or enter paper marks. Ask the scrutineer.
+- Start, approve or publish a round. Ask the scrutineer.
 
 Every decision is recorded with your name and the time.
