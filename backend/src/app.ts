@@ -8,6 +8,7 @@ import { sql } from 'drizzle-orm'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession } from './auth/signin.ts'
+import { record } from './core/audit.ts'
 import { noBackups, type Backups } from './backup.ts'
 import type { Config } from './config.ts'
 import { HttpError, type Ctx } from './core/context.ts'
@@ -34,7 +35,7 @@ export interface AppDeps {
 const SESSION_HOURS = 12
 
 export async function buildApp({ config, sqlite, db, hub: givenHub, backups = noBackups(), liveBoardMs = 3000 }: AppDeps) {
-  const options = { logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: config.trustProxy }
+  const options = { logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: typeof config.trustProxy === 'number' ? (_address: string, hop: number) => hop < (config.trustProxy as number) : config.trustProxy }
   const app = Fastify(options) as unknown as FastifyInstance
   await app.register(cookie)
   await app.register(jwt, { secret: config.cookieSecret })
@@ -98,32 +99,51 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
 
   // ---- Sign-in ----
 
+  // Wrong guesses are counted three ways: per address and name; per account from anywhere, so guessing spread over many
+  // addresses still runs out; and for PINs across everyone, because a PIN has only 9,000 values and a success must not
+  // reset that count (a valid PIN in the attacker's hands would otherwise buy more guesses).
   const limiter = new AttemptLimiter()
-  const attempt = async (request: FastifyRequest, reply: FastifyReply, identity: string, make: (ctx: Ctx) => SessionUser) => {
+  const accounts = new AttemptLimiter(20, 15 * 60_000)
+  const pins = new AttemptLimiter(25, 10 * 60_000)
+  const signups = new AttemptLimiter(5, 60 * 60_000)
+  const attempt = async (request: FastifyRequest, reply: FastifyReply, identity: string, make: (ctx: Ctx) => SessionUser, kind: 'account' | 'pin' = 'account') => {
     const key = `${request.ip}|${identity.toLowerCase()}`
+    const wide = kind === 'pin' ? pins : accounts
+    const wideKey = kind === 'pin' ? 'pin' : identity.toLowerCase()
     try {
       limiter.check(key)
+      wide.check(wideKey)
       const user = make(baseContext(null))
       limiter.succeeded(key)
+      if (kind === 'account') wide.succeeded(wideKey)
+      else record(db, user.id, 'Adjudicator signed in', user.name)
       return startSession(reply, user)
     } catch (error) {
-      if (error instanceof HttpError && error.status === 401) limiter.failed(key)
+      if (error instanceof HttpError && error.status === 401) {
+        limiter.failed(key)
+        wide.failed(wideKey)
+        if (kind === 'pin') record(db, 'pin-sign-in', 'Failed PIN sign-in', request.ip)
+      }
       return sendError(reply, error)
     }
   }
+  // Nothing sent to these routes is large, unlike a payment receipt
+  const small = { bodyLimit: 16 * 1024 }
   const body = (request: FastifyRequest) => (request.body ?? {}) as Record<string, string>
 
-  app.post('/api/auth/staff', (request, reply) =>
+  app.post('/api/auth/staff', small, (request, reply) =>
     attempt(request, reply, String(body(request).username ?? ''), (ctx) => staffSession(ctx, String(body(request).username ?? ''), String(body(request).password ?? ''))),
   )
-  app.post('/api/auth/club', (request, reply) =>
+  app.post('/api/auth/club', small, (request, reply) =>
     attempt(request, reply, String(body(request).email ?? ''), (ctx) => clubSession(ctx, String(body(request).email ?? ''), String(body(request).password ?? ''))),
   )
-  app.post('/api/auth/adjudicator', (request, reply) =>
-    attempt(request, reply, 'pin', (ctx) => adjudicatorSession(ctx, String(body(request).pin ?? ''))),
+  app.post('/api/auth/adjudicator', small, (request, reply) =>
+    attempt(request, reply, 'pin', (ctx) => adjudicatorSession(ctx, String(body(request).pin ?? '')), 'pin'),
   )
-  app.post('/api/auth/club-signup', async (request, reply) => {
+  app.post('/api/auth/club-signup', { bodyLimit: 32 * 1024 }, async (request, reply) => {
     try {
+      signups.check(request.ip)
+      signups.failed(request.ip)
       const user = sqlite.transaction(() => signUpClub(baseContext(null), request.body as never))()
       return startSession(reply, user)
     } catch (error) {

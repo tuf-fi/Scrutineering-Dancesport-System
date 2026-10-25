@@ -1,4 +1,4 @@
-# The cloud server: the same program as the venue laptop, started with MODE=cloud, plus the built website.
+# The BIS server and the built website in one image.
 # Build from the repository root:  docker build -f deploy/Dockerfile -t bis-cloud .
 
 FROM node:24-bookworm-slim AS build
@@ -18,7 +18,9 @@ RUN pnpm --filter frontend build
 FROM node:24-bookworm-slim
 WORKDIR /app
 # No COOKIE_SECRET here: the server makes one and keeps it in its database, so it survives restarts and restores
-ENV MODE=cloud HOST=0.0.0.0 PORT=4000 TRUST_PROXY=true \
+# TRUST_PROXY=1 trusts only Caddy, the one proxy in front, so a visitor cannot invent the address sign-in limits use.
+# COOKIE_SECURE: sign-in cookies only travel over HTTPS. ADJUDICATOR_PIN_DAYS: a PIN works one day either side of the date.
+ENV HOST=0.0.0.0 PORT=4000 TRUST_PROXY=1 COOKIE_SECURE=true ADJUDICATOR_PIN_DAYS=1 \
     DATABASE_PATH=/data/bis.db BACKUP_DIRS=/data/backups FRONTEND_DIR=/app/frontend/dist
 COPY --from=build /app /app
 VOLUME /data

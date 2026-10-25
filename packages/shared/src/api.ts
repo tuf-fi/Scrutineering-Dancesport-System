@@ -111,6 +111,12 @@ export type ApiFunction = (typeof API_FUNCTIONS)[number]
 
 const PH_OFFSET_MS = 8 * 3_600_000
 
+// Whether a competition's date is within this many days of today, in Philippine time
+export function competitionIsNear(date: string, days: number, now = Date.now()): boolean {
+  const today = Date.parse(new Date(now + PH_OFFSET_MS).toISOString().slice(0, 10))
+  return Math.abs(Date.parse(date) - today) <= days * 86_400_000
+}
+
 // The competition happening now: one dated today, else the latest already held, else the next coming up.
 // Dates are in Philippine time, where the competitions are held.
 export function pickCurrentCompetition<T extends { date: string }>(list: T[], now = Date.now()): T | undefined {

@@ -10,14 +10,33 @@ export interface Config {
   backupIntervalMinutes: number
   // The built frontend, served by this server so other devices only need a browser
   frontendDir: string | null
-  // Behind a proxy such as Caddy: trust it for the visitor's address (used to limit sign-in guesses)
-  trustProxy: boolean
+  // Behind a proxy such as Caddy: how many proxies to trust for the visitor's address (used to limit sign-in guesses).
+  // A number is a count of hops, so a visitor cannot invent an address by sending their own header.
+  trustProxy: boolean | number | string
+  // An adjudicator's PIN works only this many days either side of the competition's date; null means any day, which is
+  // for development, where the sample competitions are in the past
+  pinWindowDays: number | null
   // The organizer's Facebook Page, used to message clubs about their payments. Without a token it is off.
   messenger: { pageToken: string | null; pageUsername: string | null; verifyToken: string | null; appSecret: string | null }
 }
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
 export const DEV_SECRET = 'change-me-before-the-competition'
+
+function trustProxy(value: string | undefined): boolean | number | string {
+  if (!value || value === 'false') return false
+  if (value === 'true') return true
+  return /^\d+$/.test(value) ? Number(value) : value
+}
+
+function pinWindowDays(env: NodeJS.ProcessEnv): number | null {
+  const value = env.ADJUDICATOR_PIN_DAYS
+  if (value === 'off') return null
+  if (value === undefined) return env.NODE_ENV === 'production' ? 1 : null
+  const days = Number(value)
+  if (!Number.isFinite(days) || days < 0) throw new Error(`ADJUDICATOR_PIN_DAYS must be a number of days or "off", got "${value}"`)
+  return days
+}
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const port = Number(env.PORT ?? 4000)
@@ -37,7 +56,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     backupDirs: (env.BACKUP_DIRS ?? './data/backups').split(',').map((d) => d.trim()).filter(Boolean),
     backupIntervalMinutes: Number(env.BACKUP_INTERVAL_MINUTES ?? 5),
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),
-    trustProxy: env.TRUST_PROXY === 'true',
+    trustProxy: trustProxy(env.TRUST_PROXY),
+    pinWindowDays: pinWindowDays(env),
     messenger: {
       pageToken: env.MESSENGER_PAGE_TOKEN || null,
       pageUsername: env.MESSENGER_PAGE_USERNAME || null,

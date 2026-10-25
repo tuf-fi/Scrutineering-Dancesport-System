@@ -1,4 +1,4 @@
-import { Role, type ClubSignUp, type SessionUser } from '@bis/shared'
+import { competitionIsNear, Role, type ClubSignUp, type SessionUser } from '@bis/shared'
 import { and, eq } from 'drizzle-orm'
 import { fail, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
@@ -26,9 +26,11 @@ export function clubSession(ctx: Ctx, email: string, password: string): SessionU
   return { id: row.id, name: row.name, role: Role.Club }
 }
 
-// A PIN is valid for the competition happening now
+// A PIN is valid for the competition happening now, and only around its date: a PIN found after the event is no use
 export function adjudicatorSession(ctx: Ctx, pin: string): SessionUser {
-  const competition = currentCompetition(ctx)
+  const found = currentCompetition(ctx)
+  const days = ctx.config.pinWindowDays
+  const competition = found && (days === null || competitionIsNear(found.date, days)) ? found : undefined
   const entry = competition
     ? ctx.db
         .select()
