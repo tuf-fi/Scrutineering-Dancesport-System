@@ -1,12 +1,6 @@
 import type { Competition, Event } from '@bis/shared'
 import type { ReactNode } from 'react'
-import { AGE_GROUP_LABEL, AGE_GROUP_SHORT, DISCIPLINE_LABEL, eventDances } from '../../lib/format.ts'
-
-// "10/Oct/2026", as on the paper result sheets
-function sheetDate(iso: string) {
-  const d = new Date(`${iso}T00:00:00`)
-  return `${String(d.getDate()).padStart(2, '0')}/${d.toLocaleDateString('en-GB', { month: 'short' })}/${d.getFullYear()}`
-}
+import { AGE_GROUP_LABEL, AGE_GROUP_SHORT, DISCIPLINE_LABEL, eventDances, sheetDate } from '../../lib/format.ts'
 
 function Fields({ rows }: { rows: Array<[string, string]> }) {
   return (

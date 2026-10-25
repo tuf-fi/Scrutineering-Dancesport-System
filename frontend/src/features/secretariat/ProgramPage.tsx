@@ -5,6 +5,7 @@ import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
 import {
   Button,
+  ButtonLink,
   Dialog,
   ErrorState,
   IconButton,
@@ -32,6 +33,7 @@ import {
   formatClock,
   programLineName,
 } from '../../lib/format.ts'
+import { programPrintPath } from '../../lib/programFilter.ts'
 import { ProgramLineDialog } from './ProgramLineDialog.tsx'
 
 const fail = { onError: (e: Error) => toast.error(e.message) }
@@ -92,6 +94,11 @@ export function ProgramPage() {
           >
             {generate.isPending ? 'Generating…' : rows.length ? 'Add missing rounds' : 'Generate'}
           </Button>
+          {competitionId && rows.length > 0 && (
+            <ButtonLink variant="secondary" to={programPrintPath(competitionId, '', 'all')} target="_blank">
+              Print
+            </ButtonLink>
+          )}
           <Button disabled={!competitionId} onClick={() => setEditing('new')}>
             Add break
           </Button>

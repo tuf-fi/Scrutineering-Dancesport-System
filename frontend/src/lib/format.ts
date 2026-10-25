@@ -184,3 +184,9 @@ export const programLineName = (row: ProgramRow) =>
 // What happens to the field in a round: "Select 24" while rounds remain, "Rank 6" in a final
 export const programAction = (row: Pick<ProgramRow, 'kind' | 'recallNumber' | 'entryCount'>) =>
   row.kind !== 'round' ? '' : row.recallNumber !== null ? `Select ${row.recallNumber}` : `Rank ${row.entryCount}`
+
+// "10/Oct/2026", as on the paper result sheets
+export function sheetDate(iso: string) {
+  const d = new Date(`${iso}T00:00:00`)
+  return `${String(d.getDate()).padStart(2, '0')}/${d.toLocaleDateString('en-GB', { month: 'short' })}/${d.getFullYear()}`
+}

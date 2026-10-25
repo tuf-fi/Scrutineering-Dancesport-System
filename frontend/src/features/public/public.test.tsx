@@ -216,6 +216,18 @@ describe('program page', () => {
     expect(await screen.findByText('No lines match')).toBeInTheDocument()
   })
 
+  it('offers Print and PDF that carry the search and round to the printout', async () => {
+    renderApp('/competitions/comp-sorsogon-2026/program')
+    await programRows()
+    expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print')
+    expect(screen.getByRole('link', { name: 'PDF' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print?pdf=1')
+
+    await userEvent.type(screen.getByLabelText('Search program'), 'Samba')
+    await userEvent.selectOptions(screen.getByLabelText('Round'), 'final')
+    expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print?q=Samba&round=final')
+    expect(screen.getByRole('link', { name: 'PDF' })).toHaveAttribute('target', '_blank')
+  })
+
   it('says so when a competition has no program yet', async () => {
     renderApp('/competitions/comp-legazpi-2026/program')
     expect(await screen.findByText('No program yet')).toBeInTheDocument()

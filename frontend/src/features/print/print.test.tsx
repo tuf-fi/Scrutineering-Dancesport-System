@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import { screen, waitFor, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { generateProgram, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 const staff = { id: 'staff-scrutineer', name: 'Teresita Quimpo' }
@@ -62,8 +63,11 @@ describe('printouts', () => {
   it('lists every sheet on the printouts page, opening each in a new tab', async () => {
     renderApp('/print', Role.Scrutineer, staff)
     const list = await screen.findByRole('list', { name: 'Sheets' })
+    // The program sheet is for a whole competition, so it appears once the competition is known
+    await within(list).findByRole('link', { name: /^Program/ })
     const links = within(list).getAllByRole('link')
     expect(links.map((l) => l.textContent)).toEqual([
+      expect.stringContaining('Program'),
       expect.stringContaining('Heat list'),
       expect.stringContaining('Qualified list'),
       expect.stringContaining('Scores sheet'),
@@ -71,5 +75,40 @@ describe('printouts', () => {
       expect.stringContaining('Blank mark sheets'),
     ])
     for (const link of links) expect(link).toHaveAttribute('target', '_blank')
+  })
+})
+
+describe('program printout', () => {
+  const COMP = 'comp-sorsogon-2026'
+  beforeAll(async () => {
+    await generateProgram('test', COMP)
+    await setProgramStart('test', COMP, '07:00')
+  })
+
+  it('prints every line, not 10 a page, for a guest', async () => {
+    renderApp(`/competitions/${COMP}/program/print`)
+    expect(await screen.findByRole('heading', { name: /^Program: / })).toBeInTheDocument()
+    await screen.findByText('7:00 AM')
+    expect(sheetRows().length).toBeGreaterThan(10)
+    expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/^Printed$/)).toBeInTheDocument()
+    expect(screen.getByText(`${sheetRows().length} lines.`)).toBeInTheDocument()
+  })
+
+  it('keeps the search and round filter, and says so', async () => {
+    renderApp(`/competitions/${COMP}/program/print?round=final`)
+    await screen.findByText(/filtered by Final\./)
+    const rows = sheetRows()
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) expect(within(row).getAllByRole('cell')[3]).toHaveTextContent('Final')
+    expect(screen.getByText(/filtered by Final\.$/)).toBeInTheDocument()
+  })
+
+  it('opens the print dialog at once for the PDF link', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+    renderApp(`/competitions/${COMP}/program/print?pdf=1`)
+    await waitFor(() => expect(print).toHaveBeenCalledTimes(1))
+    expect(screen.getByText('In the print dialog, choose Save as PDF as the destination.')).toBeInTheDocument()
+    print.mockRestore()
   })
 })

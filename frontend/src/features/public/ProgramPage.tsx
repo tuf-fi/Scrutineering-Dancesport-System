@@ -2,11 +2,19 @@ import { ProgramKind, ProgramStatus, RoundType, type ProgramRow } from '@bis/sha
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
-import { ErrorState, PageHeader, SearchField, Select, Skeleton, Table, Toolbar } from '../../components/ui/index.ts'
+import {
+  ButtonLink,
+  ErrorState,
+  PageHeader,
+  SearchField,
+  Select,
+  Skeleton,
+  Table,
+  Toolbar,
+  ToolbarActions,
+} from '../../components/ui/index.ts'
 import { useCompetition, useProgram } from '../../hooks/index.ts'
 import {
-  AGE_GROUP_LABEL,
-  DISCIPLINE_LABEL,
   ROUND_TYPE_LABEL,
   eventCode,
   eventDances,
@@ -17,6 +25,7 @@ import {
   programAction,
   programLineName,
 } from '../../lib/format.ts'
+import { filterProgram, programPrintPath } from '../../lib/programFilter.ts'
 
 // The line itself in words, for the strip above the table
 function Line({ label, row }: { label: string; row: ProgramRow | undefined }) {
@@ -47,11 +56,6 @@ function Line({ label, row }: { label: string; row: ProgramRow | undefined }) {
   )
 }
 
-const searchText = (r: ProgramRow) =>
-  r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline
-    ? `${eventCode({ number: r.eventNumber })} ${eventDances(r)} ${AGE_GROUP_LABEL[r.ageGroup]} ${r.class} ${DISCIPLINE_LABEL[r.discipline]}`
-    : (r.label ?? '')
-
 // The running order of one competition, live: what is on the floor, what is next, and when everything else starts
 export function ProgramPage() {
   const { competitionId = '' } = useParams()
@@ -66,10 +70,7 @@ export function ProgramPage() {
   if (!competition.data) return <Skeleton className="h-24 w-full max-w-xl" />
 
   const all = program.data?.rows ?? []
-  const needle = query.trim().toLowerCase()
-  const rows = all.filter(
-    (r) => (round === 'all' || r.roundType === round) && (!needle || searchText(r).toLowerCase().includes(needle)),
-  )
+  const rows = filterProgram(all, query, round)
   const now = all.find((r) => r.status === ProgramStatus.Current)
   const next = all.find((r) => r.status === ProgramStatus.Next)
 
@@ -99,6 +100,16 @@ export function ProgramPage() {
             ))}
           </Select>
         </div>
+        {all.length > 0 && (
+          <ToolbarActions>
+            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round)} target="_blank">
+              Print
+            </ButtonLink>
+            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, true)} target="_blank">
+              PDF
+            </ButtonLink>
+          </ToolbarActions>
+        )}
       </Toolbar>
 
       <Table<ProgramRow>

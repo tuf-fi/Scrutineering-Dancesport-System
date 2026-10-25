@@ -37,6 +37,7 @@ import { BlankSheetsPage } from '../features/print/BlankSheetsPage.tsx'
 import { FinalResultsPage } from '../features/print/FinalResultsPage.tsx'
 import { HeatListPage } from '../features/print/HeatListPage.tsx'
 import { PrintIndexPage } from '../features/print/PrintIndexPage.tsx'
+import { ProgramPrintPage } from '../features/print/ProgramPrintPage.tsx'
 import { QualifiedPage } from '../features/print/QualifiedPage.tsx'
 import { ScoresPage } from '../features/print/ScoresPage.tsx'
 import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
@@ -160,6 +161,13 @@ export const routes: RouteObject[] = [
             ],
           },
         ],
+      },
+
+      // The program is public, so its printout is too
+      {
+        path: '/competitions/:competitionId/program/print',
+        element: <PrintLayout />,
+        children: [{ index: true, element: <ProgramPrintPage /> }],
       },
 
       { path: '/club/sign-in', element: <ClubSignIn /> },

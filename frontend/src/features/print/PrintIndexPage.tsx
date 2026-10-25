@@ -24,6 +24,7 @@ export function PrintIndexPage() {
     ['Final results', `/print/results/${eventId}`, 'Placings, with room to sign'],
     ['Blank mark sheets', `/print/blank-sheets/${eventId}${query}`, 'One per adjudicator, for the paper fallback'],
   ]
+  if (competitionId) sheets.unshift(['Program', `/competitions/${competitionId}/program/print`, 'The running order for the whole competition'])
 
   return (
     <div className="flex flex-col gap-8">
