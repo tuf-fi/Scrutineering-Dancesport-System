@@ -97,6 +97,7 @@ const access: Record<string, Access> = {
   createStaffUser: ADMIN,
   updateStaffUser: ADMIN,
   deleteStaffUser: ADMIN,
+  revokeSessions: ADMIN,
   resetStaffPassword: ADMIN,
   createAdjudicator: ADMIN,
   updateAdjudicator: ADMIN,

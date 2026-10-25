@@ -1,5 +1,5 @@
 import type { Adjudicator } from '@bis/shared'
-import { KeyRound, Pencil, Trash2 } from 'lucide-react'
+import { KeyRound, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Avatars } from '../../components/Avatars.tsx'
 import {
@@ -20,6 +20,7 @@ import {
   useGeneratePins,
 } from '../../hooks/index.ts'
 import { AdjudicatorDialog } from './AdjudicatorDialog.tsx'
+import { SignOutDialog, type SignOutTarget } from './SignOutDialog.tsx'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { LETTERS } from './constants.ts'
 
@@ -38,6 +39,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
   // The adjudicator being edited, or 'new' while adding one
   const [editing, setEditing] = useState<Adjudicator | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Adjudicator | null>(null)
+  const [signOut, setSignOut] = useState<SignOutTarget | null>(null)
 
   if (adjudicators.isError || pins.isError) {
     return <ErrorState onRetry={() => void Promise.all([adjudicators.refetch(), pins.refetch()])} />
@@ -141,12 +143,15 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
                   disabled={generate.isPending}
                   onClick={() => run(a.id)}
                 />
+                <IconButton icon={LogOut} label={`Sign ${a.name} out everywhere`} onClick={() => setSignOut({ kind: 'adjudicator', id: a.id, name: a.name })} />
                 <IconButton icon={Trash2} tone="danger" label={`Delete ${a.name}`} onClick={() => setToDelete(a)} />
               </div>
             ),
           },
         ]}
       />
+
+      <SignOutDialog target={signOut} onClose={() => setSignOut(null)} />
 
       <AdjudicatorDialog
         open={editing !== null}

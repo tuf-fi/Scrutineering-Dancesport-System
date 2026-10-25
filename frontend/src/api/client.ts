@@ -2,6 +2,7 @@
 // Names and arguments match the sample API in ../mocks/api.ts, so screens and hooks do not change.
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
+  AccountKind,
   Adjudicator,
   AdjudicatorPin,
   AdjudicatorState,
@@ -100,6 +101,7 @@ export const updateStaffUser = (_actorId: string, id: string, input: { name: str
   call<StaffUser>('updateStaffUser', id, input)
 export const deleteStaffUser = (_actorId: string, id: string) => call<{ id: string }>('deleteStaffUser', id)
 export const resetStaffPassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetStaffPassword', id)
+export const revokeSessions = (_actorId: string, kind: AccountKind, id: string) => call<void>('revokeSessions', kind, id)
 export const createAdjudicator = (_actorId: string, input: { name: string; letter: string }) =>
   call<Adjudicator>('createAdjudicator', input)
 export const updateAdjudicator = (_actorId: string, id: string, input: { name: string }) =>

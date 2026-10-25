@@ -1,6 +1,7 @@
 import type { MessengerLink, PaymentMethod, PaymentSettings } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { hashPassword, temporaryPassword, verifyPassword } from '../auth/password.ts'
+import { bumpSessionVersion } from '../auth/signin.ts'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
@@ -64,6 +65,7 @@ export const accountFunctions = {
     const club = found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, String(id))).get(), 'Club')
     const tempPassword = temporaryPassword()
     ctx.db.update(t.clubs).set({ passwordHash: hashPassword(tempPassword) }).where(eq(t.clubs.id, club.id)).run()
+    bumpSessionVersion(ctx, 'club', club.id)
     record(ctx.db, actor(ctx).id, 'Reset a club password', club.name)
     return { tempPassword }
   },

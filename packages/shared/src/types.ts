@@ -302,6 +302,9 @@ export interface ProgramSlotInput {
   label?: string
 }
 
+// Whose sessions an admin can end
+export type AccountKind = 'staff' | 'adjudicator' | 'club'
+
 export interface ImportResult {
   created: number
   // Rows that could not be imported, by line number in the file

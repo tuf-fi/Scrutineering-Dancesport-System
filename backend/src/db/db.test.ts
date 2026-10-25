@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
@@ -118,10 +118,11 @@ describe('dropping offline sync (migration 0009)', () => {
     // The migrations as they were before 0009: every file but that one, and a journal without it
     const before = join(dir, 'before')
     cpSync(join(import.meta.dirname, '..', '..', 'drizzle'), before, { recursive: true })
-    rmSync(join(before, '0009_drop_sync.sql'))
+    // Everything from 0009 on is left out
+    for (const file of readdirSync(before)) if (/^00(09|[1-9]\d)_.*\.sql$/.test(file)) rmSync(join(before, file))
     const journalPath = join(before, 'meta', '_journal.json')
     const journal = JSON.parse(readFileSync(journalPath, 'utf8')) as { entries: Array<{ tag: string }> }
-    journal.entries = journal.entries.filter((e) => e.tag !== '0009_drop_sync')
+    journal.entries = journal.entries.filter((e) => e.tag < '0009')
     writeFileSync(journalPath, JSON.stringify(journal))
 
     const { db, sqlite } = openDatabase(':memory:')

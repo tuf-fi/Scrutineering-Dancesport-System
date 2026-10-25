@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { PointsRow, Role } from '@bis/shared'
+import type { AccountKind, PointsRow, Role } from '@bis/shared'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
 
@@ -94,3 +94,6 @@ export const useRejectPayment = () =>
     (v: { id: string; reason: string }) => api.rejectPayment(actor(), v.id, v.reason),
     () => [['payments']],
   )
+
+export const useRevokeSessions = () =>
+  useWrite((v: { kind: AccountKind; id: string }) => api.revokeSessions(actor(), v.kind, v.id), () => [])

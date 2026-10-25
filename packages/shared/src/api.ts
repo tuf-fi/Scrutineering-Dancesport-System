@@ -83,6 +83,7 @@ export const API_FUNCTIONS = [
   'registerClubEntries',
   'rejectPayment',
   'resetStaffPassword',
+  'revokeSessions',
   'saveClubDancer',
   'saveCompetition',
   'saveEvent',

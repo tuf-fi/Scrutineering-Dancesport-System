@@ -1,5 +1,5 @@
 import type { StaffUser } from '@bis/shared'
-import { KeyRound, Pencil, Trash2 } from 'lucide-react'
+import { KeyRound, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Avatars } from '../../components/Avatars.tsx'
 import {
@@ -19,6 +19,7 @@ import { useDeleteStaff, useResetStaffPassword, useStaffUsers } from '../../hook
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { STAFF_ROLES } from './constants.ts'
+import { SignOutDialog, type SignOutTarget } from './SignOutDialog.tsx'
 import { StaffDialog } from './StaffDialog.tsx'
 import { TempPasswordDialog } from './TempPasswordDialog.tsx'
 
@@ -33,6 +34,7 @@ export function StaffPage() {
   const [editing, setEditing] = useState<StaffUser | 'new' | null>(null)
   const [confirmReset, setConfirmReset] = useState<StaffUser | null>(null)
   const [toDelete, setToDelete] = useState<StaffUser | null>(null)
+  const [signOut, setSignOut] = useState<SignOutTarget | null>(null)
   const [shown, setShown] = useState<{ title: string; person: string; password: string } | null>(null)
 
   if (staff.isError) return <ErrorState onRetry={() => void staff.refetch()} />
@@ -132,6 +134,7 @@ export function StaffPage() {
               <div className="flex justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
                 <IconButton icon={Pencil} label={`Edit ${s.name}`} onClick={() => setEditing(s)} />
                 <IconButton icon={KeyRound} label={`Reset password for ${s.name}`} onClick={() => setConfirmReset(s)} />
+                <IconButton icon={LogOut} label={`Sign ${s.name} out everywhere`} onClick={() => setSignOut({ kind: 'staff', id: s.id, name: s.name })} />
                 <IconButton icon={Trash2} tone="danger" label={`Delete ${s.name}`} onClick={() => setToDelete(s)} />
               </div>
             ),
@@ -145,6 +148,8 @@ export function StaffPage() {
         onClose={() => setEditing(null)}
         onCreated={(person, password) => setShown({ title: 'Account created', person, password })}
       />
+
+      <SignOutDialog target={signOut} onClose={() => setSignOut(null)} />
 
       <Dialog
         open={confirmReset !== null}

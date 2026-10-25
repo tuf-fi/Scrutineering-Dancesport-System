@@ -1,9 +1,10 @@
-import { PaymentStatus, Role, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PaymentDetail, type PointsRow, type StaffUser } from '@bis/shared'
+import { PaymentStatus, Role, type AccountKind, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PaymentDetail, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import { hashPassword, temporaryPassword } from '../auth/password.ts'
+import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { notifyClub } from '../messenger.ts'
@@ -84,10 +85,24 @@ export const admin = {
     return { id }
   },
 
+  // Signs a person out of every device: their tokens stop working at once
+  revokeSessions(ctx: Ctx, kind: AccountKind, id: string): void {
+    if (kind !== 'staff' && kind !== 'adjudicator' && kind !== 'club') return fail('Choose staff, an adjudicator or a club.')
+    const name =
+      kind === 'staff'
+        ? found(ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, String(id))).get(), 'Staff account').name
+        : kind === 'adjudicator'
+          ? found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, String(id))).get(), 'Adjudicator').name
+          : found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, String(id))).get(), 'Club').name
+    bumpSessionVersion(ctx, kind, String(id))
+    record(ctx.db, actor(ctx).id, 'Signed out everywhere', name)
+  },
+
   resetStaffPassword(ctx: Ctx, id: string): { tempPassword: string } {
     const user = found(ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, id)).get(), 'Staff account')
     const tempPassword = temporaryPassword()
     ctx.db.update(t.staffUsers).set({ passwordHash: hashPassword(tempPassword) }).where(eq(t.staffUsers.id, id)).run()
+    bumpSessionVersion(ctx, 'staff', id)
     record(ctx.db, actor(ctx).id, 'Reset password', user.name)
     return { tempPassword }
   },
@@ -154,6 +169,8 @@ export const admin = {
           .set({ pin: nextPin() })
           .where(and(eq(t.adjudicatorPins.competitionId, competitionId), eq(t.adjudicatorPins.adjudicatorId, a.id)))
           .run()
+        // Whoever held the old PIN is signed out
+        bumpSessionVersion(ctx, 'adjudicator', a.id)
       } else {
         ctx.db.insert(t.adjudicatorPins).values({ competitionId, adjudicatorId: a.id, pin: nextPin() }).run()
       }

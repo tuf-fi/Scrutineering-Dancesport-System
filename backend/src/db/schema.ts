@@ -31,6 +31,7 @@ export const clubs = sqliteTable('clubs', {
   consentAt: text('consent_at'),
   // The club's Messenger id for the organizer's Page, once it has linked; payment decisions are sent there
   messengerId: text('messenger_id'),
+  sessionVersion: integer('session_version').notNull().default(0),
 }, (t) => [uniqueIndex('clubs_email').on(t.contactEmail)])
 
 export const events = sqliteTable(
@@ -118,6 +119,8 @@ export const adjudicators = sqliteTable(
     name: text('name').notNull(),
     // A to J
     letter: text('letter').notNull(),
+    // See staff_users: a new PIN sign-in raises it, so an adjudicator is signed in on one phone at a time
+    sessionVersion: integer('session_version').notNull().default(0),
   },
   (t) => [uniqueIndex('adjudicators_letter').on(t.letter)],
 )
@@ -366,6 +369,8 @@ export const staffUsers = sqliteTable('staff_users', {
   role: text('role', { enum: oneOf(Role) }).notNull(),
   passwordHash: text('password_hash').notNull(),
   disabled: integer('disabled', { mode: 'boolean' }).notNull().default(false),
+  // A signed token carries the version it was made at; raising it signs the person out everywhere
+  sessionVersion: integer('session_version').notNull().default(0),
 })
 
 export const auditLog = sqliteTable(

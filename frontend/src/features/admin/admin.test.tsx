@@ -252,6 +252,14 @@ describe('staff accounts', () => {
     await expect(api.signInStaff('mc', 'bis2026')).rejects.toThrow('Wrong username or password.')
   })
 
+  it('signs a person out everywhere after confirming', async () => {
+    renderApp('/admin/staff', Role.Admin)
+    await userEvent.click(await screen.findByRole('button', { name: 'Sign Dante Ibarra out everywhere' }))
+    const confirm = await dialogFor(/Sign Dante Ibarra out everywhere/)
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Sign out' }))
+    expect(await screen.findByText('Dante Ibarra is signed out everywhere')).toBeInTheDocument()
+  })
+
   it('deletes an account after confirming, but not your own or the last admin', async () => {
     await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme', role: Role.Mc })
     renderApp('/admin/staff', Role.Admin)

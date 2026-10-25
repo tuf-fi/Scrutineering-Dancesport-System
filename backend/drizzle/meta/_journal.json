@@ -71,6 +71,13 @@
       "when": 1792902471033,
       "tag": "0009_drop_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792905041034,
+      "tag": "0010_session_version",
+      "breakpoints": true
     }
   ]
 }

@@ -7,7 +7,7 @@ import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest }
 import { sql } from 'drizzle-orm'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession } from './auth/signin.ts'
+import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession, startVersion } from './auth/signin.ts'
 import { record } from './core/audit.ts'
 import { noBackups, type Backups } from './backup.ts'
 import type { Config } from './config.ts'
@@ -40,14 +40,20 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   await app.register(cookie)
   await app.register(jwt, { secret: config.cookieSecret })
 
-  const verifyToken = (token: string): SessionUser | null => {
+  type Claims = SessionUser & { sv?: number }
+  const verifyToken = (token: string): Claims | null => {
     try {
-      return app.jwt.verify<SessionUser>(token)
+      return app.jwt.verify<Claims>(token)
     } catch {
       return null
     }
   }
-  const hub = givenHub ?? createSocketHub(app.server, verifyToken)
+  // A token counts only while its account still exists and has not been signed out; sockets obey the same rule
+  const resolveToken = (token: string): SessionUser | null => {
+    const claims = verifyToken(token)
+    return claims ? resolveSession(baseContext(null), claims) : null
+  }
+  const hub = givenHub ?? createSocketHub(app.server, resolveToken)
   // A backup folder that stops (or starts) working is shown on the scrutineer's screen at once
   backups.onChange(() => hub.changed('backups'))
 
@@ -64,8 +70,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
 
   const sessionOf = (request: FastifyRequest): SessionUser | null => {
     const token = request.cookies[SESSION_COOKIE]
-    const claims = token ? verifyToken(token) : null
-    return claims ? resolveSession(baseContext(null), claims) : null
+    return token ? resolveToken(token) : null
   }
 
   const sendError = (reply: FastifyReply, error: unknown) => {
@@ -75,8 +80,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     return reply.code(500).send({ error: 'Something went wrong on the server.' })
   }
 
-  const startSession = (reply: FastifyReply, user: SessionUser) => {
-    const token = app.jwt.sign({ id: user.id, name: user.name, role: user.role, letter: user.letter }, { expiresIn: `${SESSION_HOURS}h` })
+  const startSession = (reply: FastifyReply, user: SessionUser, version = 0) => {
+    const token = app.jwt.sign({ id: user.id, name: user.name, role: user.role, letter: user.letter, sv: version }, { expiresIn: `${SESSION_HOURS}h` })
     reply.setCookie(SESSION_COOKIE, token, {
       httpOnly: true,
       sameSite: 'lax',
@@ -113,11 +118,12 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     try {
       limiter.check(key)
       wide.check(wideKey)
-      const user = make(baseContext(null))
+      const ctx = baseContext(null)
+      const user = make(ctx)
       limiter.succeeded(key)
       if (kind === 'account') wide.succeeded(wideKey)
       else record(db, user.id, 'Adjudicator signed in', user.name)
-      return startSession(reply, user)
+      return startSession(reply, user, startVersion(ctx, user))
     } catch (error) {
       if (error instanceof HttpError && error.status === 401) {
         limiter.failed(key)

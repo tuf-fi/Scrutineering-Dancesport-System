@@ -1,5 +1,6 @@
 import type { Club } from '@bis/shared'
-import { KeyRound, UserX } from 'lucide-react'
+import { KeyRound, LogOut, UserX } from 'lucide-react'
+import { SignOutDialog, type SignOutTarget } from './SignOutDialog.tsx'
 import { useState } from 'react'
 import { Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useClearOldReceipts, useClubs, useEraseClubAccount, useResetClubPassword } from '../../hooks/index.ts'
@@ -13,6 +14,7 @@ export function ClubsPage() {
   const [query, setQuery] = useState('')
   const [toReset, setToReset] = useState<Club | null>(null)
   const [toErase, setToErase] = useState<Club | null>(null)
+  const [signOut, setSignOut] = useState<SignOutTarget | null>(null)
   const [clearing, setClearing] = useState(false)
   const [shown, setShown] = useState<{ person: string; password: string } | null>(null)
 
@@ -92,12 +94,15 @@ export function ClubsPage() {
             cell: (c) => (
               <div className="flex justify-end gap-0.5">
                 <IconButton icon={KeyRound} label={`Reset the password of ${c.name}`} onClick={() => setToReset(c)} />
+                <IconButton icon={LogOut} label={`Sign ${c.name} out everywhere`} onClick={() => setSignOut({ kind: 'club', id: c.id, name: c.name })} />
                 <IconButton icon={UserX} tone="danger" label={`Erase the account of ${c.name}`} onClick={() => setToErase(c)} />
               </div>
             ),
           },
         ]}
       />
+
+      <SignOutDialog target={signOut} onClose={() => setSignOut(null)} />
 
       <Dialog
         open={toReset !== null}

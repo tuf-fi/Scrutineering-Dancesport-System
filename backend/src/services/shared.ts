@@ -110,7 +110,7 @@ export const toRankingPoint = (r: typeof t.rankingPoints.$inferSelect): RankingP
   points: r.points,
 })
 
-export const toStaff = (r: typeof t.staffUsers.$inferSelect): StaffUser => ({
+export const toStaff = (r: Pick<typeof t.staffUsers.$inferSelect, 'id' | 'name' | 'username' | 'role'>): StaffUser => ({
   id: r.id,
   name: r.name,
   username: r.username,

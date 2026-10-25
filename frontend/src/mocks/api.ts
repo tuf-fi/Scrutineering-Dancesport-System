@@ -1,5 +1,6 @@
 import {
   DISCIPLINE_DANCES,
+  type AccountKind,
   parseCompetitorCsv,
   PaymentStatus,
   Role,
@@ -307,6 +308,11 @@ export const resetStaffPassword = (actorId: string, id: string) =>
     passwords.set(user.username, password)
     record(actorId, 'Reset password', user.name)
     return { tempPassword: password }
+  })
+
+export const revokeSessions = (actorId: string, kind: AccountKind, id: string) =>
+  settle<void>(() => {
+    record(actorId, 'Signed out everywhere', `${kind} ${id}`)
   })
 
 export const createAdjudicator = (actorId: string, input: { name: string; letter: string }) =>

@@ -1,5 +1,5 @@
-import { competitionIsNear, Role, type ClubSignUp, type SessionUser } from '@bis/shared'
-import { and, eq } from 'drizzle-orm'
+import { competitionIsNear, Role, type AccountKind, type ClubSignUp, type SessionUser } from '@bis/shared'
+import { and, eq, sql } from 'drizzle-orm'
 import { fail, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
@@ -43,6 +43,33 @@ export function adjudicatorSession(ctx: Ctx, pin: string): SessionUser {
   return { id: adjudicator.id, name: adjudicator.name, role: Role.Adjudicator, letter: adjudicator.letter }
 }
 
+export const accountKind = (role: Role): AccountKind => (STAFF_ROLES.includes(role) ? 'staff' : role === Role.Adjudicator ? 'adjudicator' : 'club')
+
+// Raises an account's session version, which signs that person out everywhere: tokens carry the version they were made at
+export function bumpSessionVersion(ctx: Ctx, kind: AccountKind, id: string) {
+  if (kind === 'staff') ctx.db.update(t.staffUsers).set({ sessionVersion: sql`${t.staffUsers.sessionVersion} + 1` }).where(eq(t.staffUsers.id, id)).run()
+  else if (kind === 'adjudicator') ctx.db.update(t.adjudicators).set({ sessionVersion: sql`${t.adjudicators.sessionVersion} + 1` }).where(eq(t.adjudicators.id, id)).run()
+  else ctx.db.update(t.clubs).set({ sessionVersion: sql`${t.clubs.sessionVersion} + 1` }).where(eq(t.clubs.id, id)).run()
+}
+
+function sessionVersionOf(ctx: Ctx, kind: AccountKind, id: string): number {
+  const row =
+    kind === 'staff'
+      ? ctx.db.select({ v: t.staffUsers.sessionVersion }).from(t.staffUsers).where(eq(t.staffUsers.id, id)).get()
+      : kind === 'adjudicator'
+        ? ctx.db.select({ v: t.adjudicators.sessionVersion }).from(t.adjudicators).where(eq(t.adjudicators.id, id)).get()
+        : ctx.db.select({ v: t.clubs.sessionVersion }).from(t.clubs).where(eq(t.clubs.id, id)).get()
+  return row?.v ?? 0
+}
+
+// The version a new token is made at. An adjudicator's PIN sign-in raises it first, so the phone signed in before is
+// signed out: one phone at a time per adjudicator.
+export function startVersion(ctx: Ctx, user: SessionUser): number {
+  const kind = accountKind(user.role)
+  if (kind === 'adjudicator') bumpSessionVersion(ctx, kind, user.id)
+  return sessionVersionOf(ctx, kind, user.id)
+}
+
 export function signUpClub(ctx: Ctx, input: ClubSignUp): SessionUser {
   const name = String(input?.name ?? '').trim()
   const contactName = String(input?.contactName ?? '').trim()
@@ -70,18 +97,19 @@ export function signUpClub(ctx: Ctx, input: ClubSignUp): SessionUser {
 }
 
 // Who a signed token belongs to right now: an account that was deleted or disabled stops working at once
-export function resolveSession(ctx: Ctx, claims: Pick<SessionUser, 'id' | 'role'>): SessionUser | null {
+export function resolveSession(ctx: Ctx, claims: Pick<SessionUser, 'id' | 'role'> & { sv?: number }): SessionUser | null {
+  const version = claims.sv ?? 0
   if (STAFF_ROLES.includes(claims.role)) {
     const row = ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, claims.id)).get()
-    return row && !row.disabled ? { id: row.id, name: row.name, role: row.role } : null
+    return row && !row.disabled && row.sessionVersion === version ? { id: row.id, name: row.name, role: row.role } : null
   }
   if (claims.role === Role.Adjudicator) {
     const row = ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, claims.id)).get()
-    return row ? { id: row.id, name: row.name, role: Role.Adjudicator, letter: row.letter } : null
+    return row && row.sessionVersion === version ? { id: row.id, name: row.name, role: Role.Adjudicator, letter: row.letter } : null
   }
   if (claims.role === Role.Club) {
     const row = ctx.db.select().from(t.clubs).where(eq(t.clubs.id, claims.id)).get()
-    return row ? { id: row.id, name: row.name, role: Role.Club } : null
+    return row && row.sessionVersion === version ? { id: row.id, name: row.name, role: Role.Club } : null
   }
   return null
 }
