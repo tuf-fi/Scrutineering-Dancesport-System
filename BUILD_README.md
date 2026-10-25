@@ -1,6 +1,6 @@
 # How to Build BIS
 
-**BIS (Bicol Information Scrutineering System)** is one web app that runs in two places: on a laptop at the venue, where it works with no internet, and on a cloud server, where it handles registration, payments and public results. This guide covers the tech stack, the architecture, and the build order from frontend to backend.
+**BIS (Bicol Information Scrutineering System)** is one online web app: one server handles registration, payments, public results and the running of the rounds. This guide covers the tech stack, the architecture, and the build order from frontend to backend.
 
 ## Tech stack
 
@@ -9,73 +9,47 @@
 | Language | **TypeScript** everywhere | One language for frontend, backend and the scoring engine; types catch mistakes in scores |
 | Frontend | **React + Vite** | Fast to build screens for each role; huge community |
 | Styling | **Tailwind CSS** | Quick, consistent screens without writing much CSS |
-| Offline support | **PWA** (vite-plugin-pwa) | Adjudicators' phones and laptops keep working if Wi-Fi drops; no app store needed |
-| Backend | **Node.js + Fastify** | Light and fast; runs well on an ordinary laptop |
-| Real-time | **Socket.IO** | Pushes every adjudicator's mark to all screens instantly over the venue Wi-Fi |
-| Venue database | **SQLite** (better-sqlite3) | A single file; nothing extra to install or keep running on the venue laptop; back up by copying one file |
-| Cloud database | **PostgreSQL** | Built for many people online at once (registration, payments, public results); reliable backups; available as a managed service |
-| Database access | **Drizzle ORM** | Defines the tables once and works with both SQLite and PostgreSQL |
+| Backend | **Node.js + Fastify** | Light and fast; runs well on a small server |
+| Real-time | **Socket.IO** | Pushes every adjudicator's mark to all screens instantly over the internet |
+| Database | **SQLite** (better-sqlite3) | A single file; nothing extra to install or keep running; back up by copying one file |
+| Database access | **Drizzle ORM** | Defines the tables once, with migrations |
 | Printing | **Print-ready HTML pages** (A4 CSS) | Prints from any browser or saves as PDF; no extra software |
 | Testing | **Vitest** | Tests the scoring engine against real published results |
-| Cloud hosting | Small VPS (e.g. DigitalOcean) | Runs the online site and receives uploads from venues |
+| Hosting | Small VPS (e.g. DigitalOcean), Docker, Caddy for HTTPS | Runs the whole system; see `deploy/` |
 
-**Why not Next.js?** Next.js is React with a built-in server. Its main strength is public pages that rank well on Google. BIS is mostly a live, offline-first app for staff and adjudicators, and plain React with a small Fastify server is simpler to run on a laptop and to connect to Socket.IO. If the developer knows Next.js much better than plain React, Next.js with a custom server also works.
+**Why not Next.js?** Next.js is React with a built-in server. Its main strength is public pages that rank well on Google. BIS is mostly a live app for staff and adjudicators, and plain React with a small Fastify server is simpler to run and to connect to Socket.IO. If the developer knows Next.js much better than plain React, Next.js with a custom server also works.
 
-**Why SQLite at the venue?** MySQL or PostgreSQL would be a separate server program that has to be installed, configured and kept running on the venue laptop; SQLite is just a file inside BIS, so there is less to go wrong on competition day.
+**Why SQLite?** MySQL or PostgreSQL would be a separate server program to install, configure and keep running; SQLite is just a file inside BIS, so there is less to go wrong on competition day. One server with a backup after every change is enough for one organizer. PostgreSQL would mean making every service asynchronous and is only worth it if BIS ever needs more than one server.
 
-**Why PostgreSQL in the cloud?** The cloud handles registration, payments and public pages, where many people may be online at the same time. PostgreSQL handles that well, keeps payment records safe with strong transactions, and has dependable backup tools.
+## One online server
 
-## One database design, two copies
+BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: club registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, MC) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network.
 
-BIS keeps the same database in two places that sync with each other:
-
-| Copy | Where | Why it's needed |
-| --- | --- | --- |
-| Venue copy (SQLite) | Scrutineer's laptop (Laptop 2) | Runs the whole competition with no internet |
-| Cloud copy (PostgreSQL) | Cloud server | Registration, payments, public results, history and rankings when the venue laptop is off |
-
-Adjudicators' phones only hold a temporary copy of their own marks until they reach the venue server; this is not a separate database.
+There is one database, a SQLite file on the server. Adjudicators' phones hold only a temporary copy of their own marks until the server has them; this is not a separate database.
 
 ```mermaid
 flowchart LR
-  subgraph Venue["Venue (works with no internet)"]
-    P["10 adjudicator phones<br/>(PWA in browser)"]
-    L1["Laptop 1<br/>Secretariat"]
-    L3["Laptop 3<br/>MC / venue screen"]
-    R(("Venue Wi-Fi router"))
-    L2["Laptop 2: Scrutineer<br/>BIS venue server + SQLite"]
-    S["Spectators' phones<br/>(guest Wi-Fi, view only)"]
-    P --- R
-    L1 --- R
-    L3 --- R
-    S --- R
-    R --- L2
-  end
-  subgraph Cloud["Cloud (online)"]
-    C["BIS cloud server<br/>+ PostgreSQL"]
-    W["Public site:<br/>results, history, rankings"]
-    G["Club portal:<br/>registration + payments"]
-    A["Admin:<br/>payment checking"]
-  end
-  L2 -- "sync when internet is available" --> C
-  C --- W
-  C --- G
-  C --- A
+  P["Adjudicator phones<br/>(browser, PIN sign-in)"]
+  L["Staff laptops:<br/>secretariat, scrutineer,<br/>chairperson, MC"]
+  S["Public: phones<br/>(results, rankings, program)"]
+  G["Clubs:<br/>registration + payments"]
+  A["Admin:<br/>payment checking"]
+  C["Caddy (HTTPS)"]
+  B["BIS server + SQLite<br/>scoring, backups"]
+  P --- C
+  L --- C
+  S --- C
+  G --- C
+  A --- C
+  C --- B
 ```
 
-- **Before the competition (online):** clubs register dancers and upload proof of payment; the admin approves payments; the secretariat downloads the confirmed entry list **and the current rankings** to the venue server.
-- **At the competition (offline):** everything runs on the venue Wi-Fi. Adjudicators' marks reach the scrutineer's laptop in real time, and every screen updates instantly.
-- **Rankings update at the venue in real time:** when the scrutineer approves a result, the venue server adds the ranking points immediately, and every device on the venue Wi-Fi sees the new rankings, with no internet needed.
-- **After each approved result:** results and ranking points wait in an upload queue and sync to the cloud whenever internet is available, live during the event or afterwards. The public website then shows the same rankings as the venue.
-
-### Venue Wi-Fi networks
-
-| Network | Who joins | What they can open |
-| --- | --- | --- |
-| Staff network (password-protected) | Adjudicators' phones, the 3 laptops | All BIS screens for their role |
-| Guest network (optional) | Spectators, dancers, parents | Results and rankings only, read-only |
-
-Keeping spectators on a separate guest network means nobody in the crowd can reach the scoring screens.
+- **Before the competition:** clubs register dancers and upload proof of payment; the admin approves payments; the secretariat assigns back numbers and builds the schedule and program.
+- **At the competition:** adjudicators' marks reach the scrutineer in real time, and every screen updates instantly. If a phone loses its connection, it keeps its marks and resends them automatically; the scrutineer's board shows which phones hold marks.
+- **Rankings update in real time:** when the scrutineer approves a result, the server adds the ranking points immediately and every connected device sees the new rankings.
+- **Public pages** show only published results, rankings and the program.
+- **Backups:** the database is copied to `BACKUP_DIRS` (default `/data/backups`) after every change and on an interval, with an optional daily offsite copy. The scrutineer and admin see a warning if a folder fails.
+- **The server's clock decides which competition is current**, so run NTP on the host.
 
 ## Project structure
 
@@ -84,13 +58,13 @@ One code repository with shared parts:
 ```
 scrutineering-system/
   frontend/       React frontend (all roles' screens)
-  backend/        Node.js backend (venue mode and cloud mode)
+  backend/        Node.js backend (one server)
   packages/
     scoring/      Skating System engine (no UI, fully tested)
     shared/       Types and data shapes used by frontend and backend
 ```
 
-The same server code runs in **venue mode** (no internet needed) or **cloud mode** (adds registration, payments and public pages), set by one setting. Both modes use SQLite with the same table design defined once in Drizzle. PostgreSQL was planned for the cloud but would have meant rewriting every service to be asynchronous, so the cloud runs SQLite as one server with a backup after every change (see PHASE5_README.md). Moving to PostgreSQL later is possible if the cloud ever needs more than one server.
+One server program does everything, with the table design defined once in Drizzle. There is no venue mode or cloud mode: an earlier version ran a venue server beside a cloud server and synced them, and that was removed (see ROADMAP.md).
 
 ## Build order, frontend to backend
 
@@ -98,7 +72,7 @@ The same server code runs in **venue mode** (no internet needed) or **cloud mode
 
 Build every screen first, using fake data, so the client can click through and approve the flow before any backend exists.
 
-1. **App shell:** sign-in, a menu per role, the venue online/offline indicator.
+1. **App shell:** sign-in, a menu per role, a connection indicator.
 2. **Admin:** competitions, staff accounts, adjudicator panels and PINs, points table, payment checking.
 3. **Secretariat:** events (E1 to E100+), competitors and back numbers, scratches, schedule, heat and recall printouts.
 4. **Adjudicator (phone):** PIN sign-in, X marking for early rounds, 1st to 6th/7th placing for finals, a clear "Submitted" confirmation. Large buttons, works one-handed.
@@ -117,31 +91,25 @@ Build every screen first, using fake data, so the client can click through and a
 5. Ranking points from the editable points table.
 6. **Test against real results:** collect published results (for example from danceresults-competition.net), feed in the marks, and confirm BIS produces the same placings every time.
 
-### Phase 3: Venue backend
+### Phase 3: Backend
 
 1. Database tables (see the data model below) in SQLite, with write-ahead logging (WAL) turned on so many devices can read while marks are saved.
 2. API endpoints for each screen built in Phase 1; replace the fake data with real calls.
 3. Logins: staff accounts with passwords; adjudicators with a PIN per competition; each role sees only its own screens.
-4. **Real-time:** every submitted mark is broadcast with Socket.IO to the scrutineer, secretariat, chairperson and venue screen; approved results and updated rankings are broadcast to every connected device, including the guest network.
+4. **Real-time:** every submitted mark is broadcast with Socket.IO to the scrutineer, secretariat, chairperson and venue screen; approved results and updated rankings are broadcast to every connected device.
 5. Validation: an adjudicator must mark exactly the recall number, and use each final placing once.
 6. Audit log: every mark and every change is recorded with who made it and when.
-7. Automatic backups of the database file to a USB drive and to Laptop 3.
+7. Automatic backups of the database file to the backup folders, after every change and on an interval.
 
-### Phase 4: Offline safety
+### Phase 4: Offline safety (removed)
 
-1. Make the web app a PWA so it opens even if the connection drops.
-2. Save each adjudicator's marks on the phone first, then send; resend automatically after a Wi-Fi drop.
-3. The scrutineer screen shows any phone that has gone quiet.
-4. Paper fallback: printable blank mark sheets that the scrutineer can type in.
+Built, then removed when BIS became online only. What stayed: the phone saves marks first and resends them after a dropped connection, the scrutineer screen shows any phone that has gone quiet, and the paper fallback (printable blank mark sheets that the scrutineer can type in).
 
-### Phase 5: Cloud backend and sync
+### Phase 5: Cloud backend and sync (removed)
 
-1. Deploy the same server in cloud mode with PostgreSQL.
-2. **Upload queue:** approved results, ranking points, entries and scratches are stored in an "outbox" on the venue server and sent to the cloud when internet is available.
-3. **Download before an event:** the secretariat pulls the confirmed, paid entry list and the current rankings from the cloud to the venue server.
-4. Public pages read from the cloud: results, history, rankings.
+Built, then removed: the venue/cloud split, the upload queue and the download before an event. One online server does everything. Offline mode returns only if the client asks (see ROADMAP.md).
 
-### Phase 6: Registration and payments (cloud)
+### Phase 6: Registration and payments
 
 See the payment flow below.
 
@@ -178,10 +146,10 @@ What the admin sees for each payment: club name, dancers and events, amount due,
 
 Rules:
 - Only approved or paid-at-venue entries can dance, unless the admin allows an exception.
-- Receipts are stored privately on the cloud server and are visible only to admins.
+- Receipts are stored privately on the server and are visible only to the admins and the club that sent them.
 - Many dancers are minors, so registration collects only what is needed and follows the Data Privacy Act of 2012.
 
-Registration and payments need internet, so they run on the cloud server only. On the day, the secretariat can still add late entries and mark cash payments at the venue; these sync up later.
+On the day, the secretariat can still add late entries and mark cash payments at the venue.
 
 ## Data model
 
@@ -203,4 +171,3 @@ Registration and payments need internet, so they run on the cloud server only. O
 | ranking_points | Competitor, category, competition, points |
 | staff_users | Name, role, password |
 | audit_log | Who changed what, and when |
-| outbox | Items waiting to upload to the cloud |

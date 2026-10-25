@@ -1,6 +1,6 @@
 # Running the online server
 
-The online server is the same program as the venue laptop, started with `MODE=cloud`. It serves the website, takes registration and payments, shows public results, and receives results from the venue.
+The BIS server is one program that does everything: it serves the website, takes registration and payments, shows public results, and runs the rounds (staff on laptops, adjudicators on phones with a PIN, all over the internet). There is no venue server and no sync.
 
 ## Set up (once)
 
@@ -9,23 +9,33 @@ You need a small server with Docker, and a domain name pointing at it. Ports 80 
 1. Copy this repository to the server.
 2. In `deploy/`, copy `.env.example` to `.env` and fill it in:
    - `DOMAIN`: the address people will use.
-   - `SYNC_TOKENS`: one secret per venue laptop, `venue-name=secret`, separated by commas. Secrets are at least 16 characters. Make one with `openssl rand -hex 24`.
+   - `ADJUDICATOR_PIN_DAYS`: an adjudicator's PIN works this many days either side of the competition date (default 1; `off` only to practise with a past competition).
 3. Start it: `docker compose up -d --build`. Caddy gets the HTTPS certificate on its own.
 4. Create the first admin: `docker compose exec app node_modules/.bin/tsx src/db/create-admin-cli.ts <username> "<Full name>"`. It prints a password; sign in and change it.
-5. Check `https://<DOMAIN>/api/health`. It should say `"mode":"cloud"`.
+5. Check `https://<DOMAIN>/api/health`. It should say `"status":"ok"`.
 6. Sign in as the admin and open **Fees and payment details**. Until the fees are saved, clubs cannot enter events.
 
-## Connecting a venue laptop
+## Settings
 
-In the venue laptop's `backend/.env`:
+The compose file sets these for the server; change them in `.env` or the compose file only if you know why.
 
-```
-CLOUD_URL=https://<DOMAIN>
-SYNC_TOKEN=<the secret for this laptop from SYNC_TOKENS>
-VENUE_ID=<the venue name used in SYNC_TOKENS>
-```
+| Variable | What it does |
+| --- | --- |
+| `ADJUDICATOR_PIN_DAYS` | A PIN works only this many days either side of the competition date. Default 1. |
+| `TRUST_PROXY` | How many proxies sit in front of the server, used to tell visitors apart for the sign-in limits. 1 behind Caddy. |
+| `COOKIE_SECURE` | The session cookie travels only over HTTPS. On in production. |
+| `BACKUP_DIRS` | Folders the database is copied to, separated by commas. Default `/data/backups`. |
+| `BACKUP_INTERVAL_MINUTES` | How often a backup is also taken, besides after every change. Default 5. |
+| `COOKIE_SECRET` | Leave empty and the server makes and keeps its own. |
 
-Restart the venue server. The Cloud sync screen then shows the cloud as connected. To cut a laptop off, remove its entry from `SYNC_TOKENS` and run `docker compose up -d`.
+The old `MODE`, `CLOUD_URL`, `SYNC_TOKEN`, `SYNC_TOKENS`, `VENUE_ID`, `SYNC_DELAY_MS`, `TLS_CERT` and `TLS_KEY` no longer exist.
+
+## Before a competition
+
+- Check the server's clock. It decides which competition is current and which PINs work, so run NTP on the host.
+- Check `ADJUDICATOR_PIN_DAYS` suits the event.
+- Take a backup and check you can open it (see Backups).
+- Open the site in a browser and check the console for Content-Security-Policy reports. The header is report-only; once nothing legitimate is reported, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in `Caddyfile` and run `docker compose up -d`.
 
 ## Messenger messages to clubs
 
@@ -40,7 +50,7 @@ Facebook decides who may send what, and its rules change. A message about a paym
 
 ## Backups
 
-The database is a single file in the `bis-data` volume. The server copies it into `/data/backups` about a second after every change and thins out old copies. That protects against mistakes and a bad restart, not against losing the server, so also copy the volume somewhere else every day, for example:
+The database is a single file in the `bis-data` volume. The server copies it into `BACKUP_DIRS` (default `/data/backups`) about a second after every change and on an interval, and thins out old copies. If a folder fails, the scrutineer and admin see a warning. That protects against mistakes and a bad restart, not against losing the server, so also copy the volume somewhere else every day, for example:
 
 ```
 docker compose cp app:/data/backups ./offsite
@@ -66,5 +76,5 @@ Restore: stop the app (`docker compose stop app`), put the chosen backup in the 
 ## Notes
 
 - The server needs only one copy running; do not scale it up.
-- A competition downloaded by a venue is held: entries and payments for it close online until it is released. If the venue laptop is lost, an admin can take it back with the `unlockCompetition` function.
+- Security headers (HSTS, no framing, no sniffing) come from Caddy. Sign-in guesses are limited across all visitors, and each adjudicator PIN sign-in is logged.
 - Check on the image without Caddy: `docker build -f deploy/Dockerfile -t bis-cloud .` from the repository root.

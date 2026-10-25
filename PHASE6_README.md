@@ -1,6 +1,6 @@
 # Phase 6: Registration and Payments
 
-Goal: clubs register and pay before the event, the admin confirms payments by hand, and the organizer keeps only what it needs about people. BIS never handles card details or money. See [PHASE5_README.md](PHASE5_README.md) for the cloud server this runs on and [BUILD_README.md](BUILD_README.md#payment-system-checked-manually-by-the-admin) for the payment flow.
+Goal: clubs register and pay before the event, the admin confirms payments by hand, and the organizer keeps only what it needs about people. BIS never handles card details or money. See [deploy/README.md](deploy/README.md) for the server this runs on and [BUILD_README.md](BUILD_README.md#payment-system-checked-manually-by-the-admin) for the payment flow.
 
 ## Status: built; Messenger messages not yet tried against Facebook
 
@@ -22,10 +22,10 @@ Tests added: 12 backend (`accounts.test.ts`), 6 frontend. Suites: 192 backend, 2
 
 ## Decisions
 
-1. **Fees and payment details are the organizer's to set, not built in.** They are saved on the cloud (admin only) and travel to the venue with the competition download, because late entries at the venue need the fees. Until fees are saved, clubs cannot enter events and late entries are refused. A venue cannot change them.
-2. **Payment proofs stay in the database.** The roadmap said private files; keeping the image in the payment row means every backup and restore carries it with no second folder to forget. It is never sent to a venue or listed publicly, and the secretariat sees that a proof exists but not the image.
-3. **Only paid entries dance, by two guards.** The download takes only approved or cash-paid entries, and at the venue a round refuses to start while any entry of its event is unpaid (the message says how many). The way round it is to record the payment or scratch the entry, which is logged. There is no separate "exception" switch; an admin approving the payment is the exception and it leaves a record.
-4. **Privacy.** Clubs must agree to the privacy notice to sign up (the time is stored). Birth dates are not collected. Payment proofs are deleted 90 days after the competition, by a daily job online and by a button on the Clubs screen. A club that asks to be forgotten has its contact person, email, mobile number, login and proofs erased; its name and dancers stay because published results refer to them. Erasing is refused while a payment is waiting to be checked.
+1. **Fees and payment details are the organizer's to set, not built in.** They are saved on the server (admin only); late entries on the day need them too. Until fees are saved, clubs cannot enter events and late entries are refused.
+2. **Payment proofs stay in the database.** The roadmap said private files; keeping the image in the payment row means every backup and restore carries it with no second folder to forget. It is never listed publicly, and the secretariat sees that a proof exists but not the image.
+3. **Only paid entries dance.** A round refuses to start while any entry of its event is unpaid (the message says how many). The way round it is to record the payment or scratch the entry, which is logged. There is no separate "exception" switch; an admin approving the payment is the exception and it leaves a record.
+4. **Privacy.** Clubs must agree to the privacy notice to sign up (the time is stored). Birth dates are not collected. Payment proofs are deleted 90 days after the competition, by a daily job and by a button on the Clubs screen. A club that asks to be forgotten has its contact person, email, mobile number, login and proofs erased; its name and dancers stay because published results refer to them. Erasing is refused while a payment is waiting to be checked.
 5. **Forgotten passwords go through an admin.** There is no email to send a reset link, so an admin gives a temporary password and passes it on.
 
 ## Messenger
@@ -37,12 +37,11 @@ The client chose Facebook Messenger. A club opens a link on its Account screen, 
 - `backend/src/paymentSettings.ts`, `services/accounts.ts`: fees and methods, password change and reset, account erasure, proof retention.
 - Migration `0004`: when each club agreed to the privacy notice.
 - Admin screens **Fees and payment details** and **Clubs**; club **Account** screen; public **Privacy notice** at `/privacy`.
-- The download from the cloud carries the payment settings to the venue.
 
 ## Not done
 
 - Messenger tried against the real Facebook service.
 - A club cannot erase itself; it asks the organizer.
 - Receipt images are not checked beyond being an image under 3 MB.
-- Rate limiting of sign-in attempts exists; there is no account lock-out or two-step sign-in.
+- Sign-in attempts are rate limited (see Sign-in security in ROADMAP.md); there is no account lock-out or two-step sign-in.
 - Real use of the online server with real clubs: that is Phase 7.

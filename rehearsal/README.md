@@ -1,22 +1,18 @@
 # Rehearsal
 
-`pnpm rehearsal` runs the checklist in [VENUE.md](../VENUE.md) for real, in a few minutes, on a spare sample database in a temporary folder. It never touches real competition data.
+`pnpm rehearsal` checks what a bad connection or a failing backup folder does, for real, in a few minutes, on a spare sample database in a temporary folder. It never touches real competition data.
 
-It starts the real server as separate processes and drives a real Chrome (a phone-sized window for each adjudicator, a laptop-sized one for the scrutineer). Chrome or Edge must be installed; set `CHROME_PATH` if it is not in the usual place.
+It starts the real server as a separate process and drives a real Chrome (a phone-sized window for each adjudicator, a laptop-sized one for the scrutineer). Chrome or Edge must be installed; set `CHROME_PATH` if it is not in the usual place.
 
 | Step | What it does |
 | --- | --- |
 | 1 | The scrutineer signs in and sees the round on the floor; an adjudicator signs in with a PIN |
-| 2 | The backup drive is pulled out and plugged back in; the scrutineer is told, then it clears |
-| 3 | A phone loses the Wi-Fi, confirms its marks, has its browser killed, reopens on the Wi-Fi: the marks arrive once |
+| 2 | A backup folder stops working and is fixed again; the scrutineer is told, then it clears, and the other folder keeps working |
+| 3 | A phone loses its connection, confirms its marks, has its browser killed, reopens with a connection: the marks arrive once |
 | 4 | The server is stopped while a phone confirms, then restarted: the phone sends by itself |
-| 5 | The scrutineer types in a paper sheet |
-| 6 | Laptop 2 dies; Laptop 3 restores the newest backup, then (worst case) the oldest; phones stay signed in and put back marks the server lost |
-| 7 | The offline copy of the app on localhost, on a plain `http://<address>` (not available, as documented), and over HTTPS |
-| 8 | A second server in cloud mode and an empty venue: the venue downloads a competition, runs a round that reaches the cloud by itself, loses the cloud and sends everything once when it returns, then releases the competition (no browser needed) |
 
 Screenshots of the screens it visits are saved in `rehearsal/shots/`. The exit code is non-zero if any step fails.
 
-**What it does not cover:** real phones, a real Wi-Fi network, a certificate trusted by a phone (it uses Chrome's certificate-error flag instead), and iPhone Safari. Run the checklist by hand on the actual devices as well.
+**What it does not cover:** real phones on mobile data, the real HTTPS address behind Caddy, and iPhone Safari. Run the same checks by hand on the actual devices against the real server as well.
 
 `pnpm loadtest` is a separate check: ten phones marking at the same moment with a crowd reading the public pages. See [PHASE7_README.md](../PHASE7_README.md).

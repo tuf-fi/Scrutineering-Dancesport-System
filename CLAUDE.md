@@ -2,7 +2,7 @@
 
 ## Project
 
-**BIS (Bicol Information Scrutineering System)** is a dancesport competition scoring web app. It runs offline at the venue on a local server and online on a cloud server, which handles registration, payments and public results.
+**BIS (Bicol Information Scrutineering System)** is a dancesport competition scoring web app. It is an online system: one server, hosted with Docker behind Caddy over HTTPS, handles club registration and payments, the public pages and the running of the rounds. Staff use laptops and adjudicators use phones, all over the internet.
 
 Read these first:
 - [ROLES_README.md](ROLES_README.md): roles, devices and result-sheet terms
@@ -10,9 +10,9 @@ Read these first:
 
 ## Current phase
 
-**Phases 1 to 3 are built:** the screens, the scoring engine (`packages/scoring`) and the venue backend (`backend/`, Fastify + SQLite). See [ROADMAP.md](ROADMAP.md) for what is next (offline safety, cloud sync, registration and payments) and [VENUE.md](VENUE.md) for running it.
+**Phases 1 to 3 are built, plus registration and payments:** the screens, the scoring engine (`packages/scoring`) and the backend (`backend/`, Fastify + SQLite). There is no offline mode: the venue server and the sync with the cloud were removed. See [ROADMAP.md](ROADMAP.md) for what is next (testing and the pilot) and [deploy/README.md](deploy/README.md) for running the server.
 
-Screens and hooks get all data through `frontend/src/api/`, which talks to the venue server. `frontend/src/mocks/` is sample data only: it runs the frontend tests and `pnpm dev:sample` / `pnpm build:sample` (the client preview). Never import from `mocks/` in a screen or hook, and never import `@bis/scoring` in a screen or hook; scoring runs on the server (only the sample data in `mocks/` uses it).
+Screens and hooks get all data through `frontend/src/api/`, which talks to the server. `frontend/src/mocks/` is sample data only: it runs the frontend tests and `pnpm dev:sample` / `pnpm build:sample` (the client preview). Never import from `mocks/` in a screen or hook, and never import `@bis/scoring` in a screen or hook; scoring runs on the server (only the sample data in `mocks/` uses it).
 
 When a function is added to the server, add it to `API_FUNCTIONS` in `packages/shared/src/api.ts`, give it a role in `backend/src/registry.ts`, and add its client function in `frontend/src/api/client.ts` (and a sample version in `mocks/api.ts` if screens use it). Tests fail if these drift.
 

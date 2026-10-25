@@ -22,24 +22,24 @@ No single role takes priority. Each role is served on its own device, and every 
 
 ## Product Purpose
 
-BIS (Bicol Information Scrutineering System) runs the scoring of dancesport competitions. It replaces paper and spreadsheets: adjudicators submit marks from phones, the scrutineer sees them arrive in real time, the Skating System produces the placings, and approved results go to the venue screen, printouts and the public site. It runs offline on a laptop at the venue and online in the cloud for registration, payments and public results. Success is a correct, trusted result published quickly, with no way for a mis-tap or a lost connection to change the outcome unnoticed.
+BIS (Bicol Information Scrutineering System) runs the scoring of dancesport competitions. It replaces paper and spreadsheets: adjudicators submit marks from phones, the scrutineer sees them arrive in real time, the Skating System produces the placings, and approved results go to the venue screen, printouts and the public site. It is an online system: one server handles registration, payments, public results and the running of the rounds, with staff on laptops and adjudicators on phones over the internet. Success is a correct, trusted result published quickly, with no way for a mis-tap or a lost connection to change the outcome unnoticed.
 
 ## Positioning
 
-Built for the Bicol competition circuit and the way these events actually run: offline-first on venue Wi-Fi, real event sheets (E47-style "Qualified for the next round"), manual payment checking through GCash, Maya and bank transfer, and WDSF-style Skating System scoring.
+Built for the Bicol competition circuit and the way these events actually run: online, with adjudicators on their own phones, real event sheets (E47-style "Qualified for the next round"), manual payment checking through GCash, Maya and bank transfer, and WDSF-style Skating System scoring.
 
 ## Operating Context
 
-- Competition day: three laptops, up to 10 adjudicator phones, one router; staff network is password-protected, an optional guest network gives spectators read-only results and rankings.
-- Before the event: clubs register and pay online; the admin approves payments; the secretariat downloads the confirmed entry list.
+- Competition day: staff laptops with a browser and internet, and up to 10 adjudicator phones signed in with a 4-digit PIN over mobile data or any Wi-Fi with internet. There is no separate venue network. Marks are held on the phone and resent if the connection drops.
+- Before the event: clubs register and pay online; the admin approves payments; the secretariat assigns back numbers and builds the schedule and program.
 - Paper is the fallback: printable blank adjudicator mark sheets, and A4 printouts that match the existing result sheets.
 - Event sheets carry: event number, date, location, organizer, executor (scrutineer), grade (age group, class, dance), discipline, adjudicators by letter, then back number, name and club per competitor, with solo counts.
 
 ## Capabilities and Constraints
 
-- Phase 1 is frontend only, with sample data from `frontend/src/mocks/` through `frontend/src/api/`. No backend, database or scoring engine yet.
+- Screens get data through `frontend/src/api/`, which talks to the server (Fastify + SQLite, scoring in `packages/scoring`). Sample data in `frontend/src/mocks/` serves the tests and the client preview only.
 - TypeScript strict, React + Vite, React Router, TanStack Query, Zustand, Tailwind v4, Vitest. Shared types in `packages/shared`.
-- Must work offline at the venue (fonts and assets bundled, no CDN dependencies).
+- Fonts and assets are bundled, with no CDN dependencies, so screens load fast and look the same on a slow connection.
 - Domain terms: back number, recall, heat, X mark, placing, Skating System, majority, scratch. Always "adjudicator", never "judge".
 - Payments are checked manually by the admin; BIS never handles card details or money.
 - Many dancers are minors: collect only the fields needed (Data Privacy Act of 2012).
@@ -60,7 +60,7 @@ Built for the Bicol competition circuit and the way these events actually run: o
 
 1. **A result must be provably correct.** Counts, cutoffs, ties and placings are shown plainly and never hidden behind styling.
 2. **Prevent the mistake, then confirm.** Marking is blocked until valid (exact recall count, each placing used once); irreversible actions (submit, approve, publish) ask for confirmation.
-3. **Say what is happening.** Online or offline, saved or sent, waiting or submitted: connection and submission state is always visible.
+3. **Say what is happening.** Connection state is always visible: connected or not, saved or sent, waiting or submitted.
 4. **Each role gets a screen built for its device**, and every screen still holds up at any size.
 5. **Match the paper.** Printouts and terms follow the existing result sheets, so officials recognise them.
 

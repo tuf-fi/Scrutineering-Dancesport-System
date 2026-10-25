@@ -1,10 +1,11 @@
-// The rehearsal from VENUE.md, run for real: the actual server in separate processes, and a real Chrome with a phone
-// profile. It seeds a spare database in a temporary folder, so it never touches real competition data.
+// The rehearsal, run for real: the actual server in a separate process, and a real Chrome with a phone profile. It seeds
+// a spare database in a temporary folder, so it never touches real competition data. It checks what a bad connection or
+// a broken backup folder does on competition day.
 // Run it with `pnpm rehearsal` (a few minutes), and again before any event. Screenshots go to rehearsal/shots.
 import { spawn, spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
-import { networkInterfaces, tmpdir } from 'node:os'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { chromium } from 'playwright-core'
 
@@ -34,14 +35,13 @@ mkdirSync(SHOTS, { recursive: true })
 const Database = createRequire(join(BACKEND, 'package.json'))('better-sqlite3')
 
 const work = mkdtempSync(join(tmpdir(), 'bis-rehearsal-'))
-const lap2 = join(work, 'lap2')
-const lap3 = join(work, 'lap3')
-const usb = join(work, 'usb')
-const share = join(work, 'laptop3-share')
-for (const d of [lap2, lap3, share]) mkdirSync(d, { recursive: true })
-mkdirSync(usb)
-const DB2 = join(lap2, 'bis.db')
-const DB3 = join(lap3, 'bis.db')
+const data = join(work, 'data')
+// Two backup folders, so one can fail while the other keeps working
+const backupA = join(work, 'backup-a')
+const backupB = join(work, 'backup-b')
+for (const d of [data, backupB]) mkdirSync(d, { recursive: true })
+mkdirSync(backupA)
+const DB2 = join(data, 'bis.db')
 const PORT = 4050
 const BASE = `http://localhost:${PORT}`
 const LIVE = 'comp-sorsogon-2026:e11:round_2'
@@ -160,14 +160,14 @@ try {
   log(`Rehearsal in ${work}`)
 
   // ================= 1. Normal start =================
-  server = startServer({ db: DB2, backupDirs: [usb, share], interval: '0.1' })
+  server = startServer({ db: DB2, backupDirs: [backupA, backupB], interval: '0.1' })
   await waitHealthy()
   const scr = await chromium.launch({ executablePath: CHROME, headless: true })
   browsers.push(scr)
   const scrCtx = await scr.newContext({ viewport: { width: 1280, height: 800 } })
   const scrPage = await scrCtx.newPage()
 
-  await step('1a. Scrutineer signs in on Laptop 2 and sees the round on the floor', async () => {
+  await step('1a. Scrutineer signs in and sees the round on the floor', async () => {
     await scrPage.goto(`${BASE}/login`)
     await scrPage.getByLabel('Username').fill('scrutineer')
     await scrPage.getByLabel('Password').fill('bis2026')
@@ -191,31 +191,31 @@ try {
     return 'mark screen: X for exactly 12'
   })
 
-  // ================= 2. USB drive pulled =================
-  await step('2a. USB drive pulled out: backup fails and the scrutineer is told', async () => {
-    rmSync(usb, { recursive: true, force: true })
-    writeFileSync(usb, 'not a folder') // a path that can no longer be written
+  // ================= 2. A backup folder stops working =================
+  await step('2a. A backup folder stops working: the copy fails and the scrutineer is told', async () => {
+    rmSync(backupA, { recursive: true, force: true })
+    writeFileSync(backupA, 'not a folder') // a path that can no longer be written
     const cookie = await apiCookie('scrutineer')
     await until('backup failure to be recorded', async () => (await call(cookie, 'getBackupStatus')).targets.some((t) => !t.ok), 30000)
     const t0 = Date.now()
     await scrPage.getByRole('alert').filter({ hasText: 'cannot be reached' }).waitFor({ timeout: 90000 })
     await scrPage.screenshot({ path: join(SHOTS, '03-backup-notice.png') })
-    const other = (await call(cookie, 'getBackupStatus')).targets.find((t) => t.path === share)
+    const other = (await call(cookie, 'getBackupStatus')).targets.find((t) => t.path === backupB)
     if (!other?.ok) throw new Error('the other backup folder stopped working too')
     return `notice appeared after ${Math.round((Date.now() - t0) / 1000)}s; the other folder kept working`
   })
-  await step('2b. USB plugged back in: the notice clears and copies resume', async () => {
-    rmSync(usb, { force: true })
-    mkdirSync(usb)
+  await step('2b. The folder works again: the notice clears and copies resume', async () => {
+    rmSync(backupA, { force: true })
+    mkdirSync(backupA)
     await scrPage.getByRole('alert').filter({ hasText: 'cannot be reached' }).waitFor({ state: 'detached', timeout: 90000 })
-    const n = readdirSync(usb).filter((f) => f.endsWith('.db')).length
-    if (n === 0) throw new Error('no copy written to the USB drive')
-    return `${n} copy on the drive`
+    const n = readdirSync(backupA).filter((f) => f.endsWith('.db')).length
+    if (n === 0) throw new Error('no copy written to the backup folder')
+    return `${n} copy in the folder`
   })
 
-  // ================= 3. Phone Wi-Fi off, browser killed =================
-  await step('3a. Wi-Fi off on the phone: marks confirmed and held, not sent', async () => {
-    seen.push('--- Wi-Fi switched off ---')
+  // ================= 3. Phone loses its connection, browser killed =================
+  await step('3a. Connection lost on the phone: marks confirmed and held, not sent', async () => {
+    seen.push('--- connection switched off ---')
     await phoneD.ctx.setOffline(true)
     await markX(phoneD.page)
     await confirmMarks(phoneD.page)
@@ -233,7 +233,7 @@ try {
     return 'heading "Saved, sending…", server has nothing yet'
   })
   if (process.env.STOP_AFTER === '3a') throw new Error('stopped after 3a, as asked')
-  await step('3b. Browser killed while the marks are unsent, then reopened on the Wi-Fi: marks arrive once', async () => {
+  await step('3b. Browser killed while the marks are unsent, then reopened with a connection: marks arrive once', async () => {
     await phoneD.ctx.close()
     browsers.splice(browsers.indexOf(phoneD.ctx), 1)
     phoneD = await phone(join(work, 'phone-d'))
@@ -259,270 +259,13 @@ try {
     return 'phone shows "Saved, sending…" with the server down'
   })
   await step('4b. Server restarted: the phone sends by itself, stays signed in, marks stored once', async () => {
-    server = startServer({ db: DB2, backupDirs: [usb, share], interval: '5' })
+    server = startServer({ db: DB2, backupDirs: [backupA, backupB], interval: '5' })
     await waitHealthy()
     await phoneE.page.getByRole('heading', { name: 'Submitted' }).waitFor({ timeout: 40000 })
     const [s, m] = [submitted(DB2, 'adj-e'), markCount(DB2, 'adj-e')]
     if (s !== 1 || m !== 12) throw new Error(`server has ${s} submissions and ${m} marks`)
     return 'sent after restart without anyone touching the phone'
   })
-
-  // ================= 5. Paper marks =================
-  await step('5. Scrutineer types in a paper sheet for adjudicator F', async () => {
-    await scrPage.goto(`${BASE}/scrutineer/paper`)
-    await scrPage.getByRole('heading', { name: 'Paper marks' }).waitFor()
-    await scrPage.screenshot({ path: join(SHOTS, '07-paper-list.png') })
-    await scrPage.getByRole('button', { name: 'Enter paper marks for F' }).click()
-    await markX(scrPage)
-    await scrPage.screenshot({ path: join(SHOTS, '08-paper-sheet.png') })
-    await scrPage.getByRole('button', { name: 'Submit' }).click()
-    await scrPage.getByRole('dialog').getByRole('button', { name: 'Enter marks' }).click()
-    await scrPage.getByText('Marks entered for F').waitFor({ timeout: 10000 })
-    const by = q(DB2, 'select entered_by as b from submissions where round_id = ? and adjudicator_id = ?', LIVE, 'adj-f')[0]?.b
-    if (by !== 'staff-scrutineer') throw new Error(`entered_by is ${by}`)
-    return 'recorded as entered by the scrutineer'
-  })
-
-  // ================= 6. Laptop 2 dies for good: Laptop 3 takes over =================
-  const restore = (to, from) =>
-    spawnSync(process.execPath, ['--import', 'tsx', 'src/db/restore-cli.ts', from], {
-      cwd: BACKEND,
-      encoding: 'utf8',
-      env: { ...process.env, DATABASE_PATH: to, BACKUP_DIRS: share, NODE_NO_WARNINGS: '1' },
-    })
-  const subs = (db) => ['adj-a', 'adj-b', 'adj-c', 'adj-d', 'adj-e', 'adj-f'].map((a) => `${a.slice(-1).toUpperCase()}:${submitted(db, a)}`).join(' ')
-
-  await step('6a. Laptop 2 dies a moment after the last marks; Laptop 3 restores the newest backup', async () => {
-    // The server copies the database a second or so after a change, and at least three seconds after the last copy
-    await until('a backup that has the paper marks', async () => {
-      const newest = readdirSync(share).filter((f) => /^bis-.*.db$/.test(f)).sort().at(-1)
-      return newest && submitted(join(share, newest), 'adj-f') === 1
-    }, 15000, 500)
-    await kill(server)
-    const r = restore(DB3, share)
-    log('      ' + r.stdout.trim().split('\n').join('\n      '))
-    if (r.status !== 0) throw new Error(r.stderr || r.stdout)
-    server = startServer({ db: DB3, backupDirs: [share], interval: '5' })
-    await waitHealthy()
-    const have = subs(DB3)
-    for (const a of ['adj-d', 'adj-e', 'adj-f']) if (submitted(DB3, a) !== 1) throw new Error(`marks missing after takeover: ${have}`)
-    return `Laptop 3 has: ${have}`
-  })
-  await step('6b. After takeover the phones are still signed in and still show their marks as submitted', async () => {
-    await phoneE.page.reload()
-    try {
-      await phoneE.page.getByRole('heading', { name: 'Submitted' }).waitFor({ timeout: 20000 })
-    } catch (e) {
-      await phoneE.page.screenshot({ path: join(SHOTS, '09-phone-after-takeover.png') })
-      const text = (await phoneE.page.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 200)
-      throw new Error(`phone E shows ${phoneE.page.url()} : "${text}"`)
-    }
-    await scrPage.goto(`${BASE}/scrutineer`)
-    await scrPage.getByRole('region', { name: 'On the floor' }).waitFor({ timeout: 20000 })
-    return 'phone E and the scrutineer both carried on without signing in again'
-  })
-
-  // The worst case: the backup is old, so marks that phones were told "Submitted" are not in it
-  await step('6c. Worst case: takeover from the OLDEST backup. Phones put back the marks the server lost', async () => {
-    await kill(server)
-    const oldest = readdirSync(share).filter((f) => f.endsWith('.db')).sort()[0]
-    const DB3B = join(work, 'lap3b', 'bis.db')
-    const r = restore(DB3B, join(share, oldest))
-    if (r.status !== 0) throw new Error(r.stderr || r.stdout)
-    server = startServer({ db: DB3B, backupDirs: [share], interval: '5' })
-    await waitHealthy()
-    const before = subs(DB3B)
-    if (submitted(DB3B, 'adj-d') !== 0 || submitted(DB3B, 'adj-e') !== 0) throw new Error(`the old backup already had D and E (${before}); nothing to recover`)
-    // The phones' pages are opened again (or reload after the Wi-Fi blip)
-    await phoneD.page.reload()
-    await phoneE.page.reload()
-    await until('phones to put their marks back', async () => submitted(DB3B, 'adj-d') === 1 && submitted(DB3B, 'adj-e') === 1, 30000)
-    await phoneD.page.getByRole('heading', { name: 'Submitted' }).waitFor({ timeout: 20000 })
-    const after = subs(DB3B)
-    if (markCount(DB3B, 'adj-d') !== 12 || markCount(DB3B, 'adj-e') !== 12) throw new Error('marks not complete after recovery')
-    return `before: ${before}; after phones reload: ${after} (F was typed from paper: re-enter it from the sheet)`
-  })
-
-  // ================= 7. The offline copy of the app =================
-  const lan = Object.values(networkInterfaces()).flat().find((i) => i.family === 'IPv4' && !i.internal)?.address
-  const offlineProbe = async (url, label, opts = {}) => {
-    const ph = await phone(join(work, `pwa-${label}`), opts)
-    browsers.push(ph.ctx)
-    try {
-      await ph.page.goto(url)
-      await ph.page.locator('#root').waitFor()
-      await sleep(1500)
-      const info = await ph.page.evaluate(async () => ({
-        secure: window.isSecureContext,
-        hasSW: 'serviceWorker' in navigator,
-        controlled:
-          'serviceWorker' in navigator
-            ? await Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 8000))])
-            : false,
-      }))
-      let offlineReload = 'n/a'
-      if (info.hasSW && info.controlled) {
-        await ph.page.reload() // now controlled by the worker
-        await ph.ctx.setOffline(true)
-        try {
-          await ph.page.reload({ timeout: 10000 })
-          offlineReload = (await ph.page.locator('#root').innerHTML()).length > 50 ? 'app opened' : 'blank'
-        } catch {
-          offlineReload = 'failed'
-        }
-        await ph.ctx.setOffline(false)
-      } else {
-        await ph.ctx.setOffline(true)
-        offlineReload = await ph.page.reload({ timeout: 8000 }).then(() => 'app opened').catch(() => 'failed (browser offline page)')
-        await ph.ctx.setOffline(false)
-      }
-      return { ...info, offlineReload }
-    } finally {
-      await ph.ctx.close()
-      browsers.splice(browsers.indexOf(ph.ctx), 1)
-    }
-  }
-  await step('7a. On localhost (a secure context): the app keeps an offline copy and reopens with no connection', async () => {
-    const r = await offlineProbe(`${BASE}/adjudicator`, 'localhost')
-    if (!r.secure || !r.hasSW || !r.controlled || r.offlineReload !== 'app opened') throw new Error(JSON.stringify(r))
-    return JSON.stringify(r)
-  })
-  await step("7b. On the venue's plain http://<laptop address>: no offline copy (as documented)", async () => {
-    if (!lan) return 'no LAN address on this machine'
-    const r = await offlineProbe(`http://${lan}:${PORT}/adjudicator`, 'lan')
-    if (r.secure || r.hasSW) throw new Error('expected an insecure origin without a service worker: ' + JSON.stringify(r))
-    return `http://${lan}:${PORT} -> ${JSON.stringify(r)}`
-  })
-  await step('7c. Over HTTPS with a certificate the browser accepts: the offline copy works', async () => {
-    const tls = startServer({
-      db: join(work, 'lap3b', 'bis.db'),
-      port: 4051,
-      backupDirs: [share],
-      interval: '5',
-      env: { TLS_CERT: join(BACKEND, 'test-fixtures', 'localhost.crt'), TLS_KEY: join(BACKEND, 'test-fixtures', 'localhost.key') },
-    })
-    try {
-      await until('the https port to answer', async () => (await fetch('https://localhost:4051/api/health').then(() => true).catch((e) => !/ECONNREFUSED/.test(String(e.cause?.code ?? e.cause ?? e)))), 20000)
-      const r = await offlineProbe('https://localhost:4051/adjudicator', 'https', { args: ['--ignore-certificate-errors'] })
-      if (!r.secure || !r.hasSW || !r.controlled || r.offlineReload !== 'app opened') throw new Error(JSON.stringify(r))
-      return JSON.stringify(r)
-    } finally {
-      tls.kill('SIGKILL')
-    }
-  })
-
-  // ================= 8. The venue and the online server =================
-  // A cloud server and an empty venue server on their own databases: the venue downloads a competition, runs a round,
-  // loses the cloud for a while, and everything arrives once, with nothing lost.
-  const CLOUD_PORT = 4070
-  const VENUE_PORT = 4071
-  const CLOUD = `http://localhost:${CLOUD_PORT}`
-  const VENUE = `http://localhost:${VENUE_PORT}`
-  const TOKEN = 'rehearsal-token-0123456789'
-  const DB_CLOUD = join(work, 'cloud', 'bis.db')
-  const DB_VENUE = join(work, 'venue', 'bis.db')
-  mkdirSync(join(work, 'cloud'), { recursive: true })
-  mkdirSync(join(work, 'venue'), { recursive: true })
-  const COMP = 'comp-sorsogon-2026'
-  let cloud = null
-  let venueServer = null
-  const startCloud = () => startServer({ db: DB_CLOUD, port: CLOUD_PORT, backupDirs: [join(work, 'cloud-backups')], interval: '5', env: { MODE: 'cloud', SYNC_TOKENS: `rehearsal-venue=${TOKEN}` } })
-  const must = async (cookie, name, args = []) => {
-    const r = await fetch(`${VENUE}/api/call/${name}`, { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: JSON.stringify({ args }) })
-    const body = await r.json()
-    if (!r.ok) throw new Error(`${name} ${r.status}: ${body.error}`)
-    return body.data
-  }
-  const syncStatus = (cookie) => must(cookie, 'getSyncStatus')
-  try {
-    spawnSync(process.execPath, ['--import', 'tsx', 'src/db/seed-cli.ts'], { cwd: BACKEND, env: { ...process.env, DATABASE_PATH: DB_CLOUD, NODE_NO_WARNINGS: '1' } })
-    spawnSync(process.execPath, ['--import', 'tsx', 'src/db/create-admin-cli.ts', 'boss', 'Venue Boss', 'venue-pass-123'], { cwd: BACKEND, env: { ...process.env, DATABASE_PATH: DB_VENUE, NODE_NO_WARNINGS: '1' } })
-    cloud = startCloud()
-    await waitHealthy(CLOUD_PORT)
-    venueServer = startServer({
-      db: DB_VENUE,
-      port: VENUE_PORT,
-      backupDirs: [join(work, 'venue-backups')],
-      interval: '5',
-      env: { CLOUD_URL: CLOUD, SYNC_TOKEN: TOKEN, VENUE_ID: 'rehearsal-venue', SYNC_DELAY_MS: '500' },
-    })
-    await waitHealthy(VENUE_PORT)
-    const boss = await apiCookie('boss', 'venue-pass-123', VENUE)
-    // The admin made the competition ready; the scrutineer runs the round
-    const made = await must(boss, 'createStaffUser', [{ name: 'Rehearsal Scrutineer', username: 'rscr', role: 'scrutineer' }])
-    const scr8 = await apiCookie('rscr', made.tempPassword, VENUE)
-    const madeSec = await must(boss, 'createStaffUser', [{ name: 'Rehearsal Secretariat', username: 'rsec', role: 'secretariat' }])
-    const sec8 = await apiCookie('rsec', madeSec.tempPassword, VENUE)
-
-    await step('8a. The venue downloads the competition from the cloud: paid entries, panels and PINs', async () => {
-      const list = await must(boss, 'getCloudCompetitions')
-      if (!list.some((c) => c.id === COMP)) throw new Error('the cloud did not list the competition')
-      const summary = await must(boss, 'pullCompetition', [COMP])
-      const entries = q(DB_VENUE, 'select count(*) as n from entries')[0].n
-      const pins = q(DB_VENUE, 'select count(*) as n from adjudicator_pins where competition_id = ?', COMP)[0].n
-      if (entries === 0 || pins === 0) throw new Error(`entries ${entries}, pins ${pins}`)
-      const held = q(DB_CLOUD, 'select held_by as h from competitions where id = ?', COMP)[0].h
-      if (held !== 'rehearsal-venue') throw new Error('the cloud does not show the venue holding it: ' + held)
-      return `${entries} entries, ${summary.excludedEntries} unpaid left out, held by ${held}`
-    })
-
-    let roundId = ''
-    await step('8b. A round is run at the venue and reaches the cloud by itself', async () => {
-      await must(scr8, 'planRounds', [COMP])
-      const rounds = await must(scr8, 'getCompetitionRounds', [COMP])
-      const round = rounds.find((r) => r.status === 'pending')
-      roundId = round.roundId
-      const panel = q(DB_VENUE, 'select m.adjudicator_id as a from panel_members m join panels p on p.id = m.panel_id where p.event_id = ?', round.eventId).map((r) => r.a)
-      await must(scr8, 'startRound', [roundId])
-      for (const adjudicator of panel) {
-        const pin = q(DB_VENUE, 'select pin from adjudicator_pins where competition_id = ? and adjudicator_id = ?', COMP, adjudicator)[0].pin
-        const res = await fetch(`${VENUE}/api/auth/adjudicator`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ pin }) })
-        const phone = res.headers.get('set-cookie').split(';')[0]
-        const state = await must(phone, 'getAdjudicatorState')
-        const ordered = [...state.task.competitors].sort((a, b) => (a.backNumber ?? 0) - (b.backNumber ?? 0)).map((c) => c.id)
-        const chosen = state.task.recallNumber === null ? ordered : ordered.slice(0, state.task.recallNumber)
-        await must(phone, 'submitAdjudicatorMarks', [roundId, state.task.dances.map((dance) => ({ dance, competitorIds: chosen }))])
-      }
-      await must(scr8, 'approveRound', [roundId])
-      await must(scr8, 'publishRound', [roundId])
-      // Nobody presses anything: it goes up within moments
-      await until('the cloud to have the round', async () => q(DB_CLOUD, "select count(*) as n from rounds where id = ? and status = 'published'", roundId)[0].n === 1, 20000, 500)
-      const here = q(DB_VENUE, 'select count(*) as n from marks where round_id = ?', roundId)[0].n
-      const there = q(DB_CLOUD, 'select count(*) as n from marks where round_id = ?', roundId)[0].n
-      if (here === 0 || here !== there) throw new Error(`marks here ${here}, in the cloud ${there}`)
-      return `${panel.length} adjudicators, ${there} marks on both`
-    })
-
-    await step('8c. The cloud goes away: the venue carries on, and nothing is lost or doubled when it returns', async () => {
-      cloud.kill('SIGKILL')
-      await until('the cloud to stop', async () => fetch(`${CLOUD}/api/health`).then(() => false).catch(() => true), 10000)
-      const competitor = q(DB_VENUE, 'select id from competitors where back_number is not null limit 1')[0].id
-      await must(sec8, 'setBackNumber', [competitor, 9500])
-      const down = await must(boss, 'syncNow')
-      if (down.reachable !== false || down.pending === 0) throw new Error('expected changes waiting: ' + JSON.stringify(down))
-      cloud = startCloud()
-      await waitHealthy(CLOUD_PORT)
-      const up = await must(boss, 'syncNow')
-      if (up.pending !== 0 || up.reachable !== true) throw new Error('expected everything sent: ' + JSON.stringify(up))
-      const there = q(DB_CLOUD, 'select back_number as b from competitors where id = ?', competitor)[0].b
-      if (there !== 9500) throw new Error('the cloud has back number ' + there)
-      const doubled = q(DB_CLOUD, 'select count(*) as n from (select round_id, adjudicator_id, dance, competitor_id from marks group by 1,2,3,4 having count(*) > 1)')[0].n
-      if (doubled !== 0) throw new Error(doubled + ' marks doubled')
-      return `${down.pending} changes waited, then arrived once`
-    })
-
-    await step('8d. Afterwards the competition is released and opens for entries again', async () => {
-      await must(boss, 'syncNow', [], VENUE)
-      await must(boss, 'releaseCompetition', [COMP], VENUE)
-      const held = q(DB_CLOUD, 'select held_by as h from competitions where id = ?', COMP)[0].h
-      if (held !== null) throw new Error('still held by ' + held)
-      const status = await syncStatus(boss)
-      if (status.held.length !== 0) throw new Error('the venue still lists it: ' + status.held)
-    })
-  } finally {
-    cloud?.kill('SIGKILL')
-    venueServer?.kill('SIGKILL')
-  }
 } catch (e) {
   log('SCRIPT ERROR: ' + (e.stack ?? e))
 } finally {

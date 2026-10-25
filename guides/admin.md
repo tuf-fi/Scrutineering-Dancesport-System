@@ -13,5 +13,5 @@
 ## Clubs
 **Clubs**: reset a forgotten password (a temporary one is shown once) or erase an account when a club asks. Erasing keeps the club name and dancers in published results. **Remove old payment proofs** deletes receipts older than 90 days; it also happens daily.
 
-## At the venue
-**Cloud sync**: download, send now, send everything again, and **Release** when the event is over and nothing is waiting.
+## Before a competition
+Check the server's clock, make sure `ADJUDICATOR_PIN_DAYS` suits the event, and take a backup (deploy/README.md). An adjudicator's PIN works only one day either side of the competition date.

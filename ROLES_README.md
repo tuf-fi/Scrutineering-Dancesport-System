@@ -7,24 +7,25 @@
 | Role | Who they are | What they do at the competition | What they do in BIS | Device |
 | --- | --- | --- | --- | --- |
 | **Admin** | The organization's system owner | Manages the system between competitions | Creates competitions, staff accounts and adjudicator panels; sets the points table; checks and approves entry payments | Laptop (online) |
-| **Secretariat** | Registration and event staff | Handles entries, back numbers, schedule, the program and late changes | Sets up events, enters or imports competitors, assigns back numbers, marks scratches and on-site payments, lays out the program (start time, breaks, order), prints it with the heat and recall lists | Laptop 1 |
-| **Scrutineer** | The person responsible for results (the "Executor" on result sheets) | Runs every round, checks marks, calculates results | Starts rounds and heats, sets recall numbers, watches adjudicators submit in real time, resolves ties, approves and publishes results | Laptop 2 |
-| **Chairperson of Adjudicators** | The senior adjudicator who supervises the panel | Oversees fairness, decides ties at the recall cutoff with the scrutineer, signs results | Views live submissions and the calculation, confirms tie decisions | Laptop 2 or 3 |
+| **Secretariat** | Registration and event staff | Handles entries, back numbers, schedule, the program and late changes | Sets up events, enters or imports competitors, assigns back numbers, marks scratches and on-site payments, lays out the program (start time, breaks, order), prints it with the heat and recall lists | Laptop |
+| **Scrutineer** | The person responsible for results (the "Executor" on result sheets) | Runs every round, checks marks, calculates results | Starts rounds and heats, sets recall numbers, watches adjudicators submit in real time, resolves ties, approves and publishes results | Laptop |
+| **Chairperson of Adjudicators** | The senior adjudicator who supervises the panel | Oversees fairness, decides ties at the recall cutoff with the scrutineer, signs results | Views live submissions and the calculation, confirms tie decisions | Laptop |
 | **Adjudicators** | The adjudicators on the panel, usually 7 and up to 10, each with a letter (A, B, C…) | Watch the dancing and mark it | Sign in with a PIN, mark an X for each competitor to recall in early rounds, place finalists 1st to 6th or 7th in the final | Phone, one each |
-| **MC / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop 3 or venue screen |
-| **Competitors** | Couples or solo dancers, each with a back number | Dance in their events | No login at the venue; see results, history and rankings on the public website | Their own phone |
+| **MC / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop or venue screen |
+| **Competitors** | Couples or solo dancers, each with a back number | Dance in their events | No login; see results, history and rankings on the public website | Their own phone |
 | **Clubs / Coaches** | Dance clubs, studios or teams (the "Country" column on sheets) | Enter their dancers and pay entry fees | Register dancers to events online, upload proof of payment | Phone or laptop (online) |
-| **Public** | Parents, fans, other clubs | Watch | Browse the program (what is on the floor, what is next, and when everything starts, with Print and PDF), results, past competitions and rankings, updated live at the venue | Phone, on the venue guest Wi-Fi or the internet |
+| **Public** | Parents, fans, other clubs | Watch | Browse the program (what is on the floor, what is next, and when everything starts, with Print and PDF), results, past competitions and rankings, updated live | Phone |
 
 ## Devices at a typical competition
 
+BIS is online only: every device needs a browser and an internet connection. The server is hosted online, so no laptop at the venue acts as the server.
+
 | Device | Used by | Purpose |
 | --- | --- | --- |
-| Laptop 1 | Secretariat | Entries, schedule, program, printing heat and recall lists |
-| Laptop 2 | Scrutineer (and chairperson) | Main BIS server, runs rounds and results |
-| Laptop 3 | MC or venue screen | Announcements and live results display; also a backup if Laptop 2 fails |
-| 10 phones | Adjudicators | Marking each round |
-| Router | Everyone | Venue Wi-Fi that works without internet: a password-protected staff network, plus an optional guest network where spectators can only view results and rankings |
+| Laptop | Secretariat | Entries, schedule, program, printing heat and recall lists |
+| Laptop | Scrutineer (and chairperson) | Runs rounds and results |
+| Laptop or venue screen | MC | Announcements and live results display |
+| Phones | Adjudicators | Marking each round; sign in with a PIN over mobile data or any Wi-Fi with internet |
 
 ## Terms on result sheets
 
@@ -61,4 +62,4 @@ The client does not have a points table yet. BIS includes one the admin can edit
 | 7th (7-competitor final) | 2 |
 | Semi-final | 1 |
 
-Rankings are kept per category, for example Junior I E1 Latin, and include every BIS competition in the season. At the venue, rankings update the moment the scrutineer approves a result, even with no internet; the public website catches up when the venue's results upload.
+Rankings are kept per category, for example Junior I E1 Latin, and include every BIS competition in the season. Rankings update the moment the scrutineer approves a result.

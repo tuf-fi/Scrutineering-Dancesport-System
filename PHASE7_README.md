@@ -35,7 +35,7 @@ The real server in its own process on a spare database: ten adjudicators sign in
 | Phone sends marks | 11 ms | 26 ms |
 | Public page read | 107 ms | 165 ms |
 
-No marks were lost or doubled. The venue laptop is a different machine, over Wi-Fi, so run it there too (`pnpm loadtest`; set `LOADTEST_READERS` to 0 for phones only).
+No marks were lost or doubled. The real server is a different machine, over the internet, so run it against that too (`pnpm loadtest`; set `LOADTEST_READERS` to 0 for phones only).
 
 ### Comparing with the paper (`results:compare`)
 `pnpm --filter @bis/backend results:compare <competition id> paper.csv` reads the paper placings as `event,place,back_number` lines and lists every dancer whose place differs, who is missing on either side, and any line it cannot read. It compares only the events the paper covers. Four tests cover it.
@@ -43,13 +43,13 @@ No marks were lost or doubled. The venue laptop is a different machine, over Wi-
 ## What a person still has to do
 
 1. Type the placings of one or more real past competitions, with their marks if the sheets show them, so scoring can be checked against real answers, not only against the invented one.
-2. Run `pnpm rehearsal` and `pnpm loadtest` on the real laptops, and the by-hand rehearsal on the real phones.
+2. Run `pnpm rehearsal` and `pnpm loadtest` against the real online server, and rehearse by hand with real phones on mobile data and real laptops.
 3. Choose the pilot competition and follow PILOT.md.
 4. Decide with the organizer when paper can stop.
 
 ## Not covered
 
-- Real phones, real Wi-Fi, and a real crowded venue.
+- Real phones on mobile data, and a real crowded venue.
 - The Messenger messages against Facebook's real service, which may need Meta's review of the app.
 - Browsers other than Chrome (the rehearsal uses Chrome).
 - A load test of the online server with many clubs registering at once.
