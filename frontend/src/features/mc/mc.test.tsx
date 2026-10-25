@@ -1,7 +1,8 @@
 import { Role } from '@bis/shared'
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { generateProgram, getCompetitions, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 const counter = () => screen.getByRole('status')
@@ -57,6 +58,32 @@ describe('MC screen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Next announcement' }))
     expect(counter()).toHaveTextContent(/^2 \//)
     await userEvent.click(screen.getByRole('button', { name: 'Previous announcement' }))
+    expect(counter()).toHaveTextContent(/^1 \//)
+  })
+})
+
+describe('MC program view', () => {
+  beforeAll(async () => {
+    // The MC screen reads the latest competition by date
+    const latest = [...(await getCompetitions())].sort((a, b) => b.date.localeCompare(a.date))[0]!
+    await generateProgram('test', latest.id)
+    await setProgramStart('test', latest.id, '07:00')
+  })
+
+  it('shows what is on the floor and next with key 5, and goes back to the slides with key 1', async () => {
+    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    await screen.findByText('Next to the floor')
+
+    await userEvent.keyboard('5')
+    expect(await screen.findByRole('heading', { name: 'Program', hidden: true })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'On the floor' })).toBeInTheDocument()
+    const next = screen.getByRole('region', { name: 'Up next' })
+    expect(within(next).getByText(/\d:\d\d (AM|PM)/)).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Program/ })).toHaveClass('text-gold-400')
+
+    await userEvent.keyboard('1')
+    expect(await screen.findByText('Next to the floor')).toBeInTheDocument()
     expect(counter()).toHaveTextContent(/^1 \//)
   })
 })

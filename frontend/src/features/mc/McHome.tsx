@@ -5,9 +5,10 @@ import { createPortal } from 'react-dom'
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis, usePlotArea } from 'recharts'
 import logo from '../../assets/logo.png'
 import { ErrorState } from '../../components/ui/index.ts'
-import { useAnnouncements, useCompetitions } from '../../hooks/index.ts'
+import { useAnnouncements, useCompetitions, useProgram } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { ROUND_TYPE_LABEL, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
+import { McProgram } from './McProgram.tsx'
 
 // Built for an LED wall: every size is in vmin so it holds on 16:9 and ultra-wide, a deep brown ground with
 // white type, no grey below brown-100 at half strength, and nothing thinner than a medium weight.
@@ -18,6 +19,8 @@ const MODES: Array<{ kind: Announcement['kind']; label: string; key: string }> =
   { kind: 'finalists', label: 'Finalists', key: '3' },
   { kind: 'result', label: 'Results', key: '4' },
 ]
+
+const PROGRAM_KEY = '5'
 
 const EYEBROW: Record<Announcement['kind'], string> = {
   call: 'Next to the floor',
@@ -288,18 +291,33 @@ export function McHome() {
   const data = announcements.data
   const competitions = useCompetitions()
   const [asked, setAsked] = useState(0)
+  // Key 5 shows the running order instead of a slide; any slide control brings the slides back
+  const [view, setView] = useState<'slides' | 'program'>('slides')
   const [awake, setAwake] = useState(true)
   const [host, setHost] = useState<HTMLDivElement | null>(null)
   const items = useMemo(() => data ?? [], [data])
   const index = Math.min(asked, Math.max(0, items.length - 1))
   const current = items[index]
-  const competitionName = [...(competitions.data ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]?.name
+  const latest = [...(competitions.data ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]
+  const competitionName = latest?.name
+  const program = useProgram(latest?.id ?? '')
+  // Before the first announcement the running order is what the announcer needs, if there is one
+  const showProgram = view === 'program' || (!current && (program.data?.rows.length ?? 0) > 0)
 
-  const go = useCallback((to: number) => setAsked(Math.max(0, Math.min(items.length - 1, to))), [items.length])
+  const go = useCallback(
+    (to: number) => {
+      setView('slides')
+      setAsked(Math.max(0, Math.min(items.length - 1, to)))
+    },
+    [items.length],
+  )
   const jump = useCallback(
     (kind: Announcement['kind']) => {
       const first = items.findIndex((a) => a.kind === kind)
-      if (first >= 0) setAsked(first)
+      if (first >= 0) {
+        setView('slides')
+        setAsked(first)
+      }
     },
     [items],
   )
@@ -345,6 +363,7 @@ export function McHome() {
       } else if (e.key === 'Home') go(0)
       else if (e.key === 'End') go(items.length - 1)
       else if (mode) jump(mode.kind)
+      else if (e.key === PROGRAM_KEY) setView('program')
       else if (e.key.toLowerCase() === 'f') fullscreen()
     }
     window.addEventListener('keydown', onKey)
@@ -353,7 +372,7 @@ export function McHome() {
 
   if (announcements.isError) return <ErrorState onRetry={() => void announcements.refetch()} />
 
-  if (!current) {
+  if (!current && !showProgram) {
     return (
       <div className="flex flex-1 items-center">
         <h1 className="max-w-[18ch] text-balance text-[10vmin] font-semibold leading-[1.02] tracking-[-0.035em] text-white">
@@ -368,26 +387,38 @@ export function McHome() {
 
   return (
     <div ref={setHost} className={cn('relative flex flex-1 flex-col gap-[3.5vmin]', !awake && 'cursor-none')}>
-      <div aria-hidden className="fixed inset-x-0 top-0 h-[0.5vmin] bg-white/10">
-        <div className="h-full bg-gold-400 transition-[width] duration-300" style={{ width: `${((index + 1) / items.length) * 100}%` }} />
-      </div>
+      {!showProgram && (
+        <div aria-hidden className="fixed inset-x-0 top-0 h-[0.5vmin] bg-white/10">
+          <div className="h-full bg-gold-400 transition-[width] duration-300" style={{ width: `${((index + 1) / items.length) * 100}%` }} />
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-6">
         <img src={logo} alt="BIS" className="h-[7vmin] w-auto select-none rounded-[1.2vmin] bg-white px-[1.2vmin] py-[0.7vmin]" />
         <div className="flex items-baseline gap-[3vmin] text-[2.1vmin] font-medium text-brown-100">
           <span>{competitionName}</span>
-          <span className="font-mono tabular-nums text-white" role="status">
-            {index + 1} / {items.length}
-          </span>
+          {!showProgram && (
+            <span className="font-mono tabular-nums text-white" role="status">
+              {index + 1} / {items.length}
+            </span>
+          )}
         </div>
       </div>
 
-      <div key={current.kind === 'result' ? 'result' : current.id} className="flex flex-1 animate-fade-in flex-col gap-[3.5vmin]">
-        <Heading item={current} />
-        <View item={current} />
-      </div>
+      {showProgram || !current ? (
+        <div key="program" className="flex flex-1 animate-fade-in flex-col">
+          <McProgram program={program.data} />
+        </div>
+      ) : (
+        <>
+          <div key={current.kind === 'result' ? 'result' : current.id} className="flex flex-1 animate-fade-in flex-col gap-[3.5vmin]">
+            <Heading item={current} />
+            <View item={current} />
+          </div>
 
-      {current.kind === 'result' && <Board item={current} results={results} shown={shown} host={host} />}
+          {current.kind === 'result' && <Board item={current} results={results} shown={shown} host={host} />}
+        </>
+      )}
 
       <nav
         aria-label="Announcer controls"
@@ -405,19 +436,27 @@ export function McHome() {
               disabled={!items.some((a) => a.kind === m.kind)}
               className={cn(
                 'rounded-md px-3 py-2 transition-colors hover:text-white disabled:opacity-30',
-                current.kind === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
+                !showProgram && current?.kind === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
               )}
             >
               <span className="mr-2 font-mono text-xs opacity-70">{m.key}</span>
               {m.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setView('program')}
+            className={cn('rounded-md px-3 py-2 transition-colors hover:text-white', showProgram ? 'font-semibold text-gold-400' : 'text-brown-100')}
+          >
+            <span className="mr-2 font-mono text-xs opacity-70">{PROGRAM_KEY}</span>
+            Program
+          </button>
         </div>
         <div className="flex items-center gap-1">
-          <button type="button" aria-label="Previous announcement" disabled={index === 0} onClick={() => go(index - 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
+          <button type="button" aria-label="Previous announcement" disabled={items.length === 0 || (index === 0 && !showProgram)} onClick={() => go(index - 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
             <ChevronLeft aria-hidden className="size-5" />
           </button>
-          <button type="button" aria-label="Next announcement" disabled={index === items.length - 1} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
+          <button type="button" aria-label="Next announcement" disabled={items.length === 0 || (index === items.length - 1 && !showProgram)} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
             <ChevronRight aria-hidden className="size-5" />
           </button>
           <button type="button" aria-label="Full screen" onClick={fullscreen} className="grid size-10 place-items-center rounded-md hover:text-white">
