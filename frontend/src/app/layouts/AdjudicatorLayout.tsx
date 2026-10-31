@@ -23,9 +23,9 @@ export function AdjudicatorLayout() {
             </span>
             <span className="text-small font-medium text-neutral-900">{user.name}</span>
           </div>
-          <div className="flex items-center gap-1 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ConnectionStatus />
-            <Button variant="ghost" size="sm" onClick={signOut}>
+            <Button variant="secondary" size="sm" onClick={signOut}>
               Sign out
             </Button>
           </div>

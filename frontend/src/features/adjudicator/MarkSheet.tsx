@@ -69,16 +69,17 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
     : Math.min(100, Math.round((current.length / total) * 100))
 
   return (
-    <div className="flex flex-1 flex-col gap-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="flex items-baseline gap-3 text-3xl font-semibold leading-tight tracking-tight text-neutral-900">
-          <span className="font-mono text-title font-medium tabular-nums text-gold-700">{eventCode(task.event)}</span>
-          {eventDances(task.event)}
-        </h1>
-        <p className="text-small text-neutral-500">
-          {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
-        </p>
-        <p className="text-body text-neutral-900">
+    <div className="flex flex-1 flex-col gap-6">
+      <header className="flex flex-col gap-4 overflow-hidden rounded-2xl bg-brown-950 bg-[radial-gradient(40rem_16rem_at_100%_0%,rgb(228_178_46/0.16),transparent_60%)] p-5 text-white sm:p-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">{eventDances(task.event)}</h1>
+          <p className="flex flex-wrap items-center gap-x-3 text-small text-brown-100">
+            <span className="font-mono tabular-nums text-gold-400">{eventCode(task.event)}</span>
+            <span aria-hidden className="h-3 w-px bg-white/25" />
+            {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
+          </p>
+        </div>
+        <p className="text-small text-brown-100">
           {isFinal ? `Place all ${total} finalists, 1st to ${ordinal(total)}.` : `Mark an X for exactly ${total} in each dance.`}
         </p>
       </header>
@@ -114,18 +115,18 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
         )}
       </section>
 
-      <div className="sticky bottom-0 -mx-4 border-t border-neutral-100 bg-white sm:-mx-8">
+      <div className="sticky bottom-0 mt-auto border-t border-neutral-100 bg-white">
         <div aria-hidden className="h-0.5 bg-neutral-100">
           <div
             className={`h-full transition-[width] duration-200 ${over ? 'bg-danger' : 'bg-gold-400'}`}
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-8">
+        <div className="flex items-center justify-between gap-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <p role="status" className={`whitespace-nowrap text-body font-medium tabular-nums ${over ? 'text-danger' : 'text-neutral-900'}`}>
             {counter}
           </p>
-          <Button size="xl" className="min-w-40 rounded-2xl text-xl" disabled={!ready} onClick={() => setConfirming(true)}>
+          <Button size="lg" className="h-14 min-w-32" disabled={!ready} onClick={() => setConfirming(true)}>
             Submit
           </Button>
         </div>
@@ -146,7 +147,12 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
               className="text-xl"
               disabled={busy}
               onClick={() => {
-                onSubmit(task.dances.map((d) => ({ dance: d, competitorIds: answers[d] ?? [] })))
+                onSubmit(
+                  task.dances.map((d) => ({
+                    dance: d,
+                    competitorIds: answers[d] ?? [],
+                  })),
+                )
                 setConfirming(false)
               }}
             >

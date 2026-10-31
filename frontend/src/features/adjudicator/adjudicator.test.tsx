@@ -33,11 +33,9 @@ describe('adjudicator marking', () => {
     expect(screen.getByRole('status')).toHaveTextContent('12 of 12 marked')
     expect(submit).toBeEnabled()
 
-    await userEvent.click(tiles[12])
-    expect(screen.getByRole('status')).toHaveTextContent('1 too many')
-    expect(submit).toBeDisabled()
-    await userEvent.click(tiles[12])
-    expect(submit).toBeEnabled()
+    // Once 12 are marked, the rest are locked; a marked one can still be taken out
+    expect(tiles[12]).toBeDisabled()
+    expect(tiles[0]).toBeEnabled()
 
     await userEvent.click(submit)
     const dialog = await screen.findByRole('dialog', { name: 'Submit your marks?' })

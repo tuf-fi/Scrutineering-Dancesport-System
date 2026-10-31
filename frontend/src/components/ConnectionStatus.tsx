@@ -6,7 +6,7 @@ import { Badge } from './ui/index.ts'
 export function ConnectionStatus() {
   const { online, toggle } = useConnection()
   const badge = (
-    <Badge tone={online ? 'success' : 'warning'} dot>
+    <Badge tone={online ? 'success' : 'warning'} dot pill>
       {online ? 'Online' : 'Offline'}
     </Badge>
   )

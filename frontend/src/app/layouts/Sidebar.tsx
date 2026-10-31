@@ -1,5 +1,6 @@
 import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { NavLink } from 'react-router'
+import { usingMocks } from '../../api/mode.ts'
 import { Avatars } from '../../components/Avatars.tsx'
 import { Brand } from '../../components/Brand.tsx'
 import { cn } from '../../lib/cn.ts'
@@ -60,23 +61,36 @@ function SidebarLink({ item, collapsed }: { item: NavItem; collapsed: boolean })
 const footerRow =
   'group relative flex h-9 items-center gap-3 rounded-md text-small font-medium transition-colors'
 
-// Shows the venue connection; clicking flips it so offline screens can be reviewed
+// Shows whether this device can reach the server. In the sample app, clicking flips it so offline screens can be reviewed.
 function ConnectionRow({ collapsed }: { collapsed: boolean }) {
   const { online, toggle } = useConnection()
   const label = online ? 'Online' : 'Offline'
+  const content = (
+    <>
+      <span className="grid size-[18px] shrink-0 place-items-center">
+        <span aria-hidden className={cn('size-2 rounded-full', online ? 'bg-success' : 'bg-warning')} />
+      </span>
+      <span className={cn(collapsed && 'sr-only')}>{label}</span>
+      {collapsed && <Tip>{label}</Tip>}
+    </>
+  )
+  const className = cn(footerRow, 'text-neutral-600', collapsed ? 'justify-center' : 'px-3')
+  if (!usingMocks) {
+    return (
+      <div role="status" aria-label={online ? 'Connected to the server' : 'Cannot reach the server'} className={className}>
+        {content}
+      </div>
+    )
+  }
   return (
     <button
       type="button"
       onClick={toggle}
       aria-pressed={!online}
       aria-label={online ? 'Online. Switch to offline' : 'Offline. Switch to online'}
-      className={cn(footerRow, 'text-neutral-600 hover:bg-neutral-100', collapsed ? 'justify-center' : 'px-3')}
+      className={cn(className, 'hover:bg-neutral-100')}
     >
-      <span className="grid size-[18px] shrink-0 place-items-center">
-        <span aria-hidden className={cn('size-2 rounded-full', online ? 'bg-success' : 'bg-warning')} />
-      </span>
-      <span className={cn(collapsed && 'sr-only')}>{label}</span>
-      {collapsed && <Tip>{label}</Tip>}
+      {content}
     </button>
   )
 }

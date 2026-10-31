@@ -12,7 +12,7 @@ export function SubmittedPage() {
   const online = useConnection((s) => s.online)
 
   if (state.isError) return <ErrorState onRetry={() => void state.refetch()} />
-  if (!state.data) return <Skeleton className="h-40 w-full" />
+  if (!state.data) return <Skeleton className="mx-auto h-48 w-full max-w-sm" />
   if (!pending && state.data.status === 'waiting') return <Navigate to="/adjudicator/waiting" replace />
   if (!pending && state.data.status === 'marking') return <Navigate to="/adjudicator/mark" replace />
 
@@ -20,22 +20,26 @@ export function SubmittedPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-10">
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center pb-10 text-center">
         <span
           aria-hidden
-          className={`grid size-20 place-items-center rounded-full ${pending ? 'bg-warning/10 text-warning' : 'bg-success-soft text-success'}`}
+          className={`grid size-16 animate-pop-in place-items-center rounded-full ring-8 ${pending ? 'bg-warning-soft text-warning ring-warning-soft/50' : 'bg-success-soft text-success ring-success-soft/50'}`}
         >
-          <Check className="size-10" strokeWidth={2.25} />
+          <Check className="size-7" strokeWidth={2.5} />
         </span>
-        <div className="flex flex-col gap-2">
-          <h1 className="text-display font-semibold text-neutral-900">{pending ? 'Saved, sending…' : 'Submitted'}</h1>
-          {task && (
-            <p className="text-small text-neutral-500">
-              <span className="font-mono">{eventCode(task.event)}</span> {eventDances(task.event)} · {ROUND_TYPE_LABEL[task.round.type]}
-            </p>
-          )}
-        </div>
-        <p role="status" className="max-w-xs text-body text-neutral-600">
+        <h1 className="mt-8 animate-rise-in text-display font-semibold text-neutral-900 [animation-delay:80ms]">
+          {pending ? 'Saved, sending…' : 'Submitted'}
+        </h1>
+        {task && (
+          <p className="mt-2 animate-rise-in text-small text-neutral-500 [animation-delay:140ms]">
+            <span className="font-mono text-neutral-900">{eventCode(task.event)}</span>
+            <span className="mx-2 text-neutral-300">/</span>
+            {eventDances(task.event)}
+            <span className="mx-2 text-neutral-300">/</span>
+            {ROUND_TYPE_LABEL[task.round.type]}
+          </p>
+        )}
+        <p role="status" className="mt-6 max-w-xs animate-rise-in text-body text-neutral-500 [animation-delay:200ms]">
           {pending
             ? online
               ? 'Sending your marks to the scrutineer.'

@@ -54,11 +54,10 @@ describe('X table', () => {
     expect(screen.getByRole('status')).toHaveTextContent('3 of 3 dances done')
     expect(submit).toBeEnabled()
 
-    // A third X in one dance is too many
-    await userEvent.click(cell(12, 'Rumba'))
-    expect(screen.getByRole('status')).toHaveTextContent('Too many X in a dance')
-    expect(submit).toBeDisabled()
-    await userEvent.click(cell(12, 'Rumba'))
+    // A full dance locks its other cells; its marked cells can still be taken out
+    expect(cell(12, 'Rumba')).toBeDisabled()
+    expect(cell(11, 'Rumba')).toBeEnabled()
+    expect(cell(12, 'Samba')).toBeDisabled()
 
     await userEvent.click(submit)
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirm' }))
