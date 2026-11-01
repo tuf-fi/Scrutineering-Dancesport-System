@@ -86,14 +86,5 @@ export const useSetPanel = () =>
 export const useSavePointsTable = () =>
   useWrite((rows: PointsRow[]) => api.savePointsTable(actor(), rows), () => [['points-table']])
 
-export const useApprovePayment = () =>
-  useWrite((id: string) => api.approvePayment(actor(), id), () => [['payments']])
-
-export const useRejectPayment = () =>
-  useWrite(
-    (v: { id: string; reason: string }) => api.rejectPayment(actor(), v.id, v.reason),
-    () => [['payments']],
-  )
-
 export const useRevokeSessions = () =>
   useWrite((v: { kind: AccountKind; id: string }) => api.revokeSessions(actor(), v.kind, v.id), () => [])

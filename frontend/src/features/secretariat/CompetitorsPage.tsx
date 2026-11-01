@@ -1,5 +1,5 @@
 import type { CompetitorRow } from '@bis/shared'
-import { Hash, Pencil, Trash2 } from 'lucide-react'
+import { Hash, ListPlus, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import {
   Button,
@@ -27,6 +27,7 @@ import { competitorName, eventCode, eventDances } from '../../lib/format.ts'
 import { BackNumberDialog } from './BackNumberDialog.tsx'
 import { CompetitorDialog } from './CompetitorDialog.tsx'
 import { ImportDialog } from './ImportDialog.tsx'
+import { RegistrationDialog } from './RegistrationDialog.tsx'
 
 export function CompetitorsPage() {
   const competitors = useCompetitorRows()
@@ -43,6 +44,7 @@ export function CompetitorsPage() {
   const remove = useDeleteCompetitor()
   const [importing, setImporting] = useState(false)
   const [numbering, setNumbering] = useState<CompetitorRow | null>(null)
+  const [entering, setEntering] = useState<CompetitorRow | null>(null)
   const scoped = competitionId !== 'all'
   const events = useEvents(scoped ? competitionId : undefined)
   const entries = useCompetitionEntries(scoped ? competitionId : '')
@@ -181,9 +183,10 @@ export function CompetitorsPage() {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-28',
+            widthClass: 'w-36',
             cell: (c) => (
               <div className="flex justify-end gap-0.5">
+                <IconButton icon={ListPlus} label={`Enter ${competitorName(c.names)} in events`} onClick={() => setEntering(c)} />
                 <IconButton icon={Pencil} label={`Edit ${competitorName(c.names)}`} onClick={() => setEditing(c)} />
                 <IconButton icon={Hash} label={`Set back number for ${competitorName(c.names)}`} onClick={() => setNumbering(c)} />
                 <IconButton icon={Trash2} tone="danger" label={`Delete ${competitorName(c.names)}`} onClick={() => setToDelete(c)} />
@@ -232,6 +235,7 @@ export function CompetitorsPage() {
       />
       <ImportDialog open={importing} onClose={() => setImporting(false)} />
       <BackNumberDialog competitor={numbering} onClose={() => setNumbering(null)} />
+      <RegistrationDialog competitor={entering} onClose={() => setEntering(null)} />
     </div>
   )
 }

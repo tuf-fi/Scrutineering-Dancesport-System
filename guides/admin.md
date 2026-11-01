@@ -1,21 +1,22 @@
 # Admin guide
 
 ## Set up once (online)
-1. **Fees and payment details**: enter the fee for a solo and for a couple, and where clubs send money (GCash, Maya, bank). Clubs cannot enter events until the fees are saved.
+1. **Fees and payment details**: check the **Registration fees** the secretariat charges from an entry form (first entry, each extra entry, ranking and inter-collegiate events, athlete and coach membership, Coaches Summit). They start as the organizer's 2026 entry form. The late entry fee is the flat solo and couple fee below it. Add where teams send money (GCash, Maya, bank).
+1. **Competitions**: set **Entries close** and **Fees due** if the organizer has deadlines; the secretariat is warned about later entries.
 2. **Staff accounts**: one for each person. A temporary password is shown once; give it to them in person.
 3. **Adjudicators and panels**: create adjudicators with letters, make PINs for the competition, choose each event's panel.
 4. **Points table**: check the points for each place.
 5. **Competitions**: create the competition.
 
 ## Checking payments
-**Payments**: open one waiting to be checked, compare the receipt and reference with the GCash, Maya or bank record, then **Approve**, or **Reject** with a reason the club can act on. Each decision is recorded with your name. A club with Messenger connected is told.
+**Payments**: a record of what each team owes and has paid. Open one to see what it covers and who recorded it. The secretariat records payments (cash, GCash, Maya or bank); there is nothing to approve here.
 
 ## Clubs
-**Clubs**: reset a forgotten password (a temporary one is shown once) or erase an account when a club asks. Erasing keeps the club name and dancers in published results. **Remove old payment proofs** deletes receipts older than 90 days; it also happens daily.
+**Clubs**: add, edit or delete the teams on the entry forms. A club that still has competitors cannot be deleted. Teams have no sign-in; the secretariat enters their dancers.
 
 ## Before a competition
 Check the server's clock, make sure `ADJUDICATOR_PIN_DAYS` suits the event, and take a backup (deploy/README.md). An adjudicator's PIN works only one day either side of the competition date.
 
-**PIN cards.** On Adjudicators and panels, generate the PINs, then choose Print PIN cards. Each card has the six-digit PIN and a QR code that signs the phone in. Hand them out privately. A new PIN, or Sign out everywhere (the arrow icon on a row), signs an adjudicator's phone out at once. Sign out everywhere also works for staff and clubs, for a lost phone or a shared password.
+**PIN cards.** On Adjudicators and panels, generate the PINs, then choose Print PIN cards. Each card has the six-digit PIN and a QR code that signs the phone in. Hand them out privately. A new PIN, or Sign out everywhere (the arrow icon on a row), signs an adjudicator's phone out at once. Sign out everywhere also works for staff, for a lost phone or a shared password.
 
 **Two-step sign-in.** Open Security in the sidebar to turn it on with an authenticator app: you then enter a code after your password. Save the recovery codes it shows once. If someone loses their phone and their codes, reset it for them on Staff accounts.

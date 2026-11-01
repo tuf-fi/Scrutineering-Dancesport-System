@@ -6,3 +6,7 @@ import { afterEach } from 'vitest'
 configure({ asyncUtilTimeout: 8000 })
 
 afterEach(cleanup)
+
+// jsdom has no canvas: the signature pad draws nothing and reports a tiny PNG
+HTMLCanvasElement.prototype.getContext = (() => null) as never
+HTMLCanvasElement.prototype.toDataURL = () => 'data:image/png;base64,iVBORw0KGgo='

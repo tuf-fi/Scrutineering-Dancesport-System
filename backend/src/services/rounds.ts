@@ -4,6 +4,7 @@ import {
   type AdjudicatorSubmission,
   type HeatAssignment,
   type MarkSubmission,
+  type RoundSignature,
   type MarkingTask,
   type RoundRow,
 } from '@bis/shared'
@@ -30,6 +31,10 @@ import {
   toRound,
   unpaidEntries,
 } from './shared.ts'
+
+// A drawn signature is a small PNG sent as a data URL
+const PNG_PREFIX = 'data:image/png;base64,'
+const MAX_SIGNATURE = 150_000
 
 const competitionRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
@@ -204,13 +209,23 @@ export const rounds = {
     return submitted ? { status: 'submitted', task } : { status: 'marking', task }
   },
 
-  submitAdjudicatorMarks(ctx: Ctx, roundId: string, submissions: MarkSubmission[]): void {
-    storeMarks(ctx, actor(ctx).id, roundId, submissions, null)
+  submitAdjudicatorMarks(ctx: Ctx, roundId: string, submissions: MarkSubmission[], signature?: string | null): void {
+    storeMarks(ctx, actor(ctx).id, roundId, submissions, null, signature ?? null)
   },
 
   // The scrutineer types in an adjudicator's marks from a paper sheet
   enterAdjudicatorMarks(ctx: Ctx, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]): void {
-    storeMarks(ctx, adjudicatorId, roundId, submissions, actor(ctx).id)
+    storeMarks(ctx, adjudicatorId, roundId, submissions, actor(ctx).id, null)
+  },
+
+  // The signatures drawn on a round, for the printed scores sheet
+  getSignatures(ctx: Ctx, roundId: string): RoundSignature[] {
+    return ctx.db
+      .select()
+      .from(t.submissions)
+      .where(eq(t.submissions.roundId, roundId))
+      .all()
+      .flatMap((s) => (s.signature ? [{ adjudicatorId: s.adjudicatorId, signature: s.signature }] : []))
   },
 }
 
@@ -264,7 +279,17 @@ function sameMarks(a: Array<[string, string, number]>, b: Array<[string, string,
 
 // Validates and stores one adjudicator's marks for a round, all together. Sending the same marks again
 // (after a dropped connection) is accepted and changes nothing; different marks are refused.
-function storeMarks(ctx: Ctx, adjudicatorId: string, roundId: string, submissions: MarkSubmission[], enteredBy: string | null) {
+function storeMarks(
+  ctx: Ctx,
+  adjudicatorId: string,
+  roundId: string,
+  submissions: MarkSubmission[],
+  enteredBy: string | null,
+  signature: string | null,
+) {
+  if (signature !== null && (typeof signature !== 'string' || !signature.startsWith(PNG_PREFIX) || signature.length > MAX_SIGNATURE)) {
+    return fail('The signature could not be read. Sign again.')
+  }
   const round = getRoundRow(ctx, roundId)
   const event = getEventRow(ctx, round.eventId)
   if (!panelAdjudicatorIds(ctx, event.id).includes(adjudicatorId)) return fail('This adjudicator is not on the panel for this event.', 403)
@@ -320,7 +345,7 @@ function storeMarks(ctx: Ctx, adjudicatorId: string, roundId: string, submission
       })
       .run()
   }
-  ctx.db.insert(t.submissions).values({ roundId, adjudicatorId, submittedAt: at, enteredBy }).run()
+  ctx.db.insert(t.submissions).values({ roundId, adjudicatorId, submittedAt: at, enteredBy, signature }).run()
   // Any tie decision was made on fewer marks
   ctx.db.delete(t.tieDecisions).where(eq(t.tieDecisions.roundId, roundId)).run()
 

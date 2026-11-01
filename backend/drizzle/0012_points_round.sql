@@ -1,0 +1,1 @@
+ALTER TABLE `points_table` ADD `round` text;

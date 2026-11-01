@@ -50,8 +50,10 @@ function ImportBody({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col gap-5">
       <p className="text-small text-neutral-600">
-        A CSV with three columns: <span className="font-mono">Dancer 1, Dancer 2, Club</span>. Leave Dancer 2 empty for a
-        solo dancer. The club must already exist.
+        A CSV with <span className="font-mono">Dancer, Partner, Club</span>. Leave Partner empty for a solo dancer. The
+        club must already exist. Further columns follow the entry form: <span className="font-mono">Province, Coach, Beginner
+        (yes or no)</span>, then for the dancer and the partner <span className="font-mono">Date of birth (year-month-day),
+        Contact no., Email, Address</span>. A coach must already be added.
       </p>
 
       <label className="flex cursor-pointer flex-col gap-1.5 rounded-lg border border-dashed border-neutral-300 px-4 py-5 text-small hover:border-neutral-400">

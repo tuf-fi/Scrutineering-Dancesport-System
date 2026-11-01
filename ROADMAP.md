@@ -1,6 +1,6 @@
 # BIS Roadmap
 
-Where the build stands and what is left. Details for each phase are in the linked file. Architecture and the reasons for each choice are in [BUILD_README.md](BUILD_README.md).
+Where the build stands and what is left. [STATUS.md](STATUS.md) has the short, current list of what is left and what is unclear. Details for each phase are in the linked file. Architecture and the reasons for each choice are in [BUILD_README.md](BUILD_README.md).
 
 ## Status
 
@@ -11,7 +11,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | 3 | Backend | Built | [deploy/README.md](deploy/README.md) |
 | 4 | Offline safety | Removed: online only | n/a |
 | 5 | Cloud backend and sync | Removed: online only; the server is built but not yet on a real host | [deploy/README.md](deploy/README.md) |
-| 6 | Registration and payments | Built; Messenger messages not yet tried against Facebook | [PHASE6_README.md](PHASE6_README.md) |
+| 6 | Registration and payments | Built, then changed: the secretariat registers teams from the entry forms; the club portal and Messenger were removed | n/a |
 | 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](PILOT.md) |
 
 ## Decisions still needed from the client
@@ -22,7 +22,7 @@ Where the build stands and what is left. Details for each phase are in the linke
 | Approved points table | Phase 3 | The table in the app is a suggestion |
 | Rule for ranking points when places are shared | Phase 3 | The app splits the points of the shared places equally; not confirmed against WDSF |
 | How an unbreakable tie in a final is settled | Phase 3 | Built so the chairperson confirms either keeping the shared place or a tie-break order typed in by the scrutineer; the organizer should confirm that is their rule |
-| GCash, Maya and bank account details for entry fees | Phase 6 | Shown to clubs when they register |
+| GCash, Maya and bank account details for entry fees | Phase 6 | Shown to athletes when they pay their membership |
 | Which paper forms must still be printed | Phase 3 | Heat lists, qualified lists, scores sheets and final results are built |
 
 ## Phase 3: Backend (built)
@@ -58,25 +58,21 @@ Built, then removed in commit `6d286f2`: a cloud mode of the server, an upload q
 
 - [ ] Put the server on a real host (deploy/README.md)
 
-## Phase 6: Registration and payments (built, except emails)
+## Phase 6: Registration and payments (changed)
 
-Goal: clubs register and pay before the event, and the admin confirms payments by hand. BIS never handles card details or money. Details and decisions in [PHASE6_README.md](PHASE6_README.md).
+Built as a club portal with online proof of payment and Messenger messages, then changed when the client said the secretariat registers every team. Removed: club accounts, proof uploads, payment approval, Messenger. What exists now:
 
-- [x] Club accounts: sign up, sign in, manage dancers, change password; an admin can give a temporary one.
-- [x] Register dancers to events, see the total fee, see payment details (set by the organizer on the Fees and payment details screen).
-- [x] Upload proof of payment (screenshot and reference number), visible only to admins and the club that sent it.
-- [x] Admin payment checking: approve, or reject with a reason; every decision is logged with name and time.
-- [x] Only approved or paid-at-venue entries can dance: a round will not start with an unpaid entry in its event.
-- [x] Data Privacy Act of 2012: consent at sign-up, a privacy notice, no birth dates, erasure of a club's contact details, payment proofs deleted 90 days after the competition.
-- [x] Fake club passwords, fees and payment accounts removed from the real server (only the sample data has them).
-- [x] Messages to clubs when a payment is approved or rejected: Facebook Messenger (chosen by the client). Built and tested with a stand-in for Facebook; set-up steps in deploy/README.md. Needs trying with the real Page, and may need Meta app review.
+- [x] The secretariat enters clubs, coaches and competitors from the entry forms, with the entry form's details, fees, deadlines and entry warnings.
+- [x] Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms or turns it down.
+- [x] Payments are a read-only ledger; the secretariat records how each was paid.
+- [ ] Data Privacy Act of 2012: the privacy notice (`/privacy`) was rewritten for the entry form and athlete accounts. The organizer must confirm it, and say how long the details are kept.
 
 ## Program (running order) (built)
 
 Goal: dancers, parents and the announcer can see what is on the floor, what is next and when everything starts, and the secretariat can print it.
 
 - [x] The secretariat lays out the program: start time, rounds in order, breaks and the awarding; times work out from the start time and each line's minutes.
-- [x] Public and club page with search and a round filter; Print and PDF carry the filter. PDF is the browser's Save as PDF from the print dialog, so no PDF library.
+- [x] Public page with search and a round filter; Print and PDF carry the filter. PDF is the browser's Save as PDF from the print dialog, so no PDF library.
 - [x] MC screen: key 5 shows on the floor, up next and the three after.
 - [ ] Set the real minutes per round with the client (CLIENT_QUESTIONS.md item 8); the starting guesses are in `backend/src/services/program.ts`.
 
@@ -86,7 +82,7 @@ Built:
 - A PIN-guess limit across all visitors, and a per-account limit on wrong passwords.
 - Six-digit adjudicator PINs, printed on PIN cards with a QR code that signs the phone in. The PIN is after a `#` in the QR address, so it is never sent to the server or logged.
 - PINs that work only one day either side of the competition date (`ADJUDICATOR_PIN_DAYS`), an audit of PIN sign-ins, and one phone at a time per adjudicator: a new sign-in signs the old phone out.
-- Sign out everywhere: an admin can end every session of a staff member, adjudicator or club. A reset password or a new PIN does the same.
+- Sign out everywhere: an admin can end every session of a staff member, adjudicator or athlete. A reset password or a new PIN does the same.
 - Two-step sign-in with an authenticator app (TOTP) for any staff account, with recovery codes; an admin can reset it for someone who lost their phone. It is optional, each person turns it on from the Security screen.
 - A cap per address on calls that need no sign-in (`PUBLIC_RATE_LIMIT`, default 600 a minute).
 - Security headers from Caddy (the Content-Security-Policy is report-only until checked in a browser) and a Secure session cookie.
@@ -110,7 +106,7 @@ Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is 
 ## Carried over from earlier phases
 
 - [ ] Add each real result sheet as a fixture in `packages/scoring/fixtures/`.
-- [ ] Confirm the scoring engine's Rules 1 and 5-11 against the current WDSF rulebook and record the version used.
+- [x] Rules 1, 2 and 5-11 checked against the text of the Skating System (the Austrian federation's copy of it) and three published WDSF finals. Still to check against WDSF's own Skating System file (on Box) and the 2026 rules.
 - [ ] Confirm the shared-place ranking points rule (`pointsForRange` in `packages/scoring/src/points.ts`).
 - [x] Shared place ranges are stored on results and shown as a range (such as 3rd–4th) on the final results printout, the public results and a dancer's history.
 - [x] Chairperson decision flow for an unbreakable tie in a final: built (see below). The rule for settling it is the organizer's to confirm.

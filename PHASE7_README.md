@@ -9,9 +9,9 @@ Goal: show that BIS is correct, fast enough and safe, then run it at a real comp
 | Run a whole competition through BIS end to end | Done on the sample competition (below). Not done on a real past competition: there are no real result sheets in the repository yet |
 | Load test with 10 phones marking at once | Done: `pnpm loadtest` |
 | Compare BIS with the paper sheets | Tool done: `results:compare` |
-| One-page guide for each role | Done: [guides/](guides/) (adjudicator, scrutineer, chairperson, secretariat, admin, MC, club); written from the screens, not yet tried by the people who will use them |
+| One-page guide for each role | Done: [guides/](guides/) (adjudicator, scrutineer, chairperson, secretariat, admin, MC, athlete); written from the screens, not yet tried by the people who will use them |
 | Pilot at a real competition | Plan written (PILOT.md); needs a competition, real phones and people |
-| Messages to clubs | Messenger built (Phase 6 follow-up); untested against Facebook |
+| Messages to teams | Not needed: the secretariat messages teams (Messenger was removed) |
 
 ## What was verified
 
@@ -50,6 +50,5 @@ No marks were lost or doubled. The real server is a different machine, over the 
 ## Not covered
 
 - Real phones on mobile data, and a real crowded venue.
-- The Messenger messages against Facebook's real service, which may need Meta's review of the app.
 - Browsers other than Chrome (the rehearsal uses Chrome).
-- A load test of the online server with many clubs registering at once.
+- A load test of the online server with many athletes signing up at once.

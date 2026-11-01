@@ -14,8 +14,6 @@ beforeAll(async () => {
   cookies.chairperson = await app.signIn.staff('chairperson')
   cookies.mc = await app.signIn.staff('mc')
   cookies.adjudicator = await app.signIn.adjudicator('410000')
-  const club = (await app.ok<Array<{ contactEmail: string }>>('getClubs', [], cookies.admin))[0]!
-  cookies.club = await app.signIn.club(club.contactEmail)
 })
 afterAll(() => app.close())
 
@@ -35,7 +33,7 @@ describe('the permission table', () => {
   })
 })
 
-const ROLES = ['none', Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc, Role.Adjudicator, Role.Club] as const
+const ROLES = ['none', Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc, Role.Adjudicator] as const
 
 describe('every function against every role', () => {
   // Calls each function with no arguments: it must be refused for the wrong role, and for the right
@@ -75,9 +73,9 @@ describe('what guests may not see', () => {
     expect((await app.call('getMarks', ['x'], cookies.adjudicator)).status).toBe(403)
   })
 
-  it('does not let an adjudicator or club call staff functions', async () => {
+  it('does not let an adjudicator call staff functions', async () => {
     expect((await app.call('approveRound', ['x'], cookies.adjudicator)).status).toBe(403)
-    expect((await app.call('approvePayment', ['x'], cookies.club)).status).toBe(403)
+    expect((await app.call('saveClub', [{ name: 'X' }], cookies.adjudicator)).status).toBe(403)
   })
 
   it('answers an unknown function with 404', async () => {

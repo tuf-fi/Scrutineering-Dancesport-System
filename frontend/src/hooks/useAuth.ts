@@ -7,11 +7,6 @@ export const useSignInStaff = () =>
     mutationFn: (v: { username: string; password: string; code?: string }) => api.signInStaff(v.username, v.password, v.code),
   })
 
-export const useSignInClub = () =>
-  useMutation({
-    mutationFn: (v: { email: string; password: string }) => api.signInClub(v.email, v.password),
-  })
-
 export const useSignInAdjudicator = () =>
   useMutation({ mutationFn: (pin: string) => api.signInAdjudicator(pin) })
 

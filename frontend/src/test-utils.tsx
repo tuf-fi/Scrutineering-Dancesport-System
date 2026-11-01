@@ -1,6 +1,6 @@
 import type { Role, SessionUser } from '@bis/shared'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render } from '@testing-library/react'
+import { fireEvent, render, within } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { queryDefaults } from './app/queryClient.ts'
 import { routes } from './app/routes.tsx'
@@ -18,4 +18,12 @@ export function renderApp(path: string, role?: Role, user: Partial<SessionUser> 
     </QueryClientProvider>,
   )
   return router
+}
+
+// Draws a stroke in the signature box of an open dialog
+export function sign(dialog: HTMLElement) {
+  const box = within(dialog).getByRole('img', { name: 'Signature box' })
+  fireEvent.pointerDown(box)
+  fireEvent.pointerMove(box)
+  fireEvent.pointerUp(box)
 }

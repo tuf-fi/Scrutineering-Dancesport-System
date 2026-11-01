@@ -15,24 +15,3 @@ export function useSavePaymentSettings() {
   })
 }
 
-export const useChangeClubPassword = () =>
-  useMutation({ mutationFn: (v: { current: string; next: string }) => api.changeClubPassword(v.current, v.next) })
-
-export const useResetClubPassword = () => useMutation({ mutationFn: (id: string) => api.resetClubPassword(actor(), id) })
-
-export function useEraseClubAccount() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => api.eraseClubAccount(actor(), id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clubs'] }),
-  })
-}
-
-export const useMessengerLink = () => useQuery({ queryKey: ['messenger-link'], queryFn: api.getMessengerLink })
-
-export function useUnlinkMessenger() {
-  const queryClient = useQueryClient()
-  return useMutation({ mutationFn: () => api.unlinkMessenger(), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messenger-link'] }) })
-}
-
-export const useClearOldReceipts = () => useMutation({ mutationFn: () => api.clearOldReceipts(actor()) })

@@ -15,7 +15,8 @@ Everyone who touches a dancesport competition in the Bicol region, each on their
 - **Scrutineer** and **Chairperson of Adjudicators** (laptop): run rounds, watch adjudicators submit live, resolve ties at the recall cutoff, approve and publish results.
 - **Adjudicators** (phone, usually 7 and up to 10, lettered A to J): mark X for recalls in early rounds, place finalists 1st to 6th or 7th.
 - **MC / announcer** (laptop or venue screen): reads recalls, finalists and results from last place up.
-- **Clubs and coaches** (phone or laptop, online): register dancers, pay entry fees outside BIS, upload proof of payment.
+- **Athletes** (phone or laptop, online): make an account, keep their details and report their membership payment.
+- **Clubs and coaches**: kept as records by the secretariat; they have no login.
 - **Public** (phone): parents, fans, competitors; browse results, history and rankings.
 
 No single role takes priority. Each role is served on its own device, and every screen must also work at any screen size.
@@ -31,7 +32,7 @@ Built for the Bicol competition circuit and the way these events actually run: o
 ## Operating Context
 
 - Competition day: staff laptops with a browser and internet, and up to 10 adjudicator phones signed in with a 6-digit PIN over mobile data or any Wi-Fi with internet. There is no separate venue network. Marks are held on the phone and resent if the connection drops.
-- Before the event: clubs register and pay online; the admin approves payments; the secretariat assigns back numbers and builds the schedule and program.
+- Before the event: the secretariat enters the teams from the entry forms and records payments; athletes report their membership payment; the secretariat assigns back numbers and builds the schedule and program.
 - Paper is the fallback: printable blank adjudicator mark sheets, and A4 printouts that match the existing result sheets.
 - Event sheets carry: event number, date, location, organizer, executor (scrutineer), grade (age group, class, dance), discipline, adjudicators by letter, then back number, name and club per competitor, with solo counts.
 

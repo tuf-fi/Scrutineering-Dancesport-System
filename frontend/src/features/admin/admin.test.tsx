@@ -405,8 +405,8 @@ describe('points table', () => {
   })
 })
 
-describe('payment checking', () => {
-  // The rows of the queue table (the first table on the page); a row opens the review
+describe('payments', () => {
+  // The rows of the table (the first on the page); a row opens the payment
   const queueRows = () => within(document.querySelector('table')!).getAllByRole('row', { hidden: true }).slice(1)
   const clubs = async () => {
     await screen.findByRole('columnheader', { name: 'Club' })
@@ -415,57 +415,25 @@ describe('payment checking', () => {
     return queueRows()
   }
 
-  it('lists the payments waiting to be checked and shows the full review', async () => {
+  it('lists what is still owed, and shows what a payment covers without any decision to make', async () => {
     renderApp('/admin/payments', Role.Admin)
     const items = await clubs()
-    expect(items.length).toBeGreaterThanOrEqual(2)
+    expect(items.length).toBeGreaterThanOrEqual(1)
 
     await userEvent.click(items[0])
     const drawer = await screen.findByRole('dialog')
     expect(within(drawer).getByText('Amount due')).toBeInTheDocument()
-    expect(within(drawer).getByText('Amount entered')).toBeInTheDocument()
+    expect(within(drawer).getByText('Amount paid')).toBeInTheDocument()
     expect(within(drawer).getByText('Reference number')).toBeInTheDocument()
-    expect(within(drawer).getByRole('img', { name: /Payment screenshot from/ })).toBeInTheDocument()
-    expect(within(drawer).getByRole('button', { name: 'Approve' })).toBeInTheDocument()
-    expect(within(drawer).getByRole('button', { name: 'Reject' })).toBeInTheDocument()
+    expect(within(drawer).getByText(/Not paid yet/)).toBeInTheDocument()
+    expect(within(drawer).queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
+    expect(within(drawer).queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
   })
 
-  it('approves after confirming and removes it from the queue', async () => {
-    renderApp('/admin/payments', Role.Admin)
-    const before = (await clubs()).length
+  it('shows who recorded a payment that is paid', async () => {
+    renderApp('/admin/payments?status=paid_at_venue', Role.Admin)
     await userEvent.click((await clubs())[0])
-    await userEvent.click(await screen.findByRole('button', { name: 'Approve' }))
-
-    const dialog = await screen.findByRole('dialog', { name: /^Approve / })
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Approve' }))
-    expect(await screen.findByText(/^Approved /)).toBeInTheDocument()
-    await screen.findByText(/Approved by Amelia Rosales/)
-    expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
-    await waitFor(() =>
-      expect(queueRows()).toHaveLength(before - 1),
-    )
-  })
-
-  it('requires a reason to reject, then shows it', async () => {
-    renderApp('/admin/payments', Role.Admin)
-    await userEvent.click((await clubs())[0])
-    await userEvent.click(await screen.findByRole('button', { name: 'Reject' }))
-
-    await userEvent.click(screen.getByRole('button', { name: 'Reject payment' }))
-    expect(await screen.findByText('Give a reason before rejecting.')).toBeInTheDocument()
-
-    await userEvent.type(screen.getByLabelText('Reason for rejecting'), 'Reference number is not in the GCash record.')
-    await userEvent.click(screen.getByRole('button', { name: 'Reject payment' }))
-    expect(await screen.findByText(/^Rejected /)).toBeInTheDocument()
-    expect(await screen.findByText('Reason: Reference number is not in the GCash record.')).toBeInTheDocument()
-  })
-
-  it('does not offer a decision on payments that are already decided', async () => {
-    renderApp('/admin/payments?status=approved', Role.Admin)
-    await userEvent.click((await clubs())[0])
-    expect(await screen.findByText(/Approved by Amelia Rosales on/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
+    expect(await screen.findByText(/^Recorded/)).toBeInTheDocument()
   })
 })
 

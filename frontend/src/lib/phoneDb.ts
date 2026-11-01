@@ -8,6 +8,8 @@ export interface PendingSubmission {
   adjudicatorId: string
   roundId: string
   submissions: MarkSubmission[]
+  // The drawn signature, sent with the marks
+  signature?: string
   savedAt: string
 }
 

@@ -8,7 +8,7 @@ What is left before BIS is relied on at a real competition. The features are bui
 - [ ] **Rehearse against the real server.**
   - [ ] By hand with real phones on mobile data and real laptops: PIN sign-in, marking, a dropped connection, a phone switched off mid-round.
   - [ ] Run `pnpm loadtest` and `pnpm rehearsal`, and open the site in a browser to check the Content-Security-Policy report-only console before enforcing it.
-- [ ] **Try Messenger with the real Facebook Page.** Only tested against a stand-in. It may need Meta app review, which can take time, so start early. Set-up steps: [deploy/README.md](deploy/README.md).
+- [x] ~~Try Messenger with the real Facebook Page.~~ Not needed: the organizer's secretariat messages the teams, so BIS does not. The Messenger code was removed.
 - [ ] **Rehearse with the real staff.** Secretariat, scrutineer, chairperson and adjudicators, using the guides in [guides/](guides/). Fix any step a guide gets wrong.
 - [ ] **Pilot at a real competition.** Run BIS alongside the current method and compare every result (`results:compare`). Plan: [PILOT.md](PILOT.md).
 - [ ] **Fix list from the pilot, then a second, smaller event** before the system is relied on alone.

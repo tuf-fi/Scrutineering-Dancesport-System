@@ -22,7 +22,7 @@ describe('the first admin of a new database', () => {
   it('has the default points table ready on an empty database', async () => {
     app = await startTestApp({ seed: false })
     const table = await app.call<Array<{ place: number | null; points: number }>>('getPointsTable', [])
-    expect(table.data.map((r) => r.points)).toEqual([10, 8, 6, 5, 4, 3, 2, 1])
+    expect(table.data.map((r) => r.points)).toEqual([200, 180, 160, 140, 120, 100, 0, 70, 50])
     expect(table.data.at(-1)!.place).toBeNull()
   })
 

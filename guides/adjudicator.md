@@ -11,7 +11,7 @@ You mark on your own phone. Nothing you do can be lost: your marks are saved on 
 - The round appears by itself when the scrutineer starts it.
 - **Early rounds (recall):** mark an X for exactly the number of couples shown. The counter says how many are marked and warns if you have too many.
 - **Final:** place every finalist, first to last, in each dance. The counter says how many are placed.
-- Press **Submit**, check the summary, then **Confirm**. You see **Submitted**.
+- Press **Submit** and check the summary. Sign in the box with your finger (press **Clear** to sign again), then **Confirm**. You see **Submitted**. Your signature is printed on the scores sheet.
 
 ## If something goes wrong
 - **Connection drops:** carry on. Press Confirm anyway; the phone says it is saved and sends the marks when it can. The scrutineer can see it is waiting.

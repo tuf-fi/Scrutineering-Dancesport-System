@@ -134,7 +134,7 @@ describe('staff sidebar', () => {
   })
 
   it.each([
-    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Late entries', 'Schedule', 'Program', 'Security']],
+    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Clubs', 'Coaches', 'Athletes', 'Late entries', 'Schedule', 'Program', 'Security']],
     [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
     [Role.Chairperson, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {

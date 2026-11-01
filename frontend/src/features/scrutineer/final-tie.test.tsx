@@ -36,20 +36,27 @@ describe('a tie in the final', () => {
     const propose = screen.getByRole('button', { name: 'Propose decision' })
     expect(propose).toBeEnabled()
 
-    await userEvent.click(screen.getByRole('radio', { name: 'Settle it with a tie-break' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Settle it with a dance-off' }))
     expect(propose).toBeDisabled()
-    await userEvent.selectOptions(screen.getByLabelText(/Tie-break place of No\. 12/), '1')
-    await userEvent.selectOptions(screen.getByLabelText(/Tie-break place of No\. 31/), '1')
+    await userEvent.selectOptions(screen.getByLabelText(/Dance-off place of No\. 12/), '1')
+    await userEvent.selectOptions(screen.getByLabelText(/Dance-off place of No\. 31/), '1')
     expect(propose).toBeDisabled()
-    await userEvent.selectOptions(screen.getByLabelText(/Tie-break place of No\. 31/), '2')
+    await userEvent.selectOptions(screen.getByLabelText(/Dance-off place of No\. 31/), '2')
     expect(propose).toBeEnabled()
   })
 
   it('waits for the chairperson, who confirms and cannot propose', async () => {
     show(tie({ mode: 'order', order: ['b', 'a'], proposedBy: 'u2', confirmedBy: null }), Role.Chairperson, true)
     expect(screen.getByText(/Waiting for the chairperson to confirm/)).toBeInTheDocument()
-    expect(screen.getByText(/Settled by a tie-break: No\. 31, then No\. 12/)).toBeInTheDocument()
+    expect(screen.getByText(/Settled by a dance-off: No\. 31, then No\. 12/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Propose decision' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Confirm tie decision' })).toBeInTheDocument()
+  })
+
+  it('calls it a tie-break when the tie is below 1st place', () => {
+    const below = tie()
+    below.groups[0]!.place = 3
+    show(below, Role.Scrutineer, false)
+    expect(screen.getByRole('radio', { name: 'Settle it with a tie-break' })).toBeInTheDocument()
   })
 })

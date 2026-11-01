@@ -36,25 +36,46 @@ describe('fees and payment details', () => {
 })
 
 describe('clubs', () => {
-  it('gives a temporary password on reset, and asks before erasing', async () => {
+  it('adds and deletes a club, and will not delete one that has competitors', async () => {
     renderApp('/admin/clubs', Role.Admin)
-    const reset = (await screen.findAllByRole('button', { name: /^Reset the password of / }))[0]!
-    await userEvent.click(reset)
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reset password' }))
-    expect(await screen.findByText(/temporary password to/)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Done' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Add club' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add club' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add club' }))
+    expect(await within(dialog).findByText('Enter the club name.')).toBeInTheDocument()
+    await userEvent.type(within(dialog).getByLabelText('Club'), 'Zamboanga Steps')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add club' }))
+    expect(await screen.findByText('Added Zamboanga Steps')).toBeInTheDocument()
 
-    await userEvent.click((await screen.findAllByRole('button', { name: /^Erase the account of / }))[0]!)
-    const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByText(/club name and its dancers stay/)).toBeInTheDocument()
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Erase' }))
-    expect(await screen.findByText(/^Erased the account of/)).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Search clubs'), 'Zamboanga')
+    await userEvent.click(await screen.findByRole('button', { name: 'Delete Zamboanga Steps' }))
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
+    expect(await screen.findByText('Deleted Zamboanga Steps')).toBeInTheDocument()
+
+    await userEvent.clear(screen.getByLabelText('Search clubs'))
+    await userEvent.click((await screen.findAllByRole('button', { name: /^Delete / }))[0]!)
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
+    expect(await screen.findByText(/has competitors/)).toBeInTheDocument()
   })
+})
 
-  it('removes old payment proofs on request', async () => {
-    renderApp('/admin/clubs', Role.Admin)
-    await userEvent.click(await screen.findByRole('button', { name: 'Remove old payment proofs' }))
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Remove' }))
-    expect(await screen.findByText('Nothing was old enough to remove')).toBeInTheDocument()
+describe('registration fees', () => {
+  it('shows the organizer’s schedule, saves an edit, and refuses a price that is not whole pesos', async () => {
+    renderApp('/admin/fees', Role.Admin)
+    const first = await screen.findByLabelText('Solo, juvenile, first entry')
+    expect(first).toHaveValue('400')
+    expect(screen.getByLabelText('Couple, junior, youth and inter-high school, each extra entry')).toHaveValue('250')
+    expect(screen.getByLabelText('Coach membership (₱)')).toHaveValue('1000')
+    const save = screen.getByRole('button', { name: 'Save registration fees' })
+    expect(save).toBeDisabled()
+
+    await userEvent.clear(first)
+    await userEvent.type(first, '12.5')
+    expect(save).toBeDisabled()
+    await userEvent.clear(first)
+    await userEvent.type(first, '450')
+    expect(save).toBeEnabled()
+    await userEvent.click(save)
+    expect(await screen.findByText('Registration fees saved')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Solo, juvenile, first entry')).toHaveValue('450')
   })
 })

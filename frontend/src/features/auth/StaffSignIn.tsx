@@ -76,12 +76,6 @@ export function StaffSignIn() {
               Sign in with your PIN
             </Link>
           </p>
-          <p className="text-neutral-600">
-            Club or coach?{' '}
-            <Link to="/club/sign-in" className="font-semibold text-neutral-900 underline underline-offset-4">
-              Club sign-in
-            </Link>
-          </p>
           <DevHint kind="staff" />
         </>
       }

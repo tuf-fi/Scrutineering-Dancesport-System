@@ -34,6 +34,9 @@ export const useRecallTable = (roundId: string, enabled = true) =>
     refetchInterval: usePoll(POLL_MS),
   })
 
+export const useSignatures = (roundId: string) =>
+  useQuery({ queryKey: ['signatures', roundId], queryFn: () => api.getSignatures(roundId), enabled: roundId !== '' })
+
 export const useSkatingTable = (roundId: string) =>
   useQuery({
     queryKey: ['skating', roundId],

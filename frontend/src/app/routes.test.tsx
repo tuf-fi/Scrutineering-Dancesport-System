@@ -35,12 +35,6 @@ describe('route guards', () => {
     expect(router.state.location.pathname).toBe('/adjudicator')
   })
 
-  it('sends a signed-out visitor from the club portal to the club sign-in', async () => {
-    const router = renderAt('/club/events')
-    expect(await screen.findByRole('heading', { name: 'Club sign-in' })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/club/sign-in')
-  })
-
   it("keeps each role out of other roles' areas", async () => {
     signedInAs(Role.Secretariat)
     const router = renderAt('/admin/payments')

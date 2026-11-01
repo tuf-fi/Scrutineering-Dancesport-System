@@ -25,7 +25,7 @@ const MAX_HEAT = 12
 export function planRounds(entryCount: number): Array<{ type: RoundType; recall: number | null }> {
   const final = { type: RoundType.Final, recall: null }
   const semi = { type: RoundType.SemiFinal, recall: 6 }
-  if (entryCount <= 7) return [final]
+  if (entryCount <= 6) return [final]
   if (entryCount <= 14) return [semi, final]
   if (entryCount <= 24) return [{ type: RoundType.Round1, recall: 12 }, semi, final]
   return [

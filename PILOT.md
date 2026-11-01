@@ -11,14 +11,14 @@ The pilot runs BIS at a real competition while the current method (paper sheets 
 ## Four weeks before
 
 - [ ] Online server running on its real address (deploy/README.md). Admin account created, fees and payment details entered.
-- [ ] Facebook Page and Meta app set up if Messenger is wanted; one club account tested end to end.
+- [ ] One team entered by the secretariat and paid, end to end. No Facebook Page or Meta app is needed.
 - [ ] Competition created online. Clubs told how to register and pay; the privacy notice read by whoever speaks to the clubs.
 - [ ] Adjudicators created with their letters, panels set, PINs printed.
 - [ ] Real result sheets from a past competition typed into a CSV and compared (below), to catch scoring differences before the day.
 
 ## One week before
 
-- [ ] Check the number of paid entries against the list of approved payments.
+- [ ] Check the number of paid entries against the payments the secretariat recorded.
 - [ ] Rehearse against the real online server: `pnpm rehearsal` and `pnpm loadtest`, then the same by hand with real phones on mobile data and real laptops, including airplane mode and a phone that is switched off in the middle of a round.
 - [ ] Check the server's clock, set `ADJUDICATOR_PIN_DAYS`, and check that a backup appears after a change (deploy/README.md, Before a competition).
 - [ ] Back numbers assigned and printed; printed blank mark sheets in the bag in case a phone fails.

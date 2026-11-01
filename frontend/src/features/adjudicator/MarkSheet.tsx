@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button, Dialog, Tabs } from '../../components/ui/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
 import { PlacingBoard } from './PlacingBoard.tsx'
+import { SignaturePad } from './SignaturePad.tsx'
 import { XTable } from './XTable.tsx'
 
 export type Answers = Partial<Record<Dance, string[]>>
@@ -16,8 +17,10 @@ interface MarkSheetProps {
   initial?: Answers
   // Called after every change, so a draft can be kept
   onChange?: (answers: Answers) => void
-  onSubmit: (submissions: MarkSubmission[]) => void
+  onSubmit: (submissions: MarkSubmission[], signature?: string) => void
   busy?: boolean
+  // The adjudicator signs before the marks go: on their own phone, not for a paper sheet typed in by the scrutineer
+  sign?: boolean
   // For the confirmation: the adjudicator's own marks, or ones typed in from a paper sheet
   confirm?: { title: string; description: string; action: string }
 }
@@ -30,10 +33,11 @@ const OWN_MARKS = {
 
 // The marking screen: X marks for early rounds, placings for a final. Used on the adjudicator's phone and,
 // for a paper sheet, on the scrutineer's laptop.
-export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false, confirm = OWN_MARKS }: MarkSheetProps) {
+export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS }: MarkSheetProps) {
   const [answers, setAnswers] = useState<Answers>(initial)
   const [dance, setDance] = useState<Dance>(task.dances[0])
   const [confirming, setConfirming] = useState(false)
+  const [signature, setSignature] = useState<string | null>(null)
 
   const isFinal = task.recallNumber === null
   const total = marksNeeded(task)
@@ -134,25 +138,33 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
 
       <Dialog
         open={confirming}
-        onClose={() => setConfirming(false)}
+        onClose={() => {
+          setConfirming(false)
+          setSignature(null)
+        }}
         title={confirm.title}
         description={confirm.description}
         actions={
           <>
-            <Button variant="ghost" size="xl" className="text-xl" onClick={() => setConfirming(false)}>
+            <Button
+              variant="ghost"
+              size="xl"
+              className="text-xl"
+              onClick={() => {
+                setConfirming(false)
+                setSignature(null)
+              }}
+            >
               Back
             </Button>
             <Button
               size="xl"
               className="text-xl"
-              disabled={busy}
+              disabled={busy || (sign && !signature)}
               onClick={() => {
-                onSubmit(
-                  task.dances.map((d) => ({
-                    dance: d,
-                    competitorIds: answers[d] ?? [],
-                  })),
-                )
+                const marks = task.dances.map((d) => ({ dance: d, competitorIds: answers[d] ?? [] }))
+                if (sign && signature) onSubmit(marks, signature)
+                else onSubmit(marks)
                 setConfirming(false)
               }}
             >
@@ -176,6 +188,11 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
             </div>
           ))}
         </dl>
+        {sign && (
+          <div className="mt-5">
+            <SignaturePad key={String(confirming)} onChange={setSignature} />
+          </div>
+        )}
       </Dialog>
     </div>
   )

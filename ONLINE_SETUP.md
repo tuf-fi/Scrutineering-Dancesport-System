@@ -1,6 +1,6 @@
 # Putting BIS Online: What You Need and What It Costs
 
-BIS is an online system. One **online server** lets clubs register and pay before the event, runs the rounds on the day (staff on laptops, adjudicators on phones, all with internet) and shows public results. This paper is about that server.
+BIS is an online system. One **online server** keeps the secretariat's entries and the athletes' accounts before the event, runs the rounds on the day (staff on laptops, adjudicators on phones, all with internet) and shows public results. This paper is about that server.
 
 The accounts below need a bank card. The organizer types their own card details and passwords, and I never keep them.
 
@@ -10,7 +10,7 @@ DigitalOcean and the domain seller charge in US dollars, so the peso amount depe
 
 | Item | What it is for | Per month | Per year |
 | --- | --- | --- | --- |
-| Online server, 2 GB size, 1 CPU, 50 GB disk (DigitalOcean, listed at 12 US dollars a month) | Space you rent on DigitalOcean's internet servers to keep the website running 24 hours a day. Clubs register and pay on it, the competition is run on it, and the public sees results on it. | ₱744 | ₱8,928 |
+| Online server, 2 GB size, 1 CPU, 50 GB disk (DigitalOcean, listed at 12 US dollars a month) | Space you rent on DigitalOcean's internet servers to keep the website running 24 hours a day. The secretariat enters teams on it, athletes keep their accounts on it, the competition is run on it, and the public sees results on it. | ₱744 | ₱8,928 |
 | Domain name (.com, GoDaddy) | The website address, for example `bis-bicol.com`, so clubs can find the site. | n/a | ₱1,099 (regular price) |
 | Backup storage (Backblaze B2) | A safe copy of the data kept away from the server, in case the server is lost. | ₱0 while the database is small | ₱0 |
 | Sentry, error tracking (free plan) | Reports errors as they happen, so I can fix a problem before clubs complain. | ₱0 | ₱0 |

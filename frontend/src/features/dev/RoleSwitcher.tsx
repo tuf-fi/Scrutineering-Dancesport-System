@@ -15,10 +15,6 @@ async function sessionFor(role: Role): Promise<SessionUser | null> {
     const a = (await api.getAdjudicators())[0]
     return { id: a.id, name: a.name, role, letter: a.letter }
   }
-  if (role === Role.Club) {
-    const c = (await api.getClubs())[0]
-    return { id: c.id, name: c.name, role }
-  }
   const staff = (await api.getStaffUsers()).find((s) => s.role === role)
   return staff ? { id: staff.id, name: staff.name, role } : null
 }

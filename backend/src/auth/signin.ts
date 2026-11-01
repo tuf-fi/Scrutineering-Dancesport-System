@@ -1,9 +1,8 @@
-import { competitionIsNear, Role, type AccountKind, type ClubSignUp, type SessionUser } from '@bis/shared'
+import { competitionIsNear, Role, type AccountKind, type SessionUser } from '@bis/shared'
 import { and, eq, sql } from 'drizzle-orm'
 import { fail, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
-import { newId, now } from '../ids.ts'
 import { currentCompetition } from '../services/shared.ts'
 import { hashPassword, verifyPassword } from './password.ts'
 import { hashRecovery, verifyCode } from './totp.ts'
@@ -51,13 +50,6 @@ export function staffSession(ctx: Ctx, username: string, password: string, code?
   return { id: row.id, name: row.name, role: row.role }
 }
 
-export function clubSession(ctx: Ctx, email: string, password: string): SessionUser {
-  const row = ctx.db.select().from(t.clubs).where(eq(t.clubs.contactEmail, email.trim().toLowerCase())).get()
-  const ok = verifyPassword(password, row?.passwordHash ?? DUMMY_HASH)
-  if (!row || !ok) return fail('Wrong email or password.', 401)
-  return { id: row.id, name: row.name, role: Role.Club }
-}
-
 // A PIN is valid for the competition happening now, and only around its date: a PIN found after the event is no use
 export function adjudicatorSession(ctx: Ctx, pin: string): SessionUser {
   const found = currentCompetition(ctx)
@@ -75,22 +67,29 @@ export function adjudicatorSession(ctx: Ctx, pin: string): SessionUser {
   return { id: adjudicator.id, name: adjudicator.name, role: Role.Adjudicator, letter: adjudicator.letter }
 }
 
-export const accountKind = (role: Role): AccountKind => (STAFF_ROLES.includes(role) ? 'staff' : role === Role.Adjudicator ? 'adjudicator' : 'club')
+export function athleteSession(ctx: Ctx, email: string, password: string): SessionUser {
+  const row = ctx.db.select().from(t.athletes).where(eq(t.athletes.email, email.trim().toLowerCase())).get()
+  const ok = verifyPassword(password, row?.passwordHash ?? DUMMY_HASH)
+  if (!row || !ok) return fail('Wrong email or password.', 401)
+  return { id: row.id, name: row.name, role: Role.Athlete }
+}
+
+export const accountKind = (role: Role): AccountKind => (STAFF_ROLES.includes(role) ? 'staff' : role === Role.Athlete ? 'athlete' : 'adjudicator')
 
 // Raises an account's session version, which signs that person out everywhere: tokens carry the version they were made at
 export function bumpSessionVersion(ctx: Ctx, kind: AccountKind, id: string) {
   if (kind === 'staff') ctx.db.update(t.staffUsers).set({ sessionVersion: sql`${t.staffUsers.sessionVersion} + 1` }).where(eq(t.staffUsers.id, id)).run()
-  else if (kind === 'adjudicator') ctx.db.update(t.adjudicators).set({ sessionVersion: sql`${t.adjudicators.sessionVersion} + 1` }).where(eq(t.adjudicators.id, id)).run()
-  else ctx.db.update(t.clubs).set({ sessionVersion: sql`${t.clubs.sessionVersion} + 1` }).where(eq(t.clubs.id, id)).run()
+  else if (kind === 'athlete') ctx.db.update(t.athletes).set({ sessionVersion: sql`${t.athletes.sessionVersion} + 1` }).where(eq(t.athletes.id, id)).run()
+  else ctx.db.update(t.adjudicators).set({ sessionVersion: sql`${t.adjudicators.sessionVersion} + 1` }).where(eq(t.adjudicators.id, id)).run()
 }
 
 function sessionVersionOf(ctx: Ctx, kind: AccountKind, id: string): number {
   const row =
     kind === 'staff'
       ? ctx.db.select({ v: t.staffUsers.sessionVersion }).from(t.staffUsers).where(eq(t.staffUsers.id, id)).get()
-      : kind === 'adjudicator'
-        ? ctx.db.select({ v: t.adjudicators.sessionVersion }).from(t.adjudicators).where(eq(t.adjudicators.id, id)).get()
-        : ctx.db.select({ v: t.clubs.sessionVersion }).from(t.clubs).where(eq(t.clubs.id, id)).get()
+      : kind === 'athlete'
+        ? ctx.db.select({ v: t.athletes.sessionVersion }).from(t.athletes).where(eq(t.athletes.id, id)).get()
+        : ctx.db.select({ v: t.adjudicators.sessionVersion }).from(t.adjudicators).where(eq(t.adjudicators.id, id)).get()
   return row?.v ?? 0
 }
 
@@ -100,32 +99,6 @@ export function startVersion(ctx: Ctx, user: SessionUser): number {
   const kind = accountKind(user.role)
   if (kind === 'adjudicator') bumpSessionVersion(ctx, kind, user.id)
   return sessionVersionOf(ctx, kind, user.id)
-}
-
-export function signUpClub(ctx: Ctx, input: ClubSignUp): SessionUser {
-  const name = String(input?.name ?? '').trim()
-  const contactName = String(input?.contactName ?? '').trim()
-  const email = String(input?.contactEmail ?? '').trim().toLowerCase()
-  const password = String(input?.password ?? '')
-  if (!name || !contactName) return fail('Enter the club name and a contact person.')
-  if (!/^\S+@\S+\.\S+$/.test(email)) return fail('Enter a valid email address.')
-  if (password.length < 8) return fail('Use a password of at least 8 characters.')
-  if (input?.agreed !== true) return fail('Agree to the privacy notice to sign up.')
-  const clubs = ctx.db.select().from(t.clubs).all()
-  if (clubs.some((c) => c.contactEmail === email)) return fail('A club with this email already exists. Sign in instead.', 409)
-  if (clubs.some((c) => c.name.toLowerCase() === name.toLowerCase())) return fail('A club with this name already exists.', 409)
-  const row = {
-    id: newId(),
-    name,
-    contactName,
-    contactEmail: email,
-    contactPhone: String(input?.contactPhone ?? '').trim(),
-    passwordHash: hashPassword(password),
-    consentAt: now(),
-  }
-  ctx.db.insert(t.clubs).values(row).run()
-  record(ctx.db, row.id, 'Club signed up', name)
-  return { id: row.id, name, role: Role.Club }
 }
 
 // Who a signed token belongs to right now: an account that was deleted or disabled stops working at once
@@ -139,9 +112,9 @@ export function resolveSession(ctx: Ctx, claims: Pick<SessionUser, 'id' | 'role'
     const row = ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, claims.id)).get()
     return row && row.sessionVersion === version ? { id: row.id, name: row.name, role: Role.Adjudicator, letter: row.letter } : null
   }
-  if (claims.role === Role.Club) {
-    const row = ctx.db.select().from(t.clubs).where(eq(t.clubs.id, claims.id)).get()
-    return row && row.sessionVersion === version ? { id: row.id, name: row.name, role: Role.Club } : null
+  if (claims.role === Role.Athlete) {
+    const row = ctx.db.select().from(t.athletes).where(eq(t.athletes.id, claims.id)).get()
+    return row && row.sessionVersion === version ? { id: row.id, name: row.name, role: Role.Athlete } : null
   }
   return null
 }

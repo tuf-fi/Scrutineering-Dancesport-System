@@ -52,7 +52,7 @@ export function useOutboxFlush(adjudicatorId: string) {
     const mayTry = online || attempt > 0
     if (!mayTry || !pending || pending.adjudicatorId !== adjudicatorId || submit.isPending) return
     submit.mutate(
-      { roundId: pending.roundId, submissions: pending.submissions },
+      { roundId: pending.roundId, submissions: pending.submissions, signature: pending.signature },
       {
         onSuccess: async () => {
           // The server has them. A copy stays on the phone in case the server is later restored from an older backup.

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button, Dialog, ErrorState, IconButton, Input, PageHeader, Skeleton, Table, toast } from '../../components/ui/index.ts'
 import { usePaymentSettings, useSavePaymentSettings } from '../../hooks/index.ts'
 import { PaymentMethodDialog } from './PaymentMethodDialog.tsx'
+import { RegistrationFees } from './RegistrationFees.tsx'
 
 const MAX_METHODS = 8
 const isPesos = (v: string) => /^\d{1,6}$/.test(v.trim())
@@ -27,7 +28,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
   function onSave() {
     setFailure(null)
     save.mutate(
-      { fees: { solo: Number(solo), couple: Number(couple) }, methods: clean(methods) },
+      { fees: { solo: Number(solo), couple: Number(couple) }, methods: clean(methods), schedule: saved.schedule },
       { onSuccess: () => toast.success('Fees saved'), onError: (e) => setFailure(e.message) },
     )
   }
@@ -35,7 +36,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
   // Ways to pay are saved as soon as one is added, edited or removed
   function persistMethods(next: PaymentMethod[], done: string) {
     if (!saved.fees) return toast.error('Save the entry fees first.')
-    save.mutate({ fees: saved.fees, methods: clean(next) }, { onSuccess: () => toast.success(done), onError: (e) => toast.error(e.message) })
+    save.mutate({ fees: saved.fees, methods: clean(next), schedule: saved.schedule }, { onSuccess: () => toast.success(done), onError: (e) => toast.error(e.message) })
   }
 
   function saveMethod(method: PaymentMethod) {
@@ -46,10 +47,12 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
 
   return (
     <div className="flex flex-col gap-10">
+      <RegistrationFees saved={saved} />
+
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-title font-semibold text-neutral-900">Entry fees</h2>
-          <p className="text-small text-neutral-600">Charged to the club for each event entered.</p>
+          <h2 className="text-title font-semibold text-neutral-900">Late entry fees</h2>
+          <p className="text-small text-neutral-600">Charged for each event a late entry is added to at the venue.</p>
         </div>
         <div className="flex flex-wrap items-end gap-4">
           <div className="grid w-full max-w-md grid-cols-2 gap-4">
@@ -145,11 +148,11 @@ export function FeesPage() {
   const settings = usePaymentSettings()
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Fees and payment details" description="What clubs pay per event and where they send it." />
+      <PageHeader title="Fees and payment details" description="What teams pay and where they send it." />
       {settings.isError ? (
         <ErrorState onRetry={() => void settings.refetch()} />
       ) : settings.data ? (
-        <FeesEditor key={JSON.stringify(settings.data.fees)} saved={settings.data} />
+        <FeesEditor key={JSON.stringify([settings.data.fees, settings.data.schedule])} saved={settings.data} />
       ) : (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-11 w-80" />

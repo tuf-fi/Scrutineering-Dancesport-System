@@ -1,3 +1,4 @@
+import type { ClubInput, CoachInput, CompetitorDetails, RegistrationInput } from '@bis/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
@@ -38,7 +39,7 @@ export const useScratchEntry = () =>
   )
 
 export const useCreateCompetitor = () =>
-  useWrite((v: { names: string[]; clubId: string }) => api.createCompetitor(actor(), v), ['competitor-rows'])
+  useWrite((v: { names: string[]; clubId: string; details?: CompetitorDetails }) => api.createCompetitor(actor(), v), ['competitor-rows'])
 
 export const useSetBackNumber = () =>
   useWrite(
@@ -71,7 +72,8 @@ export const useMoveScheduledEvent = () =>
 
 export const useUpdateCompetitor = () =>
   useWrite(
-    (v: { id: string; names: string[]; clubId: string }) => api.updateCompetitor(actor(), v.id, { names: v.names, clubId: v.clubId }),
+    (v: { id: string; names: string[]; clubId: string; details?: CompetitorDetails }) =>
+      api.updateCompetitor(actor(), v.id, { names: v.names, clubId: v.clubId, details: v.details }),
     ['competitor-rows', 'entry-rows', 'late-entries'],
   )
 
@@ -100,3 +102,34 @@ export const useSaveEvent = () =>
 
 export const useDeleteEvent = () =>
   useWrite((id: string) => api.deleteEvent(actor(), id), ['events', 'schedule', 'panels'])
+
+export const useSaveClub = () =>
+  useWrite((v: { input: ClubInput; id?: string }) => api.saveClub(actor(), v.input, v.id), ['clubs', 'competitor-rows'])
+
+export const useDeleteClub = () => useWrite((id: string) => api.deleteClub(actor(), id), ['clubs'])
+
+export const useCoaches = () => useQuery({ queryKey: ['coaches'], queryFn: api.getCoaches })
+
+export const useSaveCoach = () =>
+  useWrite((v: { input: CoachInput; id?: string }) => api.saveCoach(actor(), v.input, v.id), ['coaches'])
+
+export const useDeleteCoach = () => useWrite((id: string) => api.deleteCoach(actor(), id), ['coaches'])
+
+// The price of the chosen events, worked out by the server
+export const useRegistrationQuote = (competitorId: string, eventIds: string[], coachFees?: { membership: boolean; summit: boolean }) =>
+  useQuery({
+    queryKey: ['registration-quote', competitorId, [...eventIds].sort(), coachFees ?? null],
+    queryFn: () => api.quoteRegistration(competitorId, eventIds, coachFees),
+    // Ticking a coach fee keeps the old lines on screen until the new total arrives
+    placeholderData: (previous) => previous,
+    enabled: competitorId !== '' && eventIds.length > 0,
+  })
+
+export const useRegisterCompetitor = () =>
+  useWrite((v: RegistrationInput) => api.registerCompetitor(actor(), v), [
+    'competitor-rows',
+    'entry-rows',
+    'competition-entries',
+    'payments',
+    'registration-quote',
+  ])

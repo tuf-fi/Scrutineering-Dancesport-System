@@ -26,11 +26,11 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
 
   if (draft === undefined) return <Skeleton className="h-40 w-full" />
 
-  async function send(submissions: MarkSubmission[]) {
+  async function send(submissions: MarkSubmission[], signature?: string) {
     if (sending.current) return
     sending.current = true
     // Stored on the phone first; the screen that follows sends it, and keeps trying until the server has it
-    await save({ adjudicatorId, roundId, submissions })
+    await save({ adjudicatorId, roundId, submissions, signature })
     navigate('/adjudicator/submitted', { replace: true })
   }
 
@@ -39,7 +39,8 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
       task={task}
       initial={draft ?? {}}
       onChange={(answers) => void saveDraft({ adjudicatorId, roundId, answers, savedAt: new Date().toISOString() })}
-      onSubmit={(submissions) => void send(submissions)}
+      sign
+      onSubmit={(submissions, signature) => void send(submissions, signature)}
     />
   )
 }

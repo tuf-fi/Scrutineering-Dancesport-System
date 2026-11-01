@@ -17,8 +17,10 @@ export const useAdjudicatorState = (adjudicatorId: string) =>
 export function useSubmitMarks(adjudicatorId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (v: { roundId: string; submissions: MarkSubmission[] }) =>
-      api.submitAdjudicatorMarks(adjudicatorId, v.roundId, v.submissions),
+    mutationFn: (v: { roundId: string; submissions: MarkSubmission[]; signature?: string }) =>
+      v.signature
+        ? api.submitAdjudicatorMarks(adjudicatorId, v.roundId, v.submissions, v.signature)
+        : api.submitAdjudicatorMarks(adjudicatorId, v.roundId, v.submissions),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adjudicator-state', adjudicatorId] }),
   })
 }

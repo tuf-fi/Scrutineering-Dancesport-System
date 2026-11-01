@@ -3,6 +3,8 @@ import type {
   Class,
   Dance,
   Discipline,
+  EventKind,
+  PayMethod,
   PaymentStatus,
   ProgramKind,
   ProgramStatus,
@@ -22,6 +24,9 @@ export interface Competition {
   date: string
   venue: string
   organizer: string
+  // YYYY-MM-DD; after these the secretariat is warned that an entry is late or unpaid
+  entryDeadline?: string | null
+  feeDeadline?: string | null
 }
 
 export interface Event {
@@ -34,6 +39,10 @@ export interface Event {
   discipline: Discipline
   dances: Dance[]
   isSolo: boolean
+  // A missing kind is a standard event
+  kind?: EventKind
+  // The province a closed event is open to
+  province?: string
 }
 
 export interface Club {
@@ -50,6 +59,87 @@ export interface Competitor {
   names: string[]
   backNumber: number | null
   clubId: Id
+  details?: CompetitorDetails
+}
+
+// What the entry form asks for about each dancer
+export interface DancerDetails {
+  // YYYY-MM-DD
+  birthDate: string
+  address: string
+  email: string
+  phone: string
+}
+
+// The rest of the entry form: where the team is from, its coach, and the membership
+export interface CompetitorDetails {
+  province: string
+  coachId: Id | null
+  // One entry per name; a dancer without details has empty fields
+  dancers: DancerDetails[]
+  // A Bicol Grassroots Beginners athlete: no regional or national experience
+  beginner: boolean
+  // The year the athletes' membership was last paid for; it lasts until December
+  memberYear: number | null
+}
+
+export interface Coach {
+  id: Id
+  name: string
+  email: string
+  phone: string
+  // The years the coach's membership and Coaches Summit were last paid for
+  memberYear: number | null
+  summitYear: number | null
+}
+
+export type CoachInput = Omit<Coach, 'id'>
+
+// What the secretariat charges, from the organizer's entry form. A tier has a price for the first entry of a
+// dancer or couple and a lower one for each extra entry.
+export interface FeeTier {
+  first: number
+  additional: number
+}
+
+export interface FeeSchedule {
+  soloJuvenile: FeeTier
+  soloOlder: FeeTier
+  coupleJuvenile: FeeTier
+  coupleOlder: FeeTier
+  // Inter-collegiate and ranking events: one price each, never discounted
+  fixed: number
+  athleteMembership: number
+  coachMembership: number
+  coachesSummit: number
+}
+
+export interface FeeLine {
+  label: string
+  amount: number
+}
+
+export interface RegistrationQuote {
+  lines: FeeLine[]
+  total: number
+  // The coach, when they have not paid this year; the secretariat may add their fees to this payment
+  coach?: { name: string; membershipDue: boolean; summitDue: boolean }
+  // Things the secretariat should look at; they do not stop the entry
+  warnings: string[]
+}
+
+export interface RegistrationInput {
+  competitorId: Id
+  eventIds: Id[]
+  method: PayMethod
+  // A GCash or Maya reference number, or a bank slip number
+  reference?: string
+  // Also collect what the dancer's coach has not paid this year
+  coachFees?: { membership: boolean; summit: boolean }
+}
+
+export interface RegistrationResult extends RegistrationQuote {
+  paymentId: Id
 }
 
 export interface Entry {
@@ -184,8 +274,10 @@ export interface CompetitorHistoryLine {
 }
 
 export interface PointsRow {
-  // 1 to 7 for placings, null for the semi-final row
+  // 1 to 7 for placings, null for a row given to everyone cut in a round
   place: number | null
+  // Which round that row is for; a row without one is the semi-final
+  round?: 'semi_final' | 'quarter_final'
   label: string
   points: number
 }
@@ -321,7 +413,63 @@ export interface TotpSetup {
 }
 
 // Whose sessions an admin can end
-export type AccountKind = 'staff' | 'adjudicator' | 'club'
+export type AccountKind = 'staff' | 'adjudicator' | 'athlete'
+
+// A membership payment the athlete reported, waiting for the secretariat to confirm it
+export interface MembershipRequest {
+  year: number
+  // How it was paid, e.g. GCash
+  method: string
+  reference: string
+  requestedAt: Timestamp
+  // Set when the secretariat could not confirm it; the athlete can send it again
+  rejectedReason?: string
+}
+
+// The signed-in athlete's own page
+export interface AthleteProfile {
+  id: Id
+  email: string
+  name: string
+  // YYYY-MM-DD, or empty until filled in
+  birthDate: string
+  phone: string
+  address: string
+  province: string
+  clubId: Id | null
+  coachId: Id | null
+  // The year the membership was last paid for; it lasts until December
+  memberYear: number | null
+  request: MembershipRequest | null
+}
+
+export type AthleteInput = Pick<AthleteProfile, 'name' | 'birthDate' | 'phone' | 'address' | 'province' | 'clubId' | 'coachId'>
+
+export interface AthletePage {
+  profile: AthleteProfile
+  // The year a membership paid now would cover, its price, and where to pay
+  year: number
+  fee: number
+  methods: PaymentMethod[]
+}
+
+// One athlete in the secretariat's list
+export interface AthleteRow {
+  id: Id
+  name: string
+  email: string
+  phone: string
+  clubName: string
+  coachName: string
+  memberYear: number | null
+  request: MembershipRequest | null
+}
+
+export interface AthleteSignUp {
+  name: string
+  email: string
+  password: string
+}
 
 export interface ImportResult {
   created: number
@@ -356,6 +504,12 @@ export type AdjudicatorState =
 export interface MarkSubmission {
   dance: Dance
   competitorIds: Id[]
+}
+
+// An adjudicator's drawn signature on a round, as a PNG data URL, printed on the scores sheet
+export interface RoundSignature {
+  adjudicatorId: Id
+  signature: string
 }
 
 export interface DemoRound {
@@ -473,29 +627,6 @@ export interface Announcement {
   result: { place: number; backNumber: number | null; names: string[]; clubName: string } | null
 }
 
-// What a club may keep about a dancer: a name and an age group, nothing more (Data Privacy Act)
-export interface ClubDancer {
-  id: Id
-  names: string[]
-  ageGroup: AgeGroup | null
-  // Entries that are not scratched, in the current competition
-  entryCount: number
-}
-
-// An event a dancer could be entered in, from the club's point of view
-export interface EntryOption {
-  eventId: Id
-  eventNumber: number
-  dances: Dance[]
-  ageGroup: AgeGroup
-  class: Class
-  discipline: Discipline
-  fee: number
-  entered: boolean
-  // Already paid or sent for checking, so it can no longer be withdrawn here
-  locked: boolean
-}
-
 export interface PaymentMethod {
   name: string
   accountName: string
@@ -503,15 +634,8 @@ export interface PaymentMethod {
   note?: string
 }
 
-export interface ClubSignUp {
-  name: string
-  contactName: string
-  contactEmail: string
-  contactPhone: string
-  password: string
-  // Agreed to the privacy notice
-  agreed: boolean
-}
+// What the secretariat keeps about a team
+export type ClubInput = Omit<Club, 'id'>
 
 export type CompetitionInput = Omit<Competition, 'id'>
 
@@ -533,19 +657,13 @@ export interface BackupStatus {
 export interface SampleCredentials {
   password: string
   usernames: string[]
-  clubEmail: string
   pins: Array<{ letter: string; pin: string }>
 }
 
-// Whether a club can get payment news on Messenger, and the link that connects it
-export interface MessengerLink {
-  available: boolean
-  linked: boolean
-  url: string | null
-}
-
-// What clubs pay and where to send it, set by the organizer. No fees means registration is closed until they are set.
+// What teams pay and where to send it, set by the organizer. No flat fees means late entries are closed until they are set.
 export interface PaymentSettings {
   fees: { solo: number; couple: number } | null
   methods: PaymentMethod[]
+  // The secretariat's fee schedule; the organizer's 2026 form is used until one is saved
+  schedule?: FeeSchedule
 }

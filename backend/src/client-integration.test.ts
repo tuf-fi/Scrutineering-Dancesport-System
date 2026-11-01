@@ -133,17 +133,14 @@ describe('every role, using the functions the screens call', () => {
     await expect(client.approveRound('x', 'comp-sorsogon-2026:e11:round_2')).rejects.toMatchObject({ status: 403 })
   })
 
-  it('runs a club\'s portal', async () => {
-    // Only staff are given clubs' contact details, so the admin looks one up
-    useDevice('admin')
-    await client.signInStaff('admin', SAMPLE_PASSWORD)
-    const [club] = await client.getClubs()
-    useDevice('club')
-    await client.signInClub(club!.contactEmail, SAMPLE_PASSWORD)
-    const dancers = await client.getClubDancers('ignored-club-id')
-    expect(dancers.length).toBeGreaterThan(0)
-    expect(await client.getPaymentMethods()).toHaveLength(3)
-    await expect(client.saveClubDancer('x', { names: ['  '], ageGroup: 'adult' })).rejects.toMatchObject({ status: 400 })
+  it('runs the secretariat\'s club and registration calls', async () => {
+    useDevice('secretariat')
+    await client.signInStaff('secretariat', SAMPLE_PASSWORD)
+    const club = await client.saveClub('ignored-actor-id', { name: 'Client Test Club', contactName: '', contactEmail: '', contactPhone: '' })
+    expect(club.name).toBe('Client Test Club')
+    await expect(client.saveClub('x', { name: '  ', contactName: '', contactEmail: '', contactPhone: '' })).rejects.toMatchObject({ status: 400 })
+    await client.deleteClub('ignored-actor-id', club.id)
+    expect((await client.getCoaches()).length).toBe(0)
   })
 })
 

@@ -65,8 +65,8 @@ describe('rankings page', () => {
   })
 
   it('opens a category straight from the address and ignores nonsense values', async () => {
-    renderApp('/rankings?discipline=standard&age=juvenile&class=C')
-    expect(await screen.findByRole('heading', { name: 'Juvenile · C · Standard' })).toBeInTheDocument()
+    renderApp('/rankings?discipline=standard&age=juvenile_1&class=C')
+    expect(await screen.findByRole('heading', { name: 'Juvenile 1 · C · Standard' })).toBeInTheDocument()
   })
 
   it('falls back to the defaults for an invalid address', async () => {

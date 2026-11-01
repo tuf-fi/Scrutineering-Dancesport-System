@@ -3,6 +3,8 @@ import type {
   Dance,
   Discipline,
   Event,
+  EventKind,
+  PayMethod,
   PaymentStatus,
   ProgramRow,
   ProgramStatus,
@@ -10,8 +12,27 @@ import type {
   RoundType,
 } from '@bis/shared'
 
+export const EVENT_KIND_LABEL: Record<EventKind, string> = {
+  standard: 'Standard',
+  bgb: 'Beginners (BGB)',
+  ranking: 'Ranking',
+  inter_elementary: 'Inter-elementary',
+  inter_high_school: 'Inter-high school',
+  inter_collegiate: 'Inter-collegiate',
+  closed: 'Closed to a province',
+}
+
+export const PAY_METHOD_LABEL: Record<PayMethod, string> = {
+  unpaid: 'Not paid yet',
+  cash: 'Cash',
+  gcash: 'GCash',
+  maya: 'Maya',
+  bank: 'Bank transfer',
+}
+
 export const AGE_GROUP_LABEL: Record<AgeGroup, string> = {
-  juvenile: 'Juvenile',
+  juvenile_1: 'Juvenile 1',
+  juvenile_2: 'Juvenile 2',
   junior_1: 'Junior I',
   junior_2: 'Junior II',
   youth: 'Youth',
@@ -21,7 +42,8 @@ export const AGE_GROUP_LABEL: Record<AgeGroup, string> = {
 
 // As printed on result sheets, e.g. "JUN 1 - E1"
 export const AGE_GROUP_SHORT: Record<AgeGroup, string> = {
-  juvenile: 'JUV',
+  juvenile_1: 'JUV 1',
+  juvenile_2: 'JUV 2',
   junior_1: 'JUN 1',
   junior_2: 'JUN 2',
   youth: 'YTH',
@@ -69,8 +91,8 @@ export const ROLE_LABEL: Record<Role, string> = {
   scrutineer: 'Scrutineer',
   chairperson: 'Chairperson of Adjudicators',
   adjudicator: 'Adjudicator',
+  athlete: 'Athlete',
   mc: 'MC',
-  club: 'Club',
   public: 'Public',
 }
 

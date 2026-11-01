@@ -4,8 +4,8 @@ export const Role = {
   Scrutineer: 'scrutineer',
   Chairperson: 'chairperson',
   Adjudicator: 'adjudicator',
+  Athlete: 'athlete',
   Mc: 'mc',
-  Club: 'club',
   Public: 'public',
 } as const
 export type Role = (typeof Role)[keyof typeof Role]
@@ -60,7 +60,8 @@ export const SubmissionStatus = {
 export type SubmissionStatus = (typeof SubmissionStatus)[keyof typeof SubmissionStatus]
 
 export const AgeGroup = {
-  Juvenile: 'juvenile',
+  Juvenile1: 'juvenile_1',
+  Juvenile2: 'juvenile_2',
   Junior1: 'junior_1',
   Junior2: 'junior_2',
   Youth: 'youth',
@@ -103,3 +104,26 @@ export const DISCIPLINE_DANCES: Record<Discipline, Dance[]> = {
   latin: [Dance.Samba, Dance.ChaChaCha, Dance.Rumba, Dance.PasoDoble, Dance.Jive],
   standard: [Dance.Waltz, Dance.Tango, Dance.VienneseWaltz, Dance.Foxtrot, Dance.Quickstep],
 }
+
+// What kind of event it is, which sets its fee and who may enter
+export const EventKind = {
+  Standard: 'standard',
+  Beginners: 'bgb',
+  Ranking: 'ranking',
+  InterElementary: 'inter_elementary',
+  InterHighSchool: 'inter_high_school',
+  InterCollegiate: 'inter_collegiate',
+  // Open only to teams from one province
+  Closed: 'closed',
+} as const
+export type EventKind = (typeof EventKind)[keyof typeof EventKind]
+
+// How a team paid the secretariat
+export const PayMethod = {
+  Unpaid: 'unpaid',
+  Cash: 'cash',
+  GCash: 'gcash',
+  Maya: 'maya',
+  Bank: 'bank',
+} as const
+export type PayMethod = (typeof PayMethod)[keyof typeof PayMethod]

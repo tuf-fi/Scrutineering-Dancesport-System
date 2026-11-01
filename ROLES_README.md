@@ -6,14 +6,15 @@
 
 | Role | Who they are | What they do at the competition | What they do in BIS | Device |
 | --- | --- | --- | --- | --- |
-| **Admin** | The organization's system owner | Manages the system between competitions | Creates competitions, staff accounts and adjudicator panels; sets the points table; checks and approves entry payments | Laptop (online) |
+| **Admin** | The organization's system owner | Manages the system between competitions | Creates competitions, staff accounts and adjudicator panels; sets the points table; sees the payment ledger | Laptop (online) |
 | **Secretariat** | Registration and event staff | Handles entries, back numbers, schedule, the program and late changes | Sets up events, enters or imports competitors, assigns back numbers, marks scratches and on-site payments, lays out the program (start time, breaks, order), prints it with the heat and recall lists | Laptop |
 | **Scrutineer** | The person responsible for results (the "Executor" on result sheets) | Runs every round, checks marks, calculates results | Starts rounds and heats, sets recall numbers, watches adjudicators submit in real time, resolves ties, approves and publishes results | Laptop |
 | **Chairperson of Adjudicators** | The senior adjudicator who supervises the panel | Oversees fairness, decides ties at the recall cutoff with the scrutineer, signs results | Views live submissions and the calculation, confirms tie decisions | Laptop |
 | **Adjudicators** | The adjudicators on the panel, usually 7 and up to 10, each with a letter (A, B, C…) | Watch the dancing and mark it | Sign in with a PIN, mark an X for each competitor to recall in early rounds, place finalists 1st to 6th or 7th in the final | Phone, one each |
 | **MC / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop or venue screen |
 | **Competitors** | Couples or solo dancers, each with a back number | Dance in their events | No login; see results, history and rankings on the public website | Their own phone |
-| **Clubs / Coaches** | Dance clubs, studios or teams (the "Country" column on sheets) | Enter their dancers and pay entry fees | Register dancers to events online, upload proof of payment | Phone or laptop (online) |
+| **Athletes** | Dancers who make an account | Keep their details and pay their membership | Fill in their details, report a membership payment (how it was paid and the reference number) for the secretariat to confirm | Phone or laptop (online) |
+| **Clubs / Coaches** | Dance clubs, studios or teams (the "Country" column on sheets) | Are entered by the secretariat from the entry form | No login; the secretariat keeps their records | None |
 | **Public** | Parents, fans, other clubs | Watch | Browse the program (what is on the floor, what is next, and when everything starts, with Print and PDF), results, past competitions and rankings, updated live | Phone |
 
 ## Devices at a typical competition
@@ -34,7 +35,7 @@ BIS is online only: every device needs a browser and an internet connection. The
 | Event number | Each event in the program gets a number | **E47** = Event 47 |
 | Back number | The number pinned to the competitor's back | 60, 107, 179 |
 | Grade | Age group plus class plus dance | JUN 1 - E1 (Cha Cha Cha) |
-| Age group | Category by age | Juvenile, Junior I, Junior II, Youth, Adult, Senior |
+| Age group | Category by age | Juvenile 1, Juvenile 2, Junior I, Junior II, Youth, Adult, Senior |
 | Class | Skill level of the event | E1, D, C, B, A |
 | Discipline | Style of dancing | Latin or Standard |
 | Solo / Couple | Dancing alone or as a pair | "6 Solos (Total: 21 Solos)" |

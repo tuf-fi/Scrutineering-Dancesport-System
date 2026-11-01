@@ -320,7 +320,7 @@ export const scrutiny = {
 
 // Guests see a round's tables once it is published; everyone else who may call this is staff
 function assertCanView<T>(ctx: Ctx, roundId: string, build: () => T): T {
-  if (ctx.user && ctx.user.role !== 'club' && ctx.user.role !== 'adjudicator') return build()
+  if (ctx.user && ctx.user.role !== 'adjudicator') return build()
   const round = getRoundRow(ctx, roundId)
   if (round.status !== RoundStatus.Published) return fail('These results are not published yet.', 403)
   return build()

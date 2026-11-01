@@ -15,7 +15,8 @@ const LAST = [
 ]
 const INITIALS = 'ABCDEFGHJKLMNPRST'
 
-const AGE_GROUPS = Object.values(AgeGroup)
+// The sample has no Juvenile 2 events, so it has no Juvenile 2 dancers either
+const AGE_GROUPS = Object.values(AgeGroup).filter((g) => g !== AgeGroup.Juvenile2)
 // Each dancer belongs to one age group, as in the real sport
 const SOLOS_PER_AGE_GROUP = 40
 const COUPLES_PER_AGE_GROUP = 12

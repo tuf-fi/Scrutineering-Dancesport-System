@@ -83,7 +83,7 @@ export function seedSampleData(db: Db) {
     insertAll(data.competitions, (batch) =>
       tx.insert(t.competitions).values(batch.map((c) => ({ ...c, floorRoundId: c.id === data.currentCompetitionId ? data.liveRoundId : null }))).run(),
     )
-    insertAll(data.clubs, (batch) => tx.insert(t.clubs).values(batch.map((c) => ({ ...c, passwordHash }))).run())
+    insertAll(data.clubs, (batch) => tx.insert(t.clubs).values(batch).run())
     insertAll(data.competitors, (batch) => tx.insert(t.competitors).values(batch).run())
 
     // Events run in event-number order until the secretariat moves them
@@ -221,7 +221,7 @@ export function seedSampleData(db: Db) {
     // Replaces the default table with the sample's
     tx.delete(t.pointsTable).run()
     insertAll(data.pointsTable, (batch) =>
-      tx.insert(t.pointsTable).values(batch.map((p, i) => ({ id: newId(), place: p.place, label: p.label, points: p.points, sortOrder: i }))).run(),
+      tx.insert(t.pointsTable).values(batch.map((p, i) => ({ id: newId(), place: p.place, round: p.round ?? null, label: p.label, points: p.points, sortOrder: i }))).run(),
     )
     const eventOfResult = new Map(data.results.map((r) => [r.id, r.eventId]))
     insertAll(data.rankingPoints, (batch) =>

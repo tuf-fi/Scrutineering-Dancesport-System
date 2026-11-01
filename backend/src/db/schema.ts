@@ -1,4 +1,5 @@
-import { AgeGroup, Class, Dance, Discipline, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
+import { AgeGroup, Class, Dance, Discipline, EventKind, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
+import type { CompetitorDetails, MembershipRequest } from '@bis/shared'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Drizzle wants a non-empty tuple of the allowed strings
@@ -15,24 +16,21 @@ export const competitions = sqliteTable('competitions', {
   date: text('date').notNull(),
   venue: text('venue').notNull(),
   organizer: text('organizer').notNull(),
+  // YYYY-MM-DD; after these an entry is late or unpaid
+  entryDeadline: text('entry_deadline'),
+  feeDeadline: text('fee_deadline'),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
 })
 
+// A team (club) the secretariat enters dancers for; teams have no sign-in
 export const clubs = sqliteTable('clubs', {
   id: id(),
   name: text('name').notNull(),
-  contactName: text('contact_name').notNull(),
-  contactEmail: text('contact_email').notNull(),
-  contactPhone: text('contact_phone').notNull(),
-  // Null for clubs added by staff who have no portal account yet
-  passwordHash: text('password_hash'),
-  // When the club agreed to the privacy notice at sign-up; null for clubs added by staff
-  consentAt: text('consent_at'),
-  // The club's Messenger id for the organizer's Page, once it has linked; payment decisions are sent there
-  messengerId: text('messenger_id'),
-  sessionVersion: integer('session_version').notNull().default(0),
-}, (t) => [uniqueIndex('clubs_email').on(t.contactEmail)])
+  contactName: text('contact_name').notNull().default(''),
+  contactEmail: text('contact_email').notNull().default(''),
+  contactPhone: text('contact_phone').notNull().default(''),
+})
 
 export const events = sqliteTable(
   'events',
@@ -50,6 +48,9 @@ export const events = sqliteTable(
     discipline: text('discipline', { enum: oneOf(Discipline) }).notNull(),
     dances: text('dances', { mode: 'json' }).$type<Dance[]>().notNull(),
     isSolo: integer('is_solo', { mode: 'boolean' }).notNull(),
+    kind: text('kind', { enum: oneOf(EventKind) }).notNull().default('standard'),
+    // The province a closed event is open to
+    province: text('province').notNull().default(''),
   },
   (t) => [uniqueIndex('events_number_per_competition').on(t.competitionId, t.number)],
 )
@@ -63,6 +64,8 @@ export const competitors = sqliteTable(
     // Worked out in the club's form from the dancers' birth years, which are not kept
     ageGroup: text('age_group', { enum: oneOf(AgeGroup) }),
     birthDate: text('birth_date'),
+    // The rest of the entry form: province, coach, each dancer's details, beginner and membership
+    details: text('details', { mode: 'json' }).$type<CompetitorDetails>(),
     // Null until the secretariat assigns one; unique once assigned
     backNumber: integer('back_number'),
     clubId: text('club_id')
@@ -71,6 +74,24 @@ export const competitors = sqliteTable(
   },
   (t) => [uniqueIndex('competitors_back_number').on(t.backNumber), index('competitors_club').on(t.clubId)],
 )
+
+export interface PaymentSettles {
+  year: number
+  competitorId?: string
+  coachId?: string
+  coachMembership?: boolean
+  coachSummit?: boolean
+}
+
+export const coaches = sqliteTable('coaches', {
+  id: id(),
+  name: text('name').notNull(),
+  email: text('email').notNull().default(''),
+  phone: text('phone').notNull().default(''),
+  // The years the coach's membership and Coaches Summit were last paid for
+  memberYear: integer('member_year'),
+  summitYear: integer('summit_year'),
+})
 
 export const payments = sqliteTable('payments', {
   id: id(),
@@ -83,6 +104,10 @@ export const payments = sqliteTable('payments', {
   amountDue: real('amount_due').notNull(),
   amountPaid: real('amount_paid'),
   referenceNumber: text('reference_number'),
+  // How the secretariat was paid, when they recorded it
+  method: text('method', { enum: oneOf(PayMethod) }),
+  // What this payment settles once it is paid: an athlete's or a coach's membership for a year
+  settles: text('settles', { mode: 'json' }).$type<PaymentSettles>(),
   // TODO: phase 6 stores receipts as private files on the cloud server; until then the screenshot is kept here as a data URL
   receipt: text('receipt'),
   status: text('status', { enum: oneOf(PaymentStatus) }).notNull(),
@@ -251,6 +276,8 @@ export const submissions = sqliteTable(
     submittedAt: text('submitted_at').notNull(),
     // Set when the scrutineer typed the marks in from a paper sheet
     enteredBy: text('entered_by'),
+    // The adjudicator's drawn signature as a PNG data URL; none for marks typed in from paper
+    signature: text('signature'),
   },
   (t) => [primaryKey({ columns: [t.roundId, t.adjudicatorId] })],
 )
@@ -331,8 +358,10 @@ export const results = sqliteTable(
 
 export const pointsTable = sqliteTable('points_table', {
   id: id(),
-  // 1 to 7; null is the semi-final row
+  // 1 to 7; null is a row for everyone cut in a round
   place: integer('place'),
+  // The round of such a row: 'semi_final' or 'quarter_final'; null counts as the semi-final
+  round: text('round', { enum: ['semi_final', 'quarter_final'] }),
   label: text('label').notNull(),
   points: real('points').notNull(),
   sortOrder: integer('sort_order').notNull(),
@@ -379,6 +408,25 @@ export const staffUsers = sqliteTable('staff_users', {
   totpLastStep: integer('totp_last_step').notNull().default(0),
   // Hashes of the recovery codes still unused (JSON list); a code is shown once, when two-step is turned on
   totpRecovery: text('totp_recovery', { mode: 'json' }).$type<string[]>().notNull().default([]),
+})
+
+// An athlete's own account: they sign in with their email and keep their details and membership here
+export const athletes = sqliteTable('athletes', {
+  id: id(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  birthDate: text('birth_date').notNull().default(''),
+  phone: text('phone').notNull().default(''),
+  address: text('address').notNull().default(''),
+  province: text('province').notNull().default(''),
+  clubId: text('club_id').references(() => clubs.id, { onDelete: 'set null' }),
+  coachId: text('coach_id').references(() => coaches.id, { onDelete: 'set null' }),
+  // The year the membership was last paid for; set when the secretariat confirms a request
+  memberYear: integer('member_year'),
+  request: text('request', { mode: 'json' }).$type<MembershipRequest>(),
+  // See staff_users: raising it signs the athlete out everywhere
+  sessionVersion: integer('session_version').notNull().default(0),
 })
 
 export const auditLog = sqliteTable(

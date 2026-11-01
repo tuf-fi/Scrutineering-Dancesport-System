@@ -43,6 +43,8 @@ const OTHER = new Set([
   'signInStaff',
   'signInClub',
   'signInAdjudicator',
+  'signInAthlete',
+  'signUpAthlete',
   'signUpNewClub',
   'signOut',
   'getSession',
@@ -85,23 +87,20 @@ describe('arguments', () => {
     await client.saveCompetition('staff-1', input, 'comp-1')
     expect(sent[0]!.body).toEqual({ args: [input, 'comp-1'] })
     sent.length = 0
-    await client.approvePayment('staff-1', 'pay-1')
+    await client.markPaidAtVenue('staff-1', 'pay-1')
     expect(sent[0]!.body).toEqual({ args: ['pay-1'] })
     sent.length = 0
     await client.proposeTieDecision('staff-1', 'round-1', 'more')
     expect(sent[0]!.body).toEqual({ args: ['round-1', 'more'] })
   })
 
-  it("drops an adjudicator's and a club's own id", async () => {
+  it("drops an adjudicator's own id", async () => {
     await client.getAdjudicatorState('adj-a')
     expect(sent[0]!.body).toEqual({ args: [] })
     sent.length = 0
     const marks = [{ dance: 'samba' as const, competitorIds: ['c1'] }]
     await client.submitAdjudicatorMarks('adj-a', 'round-1', marks)
     expect(sent[0]!.body).toEqual({ args: ['round-1', marks] })
-    sent.length = 0
-    await client.registerClubEntries('club-1', 'dancer-1', ['e1'])
-    expect(sent[0]!.body).toEqual({ args: ['dancer-1', ['e1']] })
   })
 
   it('sends reads as they are', async () => {
@@ -186,17 +185,21 @@ describe('the session', () => {
     answerNext(() => reply(200, { data: { id: 'u', name: 'Admin', role: 'admin' } }))
     expect(await client.signInStaff('admin', 'pw')).toMatchObject({ role: 'admin' })
     await client.signInAdjudicator('410000')
-    await client.signInClub('a@b.c', 'pw')
-    await client.signUpNewClub({ name: 'n', contactName: 'c', contactEmail: 'e@e.e', contactPhone: '1', password: 'longenough', agreed: true })
     await client.signOut()
     expect(sent.map((s) => s.url)).toEqual([
       '/api/auth/staff',
       '/api/auth/adjudicator',
-      '/api/auth/club',
-      '/api/auth/club-signup',
       '/api/auth/sign-out',
     ])
     expect(sent[0]!.body).toEqual({ username: 'admin', password: 'pw' })
+  })
+
+  it('signs an athlete up and in with their email', async () => {
+    answerNext(() => reply(200, { data: { id: 'a', name: 'Ana', role: 'athlete' } }))
+    await client.signUpAthlete('Ana', 'ana@test.example', 'a-long-password')
+    await client.signInAthlete('ana@test.example', 'a-long-password')
+    expect(sent.map((s) => s.url)).toEqual(['/api/auth/athlete/sign-up', '/api/auth/athlete'])
+    expect(sent[0]!.body).toEqual({ name: 'Ana', email: 'ana@test.example', password: 'a-long-password' })
   })
 
   it('asks the server who the cookie belongs to', async () => {

@@ -58,6 +58,20 @@ describe('ranking points', () => {
     expect(points['c13']).toBe(0)
   })
 
+  it('gives the quarter-final row only to those cut in the quarter-final', () => {
+    const withQuarter: PointsRow[] = [...table, { place: null, round: 'quarter_final', label: 'Quarter-final', points: 0.5 }]
+    const ids = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => `c${from + i}`)
+    const eliminated = placeEliminated([
+      { roundType: 'round_1', competitorIds: ids(1, 24), recalledIds: ids(1, 18) },
+      { roundType: 'quarter_final', competitorIds: ids(1, 18), recalledIds: ids(1, 12) },
+      { roundType: 'semi_final', competitorIds: ids(1, 12), recalledIds: ids(1, 6) },
+    ])
+    const points = pointsOf(rankingPoints(withQuarter, [], eliminated))
+    expect(points['c7']).toBe(1)
+    expect(points['c13']).toBe(0.5)
+    expect(points['c19']).toBe(0)
+  })
+
   it('follows an edited table', () => {
     const edited = table.map((r) => (r.place === 1 ? { ...r, points: 25 } : r))
     expect(pointsOf(rankingPoints(edited, [{ competitorId: 'a', place: 1, announcedPlace: 1 }]))).toEqual({ a: 25 })

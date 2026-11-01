@@ -44,7 +44,7 @@ flowchart LR
   C --- B
 ```
 
-- **Before the competition:** clubs register dancers and upload proof of payment; the admin approves payments; the secretariat assigns back numbers and builds the schedule and program.
+- **Before the competition:** teams send the entry form; the secretariat enters it, works out the fee and records the payment; athletes can make an account and report their membership payment for the secretariat to confirm; the secretariat assigns back numbers and builds the schedule and program.
 - **At the competition:** adjudicators' marks reach the scrutineer in real time, and every screen updates instantly. If a phone loses its connection, it keeps its marks and resends them automatically; the scrutineer's board shows which phones hold marks.
 - **Rankings update in real time:** when the scrutineer approves a result, the server adds the ranking points immediately and every connected device sees the new rankings.
 - **Public pages** show only published results, rankings and the program.
@@ -80,7 +80,7 @@ Build every screen first, using fake data, so the client can click through and a
 6. **MC / venue screen:** recalls, finalists, results from last place up.
 7. **Printouts:** "Qualified for the next round" lists (like the E47 sheet), scores sheets with every adjudicator's marks, final results.
 8. **Public site:** latest results, past competitions, couple/solo profiles, rankings per category.
-9. **Club portal:** register dancers to events, see the fee, upload proof of payment, see payment status.
+9. **Registration:** the secretariat enters each team from the paper entry form (clubs, coaches, dancers' details, events, fees, payment). Athletes can make their own account for their details and membership; clubs and coaches have no login.
 
 ### Phase 2: Scoring engine (shared package)
 
@@ -119,34 +119,28 @@ See the payment flow below.
 2. Load test with 10 phones marking at once.
 3. Pilot at a real competition with the current method running alongside.
 
-## Payment system (checked manually by the admin)
+## Payment system (recorded by the secretariat)
 
-Clubs pay entry fees outside BIS (GCash, Maya, bank transfer, or cash at the venue), and the admin confirms each payment by hand. BIS never handles card details or money directly.
+Teams pay entry fees outside BIS (GCash, Maya, bank transfer, or cash), after the secretariat sends the summary of what is owed. The secretariat records each payment. BIS never handles card details or money directly.
 
 ```mermaid
 flowchart LR
-  A["Club registers dancers<br/>to events"] --> B["BIS shows the total fee<br/>and payment details"]
-  B --> C["Club pays by GCash,<br/>Maya or bank"]
-  C --> D["Club uploads screenshot<br/>+ reference number"]
-  D --> E{"Admin checks the<br/>GCash or bank account"}
-  E -- "Matches" --> F["Approved:<br/>entries confirmed"]
-  E -- "Wrong amount or<br/>no record" --> G["Rejected with a reason:<br/>club resubmits"]
-  F --> H["Entries appear on the<br/>secretariat's list"]
+  A["Team emails the<br/>entry form"] --> B["Secretariat enters it;<br/>BIS shows the total fee"]
+  B --> C["Team pays by GCash,<br/>Maya, bank or cash"]
+  C --> D["Secretariat records the<br/>payment and how it was paid"]
+  D --> E["Entries can dance"]
 ```
 
 | Payment status | Meaning | Who sets it |
 | --- | --- | --- |
-| Unpaid | Registered, no proof uploaded yet | BIS |
-| For checking | Proof uploaded, waiting for the admin | BIS |
-| Approved | Admin confirmed the money arrived | Admin |
-| Rejected | Proof didn't match; reason shown to the club | Admin |
-| Paid at venue | Paid in cash on the day | Secretariat |
+| Unpaid | Entered, money not received yet | Secretariat |
+| Approved | Recorded as paid by GCash, Maya or bank | Secretariat |
+| Paid at venue | Paid in cash | Secretariat |
 
-What the admin sees for each payment: club name, dancers and events, amount due, amount and reference number entered by the club, the uploaded screenshot, and Approve / Reject buttons with a reason field. Every decision is logged with the admin's name and time.
+An athlete's own membership is separate: the athlete reports how they paid and the reference number on their page, and the secretariat confirms or turns it down. Every payment and confirmation is logged with the person's name and time.
 
 Rules:
-- Only approved or paid-at-venue entries can dance, unless the admin allows an exception.
-- Receipts are stored privately on the server and are visible only to the admins and the club that sent them.
+- Only approved or paid-at-venue entries can dance: a round will not start with an unpaid entry in its event.
 - Many dancers are minors, so registration collects only what is needed and follows the Data Privacy Act of 2012.
 
 On the day, the secretariat can still add late entries and mark cash payments at the venue.
@@ -157,10 +151,12 @@ On the day, the secretariat can still add late entries and mark cash payments at
 | --- | --- |
 | competitions | Name, date, venue, organizer |
 | events | Event number (E47), age group, class, discipline, dances, solo or couple |
-| competitors | Names, back number, club |
+| competitors | Names, back number, club, entry form details (province, coach, dates of birth, contact, membership year) |
 | entries | Which competitor is in which event, scratch status |
-| clubs | Club or team details and contact |
-| payments | Club, amount, reference number, receipt file, status, checked by, checked at |
+| clubs | Club or team details and contact (no login) |
+| coaches | Coach, contact, the years their membership and Coaches Summit were paid |
+| athletes | An athlete's account: email, password, details, membership year and any payment waiting for the secretariat |
+| payments | Club, amount, reference number, how it was paid, status, recorded by, recorded at |
 | adjudicators | Name, letter, PIN per competition |
 | panels | Which adjudicators adjudicate which event |
 | rounds | Event, round type, recall number, status |

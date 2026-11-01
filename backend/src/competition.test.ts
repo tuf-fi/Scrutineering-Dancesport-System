@@ -15,7 +15,6 @@ let admin: string
 let secretariat: string
 let scrutineer: string
 let chairperson: string
-let club: string
 let competitionId = ''
 let eventId = ''
 let adjudicatorIds: string[] = []
@@ -27,7 +26,7 @@ let finalId = ''
 let byNumber: string[] = []
 let backupRuns: ReturnType<typeof vi.spyOn>
 
-const solo = { number: 1, ageGroup: 'juvenile', class: 'E1', discipline: 'latin', dances: ['samba'], isSolo: true }
+const solo = { number: 1, ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin', dances: ['samba'], isSolo: true }
 
 beforeAll(async () => {
   app = await startTestApp({ seed: false })
@@ -68,45 +67,32 @@ describe('before the competition', () => {
     expect(panel.adjudicatorIds).toHaveLength(5)
   })
 
-  it('a club signs up, registers nine dancers and sends its payment', async () => {
-    const signup = await app.app.inject({
-      method: 'POST',
-      url: '/api/auth/club-signup',
-      payload: { name: 'Test Club', contactName: 'Coach', contactEmail: 'coach@test.example', contactPhone: '1', password: 'long-password-1', agreed: true },
-    })
-    expect(signup.statusCode).toBe(200)
-    club = await app.signIn.club('coach@test.example', 'long-password-1')
+  it('the secretariat adds a club and ten dancers, and enters nine with their payments', async () => {
+    const team = await app.ok<{ id: string }>('saveClub', [{ name: 'Test Club', contactName: 'Coach', contactEmail: '', contactPhone: '' }], secretariat)
+    // Two clubs of the same name are refused
+    expect((await app.call('saveClub', [{ name: 'test club', contactName: '', contactEmail: '', contactPhone: '' }], secretariat)).status).toBe(409)
+    const memberYear = Number(today.slice(0, 4))
     for (let i = 1; i <= 10; i++) {
-      const dancer = await app.ok<{ id: string }>('saveClubDancer', [{ names: [`Dancer ${i}`], ageGroup: 'juvenile' }], club)
+      const dancer = await app.ok<{ id: string }>(
+        'createCompetitor',
+        [{ names: [`Dancer ${i}`], clubId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear } }],
+        secretariat,
+      )
       dancerIds.push(dancer.id)
     }
-    // Nine register online; the tenth is a late entry at the venue
+    // Nine are entered with the secretariat; the tenth is a late entry at the venue
     for (const id of dancerIds.slice(0, 9)) {
-      const options = await app.ok<Array<{ eventId: string; fee: number }>>('getEntryOptions', [id], club)
-      expect(options).toHaveLength(1)
-      expect(options[0]).toMatchObject({ eventId, fee: 500 })
-      await app.ok('registerClubEntries', [id, [eventId]], club)
+      const result = await app.ok<{ total: number }>('registerCompetitor', [{ competitorId: id, eventIds: [eventId], method: 'gcash', reference: 'GC1234' }], secretariat)
+      expect(result.total).toBe(400)
     }
-    const [payment] = await app.ok<Array<{ amountDue: number; status: string }>>('getClubPayments', [], club)
-    expect(payment).toMatchObject({ amountDue: 4500, status: 'unpaid' })
-
-    // Needs a screenshot and a reference number
-    expect((await app.call('submitClubPayment', [{ amountPaid: 4500, referenceNumber: '', receiptUrl: 'data:image/png;base64,AAAA' }], club)).status).toBe(400)
-    expect((await app.call('submitClubPayment', [{ amountPaid: 4500, referenceNumber: 'GC1', receiptUrl: 'not an image' }], club)).status).toBe(400)
-    await app.ok('submitClubPayment', [{ amountPaid: 4500, referenceNumber: 'GC1234', receiptUrl: 'data:image/png;base64,AAAA' }], club)
-    // Once sent, the club cannot change its entries
-    expect((await app.call('registerClubEntries', [dancerIds[9], [eventId]], club)).status).toBe(409)
+    expect(app.sqlite.prepare("select count(*) as n, sum(amount_paid) as paid from payments where status = 'approved'").get()).toEqual({ n: 9, paid: 3600 })
   })
 
-  it('admin checks the payment, then the secretariat assigns back numbers and adds the late entry', async () => {
-    const details = await app.ok<Array<{ id: string; status: string; clubName: string; lines: unknown[] }>>('getPaymentDetails', [], admin)
-    expect(details).toHaveLength(1)
-    expect(details[0]).toMatchObject({ status: 'for_checking', clubName: 'Test Club' })
-    expect(details[0]!.lines).toHaveLength(9)
-    expect((await app.call('rejectPayment', [details[0]!.id, '  '], admin)).status).toBe(400)
-    await app.ok('approvePayment', [details[0]!.id], admin)
-    // A payment can only be decided once
-    expect((await app.call('approvePayment', [details[0]!.id], admin)).status).toBe(409)
+  it('the secretariat assigns back numbers and adds the late entry', async () => {
+    const details = await app.ok<Array<{ status: string; clubName: string; lines: unknown[] }>>('getPaymentDetails', [], admin)
+    expect(details).toHaveLength(9)
+    expect(details[0]).toMatchObject({ status: 'approved', clubName: 'Test Club' })
+    expect(details[0]!.lines).toHaveLength(1)
 
     const late = await app.ok<{ entryId: string; fee: number; late: boolean }>('createLateEntry', [{ competitorId: dancerIds[9], eventId, paidInCash: true }], secretariat)
     expect(late).toMatchObject({ fee: 500, late: true })
@@ -159,7 +145,9 @@ describe('the semi-final', () => {
     expect((await app.call('submitAdjudicatorMarks', [semiId, x(c[0]!, c[1]!, c[2]!, c[3]!, c[4]!, 'nobody')], phones[0])).error).toMatch(/only those/)
     expect((await app.call('submitAdjudicatorMarks', [semiId, []], phones[0])).error).toMatch(/every dance/)
     // Marks cannot be placed from the wrong account
-    expect((await app.call('submitAdjudicatorMarks', [semiId, x(...byNumber.slice(0, 6))], club)).status).toBe(403)
+    expect((await app.call('submitAdjudicatorMarks', [semiId, x(...byNumber.slice(0, 6))], secretariat)).status).toBe(403)
+    // A signature has to be a PNG
+    expect((await app.call('submitAdjudicatorMarks', [semiId, x(...byNumber.slice(0, 6)), 'not a picture'], phones[0])).error).toMatch(/signature/)
   })
 
   it('collects every adjudicator\'s marks, storing a resent submission once', async () => {
@@ -172,8 +160,12 @@ describe('the semi-final', () => {
       [c[0], c[1], c[2], c[3], c[4], c[5]],
       [c[0], c[1], c[2], c[6], c[7], c[8]],
     ] as string[][]
-    const first = await Promise.all(sets.slice(0, 3).map((ids, i) => app.call('submitAdjudicatorMarks', [semiId, x(...ids)], phones[i])))
+    const signature = 'data:image/png;base64,iVBORw0KGgo='
+    const first = await Promise.all(sets.slice(0, 3).map((ids, i) => app.call('submitAdjudicatorMarks', [semiId, x(...ids), i === 0 ? signature : undefined], phones[i])))
     expect(first.map((r) => r.status)).toEqual([200, 200, 200])
+    // Only the signed submission has a signature to print
+    const signed = await app.ok<Array<{ signature: string }>>('getSignatures', [semiId], scrutineer)
+    expect(signed.map((r) => r.signature)).toEqual([signature])
 
     // The same marks again (a Wi-Fi drop and a resend) change nothing; different marks are refused
     expect((await app.call('submitAdjudicatorMarks', [semiId, x(...sets[0]!)], phones[0])).status).toBe(200)
@@ -275,10 +267,10 @@ describe('the final', () => {
     // Dancers 5 to 10 were cut in the semi-final and share 5th to 10th
     for (const id of byNumber.slice(4)) expect(place[id]).toEqual([5, 5, 10])
 
-    const points = await app.ok<Array<{ competitorId: string; points: number }>>('getRankingPoints', [{ ageGroup: 'juvenile', class: 'E1', discipline: 'latin' }], scrutineer)
+    const points = await app.ok<Array<{ competitorId: string; points: number }>>('getRankingPoints', [{ ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin' }], scrutineer)
     const earned = Object.fromEntries(points.map((p) => [p.competitorId, p.points]))
-    expect([earned[byNumber[0]!], earned[byNumber[1]!], earned[byNumber[2]!], earned[byNumber[3]!]]).toEqual([10, 8, 6, 5])
-    expect(byNumber.slice(4).every((id) => earned[id] === 1)).toBe(true)
+    expect([earned[byNumber[0]!], earned[byNumber[1]!], earned[byNumber[2]!], earned[byNumber[3]!]]).toEqual([200, 180, 160, 140])
+    expect(byNumber.slice(4).every((id) => earned[id] === 70)).toBe(true)
   })
 
   it('shows guests nothing until it is published, then the results and an MC list', async () => {
@@ -294,7 +286,7 @@ describe('the final', () => {
     expect(app.hub.sent.some((m) => m.event === 'rankings')).toBe(true)
 
     const history = await app.ok<Array<{ place: number; points: number }>>('getCompetitorHistory', [byNumber[0]!])
-    expect(history).toEqual([expect.objectContaining({ place: 1, points: 10 })])
+    expect(history).toEqual([expect.objectContaining({ place: 1, points: 200 })])
 
     // The MC reads the recall, then the finalists, then results from last place up
     const list = await app.ok<Announcement[]>('getAnnouncements', [], scrutineer)
@@ -310,7 +302,7 @@ describe('the final', () => {
     expect(by('Approved round')).toEqual(['staff-scr', 'staff-scr'])
     expect(by('Proposed tie decision')).toEqual(['staff-scr'])
     expect(by('Confirmed tie decision')).toEqual(['staff-chair'])
-    expect(by('Approved payment')).toEqual(['staff-admin'])
+    expect(by('Registered entries')).toHaveLength(9)
     expect(by('Entered marks from paper')).toEqual(['staff-scr'])
     expect(log.filter((l) => l.action === 'Submitted marks')).toHaveLength(9)
   })

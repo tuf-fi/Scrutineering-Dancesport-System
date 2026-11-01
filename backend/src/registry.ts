@@ -1,14 +1,15 @@
 import { Role } from '@bis/shared'
 import { fail, type Ctx } from './core/context.ts'
 import { admin } from './services/admin.ts'
-import { club } from './services/club.ts'
 import { program } from './services/program.ts'
 import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
 import { scrutiny } from './services/scrutiny.ts'
+import { registration } from './services/registration.ts'
 import { secretariat } from './services/secretariat.ts'
 import { security } from './services/security.ts'
 import { accountFunctions } from './services/accounts.ts'
+import { athletes } from './services/athletes.ts'
 import { isStaff, toClub } from './services/shared.ts'
 import * as t from './db/schema.ts'
 import { asc } from 'drizzle-orm'
@@ -39,12 +40,13 @@ const handlers: Record<string, Handler> = {
   ...reads,
   ...admin,
   ...secretariat,
+  ...registration,
   ...program,
   ...security,
   ...rounds,
   ...scrutiny,
-  ...club,
   ...accountFunctions,
+  ...athletes,
   getClubs,
   getBackupStatus,
 } as unknown as Record<string, Handler>
@@ -85,6 +87,7 @@ const access: Record<string, Access> = {
   getLateEntries: STAFF,
   getSchedule: STAFF,
   getAnnouncements: STAFF,
+  getSignatures: STAFF,
   getSubmissions: STAFF,
   getHeatAssignments: STAFF,
   getMarks: SCORING,
@@ -112,8 +115,6 @@ const access: Record<string, Access> = {
   generatePins: ADMIN,
   setPanel: ADMIN,
   savePointsTable: ADMIN,
-  approvePayment: ADMIN,
-  rejectPayment: ADMIN,
   getBackupStatus: [Role.Admin, Role.Scrutineer],
 
   // Secretariat (the admin can do all of it too)
@@ -139,6 +140,13 @@ const access: Record<string, Access> = {
   deleteLateEntry: ADMIN_OR_SECRETARIAT,
   updateLateEntry: ADMIN_OR_SECRETARIAT,
   saveEvent: ADMIN_OR_SECRETARIAT,
+  getCoaches: [...STAFF, Role.Athlete],
+  saveClub: ADMIN_OR_SECRETARIAT,
+  deleteClub: ADMIN_OR_SECRETARIAT,
+  saveCoach: ADMIN_OR_SECRETARIAT,
+  deleteCoach: ADMIN_OR_SECRETARIAT,
+  quoteRegistration: ADMIN_OR_SECRETARIAT,
+  registerCompetitor: ADMIN_OR_SECRETARIAT,
   deleteEvent: ADMIN_OR_SECRETARIAT,
 
   // Scrutineer and chairperson
@@ -161,22 +169,16 @@ const access: Record<string, Access> = {
   // Fees, payment details and club accounts
   getPaymentSettings: [Role.Admin, Role.Secretariat],
   savePaymentSettings: ADMIN,
-  changeClubPassword: [Role.Club],
-  resetClubPassword: ADMIN,
-  eraseClubAccount: ADMIN,
-  clearOldReceipts: ADMIN,
-  getMessengerLink: [Role.Club],
-  unlinkMessenger: [Role.Club],
 
-  // Clubs, each only for their own club
-  getClubDancers: [Role.Club],
-  saveClubDancer: [Role.Club],
-  deleteClubDancer: [Role.Club],
-  getEntryOptions: [Role.Club],
-  registerClubEntries: [Role.Club],
-  getClubPayments: [Role.Club],
-  getPaymentMethods: [Role.Club],
-  submitClubPayment: [Role.Club],
+  // Athletes, each only for themselves; the secretariat checks their membership payments
+  getMyAthlete: [Role.Athlete],
+  saveMyAthlete: [Role.Athlete],
+  requestMembership: [Role.Athlete],
+  getAthletes: ADMIN_OR_SECRETARIAT,
+  confirmMembership: ADMIN_OR_SECRETARIAT,
+  rejectMembership: ADMIN_OR_SECRETARIAT,
+  resetAthletePassword: ADMIN_OR_SECRETARIAT,
+  deleteAthlete: ADMIN_OR_SECRETARIAT,
 }
 
 // Anything that changes data runs in one transaction and tells the other screens afterwards

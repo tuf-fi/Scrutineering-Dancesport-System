@@ -4,8 +4,10 @@ import { describe, expect, it } from 'vitest'
 describe('age group from birth years', () => {
   it('puts each age in its group, at the edges too', () => {
     const edges: Array<[number, AgeGroup]> = [
-      [6, AgeGroup.Juvenile],
-      [11, AgeGroup.Juvenile],
+      [6, AgeGroup.Juvenile1],
+      [9, AgeGroup.Juvenile1],
+      [10, AgeGroup.Juvenile2],
+      [11, AgeGroup.Juvenile2],
       [12, AgeGroup.Junior1],
       [13, AgeGroup.Junior1],
       [14, AgeGroup.Junior2],
@@ -22,7 +24,22 @@ describe('age group from birth years', () => {
 
   it('counts age as the competition year minus the birth year', () => {
     expect(ageGroupForBirthYears([2014], 2026)).toBe(AgeGroup.Junior1)
-    expect(ageGroupForBirthYears([2015], 2026)).toBe(AgeGroup.Juvenile)
+    expect(ageGroupForBirthYears([2015], 2026)).toBe(AgeGroup.Juvenile2)
+  })
+
+  it('matches the birth years on the 2026 entry forms', () => {
+    const forms: Array<[number, AgeGroup]> = [
+      [2017, AgeGroup.Juvenile1],
+      [2016, AgeGroup.Juvenile2],
+      [2015, AgeGroup.Juvenile2],
+      [2014, AgeGroup.Junior1],
+      [2013, AgeGroup.Junior1],
+      [2012, AgeGroup.Junior2],
+      [2011, AgeGroup.Junior2],
+      [2010, AgeGroup.Youth],
+      [2008, AgeGroup.Youth],
+    ]
+    for (const [year, group] of forms) expect(ageGroupForBirthYears([year], 2026), `born ${year}`).toBe(group)
   })
 
   it('puts a couple in the group of the older partner', () => {

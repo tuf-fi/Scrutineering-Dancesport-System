@@ -23,8 +23,14 @@ const MAX_MINUTES = 600
 // Rounds of the same kind are danced together across events, so a new program starts in this order
 const ROUND_ORDER: RoundType[] = [RoundType.Round1, RoundType.Round2, RoundType.QuarterFinal, RoundType.SemiFinal, RoundType.Final]
 
-// A starting guess for how long a round takes; the secretariat edits it on the program screen
-const defaultMinutes = (isSolo: boolean, type: RoundType) => (isSolo ? 3 : type === RoundType.Final ? 10 : 8)
+// A starting guess for how long a round takes; the secretariat edits it on the program screen.
+// WDSF rules: music of at most 2 minutes per dance (E.3.1), at most 10 couples in a heat before the final (8.2.5);
+// one minute is added per heat for the couples to leave and enter the floor.
+// Solo events are timed the same way: soloists dance together in heats
+const defaultMinutes = (type: RoundType, dances: number, couples: number) => {
+  const heats = type === RoundType.Final ? 1 : Math.max(1, Math.ceil(couples / 10))
+  return heats * (Math.max(1, dances) * 2 + 1)
+}
 
 const competitionRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
@@ -181,7 +187,7 @@ export const program = {
           eventId: event.id,
           roundType: type,
           label: null,
-          minutes: defaultMinutes(event.isSolo, type),
+          minutes: defaultMinutes(type, event.dances.length, activeEntryRows(ctx, event.id).length),
         })
         .run()
     })

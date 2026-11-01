@@ -1,7 +1,13 @@
 import { ApiError } from '../api/http.ts'
 import {
+  DEFAULT_FEE_SCHEDULE,
   DISCIPLINE_DANCES,
+  EventKind,
   PIN_LENGTH,
+  PayMethod,
+  registrationFee,
+  registrationWarnings,
+  sameProvince,
   type AccountKind,
   type TotpSetup,
   type TotpStatus,
@@ -10,20 +16,33 @@ import {
   Role,
   RoundStatus,
   type Adjudicator,
+  type AthleteInput,
+  type AthletePage,
+  type AthleteProfile,
+  type AthleteRow,
   type CompetitionInput,
+  type Coach,
+  type CoachInput,
+  type CompetitorCsvRow,
+  type CompetitorDetails,
   type EventInput,
   type RankingFilter,
+  type RegistrationInput,
+  type RegistrationQuote,
+  type RegistrationResult,
   type AdjudicatorPin,
   type AgeGroup,
   type BackupStatus,
-  type MessengerLink,
+  type Club,
+  type ClubInput,
+  type PaymentMethod,
   type PaymentSettings,
   type Competition,
   type Competitor,
-  type ClubSignUp,
   type CompetitorRow,
   type HeatAssignment,
   type MarkSubmission,
+  type RoundSignature,
   type FinalTie,
   type TieDecision,
   type Entry,
@@ -51,18 +70,6 @@ import { events } from './data/events.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
 import { announcements } from './announcing.ts'
-import {
-  clubDancers,
-  clubPasswords,
-  clubPayments,
-  deleteDancer,
-  entryOptions,
-  paymentMethods,
-  registerEntries,
-  saveDancer,
-  signUpClub,
-  submitPaymentProof,
-} from './clubPortal.ts'
 import {
   approveRoundResults,
   confirmTie,
@@ -204,6 +211,8 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       date: input.date,
       venue: input.venue.trim(),
       organizer: input.organizer.trim(),
+      entryDeadline: input.entryDeadline || null,
+      feeDeadline: input.feeDeadline || null,
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) {
       throw new Error('Fill in every field.')
@@ -397,40 +406,6 @@ export const savePointsTable = (actorId: string, rows: PointsRow[]) =>
     return pointsTable
   })
 
-function checkable(id: string) {
-  const payment = found(payments.find((p) => p.id === id), 'Payment')
-  if (payment.status !== PaymentStatus.ForChecking) {
-    throw new Error('Only payments waiting to be checked can be decided.')
-  }
-  return payment
-}
-
-export const approvePayment = (adminId: string, id: string) =>
-  settle<PaymentDetail>(() => {
-    const payment = checkable(id)
-    payment.status = PaymentStatus.Approved
-    payment.rejectionReason = null
-    payment.checkedBy = adminId
-    payment.checkedAt = new Date().toISOString()
-    const detail = paymentDetail(payment)
-    record(adminId, 'Approved payment', detail.clubName)
-    return detail
-  })
-
-export const rejectPayment = (adminId: string, id: string, reason: string) =>
-  settle<PaymentDetail>(() => {
-    const payment = checkable(id)
-    const trimmed = reason.trim()
-    if (!trimmed) throw new Error('Give a reason so the club knows what to fix.')
-    payment.status = PaymentStatus.Rejected
-    payment.rejectionReason = trimmed
-    payment.checkedBy = adminId
-    payment.checkedAt = new Date().toISOString()
-    const detail = paymentDetail(payment)
-    record(adminId, 'Rejected payment', detail.clubName)
-    return detail
-  })
-
 // TODO: fake sign-in for the sample app. Phase 3 replaces this with JWT in httpOnly cookies.
 const SAMPLE_PASSWORD = 'bis2026'
 
@@ -497,13 +472,6 @@ export const resetTotp = (actorId: string, id: string) =>
     record(actorId, 'Reset two-step sign-in', id)
   })
 
-export const signInClub = (email: string, password: string) =>
-  settle<SessionUser>(() => {
-    const club = clubs.find((c) => c.contactEmail === email.trim().toLowerCase())
-    if (!club || password !== (clubPasswords.get(club.id) ?? SAMPLE_PASSWORD)) throw new Error('Wrong email or password.')
-    return { id: club.id, name: club.name, role: Role.Club }
-  })
-
 export const signInAdjudicator = (pin: string) =>
   settle<SessionUser>(() => {
     const entry = adjudicatorPins.find(
@@ -524,7 +492,6 @@ export const getSampleCredentials = () =>
   settle(() => ({
     password: SAMPLE_PASSWORD,
     usernames: staffUsers.map((s) => s.username),
-    clubEmail: clubs[0].contactEmail,
     pins: adjudicatorPins
       .filter((p) => p.competitionId === currentCompetitionId)
       .slice(0, 3)
@@ -599,7 +566,7 @@ function cleanNames(names: string[]) {
   return cleaned
 }
 
-export const createCompetitor = (actorId: string, input: { names: string[]; clubId: string }) =>
+export const createCompetitor = (actorId: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
   settle<CompetitorRow>(() => {
     const names = cleanNames(input.names)
     found(clubs.find((c) => c.id === input.clubId), 'Club')
@@ -608,6 +575,7 @@ export const createCompetitor = (actorId: string, input: { names: string[]; club
       names,
       backNumber: null,
       clubId: input.clubId,
+      ...(input.details ? { details: input.details } : {}),
     }
     competitors.push(competitor)
     record(actorId, 'Added competitor', names.join(' & '))
@@ -641,7 +609,7 @@ export const assignBackNumbers = (actorId: string) =>
   })
 
 // TODO: the backend parses the uploaded file; here the screen sends the rows it read from the CSV
-export const importCompetitors = (actorId: string, rows: Array<{ names: string[]; clubName: string }>) =>
+export const importCompetitors = (actorId: string, rows: CompetitorCsvRow[]) =>
   settle<ImportResult>(() => {
     const result: ImportResult = { created: 0, skipped: [] }
     rows.forEach((row, i) => {
@@ -654,11 +622,27 @@ export const importCompetitors = (actorId: string, rows: Array<{ names: string[]
       } catch (error) {
         return void result.skipped.push({ line, reason: (error as Error).message })
       }
+      let details: CompetitorDetails | undefined
+      if (row.details) {
+        const coach = coaches.find((c) => c.name.toLowerCase() === row.details!.coachName.trim().toLowerCase())
+        if (row.details.coachName.trim() && !coach) return void result.skipped.push({ line, reason: `Unknown coach "${row.details.coachName}".` })
+        if (row.details.dancers.some((d) => d.birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(d.birthDate))) {
+          return void result.skipped.push({ line, reason: 'Enter each date of birth as year-month-day.' })
+        }
+        details = {
+          province: row.details.province.trim(),
+          coachId: coach?.id ?? null,
+          dancers: names.map((_, i) => row.details!.dancers[i] ?? { birthDate: '', address: '', email: '', phone: '' }),
+          beginner: row.details.beginner,
+          memberYear: null,
+        }
+      }
       competitors.push({
         id: `c-${String(competitors.length + 1).padStart(3, '0')}`,
         names,
         backNumber: null,
         clubId: club.id,
+        ...(details ? { details } : {}),
       })
       result.created++
     })
@@ -671,13 +655,16 @@ export const importCompetitorsCsv = (actorId: string, text: string) =>
   importCompetitors(actorId, parseCompetitorCsv(text))
 
 // TODO: a competitor's age group comes from their birth date in the real system; new sample competitors have none
-function checkEligible(competitorId: string, event: { isSolo: boolean; ageGroup: AgeGroup }) {
+function checkEligible(competitorId: string, event: { number: number; isSolo: boolean; ageGroup: AgeGroup; kind?: EventKind; province?: string }) {
   const competitor = found(competitors.find((c) => c.id === competitorId), 'Competitor')
   if ((competitor.names.length === 1) !== event.isSolo) {
     throw new Error(event.isSolo ? 'This is a solo event.' : 'This is a couple event.')
   }
   const age = ageGroupOf.get(competitorId)
   if (age && age !== event.ageGroup) throw new Error('This competitor is in a different age group.')
+  if (event.kind === EventKind.Closed && !sameProvince(competitor.details?.province, event.province)) {
+    throw new Error(`E${event.number} is closed to ${event.province}. This entry is from ${competitor.details?.province?.trim() || 'no province'}.`)
+  }
 }
 
 function lateRow(entry: Entry): LateEntryRow {
@@ -737,6 +724,107 @@ export const createLateEntry = (
     entries.push(entry)
     record(actorId, 'Added late entry', `Event ${event.number}, ${competitor.names.join(' & ')}`)
     return lateRow(entry)
+  })
+
+// ---- Coaches and registration ----
+
+const coaches: Coach[] = [
+  { id: 'coach-1', name: 'Ramon Villanueva', email: 'ramon@example.test', phone: '0917 000 0001', memberYear: null, summitYear: null },
+]
+
+export const getCoaches = () => reply([...coaches].sort((a, b) => a.name.localeCompare(b.name)))
+
+export const saveCoach = (actorId: string, input: CoachInput, id?: string) =>
+  settle<Coach>(() => {
+    const name = input.name.trim()
+    if (!name) throw new Error('Enter the coach\u2019s name.')
+    const values = { ...input, name }
+    if (id) {
+      const coach = found(coaches.find((c) => c.id === id), 'Coach')
+      Object.assign(coach, values)
+      record(actorId, 'Edited coach', name)
+      return coach
+    }
+    const coach: Coach = { id: `coach-${coaches.length + 1}`, ...values }
+    coaches.push(coach)
+    record(actorId, 'Added coach', name)
+    return coach
+  })
+
+export const deleteCoach = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const coach = found(coaches.find((c) => c.id === id), 'Coach')
+    if (competitors.some((c) => c.details?.coachId === id)) throw new Error('This coach has competitors. Change their coach first.')
+    coaches.splice(coaches.indexOf(coach), 1)
+    record(actorId, 'Deleted coach', coach.name)
+  })
+
+function priceRegistration(competitorId: string, eventIds: string[], coachFees = { membership: false, summit: false }) {
+  const competitor = found(competitors.find((c) => c.id === competitorId), 'Competitor')
+  const chosen = [...new Set(eventIds)].map((id) => found(events.find((e) => e.id === id), 'Event'))
+  if (chosen.length === 0) throw new Error('Choose at least one event.')
+  const competition = found(competitions.find((c) => c.id === chosen[0].competitionId), 'Competition')
+  const year = Number(competition.date.slice(0, 4))
+  const members = competitor.details?.memberYear === year ? 0 : competitor.names.length
+  const fixed: string[] = [EventKind.Ranking, EventKind.InterCollegiate]
+  const prior = entries.filter((e) => {
+    const event = events.find((x) => x.id === e.eventId)
+    return e.competitorId === competitorId && !e.scratched && event?.competitionId === competition.id && !fixed.includes(event.kind ?? '')
+  }).length
+  const coachRow = coaches.find((c) => c.id === competitor.details?.coachId)
+  const coach = coachRow
+    ? { name: coachRow.name, membershipDue: coachRow.memberYear !== year, summitDue: coachRow.summitYear !== year }
+    : undefined
+  const collect = { membership: Boolean(coach?.membershipDue && coachFees.membership), summit: Boolean(coach?.summitDue && coachFees.summit) }
+  const { lines, total } = registrationFee(DEFAULT_FEE_SCHEDULE, chosen, members, prior, collect)
+  return {
+    competitor,
+    chosen,
+    year,
+    members,
+    collect,
+    coachRow,
+    quote: { lines, total, warnings: registrationWarnings(competitor.details, competitor.names.length, chosen, year), ...(coach ? { coach } : {}) },
+  }
+}
+
+export const quoteRegistration = (competitorId: string, eventIds: string[], coachFees?: { membership: boolean; summit: boolean }) =>
+  settle<RegistrationQuote>(() => priceRegistration(competitorId, eventIds, coachFees).quote)
+
+export const registerCompetitor = (actorId: string, input: RegistrationInput) =>
+  settle<RegistrationResult>(() => {
+    const { competitor, chosen, year, members, collect, coachRow, quote } = priceRegistration(input.competitorId, input.eventIds, input.coachFees)
+    for (const event of chosen) {
+      checkEligible(competitor.id, event)
+      if (entries.some((e) => e.eventId === event.id && e.competitorId === competitor.id)) {
+        throw new Error(`Already entered in E${event.number}.`)
+      }
+    }
+    const paid = input.method !== PayMethod.Unpaid
+    const paymentId = `pay-reg-${payments.length + 1}`
+    const made = chosen.map((event): Entry => ({ id: `${event.id}:${competitor.id}`, eventId: event.id, competitorId: competitor.id, scratched: false, paymentId, late: false }))
+    payments.push({
+      id: paymentId,
+      clubId: competitor.clubId,
+      entryIds: made.map((e) => e.id),
+      amountDue: quote.total,
+      amountPaid: paid ? quote.total : null,
+      referenceNumber: paid ? (input.reference?.trim() ?? '') || null : null,
+      receiptUrl: null,
+      status: !paid ? PaymentStatus.Unpaid : input.method === PayMethod.Cash ? PaymentStatus.PaidAtVenue : PaymentStatus.Approved,
+      rejectionReason: null,
+      checkedBy: paid ? actorId : null,
+      checkedAt: paid ? new Date().toISOString() : null,
+    })
+    entries.push(...made)
+    // TODO: the sample records memberships only when paid at once; the real server also records them when a later payment is paid
+    if (paid && members > 0 && competitor.details) competitor.details = { ...competitor.details, memberYear: year }
+    if (paid && coachRow) {
+      if (collect.membership) coachRow.memberYear = year
+      if (collect.summit) coachRow.summitYear = year
+    }
+    record(actorId, 'Registered entries', competitor.names.join(' & '))
+    return { ...quote, paymentId }
   })
 
 export const markPaidAtVenue = (actorId: string, paymentId: string) =>
@@ -853,7 +941,7 @@ export const removeProgramSlot = (actorId: string, slotId: string) =>
     return sampleProgram.removeSlot(slotId)
   })
 
-export const updateCompetitor = (actorId: string, id: string, input: { names: string[]; clubId: string }) =>
+export const updateCompetitor = (actorId: string, id: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
   settle<CompetitorRow>(() => {
     const competitor = found(competitors.find((c) => c.id === id), 'Competitor')
     const names = cleanNames(input.names)
@@ -863,6 +951,7 @@ export const updateCompetitor = (actorId: string, id: string, input: { names: st
     }
     competitor.names = names
     competitor.clubId = input.clubId
+    if (input.details) competitor.details = input.details
     record(actorId, 'Edited competitor', names.join(' & '))
     return competitorRow(competitor)
   })
@@ -931,6 +1020,7 @@ function checkEvent(competitionId: string, input: EventInput, id?: string) {
   if (input.dances.some((d) => !allowed.includes(d))) {
     throw new Error(`These dances do not belong to ${input.discipline}.`)
   }
+  if (input.kind === EventKind.Closed && !input.province?.trim()) throw new Error('Enter the province this event is closed to.')
 }
 
 export const saveEvent = (actorId: string, competitionId: string, input: EventInput, id?: string) =>
@@ -973,7 +1063,7 @@ export const deleteEvent = (actorId: string, id: string) =>
 
 export const getAdjudicatorState = (adjudicatorId: string) => reply(adjudicatorState(adjudicatorId))
 
-export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
+export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, submissions: MarkSubmission[], _signature?: string) =>
   settle<void>(() => submitMarks(adjudicatorId, roundId, submissions))
 
 // TODO: dev-only controls that stand in for the scrutineer starting a round
@@ -1039,6 +1129,8 @@ export const proposeFinalTie = (_actorId: string, _roundId: string, _mode: 'keep
 export const confirmFinalTie = (_actorId: string, _roundId: string) => settle<void>(() => undefined)
 
 export const getSkatingTable = (roundId: string) => reply(skatingTable(roundId))
+// TODO: the sample keeps no signatures; the real server stores them
+export const getSignatures = (_roundId: string) => reply<RoundSignature[]>([])
 
 export const approveRound = (actorId: string, roundId: string) =>
   settle<void>(() => {
@@ -1065,55 +1157,169 @@ export const getResultEventIds = (competitionId: string) =>
       .filter((e) => e.competitionId === competitionId && results.some((r) => r.eventId === e.id))
       .map((e) => e.id),
   )
+// ---- Fees and payment details ----
 
-// ---- Club portal ----
-
-export const signUpNewClub = (input: ClubSignUp) => settle<SessionUser>(() => signUpClub(input))
-export const getClubDancers = (clubId: string) => reply(clubDancers(clubId))
-export const saveClubDancer = (clubId: string, input: { names: string[]; ageGroup: AgeGroup }, id?: string) =>
-  settle(() => saveDancer(clubId, input, id))
-export const deleteClubDancer = (clubId: string, id: string) => settle<void>(() => deleteDancer(clubId, id))
-export const getEntryOptions = (clubId: string, dancerId: string) => reply(entryOptions(clubId, dancerId))
-export const registerClubEntries = (clubId: string, dancerId: string, eventIds: string[]) =>
-  settle<void>(() => registerEntries(clubId, dancerId, eventIds))
-export const getClubPayments = (clubId: string) => reply(clubPayments(clubId))
-export const getPaymentMethods = () => reply(paymentMethods())
-export const submitClubPayment = (clubId: string, input: { amountPaid: number; referenceNumber: string; receiptUrl: string }) =>
-  settle<void>(() => submitPaymentProof(clubId, input))
-
-// ---- Fees, payment details and club accounts ----
-
-let samplePaymentSettings: PaymentSettings = { fees: { solo: 500, couple: 800 }, methods: paymentMethods() }
+const sampleMethods: PaymentMethod[] = [
+  { name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' },
+  { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' },
+  { name: 'Bank transfer', accountName: 'BN IT Scrutineer', number: '0000 0000 0000', note: 'BDO Savings, Sorsogon branch' },
+]
+let samplePaymentSettings: PaymentSettings = { fees: { solo: 500, couple: 800 }, methods: sampleMethods, schedule: DEFAULT_FEE_SCHEDULE }
 
 export const getPaymentSettings = () => reply(samplePaymentSettings)
 export const savePaymentSettings = (actorId: string, input: PaymentSettings) =>
   settle<PaymentSettings>(() => {
-    samplePaymentSettings = structuredClone(input)
+    samplePaymentSettings = { ...structuredClone(input), schedule: structuredClone(input.schedule ?? samplePaymentSettings.schedule ?? DEFAULT_FEE_SCHEDULE) }
     record(actorId, 'Changed fees and payment details', 'Payment settings')
     return samplePaymentSettings
   })
-export const changeClubPassword = (_current: string, _next: string) => settle<void>(() => undefined)
-export const resetClubPassword = (actorId: string, id: string) =>
+
+// ---- Athletes ----
+
+interface SampleAthlete extends AthleteProfile {
+  password: string
+}
+const sampleAthletes: SampleAthlete[] = []
+
+const membershipYear = () => Number(competitions.find((c) => c.id === currentCompetitionId)?.date.slice(0, 4) ?? 2026)
+const athleteOf = (id: string) => found(sampleAthletes.find((a) => a.id === id), 'Athlete')
+const publicAthlete = ({ password: _password, ...profile }: SampleAthlete): AthleteProfile => profile
+
+export const signUpAthlete = (name: string, email: string, password: string) =>
+  settle<SessionUser>(() => {
+    const address = email.trim().toLowerCase()
+    if (!name.trim()) throw new Error('Enter your name.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) throw new Error('Enter a valid email address.')
+    if (password.length < 8) throw new Error('Use a password of at least 8 characters.')
+    if (sampleAthletes.some((a) => a.email === address)) throw new Error('An account with this email already exists. Sign in instead.')
+    const athlete: SampleAthlete = {
+      id: `athlete-${sampleAthletes.length + 1}`,
+      email: address,
+      name: name.trim(),
+      birthDate: '',
+      phone: '',
+      address: '',
+      province: '',
+      clubId: null,
+      coachId: null,
+      memberYear: null,
+      request: null,
+      password,
+    }
+    sampleAthletes.push(athlete)
+    return { id: athlete.id, name: athlete.name, role: Role.Athlete }
+  })
+
+export const signInAthlete = (email: string, password: string) =>
+  settle<SessionUser>(() => {
+    const athlete = sampleAthletes.find((a) => a.email === email.trim().toLowerCase())
+    if (!athlete || athlete.password !== password) throw new Error('Wrong email or password.')
+    return { id: athlete.id, name: athlete.name, role: Role.Athlete }
+  })
+
+export const getMyAthlete = (athleteId: string) =>
+  reply<AthletePage>({
+    profile: publicAthlete(athleteOf(athleteId)),
+    year: membershipYear(),
+    fee: (samplePaymentSettings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
+    methods: samplePaymentSettings.methods,
+  })
+
+export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
+  settle<AthleteProfile>(() => {
+    const athlete = athleteOf(athleteId)
+    if (!input.name.trim()) throw new Error('Enter your name.')
+    if (input.birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate)) throw new Error('Enter a valid date of birth.')
+    if (input.clubId && !clubs.some((c) => c.id === input.clubId)) throw new Error('Choose a club from the list.')
+    Object.assign(athlete, { ...input, name: input.name.trim() })
+    return publicAthlete(athlete)
+  })
+
+export const requestMembership = (athleteId: string, input: { method: string; reference: string }) =>
+  settle<AthleteProfile>(() => {
+    const athlete = athleteOf(athleteId)
+    const year = membershipYear()
+    if (athlete.memberYear === year) throw new Error(`Your ${year} membership is already paid.`)
+    if (athlete.request && !athlete.request.rejectedReason) throw new Error('You already sent a payment. Wait for the secretariat to confirm it.')
+    if (!input.method.trim()) throw new Error('Say how you paid.')
+    if (!input.reference.trim()) throw new Error('Enter the reference number of your payment.')
+    athlete.request = { year, method: input.method.trim(), reference: input.reference.trim(), requestedAt: new Date().toISOString() }
+    return publicAthlete(athlete)
+  })
+
+export const getAthletes = () =>
+  reply<AthleteRow[]>(
+    [...sampleAthletes]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((a) => ({
+        id: a.id,
+        name: a.name,
+        email: a.email,
+        phone: a.phone,
+        clubName: clubs.find((c) => c.id === a.clubId)?.name ?? '',
+        coachName: coaches.find((c) => c.id === a.coachId)?.name ?? '',
+        memberYear: a.memberYear,
+        request: a.request,
+      })),
+  )
+
+export const confirmMembership = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const athlete = athleteOf(id)
+    if (!athlete.request || athlete.request.rejectedReason) throw new Error('This athlete has no payment waiting.')
+    athlete.memberYear = athlete.request.year
+    athlete.request = null
+    record(actorId, 'Confirmed membership', athlete.name)
+  })
+
+export const rejectMembership = (actorId: string, id: string, reason: string) =>
+  settle<void>(() => {
+    const athlete = athleteOf(id)
+    if (!athlete.request) throw new Error('This athlete has no payment waiting.')
+    if (!reason.trim()) throw new Error('Say why it could not be confirmed.')
+    athlete.request = { ...athlete.request, rejectedReason: reason.trim() }
+    record(actorId, 'Turned down a membership payment', athlete.name)
+  })
+
+export const resetAthletePassword = (actorId: string, id: string) =>
   settle<{ tempPassword: string }>(() => {
-    const club = found(clubs.find((c) => c.id === id), 'Club')
-    record(actorId, 'Reset a club password', club.name)
-    return { tempPassword: tempPassword() }
+    const athlete = athleteOf(id)
+    athlete.password = 'temp1234'
+    record(actorId, 'Reset an athlete password', athlete.name)
+    return { tempPassword: athlete.password }
   })
-export const eraseClubAccount = (actorId: string, id: string) =>
+
+export const deleteAthlete = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const athlete = athleteOf(id)
+    sampleAthletes.splice(sampleAthletes.indexOf(athlete), 1)
+    record(actorId, 'Deleted an athlete account', athlete.name)
+  })
+
+// ---- Clubs ----
+
+export const saveClub = (actorId: string, input: ClubInput, id?: string) =>
+  settle<Club>(() => {
+    const name = input.name.trim()
+    if (!name) throw new Error('Enter the club name.')
+    if (clubs.some((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)) throw new Error('A club with this name already exists.')
+    const values = { name, contactName: input.contactName.trim(), contactEmail: input.contactEmail.trim(), contactPhone: input.contactPhone.trim() }
+    if (id) {
+      const club = found(clubs.find((c) => c.id === id), 'Club')
+      Object.assign(club, values)
+      record(actorId, 'Edited club', name)
+      return club
+    }
+    const club: Club = { id: `club-${clubs.length + 1}`, ...values }
+    clubs.push(club)
+    record(actorId, 'Added club', name)
+    return club
+  })
+
+export const deleteClub = (actorId: string, id: string) =>
   settle<void>(() => {
     const club = found(clubs.find((c) => c.id === id), 'Club')
-    Object.assign(club, { contactName: 'Removed', contactEmail: `removed-${id}@removed.invalid`, contactPhone: '' })
-    record(actorId, 'Erased a club account', club.name)
-  })
-let sampleMessengerLinked = false
-export const getMessengerLink = () =>
-  reply<MessengerLink>({ available: true, linked: sampleMessengerLinked, url: sampleMessengerLinked ? null : 'https://m.me/SamplePage?ref=sample' })
-export const unlinkMessenger = () =>
-  settle<void>(() => {
-    sampleMessengerLinked = false
-  })
-export const clearOldReceipts = (actorId: string) =>
-  settle<number>(() => {
-    record(actorId, 'Removed old payment proofs', '0 proofs')
-    return 0
+    if (competitors.some((c) => c.clubId === id)) throw new Error('This club has competitors. Move or delete them first.')
+    clubs.splice(clubs.indexOf(club), 1)
+    record(actorId, 'Deleted club', club.name)
   })

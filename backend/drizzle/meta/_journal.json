@@ -85,6 +85,55 @@
       "when": 1792923789851,
       "tag": "0011_two_step",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1793412878028,
+      "tag": "0012_points_round",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1793414561146,
+      "tag": "0013_signature",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1793416854702,
+      "tag": "0014_registration",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1793418190546,
+      "tag": "0015_deadlines_settles",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1793418952415,
+      "tag": "0016_teams_without_login",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1793448235050,
+      "tag": "0017_athletes",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1793500286384,
+      "tag": "0018_closed_events",
+      "breakpoints": true
     }
   ]
 }

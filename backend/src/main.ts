@@ -4,7 +4,6 @@ import { DEV_SECRET, loadConfig } from './config.ts'
 import { openDatabase } from './db/client.ts'
 import { runMigrations } from './db/migrate.ts'
 import { databaseSecret } from './secret.ts'
-import { removeOldReceipts } from './services/accounts.ts'
 
 const config = loadConfig()
 const { db, sqlite } = openDatabase(config.databasePath)
@@ -28,7 +27,3 @@ process.on('SIGTERM', shutdown)
 await app.listen({ port: config.port, host: config.host })
 console.log(`BIS server on http://${config.host}:${config.port} (database ${config.databasePath})`)
 
-// Payment proofs are removed once the retention time has passed
-const clean = () => removeOldReceipts({ db, sqlite }, 'system')
-clean()
-setInterval(clean, 24 * 3_600_000).unref()

@@ -3,7 +3,7 @@ import { act, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { useConnection } from '../../stores/connection.ts'
-import { renderApp } from '../../test-utils.tsx'
+import { renderApp, sign } from '../../test-utils.tsx'
 
 // The sample round state is shared across tests in this file, so they run in order as one session
 const adjudicator = { id: 'adj-d', name: 'Celeste B. Ilagan', letter: 'D' }
@@ -39,6 +39,9 @@ describe('adjudicator marking', () => {
 
     await userEvent.click(submit)
     const dialog = await screen.findByRole('dialog', { name: 'Submit your marks?' })
+    // The marks cannot be sent until the adjudicator has signed
+    expect(within(dialog).getByRole('button', { name: 'Confirm' })).toBeDisabled()
+    sign(dialog)
     await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm' }))
     expect(await screen.findByRole('heading', { name: 'Submitted' })).toBeInTheDocument()
   })
@@ -69,13 +72,15 @@ describe('adjudicator marking', () => {
     await userEvent.click(first.getAllByRole('button', { name: /^Place / })[0])
 
     await userEvent.click(submit)
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirm' }))
+    const dialog = await screen.findByRole('dialog')
+    sign(dialog)
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm' }))
     expect(await screen.findByRole('heading', { name: 'Submitted' })).toBeInTheDocument()
   })
 
   it('has a tab for each dance and keeps the marks saved when offline', async () => {
     open('/adjudicator/submitted')
-    await startDemo((await screen.findAllByRole('option', { name: /three dances/ }))[0].textContent!)
+    await startDemo((await screen.findAllByRole('option', { name: /Final, three dances/ }))[0].textContent!)
     const tabs = await screen.findAllByRole('tab')
     expect(tabs.length).toBe(3)
     const submit = screen.getByRole('button', { name: 'Submit' })
@@ -97,7 +102,9 @@ describe('adjudicator marking', () => {
 
     act(() => useConnection.setState({ online: false }))
     await userEvent.click(submit)
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirm' }))
+    const dialog = await screen.findByRole('dialog')
+    sign(dialog)
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm' }))
     expect(await screen.findByRole('heading', { name: 'Saved, sending…' })).toBeInTheDocument()
     expect(screen.getByText(/saved on this phone/)).toBeInTheDocument()
 

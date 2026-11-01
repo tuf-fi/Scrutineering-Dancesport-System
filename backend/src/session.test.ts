@@ -51,14 +51,13 @@ describe('signing a person out everywhere', () => {
     expect(await me(await app.signIn.staff('scrutineer'))).not.toBeNull()
   })
 
-  it('works for a club, and is for admins only', async () => {
-    const email = (app.sqlite.prepare('select contact_email as e from clubs where password_hash is not null limit 1').get() as { e: string }).e
-    const club = await app.signIn.club(email)
-    const id = (await app.me(club))!.id
-    expect((await app.call('revokeSessions', ['club', id], club)).status).toBe(403)
-    expect((await app.call('revokeSessions', ['club', id], await app.signIn.staff('secretariat'))).status).toBe(403)
-    await app.ok('revokeSessions', ['club', id], admin)
-    expect(await me(club)).toBeNull()
+  it('is for admins only', async () => {
+    const adjudicator = await app.signIn.adjudicator('410000')
+    const id = (await app.me(adjudicator))!.id
+    expect((await app.call('revokeSessions', ['adjudicator', id], adjudicator)).status).toBe(403)
+    expect((await app.call('revokeSessions', ['adjudicator', id], await app.signIn.staff('secretariat'))).status).toBe(403)
+    await app.ok('revokeSessions', ['adjudicator', id], admin)
+    expect(await me(adjudicator)).toBeNull()
   })
 
   it('is recorded, and refuses an unknown kind or person', async () => {

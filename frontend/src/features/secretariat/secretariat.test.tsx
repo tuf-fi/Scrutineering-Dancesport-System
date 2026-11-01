@@ -2,6 +2,11 @@ import { Role } from '@bis/shared'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { competitorName } from '../../lib/format.ts'
+import { currentCompetitionId } from '../../mocks/data/competitions.ts'
+import { ageGroupOf, competitors } from '../../mocks/data/competitors.ts'
+import { entries } from '../../mocks/data/entries.ts'
+import { events } from '../../mocks/data/events.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 // The sample data is shared across tests in this file, so each test uses its own records
@@ -304,5 +309,95 @@ describe('program', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Add a break' })
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('Give it a name')
+  })
+})
+
+describe('coaches', () => {
+  it('lists the coaches and adds one', async () => {
+    renderApp('/secretariat/coaches', Role.Secretariat)
+    expect(await screen.findByText('Ramon Villanueva')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Add coach' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add coach' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add coach' }))
+    expect(await within(dialog).findByText('Enter the coach’s name.')).toBeInTheDocument()
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Lito Santos')
+    await userEvent.type(within(dialog).getByLabelText('Membership paid for'), '2026')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add coach' }))
+    expect(await screen.findByText('Added Lito Santos')).toBeInTheDocument()
+    expect(await screen.findByText('Lito Santos')).toBeInTheDocument()
+  })
+})
+
+describe('registering from the entry form', () => {
+  it('enters a solo dancer in an event, showing the fee and the membership', async () => {
+    // A solo dancer and an event of their age group that they are not in yet
+    const pick = competitors
+      .filter((c) => c.names.length === 1)
+      .flatMap((c) =>
+        events
+          .filter((e) => e.competitionId === currentCompetitionId && e.isSolo && e.ageGroup === ageGroupOf.get(c.id))
+          .filter((e) => !entries.some((x) => x.eventId === e.id && x.competitorId === c.id))
+          .map((e) => ({ c, e })),
+      )[0]!
+    const name = competitorName(pick.c.names)
+    const code = `E${pick.e.number}`
+
+    renderApp('/secretariat/competitors', Role.Secretariat)
+    await userEvent.type(await screen.findByLabelText('Search competitors'), name)
+    await userEvent.click(await screen.findByRole('button', { name: `Enter ${name} in events` }))
+    const dialog = await screen.findByRole('dialog', { name: `Enter ${name}` })
+
+    await userEvent.selectOptions(within(dialog).getByLabelText('Competition'), currentCompetitionId)
+    const box = await waitFor(() => {
+      const found = within(dialog)
+        .getAllByRole('checkbox')
+        .find((cb) => new RegExp(`^${code}(?!\d)`).test(cb.closest('label')?.textContent ?? ''))
+      if (!found) throw new Error('event not listed yet')
+      return found
+    })
+    await userEvent.click(box)
+    expect(await within(dialog).findByText('Total')).toBeInTheDocument()
+    expect(within(dialog).getByText('Athlete membership')).toBeInTheDocument()
+
+    await userEvent.selectOptions(within(dialog).getByLabelText('Payment'), 'cash')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Enter' }))
+    expect(await screen.findByText(/^Entered in 1 event, ₱/)).toBeInTheDocument()
+  })
+
+  it('asks for at least one event', async () => {
+    renderApp('/secretariat/competitors', Role.Secretariat)
+    await userEvent.click((await screen.findAllByRole('button', { name: /^Enter .* in events$/ }))[0]!)
+    const dialog = await screen.findByRole('dialog', { name: /^Enter / })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Enter' }))
+    expect(await within(dialog).findByText('Choose at least one event.')).toBeInTheDocument()
+  })
+})
+
+describe('a coach who has not paid', () => {
+  it('offers the coach’s fees on the entry and adds them to the total', async () => {
+    renderApp('/secretariat/competitors', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
+    const adding = await screen.findByRole('dialog', { name: 'Add competitor' })
+    await userEvent.type(within(adding).getByLabelText('Dancer'), 'Coached Solo')
+    const club = within(adding).getByLabelText('Club')
+    await userEvent.selectOptions(club, within(club).getAllByRole('option')[1])
+    await userEvent.selectOptions(within(adding).getByLabelText('Coach'), 'Ramon Villanueva')
+    await userEvent.click(within(adding).getByRole('button', { name: 'Add competitor' }))
+    await screen.findByText('Added Coached Solo')
+
+    await userEvent.type(screen.getByLabelText('Search competitors'), 'Coached Solo')
+    await userEvent.click(await screen.findByRole('button', { name: 'Enter Coached Solo in events' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Enter Coached Solo' })
+    await userEvent.selectOptions(within(dialog).getByLabelText('Competition'), currentCompetitionId)
+    const box = await waitFor(() => {
+      const first = within(dialog).getAllByRole('checkbox')[0]
+      if (!first) throw new Error('events not listed yet')
+      return first
+    })
+    await userEvent.click(box)
+    const membership = await within(dialog).findByRole('checkbox', { name: 'Add the coach’s membership to this payment' })
+    expect(within(dialog).queryByText('Coach membership')).not.toBeInTheDocument()
+    await userEvent.click(membership)
+    expect(await within(dialog).findByText('Coach membership')).toBeInTheDocument()
   })
 })

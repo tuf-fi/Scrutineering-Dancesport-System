@@ -4,16 +4,18 @@ import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
-import { ClubsPage } from '../features/admin/ClubsPage.tsx'
-import { AccountPage } from '../features/club/AccountPage.tsx'
+import { ClubsPage } from '../features/secretariat/ClubsPage.tsx'
 import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
+import { AthletePage } from '../features/athlete/AthletePage.tsx'
+import { AthleteSignIn } from '../features/athlete/AthleteSignIn.tsx'
+import { AthletesPage } from '../features/secretariat/AthletesPage.tsx'
+import { AthleteLayout } from './layouts/AthleteLayout.tsx'
 import { AdjudicatorSignIn } from '../features/adjudicator/AdjudicatorSignIn.tsx'
 import { MarkPage } from '../features/adjudicator/MarkPage.tsx'
 import { SubmittedPage } from '../features/adjudicator/SubmittedPage.tsx'
 import { Waiting } from '../features/adjudicator/Waiting.tsx'
-import { ClubSignIn } from '../features/auth/ClubSignIn.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
 import { DesignPreview } from '../features/dev/DesignPreview.tsx'
 import { McHome } from '../features/mc/McHome.tsx'
@@ -28,10 +30,6 @@ import { LivePage } from '../features/scrutineer/LivePage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
 import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
-import { ClubSignUp } from '../features/club/ClubSignUp.tsx'
-import { DancersPage } from '../features/club/DancersPage.tsx'
-import { EntriesPage } from '../features/club/EntriesPage.tsx'
-import { PaymentsPage as ClubPaymentsPage } from '../features/club/PaymentsPage.tsx'
 import { BlankSheetsPage } from '../features/print/BlankSheetsPage.tsx'
 import { FinalResultsPage } from '../features/print/FinalResultsPage.tsx'
 import { HeatListPage } from '../features/print/HeatListPage.tsx'
@@ -43,6 +41,7 @@ import { ScoresPage } from '../features/print/ScoresPage.tsx'
 import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
+import { CoachesPage } from '../features/secretariat/CoachesPage.tsx'
 import { LateEntriesPage } from '../features/secretariat/LateEntriesPage.tsx'
 import { SecurityPage } from '../features/account/SecurityPage.tsx'
 import { ProgramPage as ProgramPublicPage } from '../features/public/ProgramPage.tsx'
@@ -52,7 +51,7 @@ import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
 import { McLayout } from './layouts/McLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
 import { StaffLayout } from './layouts/StaffLayout.tsx'
-import { ClubLayout, PublicLayout } from './layouts/TopNavLayout.tsx'
+import { PublicLayout } from './layouts/TopNavLayout.tsx'
 import { NotFound } from './NotFound.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
@@ -81,6 +80,17 @@ export const routes: RouteObject[] = [
                 ],
               },
             ],
+          },
+        ],
+      },
+
+      {
+        path: '/athlete',
+        children: [
+          { path: 'sign-in', element: <AthleteSignIn /> },
+          {
+            element: <RequireRole roles={[Role.Athlete]} signInPath="/athlete/sign-in" />,
+            children: [{ element: <AthleteLayout />, children: [{ index: true, element: <AthletePage /> }] }],
           },
         ],
       },
@@ -115,6 +125,9 @@ export const routes: RouteObject[] = [
               { index: true, element: <EventsPage /> },
               { path: 'events/:eventId', element: <EventPage /> },
               { path: 'competitors', element: <CompetitorsPage /> },
+              { path: 'clubs', element: <ClubsPage /> },
+              { path: 'coaches', element: <CoachesPage /> },
+              { path: 'athletes', element: <AthletesPage /> },
               { path: 'late-entries', element: <LateEntriesPage /> },
               { path: 'schedule', element: <SchedulePage /> },
               { path: 'program', element: <ProgramPage /> },
@@ -171,24 +184,6 @@ export const routes: RouteObject[] = [
         path: '/competitions/:competitionId/program/print',
         element: <PrintLayout />,
         children: [{ index: true, element: <ProgramPrintPage /> }],
-      },
-
-      { path: '/club/sign-in', element: <ClubSignIn /> },
-      { path: '/club/sign-up', element: <ClubSignUp /> },
-      {
-        path: '/club',
-        element: <RequireRole roles={[Role.Club]} signInPath="/club/sign-in" />,
-        children: [
-          {
-            element: <ClubLayout />,
-            children: [
-              { index: true, element: <DancersPage /> },
-              { path: 'events', element: <EntriesPage /> },
-              { path: 'payments', element: <ClubPaymentsPage /> },
-              { path: 'account', element: <AccountPage /> },
-            ],
-          },
-        ],
       },
 
       ...(import.meta.env.DEV ? [{ path: '/dev/design', element: <DesignPreview /> }] : []),

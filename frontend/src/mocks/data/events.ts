@@ -2,7 +2,7 @@ import { AgeGroup, Class, Dance, Discipline, type Event } from '@bis/shared'
 import { competitions, currentCompetitionId } from './competitions.ts'
 
 const AGE_ORDER = [
-  AgeGroup.Juvenile,
+  AgeGroup.Juvenile1,
   AgeGroup.Junior1,
   AgeGroup.Junior2,
   AgeGroup.Youth,

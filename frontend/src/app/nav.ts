@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Clock,
   ClipboardCheck,
+  IdCard,
   Layers,
   ShieldCheck,
   LayoutGrid,
@@ -54,6 +55,9 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
   secretariat: [
     { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays },
     { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound },
+    { to: '/secretariat/clubs', label: 'Clubs', icon: Building2 },
+    { to: '/secretariat/coaches', label: 'Coaches', icon: Users },
+    { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard },
     { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
     { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
     { to: '/secretariat/program', label: 'Program', icon: ListOrdered },
@@ -70,13 +74,6 @@ export const publicNav: NavItem[] = [
   { to: '/rankings', label: 'Rankings' },
 ]
 
-export const clubNav: NavItem[] = [
-  { to: '/club', label: 'Dancers', end: true },
-  { to: '/club/events', label: 'Events' },
-  { to: '/club/payments', label: 'Payments' },
-  { to: '/club/account', label: 'Account' },
-]
-
 export const isStaffRole = (role: Role): role is StaffRole => role in staffNav
 
 // Where each role lands after signing in
@@ -86,7 +83,7 @@ export const roleHome: Record<Role, string> = {
   scrutineer: '/scrutineer',
   chairperson: '/scrutineer',
   adjudicator: '/adjudicator/waiting',
+  athlete: '/athlete',
   mc: '/mc',
-  club: '/club',
   public: '/',
 }

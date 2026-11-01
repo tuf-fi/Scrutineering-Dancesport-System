@@ -12,7 +12,11 @@ export function readPaymentSettings(sqlite: Sqlite): PaymentSettings {
   if (!row) return NO_PAYMENT_SETTINGS
   try {
     const saved = JSON.parse(row.value) as Partial<PaymentSettings>
-    return { fees: saved.fees ?? null, methods: Array.isArray(saved.methods) ? (saved.methods as PaymentMethod[]) : [] }
+    return {
+      fees: saved.fees ?? null,
+      methods: Array.isArray(saved.methods) ? (saved.methods as PaymentMethod[]) : [],
+      ...(saved.schedule ? { schedule: saved.schedule } : {}),
+    }
   } catch {
     return NO_PAYMENT_SETTINGS
   }

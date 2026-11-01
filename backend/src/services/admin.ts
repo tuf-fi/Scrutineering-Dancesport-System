@@ -1,4 +1,4 @@
-import { PIN_LENGTH, PaymentStatus, Role, type AccountKind, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PaymentDetail, type PointsRow, type StaffUser } from '@bis/shared'
+import { PIN_LENGTH, Role, type AccountKind, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -6,10 +6,9 @@ import { record } from '../core/audit.ts'
 import { hashPassword, temporaryPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
-import { newId, now } from '../ids.ts'
-import { notifyClub } from '../messenger.ts'
+import { newId } from '../ids.ts'
 import { recomputeAllPoints } from './ranking.ts'
-import { clean, getPaymentRow, paymentDetail, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 
@@ -27,20 +26,24 @@ export const admin = {
       date: clean(input?.date),
       venue: clean(input?.venue),
       organizer: clean(input?.organizer),
+      entryDeadline: clean(input?.entryDeadline) || null,
+      feeDeadline: clean(input?.feeDeadline) || null,
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) return fail('Fill in every field.')
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(values.date)) return fail('Enter the date as year-month-day.')
+    for (const day of [values.date, values.entryDeadline, values.feeDeadline]) {
+      if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail('Enter dates as year-month-day.')
+    }
     const user = actor(ctx)
     if (id) {
       const before = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
       ctx.db.update(t.competitions).set(values).where(eq(t.competitions.id, id)).run()
       record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: values })
-      return { id, ...values }
+      return toCompetition({ ...before, ...values })
     }
-    const created = { id: newId(), ...values }
+    const created = { id: newId(), floorRoundId: null, ...values }
     ctx.db.insert(t.competitions).values(created).run()
-    record(ctx.db, user.id, 'Created competition', values.name, { after: created })
-    return created
+    record(ctx.db, user.id, 'Created competition', values.name, { after: values })
+    return toCompetition(created)
   },
 
   deleteCompetition(ctx: Ctx, id: string): { id: string } {
@@ -87,13 +90,11 @@ export const admin = {
 
   // Signs a person out of every device: their tokens stop working at once
   revokeSessions(ctx: Ctx, kind: AccountKind, id: string): void {
-    if (kind !== 'staff' && kind !== 'adjudicator' && kind !== 'club') return fail('Choose staff, an adjudicator or a club.')
+    if (kind !== 'staff' && kind !== 'adjudicator') return fail('Choose staff or an adjudicator.')
     const name =
       kind === 'staff'
         ? found(ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, String(id))).get(), 'Staff account').name
-        : kind === 'adjudicator'
-          ? found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, String(id))).get(), 'Adjudicator').name
-          : found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, String(id))).get(), 'Club').name
+        : found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, String(id))).get(), 'Adjudicator').name
     bumpSessionVersion(ctx, kind, String(id))
     record(ctx.db, actor(ctx).id, 'Signed out everywhere', name)
   },
@@ -213,43 +214,4 @@ export const admin = {
     ctx.defer(() => ctx.hub.rankings())
     return pointsRows(ctx)
   },
-
-  approvePayment(ctx: Ctx, id: string): PaymentDetail {
-    const payment = checkable(ctx, id)
-    ctx.db
-      .update(t.payments)
-      .set({ status: PaymentStatus.Approved, rejectionReason: null, checkedBy: actor(ctx).id, checkedAt: now() })
-      .where(eq(t.payments.id, id))
-      .run()
-    const detail = paymentDetail(ctx, getPaymentRow(ctx, id))
-    record(ctx.db, actor(ctx).id, 'Approved payment', detail.clubName, { before: { status: payment.status }, after: { status: PaymentStatus.Approved } })
-    tellClub(ctx, payment, `Your payment of ₱${payment.amountPaid ?? payment.amountDue} was approved. Your entries are confirmed.`)
-    return detail
-  },
-
-  rejectPayment(ctx: Ctx, id: string, reason: string): PaymentDetail {
-    const payment = checkable(ctx, id)
-    const trimmed = clean(reason)
-    if (!trimmed) return fail('Give a reason so the club knows what to fix.')
-    ctx.db
-      .update(t.payments)
-      .set({ status: PaymentStatus.Rejected, rejectionReason: trimmed, checkedBy: actor(ctx).id, checkedAt: now() })
-      .where(eq(t.payments.id, id))
-      .run()
-    const detail = paymentDetail(ctx, getPaymentRow(ctx, id))
-    record(ctx.db, actor(ctx).id, 'Rejected payment', detail.clubName, { before: { status: payment.status }, after: { status: PaymentStatus.Rejected, reason: trimmed } })
-    tellClub(ctx, payment, `Your payment was not accepted: ${trimmed}. Open BIS, fix it and send it again.`)
-    return detail
-  },
-}
-
-// A message on Messenger after the decision is saved; if it cannot be sent, the club still sees the status in BIS
-function tellClub(ctx: Ctx, payment: { clubId: string }, text: string) {
-  ctx.defer(() => void notifyClub(ctx.config, ctx.db, payment.clubId, text))
-}
-
-function checkable(ctx: Ctx, id: string) {
-  const payment = getPaymentRow(ctx, id)
-  if (payment.status !== PaymentStatus.ForChecking) return fail('Only payments waiting to be checked can be decided.', 409)
-  return payment
 }

@@ -9,25 +9,28 @@ import type {
   AdjudicatorPin,
   AdjudicatorState,
   AdjudicatorSubmission,
+  AthleteInput,
+  AthletePage,
+  AthleteProfile,
+  AthleteRow,
   Announcement,
-  AgeGroup,
   AuditEntry,
   BackupStatus,
-  MessengerLink,
   PaymentSettings,
   Club,
-  ClubDancer,
-  ClubSignUp,
   Competition,
   CompetitionInput,
   Competitor,
   CompetitorHistoryLine,
   CompetitorRow,
   Entry,
-  EntryOption,
   DemoRound,
   EntryRow,
   FinalTie,
+  ClubInput,
+  Coach,
+  CoachInput,
+  CompetitorDetails,
   Event,
   EventInput,
   HeatAssignment,
@@ -43,7 +46,6 @@ import type {
   ProgramSlotInput,
   Payment,
   PaymentDetail,
-  PaymentMethod,
   PaymentStatus,
   PointsRow,
   RankingFilter,
@@ -53,7 +55,11 @@ import type {
   Role,
   SampleCredentials,
   Round,
+  RegistrationInput,
+  RegistrationQuote,
+  RegistrationResult,
   RoundRow,
+  RoundSignature,
   ScheduleItem,
   SessionUser,
   SkatingTable,
@@ -119,8 +125,6 @@ export const generatePins = (_actorId: string, competitionId: string, adjudicato
 export const setPanel = (_actorId: string, eventId: string, adjudicatorIds: string[]) =>
   call<Panel>('setPanel', eventId, adjudicatorIds)
 export const savePointsTable = (_actorId: string, rows: PointsRow[]) => call<PointsRow[]>('savePointsTable', rows)
-export const approvePayment = (_adminId: string, id: string) => call<PaymentDetail>('approvePayment', id)
-export const rejectPayment = (_adminId: string, id: string, reason: string) => call<PaymentDetail>('rejectPayment', id, reason)
 
 // ---- Secretariat ----
 
@@ -129,7 +133,7 @@ export const getEntryRows = (eventId: string) => call<EntryRow[]>('getEntryRows'
 export const setEntryScratched = (_actorId: string, entryId: string, scratched: boolean) =>
   call<EntryRow>('setEntryScratched', entryId, scratched)
 export const getCompetitorRows = () => call<CompetitorRow[]>('getCompetitorRows')
-export const createCompetitor = (_actorId: string, input: { names: string[]; clubId: string }) =>
+export const createCompetitor = (_actorId: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('createCompetitor', input)
 export const setBackNumber = (_actorId: string, competitorId: string, backNumber: number | null) =>
   call<CompetitorRow>('setBackNumber', competitorId, backNumber)
@@ -161,9 +165,17 @@ export const updateProgramSlot = (_actorId: string, slotId: string, input: Progr
 export const moveProgramSlot = (_actorId: string, slotId: string, direction: 'up' | 'down') =>
   call<Program>('moveProgramSlot', slotId, direction)
 export const removeProgramSlot = (_actorId: string, slotId: string) => call<Program>('removeProgramSlot', slotId)
-export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; clubId: string }) =>
+export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('updateCompetitor', id, input)
 export const deleteCompetitor = (_actorId: string, id: string) => call<void>('deleteCompetitor', id)
+export const saveClub = (_actorId: string, input: ClubInput, id?: string) => call<Club>('saveClub', input, ...(id ? [id] : []))
+export const deleteClub = (_actorId: string, id: string) => call<void>('deleteClub', id)
+export const getCoaches = () => call<Coach[]>('getCoaches')
+export const saveCoach = (_actorId: string, input: CoachInput, id?: string) => call<Coach>('saveCoach', input, id)
+export const deleteCoach = (_actorId: string, id: string) => call<void>('deleteCoach', id)
+export const quoteRegistration = (competitorId: string, eventIds: string[], coachFees?: { membership: boolean; summit: boolean }) =>
+  call<RegistrationQuote>('quoteRegistration', competitorId, eventIds, ...(coachFees ? [coachFees] : []))
+export const registerCompetitor = (_actorId: string, input: RegistrationInput) => call<RegistrationResult>('registerCompetitor', input)
 export const deleteLateEntry = (_actorId: string, entryId: string) => call<void>('deleteLateEntry', entryId)
 export const updateLateEntry = (_actorId: string, entryId: string, input: { eventId: string; paidInCash: boolean }) =>
   call<LateEntryRow>('updateLateEntry', entryId, input)
@@ -174,8 +186,8 @@ export const deleteEvent = (_actorId: string, id: string) => call<void>('deleteE
 // ---- Adjudicator ----
 
 export const getAdjudicatorState = (_adjudicatorId: string) => call<AdjudicatorState>('getAdjudicatorState')
-export const submitAdjudicatorMarks = (_adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
-  call<void>('submitAdjudicatorMarks', roundId, submissions)
+export const submitAdjudicatorMarks = (_adjudicatorId: string, roundId: string, submissions: MarkSubmission[], signature?: string) =>
+  call<void>('submitAdjudicatorMarks', roundId, submissions, ...(signature ? [signature] : []))
 
 // ---- Scrutineer ----
 
@@ -189,6 +201,7 @@ export const saveHeats = (_actorId: string, roundId: string, assignments: HeatAs
   call<void>('saveHeats', roundId, assignments)
 export const getMarkingTask = (roundId: string) => call<MarkingTask>('getMarkingTask', roundId)
 export const getSubmissions = (roundId: string) => call<AdjudicatorSubmission[]>('getSubmissions', roundId)
+export const getSignatures = (roundId: string) => call<RoundSignature[]>('getSignatures', roundId)
 export const enterAdjudicatorMarks = (_actorId: string, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
   call<void>('enterAdjudicatorMarks', adjudicatorId, roundId, submissions)
 export const getRecallTable = (roundId: string) => call<RecallTable>('getRecallTable', roundId)
@@ -208,27 +221,24 @@ export const getBackupStatus = () => call<BackupStatus>('getBackupStatus')
 
 export const getAnnouncements = () => call<Announcement[]>('getAnnouncements')
 
-// ---- Club portal ----
-
-export const getClubDancers = (_clubId: string) => call<ClubDancer[]>('getClubDancers')
-export const saveClubDancer = (_clubId: string, input: { names: string[]; ageGroup: AgeGroup }, id?: string) =>
-  call<ClubDancer>('saveClubDancer', input, id)
-export const deleteClubDancer = (_clubId: string, id: string) => call<void>('deleteClubDancer', id)
-export const getEntryOptions = (_clubId: string, dancerId: string) => call<EntryOption[]>('getEntryOptions', dancerId)
-export const registerClubEntries = (_clubId: string, dancerId: string, eventIds: string[]) =>
-  call<void>('registerClubEntries', dancerId, eventIds)
-export const getClubPayments = (_clubId: string) => call<PaymentDetail[]>('getClubPayments')
-export const getPaymentMethods = () => call<PaymentMethod[]>('getPaymentMethods')
-export const submitClubPayment = (_clubId: string, input: { amountPaid: number; referenceNumber: string; receiptUrl: string }) =>
-  call<void>('submitClubPayment', input)
-
 // ---- Signing in and out: separate routes, because they set or clear the cookie ----
 
 export const signInStaff = (username: string, password: string, code?: string) =>
   auth<SessionUser>('staff', { username, password, ...(code ? { code } : {}) })
-export const signInClub = (email: string, password: string) => auth<SessionUser>('club', { email, password })
 export const signInAdjudicator = (pin: string) => auth<SessionUser>('adjudicator', { pin })
-export const signUpNewClub = (input: ClubSignUp) => auth<SessionUser>('club-signup', input)
+export const signInAthlete = (email: string, password: string) => auth<SessionUser>('athlete', { email, password })
+export const signUpAthlete = (name: string, email: string, password: string) => auth<SessionUser>('athlete/sign-up', { name, email, password })
+
+// ---- Athletes ----
+
+export const getMyAthlete = (_athleteId: string) => call<AthletePage>('getMyAthlete')
+export const saveMyAthlete = (_athleteId: string, input: AthleteInput) => call<AthleteProfile>('saveMyAthlete', input)
+export const requestMembership = (_athleteId: string, input: { method: string; reference: string }) => call<AthleteProfile>('requestMembership', input)
+export const getAthletes = () => call<AthleteRow[]>('getAthletes')
+export const confirmMembership = (_actorId: string, id: string) => call<void>('confirmMembership', id)
+export const rejectMembership = (_actorId: string, id: string, reason: string) => call<void>('rejectMembership', id, reason)
+export const resetAthletePassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetAthletePassword', id)
+export const deleteAthlete = (_actorId: string, id: string) => call<void>('deleteAthlete', id)
 export const signOut = () => auth<null>('sign-out', {})
 // Who the cookie belongs to, or null: used when the page loads
 export const getSession = () => getSessionFromServer<SessionUser | null>()
@@ -237,18 +247,12 @@ export const getSession = () => getSessionFromServer<SessionUser | null>()
 
 export const getDemoRounds = async (): Promise<DemoRound[]> => []
 export const startDemoRoundOnFloor = async (_roundId: string | null): Promise<void> => {}
-export const getSampleCredentials = async (): Promise<SampleCredentials> => ({ password: '', usernames: [], clubEmail: '', pins: [] })
+export const getSampleCredentials = async (): Promise<SampleCredentials> => ({ password: '', usernames: [], pins: [] })
 
 // ---- Syncing with the cloud ----
 
 
-// ---- Fees, payment details and club accounts ----
+// ---- Fees and payment details ----
 
 export const getPaymentSettings = () => call<PaymentSettings>('getPaymentSettings')
 export const savePaymentSettings = (_adminId: string, input: PaymentSettings) => call<PaymentSettings>('savePaymentSettings', input)
-export const changeClubPassword = (current: string, next: string) => call<void>('changeClubPassword', current, next)
-export const resetClubPassword = (_adminId: string, id: string) => call<{ tempPassword: string }>('resetClubPassword', id)
-export const eraseClubAccount = (_adminId: string, id: string) => call<void>('eraseClubAccount', id)
-export const getMessengerLink = () => call<MessengerLink>('getMessengerLink')
-export const unlinkMessenger = () => call<void>('unlinkMessenger')
-export const clearOldReceipts = (_adminId: string) => call<number>('clearOldReceipts')

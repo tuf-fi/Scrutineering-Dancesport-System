@@ -1,5 +1,5 @@
 import { useParams } from 'react-router'
-import { useSkatingTable } from '../../hooks/index.ts'
+import { useSignatures, useSkatingTable } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
 import { PrintSheet } from './PrintSheet.tsx'
 import { PrintState } from './PrintState.tsx'
@@ -11,6 +11,7 @@ export function ScoresPage() {
   const { eventId = '' } = useParams()
   const ctx = usePrintContext(eventId)
   const table = useSkatingTable(ctx.round?.id ?? '')
+  const signatures = useSignatures(ctx.round?.id ?? '')
 
   return (
     <PrintState ctx={ctx} failed={table.isError} onRetry={() => void table.refetch()}>
@@ -64,6 +65,23 @@ export function ScoresPage() {
                 ))}
               </tbody>
             </table>
+            {data && (
+              <section aria-label="Adjudicator signatures" className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-x-6 gap-y-5">
+                {data.adjudicators.map((a) => {
+                  const signature = signatures.data?.find((s) => s.adjudicatorId === a.id)?.signature
+                  return (
+                    <div key={a.id} className="flex flex-col">
+                      <div className="flex h-14 items-end border-b border-neutral-900">
+                        {signature && <img src={signature} alt={`Signature of adjudicator ${a.letter}`} className="max-h-14" />}
+                      </div>
+                      <p className="mt-1 text-[8pt]">
+                        {a.letter}) {adjudicators.find((x) => x.letter === a.letter)?.name}
+                      </p>
+                    </div>
+                  )
+                })}
+              </section>
+            )}
           </PrintSheet>
         )
       }}

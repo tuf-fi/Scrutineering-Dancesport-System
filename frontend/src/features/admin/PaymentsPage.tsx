@@ -17,19 +17,13 @@ import { PAYMENT_STATUS_LABEL, formatPeso } from '../../lib/format.ts'
 import { PaymentReview } from './PaymentReview.tsx'
 
 type Filter = 'all' | PaymentStatus
-const ORDER: PaymentStatus[] = [
-  PaymentStatus.ForChecking,
-  PaymentStatus.Unpaid,
-  PaymentStatus.Approved,
-  PaymentStatus.Rejected,
-  PaymentStatus.PaidAtVenue,
-]
+const ORDER: PaymentStatus[] = [PaymentStatus.Unpaid, PaymentStatus.Approved, PaymentStatus.PaidAtVenue]
 
 export function PaymentsPage() {
   const payments = usePaymentDetails()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
-  const filter = (params.get('status') as Filter | null) ?? PaymentStatus.ForChecking
+  const filter = (params.get('status') as Filter | null) ?? PaymentStatus.Unpaid
   const selectedId = params.get('payment')
 
   const update = (next: Record<string, string | null>) =>
@@ -62,9 +56,9 @@ export function PaymentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Payments" description="Check each club's proof of payment against the amount due." />
+      <PageHeader title="Payments" description="What each team has paid, and what is still owed. The secretariat records payments." />
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
         {filters.map((f) => (
           <button
             key={f.id}

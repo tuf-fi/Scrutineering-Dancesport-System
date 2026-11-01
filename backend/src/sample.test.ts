@@ -1,4 +1,4 @@
-import type { CompetitorRow, EntryOption, EntryRow, ImportResult, LateEntryRow, ScheduleItem } from '@bis/shared'
+import type { CompetitorRow, EntryRow, ImportResult, LateEntryRow, ScheduleItem } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { startTestApp, type TestApp } from './testing.ts'
 
@@ -227,20 +227,5 @@ describe('what there is to mark', () => {
     expect((await app.call('getMarkingTask', [`${COMP}:e11:round_2`], secretariat)).status).toBe(403)
     expect((await app.call('getMarkingTask', [`${COMP}:e11:round_2`], adjudicator)).status).toBe(403)
     expect((await app.call('getMarkingTask', [`${COMP}:e11:round_2`])).status).toBe(401)
-  })
-})
-
-describe('club portal', () => {
-  it('registers entries, locks paid ones and recalculates the amount due', async () => {
-    const clubs = await app.ok<Array<{ contactEmail: string }>>('getClubs', [], admin)
-    const cookie = await app.signIn.club(clubs.at(-1)!.contactEmail)
-    const dancers = await app.ok<Array<{ id: string; names: string[] }>>('getClubDancers', [], cookie)
-    const soloDancer = dancers.find((d) => d.names.length === 1)
-    if (!soloDancer) return
-    const options = await app.ok<EntryOption[]>('getEntryOptions', [soloDancer.id], cookie)
-    expect(options.length).toBeGreaterThan(0)
-    expect(options.every((o) => typeof o.fee === 'number')).toBe(true)
-    expect((await app.call('registerClubEntries', [soloDancer.id, ['not-an-event']], cookie)).status).toBe(400)
-    expect(await app.ok('getPaymentMethods', [], cookie)).toHaveLength(3)
   })
 })

@@ -1,0 +1,18 @@
+{
+  "source": "Organizer's answers sheet, page 3: Skating System, 7 adjudicators, single dance, places 1 to 6",
+  "adjudicators": ["A", "B", "C", "D", "E", "F", "G"],
+  "dances": [
+    {
+      "dance": "waltz",
+      "marks": {
+        "001": [1, 2, 1, 1, 2, 1, 1],
+        "002": [2, 1, 2, 2, 1, 2, 2],
+        "003": [3, 3, 3, 3, 3, 3, 3],
+        "004": [4, 4, 4, 5, 4, 4, 4],
+        "005": [6, 5, 5, 4, 5, 5, 5],
+        "006": [5, 6, 6, 6, 6, 6, 6]
+      }
+    }
+  ],
+  "expectedPlaces": { "001": 1, "002": 2, "003": 3, "004": 4, "005": 5, "006": 6 }
+}

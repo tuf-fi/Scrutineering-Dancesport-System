@@ -19,8 +19,6 @@ export interface Config {
   // Requests a minute from one address for calls that need no sign-in, such as the public pages; null means no limit.
   // Spectators on one mobile network can share an address, so this is generous.
   publicRatePerMinute: number | null
-  // The organizer's Facebook Page, used to message clubs about their payments. Without a token it is off.
-  messenger: { pageToken: string | null; pageUsername: string | null; verifyToken: string | null; appSecret: string | null }
 }
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
@@ -70,12 +68,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),
     trustProxy: trustProxy(env.TRUST_PROXY),
     pinWindowDays: pinWindowDays(env),
-    publicRatePerMinute: publicRate(env),
-    messenger: {
-      pageToken: env.MESSENGER_PAGE_TOKEN || null,
-      pageUsername: env.MESSENGER_PAGE_USERNAME || null,
-      verifyToken: env.MESSENGER_VERIFY_TOKEN || null,
-      appSecret: env.MESSENGER_APP_SECRET || null,
-    },
+    publicRatePerMinute: publicRate(env),
   }
 }

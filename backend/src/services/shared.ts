@@ -7,6 +7,7 @@ import {
   type Club,
   type Competition,
   type Competitor,
+  type CompetitorDetails,
   type Entry,
   type Event,
   type Heat,
@@ -31,6 +32,8 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   date: r.date,
   venue: r.venue,
   organizer: r.organizer,
+  ...(r.entryDeadline ? { entryDeadline: r.entryDeadline } : {}),
+  ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
 })
 
 export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
@@ -42,6 +45,8 @@ export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
   discipline: r.discipline,
   dances: r.dances,
   isSolo: r.isSolo,
+  kind: r.kind,
+  ...(r.province ? { province: r.province } : {}),
 })
 
 // The password hash never leaves the server
@@ -58,6 +63,7 @@ export const toCompetitor = (r: typeof t.competitors.$inferSelect): Competitor =
   names: r.names,
   backNumber: r.backNumber,
   clubId: r.clubId,
+  ...(r.details ? { details: r.details } : {}),
 })
 
 export const toEntry = (r: typeof t.entries.$inferSelect): Entry => ({
@@ -147,6 +153,22 @@ export function assertFeesSet(ctx: Ctx) {
 
 export const clean = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
 
+// The entry form's details for a competitor, with every field present; null when none were sent
+export function cleanDetails(ctx: Ctx, names: string[], input: unknown): CompetitorDetails | null {
+  if (input === undefined || input === null) return null
+  const d = input as Partial<CompetitorDetails>
+  const dancers = names.map((_, i) => {
+    const x = d.dancers?.[i]
+    const birthDate = clean(x?.birthDate)
+    if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return fail('Enter each date of birth as year-month-day.')
+    return { birthDate, address: clean(x?.address), email: clean(x?.email), phone: clean(x?.phone) }
+  })
+  const coachId = clean(d.coachId) || null
+  if (coachId) found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get(), 'Coach')
+  const memberYear = Number.isInteger(d.memberYear) && (d.memberYear as number) > 2000 ? (d.memberYear as number) : null
+  return { province: clean(d.province), coachId, dancers, beginner: Boolean(d.beginner), memberYear }
+}
+
 export function cleanNames(names: unknown, what = 'competitor'): string[] {
   const list = Array.isArray(names) ? names.map(clean).filter(Boolean) : []
   if (list.length < 1 || list.length > 2) return fail(`A ${what} is one dancer or a couple.`)
@@ -170,7 +192,7 @@ export const getPaymentRow = (ctx: Ctx, id: string) =>
 
 export const competitionOfEvent = (ctx: Ctx, eventId: string) => getEventRow(ctx, eventId).competitionId
 
-// The competition happening now (see pickCurrentCompetition): PINs and the club portal belong to it
+// The competition happening now (see pickCurrentCompetition): PINs belong to it
 export function currentCompetition(ctx: Ctx) {
   return pickCurrentCompetition(ctx.db.select().from(t.competitions).all())
 }
@@ -268,7 +290,8 @@ export function fieldOf(ctx: Ctx, round: typeof t.rounds.$inferSelect): string[]
 export function planFor(entryCount: number): Array<{ type: typeof t.rounds.$inferInsert.type; recall: number | null }> {
   const final = { type: 'final' as const, recall: null }
   const semi = { type: 'semi_final' as const, recall: 6 }
-  if (entryCount <= 7) return [final]
+  // The client's finals have 6 couples ("select 6"), so 7 entries already need a semi-final
+  if (entryCount <= 6) return [final]
   if (entryCount <= 14) return [semi, final]
   if (entryCount <= 24) return [{ type: 'round_1' as const, recall: 12 }, semi, final]
   return [{ type: 'round_1' as const, recall: 24 }, { type: 'round_2' as const, recall: 12 }, semi, final]
@@ -297,8 +320,7 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
     amountDue: row.amountDue,
     amountPaid: row.amountPaid,
     referenceNumber: row.referenceNumber,
-    // Payment proofs are private: only admins and the club that sent them see the image
-    receiptUrl: ctx.user?.role === 'admin' || ctx.user?.role === 'club' ? row.receipt : null,
+    receiptUrl: null,
     status: row.status,
     rejectionReason: row.rejectionReason,
     checkedBy: row.checkedBy,
@@ -324,7 +346,26 @@ export const pointsRows = (ctx: Ctx): PointsRow[] =>
     .from(t.pointsTable)
     .orderBy(asc(t.pointsTable.sortOrder))
     .all()
-    .map((r) => ({ place: r.place, label: r.label, points: r.points }))
+    .map((r) => ({ place: r.place, ...(r.round ? { round: r.round } : {}), label: r.label, points: r.points }))
+
+// Once a payment is paid, the memberships it covered count for the year
+export function applySettles(ctx: Ctx, paymentId: string) {
+  const settles = getPaymentRow(ctx, paymentId).settles
+  if (!settles) return
+  if (settles.competitorId) {
+    const competitor = ctx.db.select().from(t.competitors).where(eq(t.competitors.id, settles.competitorId)).get()
+    if (competitor) {
+      const details: CompetitorDetails = competitor.details ?? { province: '', coachId: null, dancers: [], beginner: false, memberYear: null }
+      ctx.db.update(t.competitors).set({ details: { ...details, memberYear: settles.year } }).where(eq(t.competitors.id, competitor.id)).run()
+    }
+  }
+  if (settles.coachId) {
+    const set: { memberYear?: number; summitYear?: number } = {}
+    if (settles.coachMembership) set.memberYear = settles.year
+    if (settles.coachSummit) set.summitYear = settles.year
+    if (Object.keys(set).length > 0) ctx.db.update(t.coaches).set(set).where(eq(t.coaches.id, settles.coachId)).run()
+  }
+}
 
 export const paymentCanBeChanged = (status: PaymentStatus | undefined) =>
   status === undefined || status === PaymentStatus.Unpaid || status === PaymentStatus.Rejected

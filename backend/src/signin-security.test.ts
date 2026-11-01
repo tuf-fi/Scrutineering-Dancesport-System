@@ -65,22 +65,6 @@ describe('guessing a password', () => {
   })
 })
 
-describe('club sign-up', () => {
-  it('is limited per address, so it cannot be used to fill the database', async () => {
-    const app = await start()
-    const body = (i: number) => ({ name: `Club ${i}`, contactName: 'A', contactEmail: `c${i}@club.example`, contactPhone: '1', password: 'long-enough-1', agreed: true })
-    for (let i = 0; i < 5; i++) expect((await from(app, '10.3.0.1', '/api/auth/club-signup', body(i))).statusCode).toBe(200)
-    expect((await from(app, '10.3.0.1', '/api/auth/club-signup', body(9))).statusCode).toBe(429)
-    expect((await from(app, '10.3.0.2', '/api/auth/club-signup', body(10))).statusCode).toBe(200)
-  })
-
-  it('refuses a large body on a sign-in route, but not on a call that takes a receipt', async () => {
-    const app = await start()
-    const big = { username: 'admin', password: 'x'.repeat(40_000) }
-    expect((await from(app, '10.3.1.1', '/api/auth/staff', big)).statusCode).toBe(413)
-  })
-})
-
 describe('the PIN window', () => {
   const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 

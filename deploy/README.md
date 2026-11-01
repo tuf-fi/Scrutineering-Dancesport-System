@@ -38,16 +38,6 @@ The old `MODE`, `CLOUD_URL`, `SYNC_TOKEN`, `SYNC_TOKENS`, `VENUE_ID`, `SYNC_DELA
 - Take a backup and check you can open it (see Backups).
 - Open the site in a browser and check the console for Content-Security-Policy reports. The header is report-only; once nothing legitimate is reported, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in `Caddyfile` and run `docker compose up -d`.
 
-## Messenger messages to clubs
-
-Clubs can connect Facebook Messenger so they hear when a payment is approved or rejected. It needs a Facebook Page for the organizer and a Meta app, set up once:
-
-1. At developers.facebook.com create an app, add the **Messenger** product and connect the Page.
-2. Fill in `.env`: `MESSENGER_PAGE_USERNAME` (the Page's username, as in m.me/<username>), `MESSENGER_PAGE_TOKEN` (the Page access token), `MESSENGER_APP_SECRET` (the app secret) and `MESSENGER_VERIFY_TOKEN` (any long random text you choose). Run `docker compose up -d`.
-3. In the app's Messenger settings add the webhook `https://<DOMAIN>/api/messenger/webhook` with the same verify token, and subscribe the Page to `messages`, `messaging_postbacks` and `messaging_referrals`.
-4. Test with a club account: Account, Connect Messenger, press Get Started, then approve a payment.
-
-Facebook decides who may send what, and its rules change. A message about a payment goes out as an event update, which may need the app to pass Meta's review (`pages_messaging`) before it reaches people outside the app's testers. If a message is refused, the decision is still saved and the club still sees the status in BIS; the server log says why.
 
 ## Backups
 

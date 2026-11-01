@@ -1,0 +1,1 @@
+ALTER TABLE `events` ADD `province` text DEFAULT '' NOT NULL;

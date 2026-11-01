@@ -8,7 +8,8 @@ import { sql } from 'drizzle-orm'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { RequestLimiter } from './auth/ratelimit.ts'
-import { adjudicatorSession, AttemptLimiter, clubSession, resolveSession, signUpClub, staffSession, startVersion } from './auth/signin.ts'
+import { adjudicatorSession, athleteSession, AttemptLimiter, resolveSession, staffSession, startVersion } from './auth/signin.ts'
+import { createAthlete } from './services/athletes.ts'
 import { record } from './core/audit.ts'
 import { noBackups, type Backups } from './backup.ts'
 import type { Config } from './config.ts'
@@ -20,7 +21,6 @@ import { createSocketHub, SESSION_COOKIE } from './realtime/socket.ts'
 import type { Hub } from './realtime/hub.ts'
 import { allowed, endpoint } from './registry.ts'
 import { submissionSnapshot } from './services/rounds.ts'
-import { registerMessengerWebhook } from './messengerWebhook.ts'
 
 export interface AppDeps {
   config: Config
@@ -111,7 +111,6 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   const limiter = new AttemptLimiter()
   const accounts = new AttemptLimiter(20, 15 * 60_000)
   const pins = new AttemptLimiter(25, 10 * 60_000)
-  const signups = new AttemptLimiter(5, 60 * 60_000)
   const attempt = async (request: FastifyRequest, reply: FastifyReply, identity: string, make: (ctx: Ctx) => SessionUser, kind: 'account' | 'pin' = 'account') => {
     const key = `${request.ip}|${identity.toLowerCase()}`
     const wide = kind === 'pin' ? pins : accounts
@@ -141,18 +140,20 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   app.post('/api/auth/staff', small, (request, reply) =>
     attempt(request, reply, String(body(request).username ?? ''), (ctx) => staffSession(ctx, String(body(request).username ?? ''), String(body(request).password ?? ''), String(body(request).code ?? ''))),
   )
-  app.post('/api/auth/club', small, (request, reply) =>
-    attempt(request, reply, String(body(request).email ?? ''), (ctx) => clubSession(ctx, String(body(request).email ?? ''), String(body(request).password ?? ''))),
-  )
   app.post('/api/auth/adjudicator', small, (request, reply) =>
     attempt(request, reply, 'pin', (ctx) => adjudicatorSession(ctx, String(body(request).pin ?? '')), 'pin'),
   )
-  app.post('/api/auth/club-signup', { bodyLimit: 32 * 1024 }, async (request, reply) => {
+  app.post('/api/auth/athlete', small, (request, reply) =>
+    attempt(request, reply, String(body(request).email ?? ''), (ctx) => athleteSession(ctx, String(body(request).email ?? ''), String(body(request).password ?? ''))),
+  )
+  // Anyone can make an account, so a few per address per hour keeps one visitor from filling the database
+  const signUps = new RequestLimiter(5, 60 * 60_000)
+  app.post('/api/auth/athlete/sign-up', small, async (request, reply) => {
+    if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
     try {
-      signups.check(request.ip)
-      signups.failed(request.ip)
-      const user = sqlite.transaction(() => signUpClub(baseContext(null), request.body as never))()
-      return startSession(reply, user)
+      const input = body(request)
+      const user = sqlite.transaction(() => createAthlete(baseContext(null), { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? '') }))()
+      return startSession(reply, user, 0)
     } catch (error) {
       return sendError(reply, error)
     }
@@ -162,10 +163,6 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     return { data: null }
   })
   app.get('/api/auth/me', async (request) => ({ data: sessionOf(request) }))
-
-  // ---- Facebook Messenger: lets a club's Page conversation be linked to its account ----
-
-  if (config.messenger.verifyToken) registerMessengerWebhook(app, { config, db })
 
   // ---- Every other call: POST /api/call/<name> with { args: [...] } ----
 

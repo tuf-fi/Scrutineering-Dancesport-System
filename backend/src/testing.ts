@@ -49,7 +49,8 @@ export async function startTestApp(options: TestOptions = {}) {
   const signIn = {
     staff: (username: string, password = SAMPLE_PASSWORD) => cookieFrom('/api/auth/staff', { username, password }),
     adjudicator: (pin: string) => cookieFrom('/api/auth/adjudicator', { pin }),
-    club: (email: string, password = SAMPLE_PASSWORD) => cookieFrom('/api/auth/club', { email, password }),
+    athlete: (email: string, password: string) => cookieFrom('/api/auth/athlete', { email, password }),
+    athleteSignUp: (name: string, email: string, password: string) => cookieFrom('/api/auth/athlete/sign-up', { name, email, password }),
   }
 
   async function call<T = unknown>(name: string, args: unknown[] = [], cookie?: string): Promise<Reply<T>> {

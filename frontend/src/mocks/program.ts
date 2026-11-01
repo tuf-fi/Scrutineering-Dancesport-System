@@ -30,7 +30,9 @@ const slots = new Map<string, Slot[]>()
 const starts = new Map<string, string | null>()
 
 const ROUND_ORDER: RoundType[] = [RoundType.Round1, RoundType.Round2, RoundType.QuarterFinal, RoundType.SemiFinal, RoundType.Final]
-const defaultMinutes = (isSolo: boolean, type: RoundType) => (isSolo ? 3 : type === RoundType.Final ? 10 : 8)
+// WDSF rules: at most 2 minutes of music per dance and 10 couples a heat before the final, plus a minute per heat
+const defaultMinutes = (type: RoundType, dances: number, couples: number) =>
+  (type === RoundType.Final ? 1 : Math.max(1, Math.ceil(couples / 10))) * (Math.max(1, dances) * 2 + 1)
 const slotsOf = (competitionId: string) => slots.get(competitionId) ?? slots.set(competitionId, []).get(competitionId)!
 const find = (slotId: string) => {
   for (const [competitionId, list] of slots) {
@@ -116,7 +118,7 @@ export function generate(competitionId: string): Program {
     .filter(({ event, type }) => !has.has(`${event.id}:${type}`))
     .sort((a, b) => ROUND_ORDER.indexOf(a.type) - ROUND_ORDER.indexOf(b.type) || a.order - b.order)
   for (const { event, type } of missing) {
-    list.push({ id: `slot-${event.id}-${type}`, kind: ProgramKind.Round, eventId: event.id, roundType: type, label: null, minutes: defaultMinutes(event.isSolo, type) })
+    list.push({ id: `slot-${event.id}-${type}`, kind: ProgramKind.Round, eventId: event.id, roundType: type, label: null, minutes: defaultMinutes(type, event.dances.length, entries.filter((e) => e.eventId === event.id && !e.scratched).length) })
   }
   return programOf(competitionId)
 }

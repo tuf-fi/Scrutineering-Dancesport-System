@@ -8,6 +8,8 @@ interface Values {
   date: string
   venue: string
   organizer: string
+  entryDeadline: string
+  feeDeadline: string
 }
 
 type Errors = Partial<Record<keyof Values, string>>
@@ -42,6 +44,8 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
       <div className="sm:col-span-2">
         <Input label="Venue" value={values.venue} onChange={set('venue')} error={errors.venue} />
       </div>
+      <Input label="Entries close" hint="Optional. Later entries are flagged." type="date" value={values.entryDeadline} onChange={set('entryDeadline')} />
+      <Input label="Fees due" hint="Optional. Later unpaid entries are flagged." type="date" value={values.feeDeadline} onChange={set('feeDeadline')} />
     </form>
   )
 }
@@ -101,8 +105,15 @@ export function CompetitionDialog({
         key={competition?.id ?? 'new'}
         initial={
           competition
-            ? { name: competition.name, date: competition.date, venue: competition.venue, organizer: competition.organizer }
-            : { name: '', date: '', venue: '', organizer: '' }
+            ? {
+                name: competition.name,
+                date: competition.date,
+                venue: competition.venue,
+                organizer: competition.organizer,
+                entryDeadline: competition.entryDeadline ?? '',
+                feeDeadline: competition.feeDeadline ?? '',
+              }
+            : { name: '', date: '', venue: '', organizer: '', entryDeadline: '', feeDeadline: '' }
         }
         onSubmit={submit}
       />

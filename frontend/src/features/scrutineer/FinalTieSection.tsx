@@ -12,6 +12,8 @@ export function FinalTieSection({ tie, readOnly, isChairperson }: { tie: FinalTi
   const confirm = useConfirmFinalTie()
   const staff = useStaffUsers()
   const people = tie.groups.flatMap((g) => g.competitors)
+  // A tie for 1st goes to the chairperson and is usually danced off; other places can stay shared
+  const settle = tie.groups.some((g) => g.place === 1) ? 'dance-off' : 'tie-break'
   const [mode, setMode] = useState<Mode>(tie.decision?.mode ?? 'keep')
   // Each tied competitor's place in the tie-break, as typed from the sheet
   const [order, setOrder] = useState<Record<string, string>>(() =>
@@ -65,7 +67,7 @@ export function FinalTieSection({ tie, readOnly, isChairperson }: { tie: FinalTi
               </label>
               <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
                 <input type="radio" name="final-tie" checked={mode === 'order'} onChange={() => setMode('order')} className="size-5 accent-neutral-900" />
-                Settle it with a tie-break
+                Settle it with a {settle}
               </label>
             </div>
             {mode === 'order' && (
@@ -73,14 +75,14 @@ export function FinalTieSection({ tie, readOnly, isChairperson }: { tie: FinalTi
                 {people.map((p) => (
                   <Select
                     key={p.competitorId}
-                    label={`Tie-break place of No. ${p.backNumber ?? '–'} ${competitorName(p.names)}`}
+                    label={`${settle === 'dance-off' ? 'Dance-off' : 'Tie-break'} place of No. ${p.backNumber ?? '–'} ${competitorName(p.names)}`}
                     value={order[p.competitorId] ?? ''}
                     onChange={(e) => setOrder((o) => ({ ...o, [p.competitorId]: e.target.value }))}
                   >
                     <option value="">Choose</option>
                     {people.map((_, i) => (
                       <option key={i} value={String(i + 1)}>
-                        {ordinal(i + 1)} in the tie-break
+                        {ordinal(i + 1)} in the {settle}
                       </option>
                     ))}
                   </Select>
@@ -93,7 +95,7 @@ export function FinalTieSection({ tie, readOnly, isChairperson }: { tie: FinalTi
             <p className="text-small text-neutral-600">
               {decision.mode === 'keep'
                 ? 'The place stays shared.'
-                : `Settled by a tie-break: ${decision.order
+                : `Settled by a ${settle}: ${decision.order
                     .map((id) => `No. ${people.find((p) => p.competitorId === id)?.backNumber ?? '–'}`)
                     .join(', then ')}.`}
             </p>

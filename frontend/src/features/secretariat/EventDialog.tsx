@@ -1,9 +1,9 @@
-import { AgeGroup, Class, DISCIPLINE_DANCES, Discipline, type Event } from '@bis/shared'
+import { AgeGroup, Class, DISCIPLINE_DANCES, Discipline, EventKind, type Event } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
 import { useSaveEvent } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { AGE_GROUP_LABEL, DANCE_LABEL, DISCIPLINE_LABEL, eventCode } from '../../lib/format.ts'
+import { AGE_GROUP_LABEL, DANCE_LABEL, DISCIPLINE_LABEL, EVENT_KIND_LABEL, eventCode } from '../../lib/format.ts'
 
 const FORM_ID = 'event-form'
 
@@ -20,11 +20,13 @@ function EventForm({
 }) {
   const save = useSaveEvent()
   const [number, setNumber] = useState(String(event?.number ?? nextNumber))
-  const [ageGroup, setAgeGroup] = useState(event?.ageGroup ?? AgeGroup.Juvenile)
+  const [ageGroup, setAgeGroup] = useState(event?.ageGroup ?? AgeGroup.Juvenile1)
   const [cls, setCls] = useState(event?.class ?? Class.E1)
   const [discipline, setDiscipline] = useState(event?.discipline ?? Discipline.Latin)
   const [dances, setDances] = useState(event?.dances ?? [])
   const [type, setType] = useState(event?.isSolo === false ? 'couple' : 'solo')
+  const [kind, setKind] = useState<EventKind>(event?.kind ?? EventKind.Standard)
+  const [province, setProvince] = useState(event?.province ?? '')
   const [error, setError] = useState<string | null>(null)
 
   function pickDiscipline(next: Discipline) {
@@ -41,12 +43,13 @@ function EventForm({
     const n = number.trim()
     if (!/^\d+$/.test(n)) return setError('The event number is a whole number.')
     if (dances.length === 0) return setError('Choose at least one dance.')
+    if (kind === EventKind.Closed && !province.trim()) return setError('Enter the province this event is closed to.')
     setError(null)
     save.mutate(
       {
         competitionId,
         id: event?.id,
-        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo' },
+        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, ...(kind === EventKind.Closed ? { province: province.trim() } : {}) },
       },
       {
         onSuccess: (saved) => {
@@ -72,6 +75,18 @@ function EventForm({
           <option value="solo">Solo</option>
           <option value="couple">Couple</option>
         </Select>
+        <Select label="Kind" hint="Sets the fee and who may enter." value={kind} onChange={(e) => setKind(e.target.value as EventKind)}>
+          {Object.values(EventKind).map((k) => (
+            <option key={k} value={k}>
+              {EVENT_KIND_LABEL[k]}
+            </option>
+          ))}
+        </Select>
+        {kind === EventKind.Closed && (
+          <div className="sm:col-span-2">
+            <Input label="Open to province" hint="Only teams from this province can be entered." value={province} onChange={(e) => setProvince(e.target.value)} />
+          </div>
+        )}
         <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value as AgeGroup)}>
           {Object.values(AgeGroup).map((a) => (
             <option key={a} value={a}>

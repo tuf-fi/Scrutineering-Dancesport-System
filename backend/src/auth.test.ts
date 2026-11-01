@@ -132,29 +132,3 @@ describe('adjudicator PIN sign-in', () => {
     expect(new Set(pins.map((p) => p.pin)).size).toBe(pins.length)
   })
 })
-
-describe('club accounts', () => {
-  const club = { name: 'Bulan Dance Studio', contactName: 'Ana Reyes', contactEmail: 'ana@bulan.example', contactPhone: '0917 111 2222', password: 'long-enough-1', agreed: true }
-
-  it('signs up, signs in and only sees its own club', async () => {
-    const signup = await post('/api/auth/club-signup', club)
-    expect(signup.statusCode).toBe(200)
-    expect(signup.json().data).toMatchObject({ role: 'club', name: 'Bulan Dance Studio' })
-    const cookie = await app.signIn.club('ANA@bulan.example', club.password)
-    expect(await app.ok('getClubDancers', [], cookie)).toEqual([])
-    const other = await app.signIn.club((await app.ok<Array<{ contactEmail: string }>>('getClubs', [], await app.signIn.staff('admin')))[0]!.contactEmail)
-    const dancers = await app.ok<Array<{ id: string }>>('getClubDancers', [], other)
-    expect(dancers.length).toBeGreaterThan(0)
-    // Another club's dancer cannot be edited
-    const edit = await app.call('saveClubDancer', [{ names: ['Hijack'], ageGroup: 'adult' }, dancers[0]!.id], cookie)
-    expect(edit.status).toBe(403)
-  })
-
-  it('refuses a short password, a bad email and a repeated email or name', async () => {
-    expect((await post('/api/auth/club-signup', { ...club, password: 'short' })).statusCode).toBe(400)
-    expect((await post('/api/auth/club-signup', { ...club, contactEmail: 'not-an-email' })).statusCode).toBe(400)
-    await post('/api/auth/club-signup', club)
-    expect((await post('/api/auth/club-signup', { ...club, name: 'Another Name' })).statusCode).toBe(409)
-    expect((await post('/api/auth/club-signup', { ...club, contactEmail: 'b@bulan.example' })).statusCode).toBe(409)
-  })
-})

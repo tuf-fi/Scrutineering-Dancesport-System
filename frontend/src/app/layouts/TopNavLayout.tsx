@@ -1,13 +1,10 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { Brand } from '../../components/Brand.tsx'
-import { Button } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { useAuth } from '../../stores/auth.ts'
-import { clubNav, publicNav, type NavItem } from '../nav.ts'
-import { useSignOut } from '../useSignOut.ts'
+import { publicNav, type NavItem } from '../nav.ts'
 
-// Mobile-first top navigation shared by the public site and the club portal
+// Mobile-first top navigation of the public site
 function TopNavLayout({ items, right }: { items: NavItem[]; right: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -53,28 +50,11 @@ export function PublicLayout() {
     <TopNavLayout
       items={publicNav}
       right={
-        <Link to="/club/sign-in" className="text-small font-semibold text-neutral-700 hover:text-neutral-900">
-          Club sign-in
+        <Link to="/athlete" className="text-small font-semibold text-neutral-900 underline underline-offset-4">
+          Athlete sign-in
         </Link>
       }
     />
   )
 }
 
-export function ClubLayout() {
-  const user = useAuth((s) => s.user)
-  const signOut = useSignOut('/club/sign-in')
-  return (
-    <TopNavLayout
-      items={clubNav}
-      right={
-        <>
-          <span className="hidden text-small text-neutral-600 sm:inline">{user?.name}</span>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            Sign out
-          </Button>
-        </>
-      }
-    />
-  )
-}

@@ -32,7 +32,7 @@ describe('database', () => {
     const { sqlite } = fresh()
     expect(tableNames(sqlite)).toEqual(
       [
-        'adjudicator_pins', 'adjudicators', 'audit_log', 'clubs', 'competitions', 'competitors', 'entries', 'events', 'final_tie_decisions',
+        'adjudicator_pins', 'adjudicators', 'athletes', 'audit_log', 'clubs', 'coaches', 'competitions', 'competitors', 'entries', 'events', 'final_tie_decisions',
         'heat_competitors', 'heats', 'marks', 'panel_members', 'panels', 'payments', 'points_table', 'program_slots', 'program_starts',
         'ranking_points', 'results', 'rounds', 'settings', 'staff_users', 'submissions', 'tie_decisions',
       ].sort(),
