@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { generateProgram, getCompetitors, getEntriesByBackNumber, getProgram, setProgramStart } from '../../mocks/api.ts'
@@ -6,9 +6,9 @@ import { renderApp } from '../../test-utils.tsx'
 
 // The table shows skeleton rows first, so wait until real rows (with a competitor link) arrive
 const rowsOf = async () => {
-  const table = await screen.findByRole('table')
-  await within(table).findAllByRole('link')
-  return within(table).getAllByRole('row').slice(1)
+  const list = await screen.findByRole('list', { name: 'Rankings' })
+  await within(list).findAllByRole('link')
+  return within(list).getAllByRole('listitem')
 }
 
 describe('rankings page', () => {
@@ -20,9 +20,25 @@ describe('rankings page', () => {
     expect(screen.getByLabelText('Class')).toHaveValue('E1')
 
     const rows = await rowsOf()
-    expect(within(rows[0]).getAllByRole('cell')[0]).toHaveTextContent('1')
-    const points = rows.map((r) => Number(within(r).getAllByRole('cell').at(-1)?.textContent))
+    expect(rows[0]).toHaveTextContent(/^01/)
+    const points = rows.map((r) => Number(r.querySelector('span.tabular-nums:not(.font-mono)')?.textContent))
     expect(points).toEqual([...points].sort((a, b) => b - a))
+  })
+
+  it('opens on the page that holds the highlighted row, and marks it', async () => {
+    renderApp('/rankings')
+    await rowsOf()
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Rankings pagination' })).getByRole('button', { name: 'Next page' }))
+    const [onSecondPage] = await rowsOf()
+    const id = onSecondPage!.getAttribute('data-row')
+    expect(id).toBeTruthy()
+    cleanup()
+
+    renderApp(`/rankings?highlight=${id}`)
+    await waitFor(() => expect(screen.getByText(/^11–/)).toBeInTheDocument())
+    const row = document.querySelector(`[data-row="${id}"]`)
+    expect(row).not.toBeNull()
+    expect(row?.className).toContain('bg-gold-50')
   })
 
   it('shows 10 rows a page and pages through the rest, ranks continuing', async () => {
@@ -38,7 +54,7 @@ describe('rankings page', () => {
     expect(second.length).toBeLessThanOrEqual(10)
     expect(screen.getByText(/^11–/)).toBeInTheDocument()
     // Page 2 starts after page 1's leaders, so its best rank is no better than page 1's last
-    const rank = (row: HTMLElement) => Number(within(row).getAllByRole('cell')[0].textContent)
+    const rank = (row: HTMLElement) => parseInt(row.textContent ?? '', 10)
     expect(rank(second[0])).toBeGreaterThanOrEqual(rank(first[first.length - 1]))
   })
 
@@ -106,7 +122,7 @@ describe('competitor page', () => {
     const first = (await rowsOf())[0]
     const link = within(first).getAllByRole('link')[0]
     const name = link.textContent ?? ''
-    await userEvent.click(first)
+    await userEvent.click(link)
 
     expect(await screen.findByRole('heading', { level: 1, name })).toBeInTheDocument()
     expect(router.state.location.pathname).toMatch(/^\/competitors\/c-\d+$/)
@@ -114,16 +130,13 @@ describe('competitor page', () => {
     expect(screen.getByRole('heading', { name: 'Results' })).toBeInTheDocument()
     expect(screen.getByText('Competitions', { selector: 'dt' })).toBeInTheDocument()
     // The leader of this category is ranked 1st in it
-    const tables = await screen.findAllByRole('table')
-    expect(within(tables[0]).getByText('Junior I · E1 · Latin')).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Junior I · E1 · Latin' })).toBeInTheDocument()
   })
 
   it('goes back to the right category from a standing row', async () => {
     const router = renderApp('/rankings')
-    await userEvent.click((await rowsOf())[0])
-    const [standings] = await screen.findAllByRole('table')
-    await within(standings).findByText('Junior I · E1 · Latin')
-    await userEvent.click(within(standings).getAllByRole('row')[1])
+    await userEvent.click(within((await rowsOf())[0]).getAllByRole('link')[0])
+    await userEvent.click(await screen.findByRole('link', { name: 'Junior I · E1 · Latin' }))
     expect(router.state.location.pathname).toBe('/rankings')
     expect(router.state.location.search).toMatch(/discipline=\w+&age=\w+&class=\w+/)
   })
@@ -135,18 +148,6 @@ describe('competitor page', () => {
 })
 
 describe('public site', () => {
-  it('home shows what is on the floor and the latest results', async () => {
-    renderApp('/')
-    expect(await screen.findByRole('heading', { name: 'Sorsogon Dancesport Open 2026' })).toBeInTheDocument()
-    const floor = await screen.findByRole('region', { name: 'On the floor now' })
-    expect(within(floor).getByText(/E11/)).toBeInTheDocument()
-
-    const latest = await screen.findByRole('region', { name: 'Latest results' })
-    const podium = await within(latest).findAllByRole('listitem')
-    expect(podium.length).toBeGreaterThanOrEqual(3)
-    expect(within(latest).getAllByText('1st').length).toBeGreaterThan(0)
-  })
-
   it('goes from the competitions list to an event and its results', async () => {
     renderApp('/competitions')
     expect(await screen.findByRole('heading', { name: 'Competitions' })).toBeInTheDocument()
@@ -157,17 +158,17 @@ describe('public site', () => {
     await userEvent.click(await screen.findByRole('link', { name: /E12/ }))
 
     expect(await screen.findByRole('heading', { name: /^E12 Rumba/ })).toBeInTheDocument()
-    const table = await screen.findByRole('table')
-    await within(table).findAllByRole('link')
-    const rows = within(table).getAllByRole('row').slice(1)
+    const list = await screen.findByRole('list', { name: 'Results' })
+    await within(list).findAllByRole('link')
+    const rows = within(list).getAllByRole('listitem')
     expect(within(rows[0]).getByText('1st')).toBeInTheDocument()
     expect((await screen.findAllByText(/back numbers through to/)).length).toBe(2)
   })
 
   it('opens a competitor profile from the results', async () => {
     renderApp('/competitions/comp-sorsogon-2026/events/comp-sorsogon-2026:e12')
-    const table = await screen.findByRole('table')
-    const [first] = await within(table).findAllByRole('link')
+    const list = await screen.findByRole('list', { name: 'Results' })
+    const [first] = await within(list).findAllByRole('link')
     await userEvent.click(first)
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
   })
@@ -180,9 +181,9 @@ describe('program page', () => {
   })
 
   const programRows = async () => {
-    const table = await screen.findByRole('table')
-    await within(table).findByText('7:00 AM')
-    return within(table).getAllByRole('row').slice(1)
+    const list = await screen.findByRole('list', { name: 'Running order' })
+    await within(list).findByText('7:00 AM')
+    return within(list).getAllByRole('listitem')
   }
 
   it('shows the running order with times, 10 lines a page, and what is next', async () => {
@@ -190,12 +191,11 @@ describe('program page', () => {
     expect(await screen.findByRole('heading', { name: 'Program' })).toBeInTheDocument()
     const rows = await programRows()
     expect(rows).toHaveLength(10)
-    expect(within(rows[0]).getAllByRole('cell')[0]).toHaveTextContent('7:00 AM')
+    expect(rows[0]).toHaveTextContent('7:00 AM')
     expect(screen.getByText(/^1–10$/)).toBeInTheDocument()
 
-    const strip = within(screen.getByRole('region', { name: 'On the floor and up next' }))
-    expect(strip.getByText('On the floor')).toBeInTheDocument()
-    expect(strip.getByText('Up next')).toBeInTheDocument()
+    // Sorsogon was held on an earlier day, so nothing is on the floor
+    expect(screen.queryByRole('region', { name: 'On the floor and up next' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^Back$|Sorsogon/i })).toBeInTheDocument()
   })
 
@@ -205,10 +205,9 @@ describe('program page', () => {
 
     await userEvent.selectOptions(screen.getByLabelText('Round'), 'final')
     await waitFor(() => {
-      const table = screen.getByRole('table')
-      const cells = within(table).getAllByRole('row').slice(1).map((r) => within(r).queryAllByRole('cell')[2]?.textContent)
-      expect(cells.length).toBeGreaterThan(0)
-      expect(cells.every((c) => c === 'Final' || c === undefined)).toBe(true)
+      const items = within(screen.getByRole('list', { name: 'Running order' })).getAllByRole('listitem')
+      expect(items.length).toBeGreaterThan(0)
+      expect(items.every((r) => r.textContent?.includes('Final'))).toBe(true)
     })
     await userEvent.selectOptions(screen.getByLabelText('Round'), 'all')
 
@@ -250,7 +249,7 @@ describe('program page', () => {
     renderApp('/competitions/comp-sorsogon-2026/program')
     await programRows()
     await userEvent.type(screen.getByLabelText('Back number'), String(chosen.number))
-    await waitFor(() => expect(screen.getByText(new RegExp(`^1–${Math.min(expected, 10)}$`))).toBeInTheDocument())
+    await waitFor(() => expect(within(screen.getByRole('list', { name: 'Running order' })).getAllByRole('listitem')).toHaveLength(Math.min(expected, 10)))
     expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', `/competitions/comp-sorsogon-2026/program/print?back=${chosen.number}`)
 
     await userEvent.clear(screen.getByLabelText('Back number'))

@@ -10,6 +10,8 @@ import { secretariat } from './services/secretariat.ts'
 import { security } from './services/security.ts'
 import { accountFunctions } from './services/accounts.ts'
 import { athletes } from './services/athletes.ts'
+import { entryRequests } from './services/entryRequests.ts'
+import { approveMemberClaim, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
 import { isStaff, toClub } from './services/shared.ts'
 import * as t from './db/schema.ts'
 import { asc } from 'drizzle-orm'
@@ -17,10 +19,12 @@ import { asc } from 'drizzle-orm'
 type Handler = (ctx: Ctx, ...args: never[]) => unknown
 
 const STAFF: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
+// Staff who work the competition; the MC only reads announcements
+const OFFICIALS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
 const ADMIN: Role[] = [Role.Admin]
 const ADMIN_OR_SECRETARIAT: Role[] = [Role.Admin, Role.Secretariat]
 const SCRUTINEER: Role[] = [Role.Scrutineer]
-const SCORING: Role[] = [Role.Scrutineer, Role.Chairperson, Role.Admin]
+const SCORING: Role[] = [Role.Scrutineer, Role.Chairperson]
 
 // 'public' needs no sign-in; 'signedIn' needs any account; a list needs one of those roles
 export type Access = 'public' | 'signedIn' | Role[]
@@ -47,6 +51,16 @@ const handlers: Record<string, Handler> = {
   ...scrutiny,
   ...accountFunctions,
   ...athletes,
+  ...entryRequests,
+  getMyMember,
+  saveMyMember,
+  saveMyMemberPhoto,
+  claimRecord,
+  cancelClaim,
+  getMyRoster,
+  getMemberClaims,
+  approveMemberClaim,
+  rejectMemberClaim,
   getClubs,
   getBackupStatus,
 } as unknown as Record<string, Handler>
@@ -76,20 +90,22 @@ const access: Record<string, Access> = {
   getCurrentRoundId: 'signedIn',
 
   // Staff
-  getEntries: STAFF,
-  getHeats: STAFF,
-  getAdjudicators: STAFF,
-  getPanel: STAFF,
-  getPanels: STAFF,
-  getCompetitionEntries: STAFF,
-  getEntryRows: STAFF,
-  getCompetitorRows: STAFF,
-  getLateEntries: STAFF,
-  getSchedule: STAFF,
+  getEntries: OFFICIALS,
+  getHeats: OFFICIALS,
+  getAdjudicators: OFFICIALS,
+  getPanel: OFFICIALS,
+  getPanels: OFFICIALS,
+  getAdjudicatorAssignments: OFFICIALS,
+  getCompetitionEntries: OFFICIALS,
+  getEntryRows: OFFICIALS,
+  getCompetitorRows: OFFICIALS,
+  getLateEntries: OFFICIALS,
+  getSchedule: OFFICIALS,
+  // The MC's screen reads only this, besides the public program and results
   getAnnouncements: STAFF,
-  getSignatures: STAFF,
-  getSubmissions: STAFF,
-  getHeatAssignments: STAFF,
+  getSignatures: OFFICIALS,
+  getSubmissions: OFFICIALS,
+  getHeatAssignments: OFFICIALS,
   getMarks: SCORING,
   getMarkingTask: SCORING,
 
@@ -104,6 +120,8 @@ const access: Record<string, Access> = {
   deleteStaffUser: ADMIN,
   revokeSessions: ADMIN,
   resetTotp: ADMIN,
+  changeMyStaffPassword: STAFF,
+  saveMyStaffName: STAFF,
   getTotpStatus: STAFF,
   startTotpSetup: STAFF,
   confirmTotpSetup: STAFF,
@@ -140,7 +158,7 @@ const access: Record<string, Access> = {
   deleteLateEntry: ADMIN_OR_SECRETARIAT,
   updateLateEntry: ADMIN_OR_SECRETARIAT,
   saveEvent: ADMIN_OR_SECRETARIAT,
-  getCoaches: [...STAFF, Role.Athlete],
+  getCoaches: [...OFFICIALS, Role.Athlete, Role.Coach],
   saveClub: ADMIN_OR_SECRETARIAT,
   deleteClub: ADMIN_OR_SECRETARIAT,
   saveCoach: ADMIN_OR_SECRETARIAT,
@@ -172,8 +190,35 @@ const access: Record<string, Access> = {
 
   // Athletes, each only for themselves; the secretariat checks their membership payments
   getMyAthlete: [Role.Athlete],
+  getMyMember: [Role.Coach, Role.Team],
+  saveMyMember: [Role.Coach, Role.Team],
+  saveMyMemberPhoto: [Role.Coach, Role.Team],
+  getMyEntrants: [Role.Team, Role.Athlete],
+  getEntryPaymentMethods: [Role.Team, Role.Athlete],
+  quoteMyEntries: [Role.Team, Role.Athlete],
+  submitEntryRequest: [Role.Team, Role.Athlete],
+  getMyEntryRequests: [Role.Team, Role.Athlete],
+  cancelEntryRequest: [Role.Team, Role.Athlete],
+  getEntryRequests: ADMIN_OR_SECRETARIAT,
+  approveEntryRequest: ADMIN_OR_SECRETARIAT,
+  rejectEntryRequest: ADMIN_OR_SECRETARIAT,
+  claimRecord: [Role.Coach, Role.Team],
+  cancelClaim: [Role.Coach, Role.Team],
+  getMyRoster: [Role.Coach, Role.Team],
+  getMemberClaims: ADMIN_OR_SECRETARIAT,
+  approveMemberClaim: ADMIN_OR_SECRETARIAT,
+  rejectMemberClaim: ADMIN_OR_SECRETARIAT,
   saveMyAthlete: [Role.Athlete],
   requestMembership: [Role.Athlete],
+  changeMyPassword: [Role.Athlete, Role.Coach, Role.Team],
+  signOutEverywhere: [Role.Athlete, Role.Coach, Role.Team],
+  saveMyPhoto: [Role.Athlete],
+  getMyActivity: [Role.Athlete, Role.Coach, Role.Team],
+  getCompetitorActivity: OFFICIALS,
+  getMyNotifications: [Role.Athlete, Role.Coach, Role.Team],
+  markNotificationsRead: [Role.Athlete, Role.Coach, Role.Team],
+  approveProfileChange: ADMIN_OR_SECRETARIAT,
+  rejectProfileChange: ADMIN_OR_SECRETARIAT,
   getAthletes: ADMIN_OR_SECRETARIAT,
   confirmMembership: ADMIN_OR_SECRETARIAT,
   rejectMembership: ADMIN_OR_SECRETARIAT,

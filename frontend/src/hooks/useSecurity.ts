@@ -18,3 +18,11 @@ export const useStartTotpSetup = () => useTotpWrite(() => api.startTotpSetup(act
 export const useConfirmTotpSetup = () => useTotpWrite((code: string) => api.confirmTotpSetup(actor(), code))
 export const useDisableTotp = () => useTotpWrite((v: { password: string; code: string }) => api.disableTotp(actor(), v.password, v.code))
 export const useResetTotp = () => useTotpWrite((id: string) => api.resetTotp(actor(), id))
+
+// Staff changing their own password or name
+export const useChangeMyStaffPassword = () => useMutation({ mutationFn: (v: { current: string; next: string }) => api.changeMyStaffPassword(actor(), v.current, v.next) })
+
+export const useSaveMyStaffName = () => {
+  const queryClient = useQueryClient()
+  return useMutation({ mutationFn: (name: string) => api.saveMyStaffName(actor(), name), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['staff-users'] }) })
+}

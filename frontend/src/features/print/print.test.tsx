@@ -1,7 +1,7 @@
 import { Role } from '@bis/shared'
-import { screen, waitFor, within } from '@testing-library/react'
+import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
-import { generateProgram, getCompetitors, getEntriesByBackNumber, setProgramStart } from '../../mocks/api.ts'
+import { generateProgram, getAdjudicators, getCompetitors, getEntriesByBackNumber, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 const staff = { id: 'staff-scrutineer', name: 'Teresita Quimpo' }
@@ -139,6 +139,19 @@ describe('PIN cards', () => {
     const qr = await within(cards[0]!).findByRole('img', { name: /^Sign-in code for / })
     const svg = decodeURIComponent(qr.getAttribute('src')!.replace('data:image/svg+xml;utf8,', ''))
     expect(svg).toContain('<svg')
+  })
+
+  it('prints only the cards that were chosen', async () => {
+    renderApp('/print/pin-cards/comp-sorsogon-2026', Role.Admin, admin)
+    const all = within(await screen.findByRole('list', { name: 'PIN cards' })).getAllByRole('listitem')
+    expect(all.length).toBeGreaterThan(2)
+    cleanup()
+
+    // Any two adjudicator ids that have cards
+    const ids = (await getAdjudicators()).slice(0, 2).map((x) => x.id)
+    renderApp(`/print/pin-cards/comp-sorsogon-2026?ids=${ids.join(',')}`, Role.Admin, admin)
+    const chosen = within(await screen.findByRole('list', { name: 'PIN cards' })).getAllByRole('listitem')
+    expect(chosen).toHaveLength(2)
   })
 
   it('says so when no PINs exist yet', async () => {

@@ -2,11 +2,11 @@ import { Role, type AuditEntry, type StaffUser } from '@bis/shared'
 import { at } from './rng.ts'
 
 export const staffUsers: StaffUser[] = [
-  { id: 'staff-admin', name: 'Amelia Rosales', username: 'admin', role: Role.Admin },
-  { id: 'staff-secretariat', name: 'Jonas Bellosillo', username: 'secretariat', role: Role.Secretariat },
-  { id: 'staff-scrutineer', name: 'Teresita Quimpo', username: 'scrutineer', role: Role.Scrutineer },
-  { id: 'staff-chairperson', name: 'Gregorio Almazan', username: 'chairperson', role: Role.Chairperson },
-  { id: 'staff-mc', name: 'Dante Ibarra', username: 'mc', role: Role.Mc },
+  { id: 'staff-admin', name: 'Amelia Rosales', username: 'admin@sample.example', role: Role.Admin },
+  { id: 'staff-secretariat', name: 'Jonas Bellosillo', username: 'secretariat@sample.example', role: Role.Secretariat },
+  { id: 'staff-scrutineer', name: 'Teresita Quimpo', username: 'scrutineer@sample.example', role: Role.Scrutineer },
+  { id: 'staff-chairperson', name: 'Gregorio Almazan', username: 'chairperson@sample.example', role: Role.Chairperson },
+  { id: 'staff-mc', name: 'Dante Ibarra', username: 'mc@sample.example', role: Role.Mc },
 ]
 
 export const auditLog: AuditEntry[] = [

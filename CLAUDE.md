@@ -34,6 +34,14 @@ When a function is added to the server, add it to `API_FUNCTIONS` in `packages/s
 - Always make **modern, sleek, aesthetic, clean and consistent** designs when building UI.
 - Reuse the design tokens and the components in `components/ui/`. Don't use one-off colors, sizes or styles.
 - Avoid AI slop: no beige palettes, no cards inside cards, no stacks of badges, no placeholder-only form labels and no low-contrast text.
+- Public site style (details in `DESIGN.md`):
+  - Black hero and footer around a white page. Section titles are small, bold and uppercase over a 1px black rule; never oversized.
+  - Gold is sparing: the one call-to-action (a gold cell or bar), small gold mono dates and numbers, and the hover state.
+  - Hover is light: an arrow that turns gold and rotates, a gold border, a pale tint, or a photo going from black and white to colour. Never a solid black fill, blur, glass or a gradient wash.
+  - Cards have a hairline border and an 8 to 12px radius, with one large figure (a day, a count). Photos only where a real one exists, one crop per image.
+  - Avoid the stock layouts: numbered timelines with lines, three equal icon-and-text columns, centred bands, pastel-tinted cards, a pin icon on every row.
+  - When the user calls a design AI slop, remove decoration and change the idea, don't add more.
+  - Check every public change in a screenshot at 1280px and 390px before calling it done.
 - Design for the device each role uses:
   - Adjudicator: phone, one hand, large touch targets (at least 56px)
   - Staff: laptop, dense but readable tables

@@ -1,0 +1,1 @@
+ALTER TABLE `member_accounts` ADD `phone` text DEFAULT '' NOT NULL;

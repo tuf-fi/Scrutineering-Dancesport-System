@@ -1,14 +1,15 @@
-import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { ChevronRight, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { usingMocks } from '../../api/mode.ts'
 import { Avatars } from '../../components/Avatars.tsx'
+import logo from '../../assets/logo.png'
 import { Brand } from '../../components/Brand.tsx'
 import { cn } from '../../lib/cn.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useConnection } from '../../stores/connection.ts'
 import { useUi } from '../../stores/ui.ts'
-import type { NavItem } from '../nav.ts'
+import { STAFF_SIGN_IN, type NavItem } from '../nav.ts'
 import { useSignOut } from '../useSignOut.ts'
 
 // A label that appears beside an icon when the sidebar is collapsed
@@ -95,12 +96,43 @@ function ConnectionRow({ collapsed }: { collapsed: boolean }) {
   )
 }
 
+// The signed-in person: a card that opens their account page, where they can change their name and password
+function AccountLink({ user }: { user: NonNullable<ReturnType<typeof useAuth.getState>['user']> }) {
+  return (
+    <NavLink
+      to="/account"
+      className={({ isActive }) =>
+        cn(
+          'group mx-3 mt-3 flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors',
+          isActive ? 'border-neutral-200 bg-white' : 'border-transparent hover:bg-neutral-100',
+        )
+      }
+    >
+      <Avatars names={[user.name]} size="lg" />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-small font-semibold text-neutral-900">{user.name}</span>
+        <span className="truncate text-xs text-neutral-500">{ROLE_LABEL[user.role]}</span>
+      </span>
+      <ChevronRight aria-hidden className="size-4 shrink-0 text-neutral-300 transition-colors group-hover:text-neutral-500" strokeWidth={1.75} />
+    </NavLink>
+  )
+}
+
 export function Sidebar({ items }: { items: NavItem[] }) {
   const user = useAuth((s) => s.user)
   const collapsed = useUi((s) => s.sidebarCollapsed)
   const toggle = useUi((s) => s.toggleSidebar)
-  const signOut = useSignOut('/login')
+  const signOut = useSignOut(STAFF_SIGN_IN)
   if (!user) return null
+
+  // Items that share a group sit together under its heading; items without one stay in a single list
+  const groups = items.reduce<Array<{ label: string; items: NavItem[] }>>((all, item) => {
+    const label = item.group ?? ''
+    const last = all[all.length - 1]
+    if (last && last.label === label) last.items.push(item)
+    else all.push({ label, items: [item] })
+    return all
+  }, [])
 
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose
 
@@ -128,27 +160,26 @@ export function Sidebar({ items }: { items: NavItem[] }) {
       )}
     >
       {collapsed ? (
-        <div className="flex flex-col items-center gap-3 px-2 pb-4 pt-4">
-          {toggleButton}
-          <Brand size="sm" />
-          <div className="group relative">
+        <div className="flex flex-col items-center gap-3 pb-3">
+          <div className="flex w-full flex-col items-center gap-2 bg-black px-2 pb-3 pt-3 text-white/70 [&_button:hover]:bg-white/10 [&_button:hover]:text-white">
+            {toggleButton}
+            {/* The rail is too narrow for the whole logo, so only its emblem shows */}
+            <span aria-label="BIS" role="img" className="block h-10 w-11 overflow-hidden">
+              <img src={logo} alt="" className="h-10 w-auto max-w-none select-none mix-blend-screen" />
+            </span>
+          </div>
+          <NavLink to="/account" aria-label="My account" className="group relative rounded-full focus-visible:outline-2 focus-visible:outline-gold-500">
             <Avatars names={[user.name]} />
             <Tip>{`${user.name} · ${ROLE_LABEL[user.role]}`}</Tip>
-          </div>
+          </NavLink>
         </div>
       ) : (
         <div className="flex flex-col">
-          <div className="relative flex justify-center px-4 pb-5 pt-6">
-            <Brand size="xl" />
-            <div className="absolute right-3 top-3">{toggleButton}</div>
+          <div className="relative flex items-center bg-black px-5 py-3">
+            <Brand size="md" plate={false} />
+            <div className="absolute right-3 top-3 text-white/70 [&_button:hover]:bg-white/10 [&_button:hover]:text-white">{toggleButton}</div>
           </div>
-          <div className="flex items-center gap-3 border-y border-neutral-200 px-5 py-3.5">
-            <Avatars names={[user.name]} size="lg" />
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate text-small font-semibold text-neutral-900">{user.name}</span>
-              <span className="truncate text-xs text-neutral-600">{ROLE_LABEL[user.role]}</span>
-            </div>
-          </div>
+          <AccountLink user={user} />
         </div>
       )}
 
@@ -157,17 +188,29 @@ export function Sidebar({ items }: { items: NavItem[] }) {
         aria-label="Sections"
         className={cn('no-scrollbar flex flex-1 flex-col gap-1 px-3 py-4', !collapsed && 'overflow-y-auto')}
       >
-        {items.map((item) => (
-          <SidebarLink key={item.to} item={item} collapsed={collapsed} />
+        {groups.map((group, i) => (
+          <div key={group.label || i} role="group" aria-label={group.label || undefined} className="flex flex-col gap-0.5">
+            {group.label &&
+              (collapsed ? (
+                i > 0 && <hr aria-hidden className="mx-3 my-2 border-neutral-200" />
+              ) : (
+                <p aria-hidden className={cn('px-3 pb-1 font-mono text-[0.6875rem] uppercase tracking-wide text-neutral-400', i === 0 ? 'pt-0' : 'pt-5')}>
+                  {group.label}
+                </p>
+              ))}
+            {group.items.map((item) => (
+              <SidebarLink key={item.to} item={item} collapsed={collapsed} />
+            ))}
+          </div>
         ))}
       </nav>
 
-      <div className="flex flex-col gap-0.5 border-t border-neutral-200 p-3">
+      <div className="flex flex-col gap-0.5 border-t border-neutral-200 px-3 py-2.5">
         <ConnectionRow collapsed={collapsed} />
         <button
           type="button"
           onClick={signOut}
-          className={cn(footerRow, 'text-danger hover:bg-danger-soft', collapsed ? 'justify-center' : 'px-3')}
+          className={cn(footerRow, 'text-neutral-500 hover:bg-danger-soft hover:text-danger', collapsed ? 'justify-center' : 'px-3')}
         >
           <LogOut aria-hidden className="size-[18px] shrink-0" strokeWidth={1.75} />
           <span className={cn(collapsed && 'sr-only')}>Sign out</span>

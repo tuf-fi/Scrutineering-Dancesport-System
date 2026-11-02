@@ -116,6 +116,25 @@ describe('competitors', () => {
   })
 })
 
+describe('the detail panel of a row', () => {
+  it('opens from the side with a menu of what is known about the competitor', async () => {
+    renderApp('/secretariat/competitors', Role.Secretariat)
+    const first = competitors[0]!
+    await userEvent.click(await screen.findByText(competitorName(first.names)))
+
+    const panel = await screen.findByRole('dialog', { name: competitorName(first.names) })
+    const menu = within(panel).getByRole('navigation', { name: 'Sections' })
+    expect(within(menu).getAllByRole('button').map((b) => b.textContent)).toEqual(['Details', 'Entries', 'Results', 'Rankings'])
+
+    // The entry form is part of Details, under the columns
+    expect(within(panel).getByRole('region', { name: 'Details' })).toBeInTheDocument()
+    expect(within(panel).getByRole('region', { name: /^(Team|On file)$/ })).toBeInTheDocument()
+    await userEvent.click(within(menu).getByRole('button', { name: 'Rankings' }))
+    expect(within(menu).getByRole('button', { name: 'Rankings' })).toHaveAttribute('aria-current', 'page')
+    expect(await within(panel).findByRole('region', { name: 'Rankings' })).toBeInTheDocument()
+  })
+})
+
 describe('editing and removing', () => {
   it('adds, edits and deletes an event, and refuses to delete one with entries', async () => {
     renderApp('/secretariat', Role.Secretariat)
@@ -188,8 +207,8 @@ describe('editing and removing', () => {
     await waitFor(() => expect(bodyRows()[0]).toHaveTextContent(/\d/))
     await userEvent.click(bodyRows()[0].querySelectorAll('td')[1])
     const dialog = await screen.findByRole('dialog')
-    for (const label of ['Back no.', 'Competitor', 'Club', 'Entries']) {
-      expect(within(dialog).getByText(label)).toBeInTheDocument()
+    for (const label of ['Back no.', 'Club', 'Entries']) {
+      expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0)
     }
     expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument()
   })

@@ -31,7 +31,7 @@ function StaffForm({
     event.preventDefault()
     const found: typeof errors = {}
     if (!values.name.trim()) found.name = 'Enter a name.'
-    if (!editing && !values.username.trim()) found.username = 'Enter a username.'
+    if (!editing && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.username.trim())) found.username = 'Enter a valid email address.'
     setErrors(found)
     if (Object.keys(found).length === 0) onSubmit(values)
   }
@@ -46,12 +46,13 @@ function StaffForm({
         autoFocus
       />
       <Input
-        label="Username"
+        label="Email"
         value={values.username}
         onChange={(e) => setValues({ ...values, username: e.target.value })}
         error={errors.username ?? usernameError}
-        hint={editing ? "A username can't be changed." : undefined}
+        hint={editing ? "An email can't be changed." : undefined}
         disabled={editing}
+        type="email"
         autoCapitalize="none"
       />
       <Select label="Role" value={values.role} onChange={(e) => setValues({ ...values, role: e.target.value as Role })}>
@@ -108,7 +109,7 @@ export function StaffDialog({
           onCreated(result.user.name, result.tempPassword)
         },
         onError: (e) =>
-          setFailure({ field: /username/i.test(e.message) ? 'username' : 'other', message: e.message }),
+          setFailure({ field: /email/i.test(e.message) ? 'username' : 'other', message: e.message }),
       })
     }
   }

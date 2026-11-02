@@ -1,6 +1,6 @@
 import { Role } from '@bis/shared'
 
-// Accounts that sign in with a username and password
+// Accounts that sign in with an email and password
 export const STAFF_ROLES = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 
 // Adjudicator letters, A to J

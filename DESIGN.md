@@ -1,6 +1,6 @@
 ﻿---
 name: BIS Design System
-description: Plain, exact and printable like a result sheet; black, brown and white with gold marking what matters.
+description: Plain, exact and printable like a result sheet; black, brown and white with gold marking what matters. The public site is editorial: bold uppercase section titles over a black rule, photo cards and joined sheets of cells.
 colors:
   black: "#0e0c0a"
   white: "#ffffff"
@@ -59,6 +59,12 @@ typography:
     fontWeight: 500
     lineHeight: 1.2
     letterSpacing: "0.08em"
+  section-title:
+    fontFamily: "Manrope Variable, system-ui, sans-serif"
+    fontSize: "clamp(1.25rem, 1rem + 1.1vw, 1.75rem)"
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: "-0.02em"
 rounded:
   sm: "4px"
   md: "8px"
@@ -146,6 +152,8 @@ BIS looks like the paper it replaces: the printed "Qualified Solos for the final
 
 Black, brown and white carry the structure. Gold is the one voice: it marks the single action that matters, the active tab, an approved or highlighted row. Its rarity is the point. Controls are precise and sturdy: clear edges, confident sizes, nothing ornamental, so a wrong tap is hard to make and a wrong value is easy to spot.
 
+The public site (home, competitions, rankings) carries the same system in a more editorial voice: a black hero and footer around a white page, uppercase section titles over a 1px black rule, and large type for the figures that matter (a day number, a count). Gold appears on the hover and on one call-to-action cell, never as a wash.
+
 No role has a priority layout. Every screen works from 375px phones to a 1920px venue screen, and each role's sizes are tuned for its own device.
 
 **Key Characteristics:**
@@ -185,7 +193,9 @@ A warm-black and white base, brown for dark and secondary surfaces, and gold as 
 - **Alert Red** (#b3261e) on **Red Wash** (#fbe4e2): rejected, errors, destructive actions.
 
 ### Named Rules
-**The One Voice Rule.** Gold marks one thing at a time: the primary action, the active tab, or a highlighted row. If two golds compete on a screen, one is wrong.
+**The One Voice Rule.** Gold marks one thing at a time: the primary action, the active tab, or a highlighted row. If two golds compete on a screen, one is wrong. On the public site the one call-to-action may be a full gold cell (How to join), and a card's hover may turn its arrow and border gold.
+
+**The Hover Rule.** Hover is quiet and light: an arrow that turns gold and rotates 45°, a gold border, a pale Winner Tint, or a photo going from black and white to colour. Never fill a row or card solid black on hover, never blur, and never use a gradient wash behind text.
 
 **The Black-on-Gold Rule.** Gold fills always carry Ink Black text, never white. Gold text on white uses Brass Text (`gold-700`).
 
@@ -205,9 +215,11 @@ A warm-black and white base, brown for dark and secondary surfaces, and gold as 
 - **Body** (400, 0.875rem, 1.55): paragraphs and form text. Keep lines near 65ch.
 - **Small** (500 to 600, 0.75rem, 1.5): table cells, field labels, hints, tabs, buttons. Table headers use 0.6875rem. Do not enlarge this scale; type was reduced twice on request.
 - **Label** (mono, 500, 0.75rem, 0.08em): short data labels only. Numbers in tables and meta lines use mono with `tabular-nums`.
+- **Section title** (700, fluid 1.25rem to 1.75rem, 1, -0.02em, uppercase): public-page section titles ("Upcoming events", "On the floor"), always over a 1px black rule. Keep these small; titles at 3rem and above were rejected as too big.
+- **Figure** (600, 2rem to 3rem, 0.85, -0.05em, tabular): one large number per card, such as the day of a competition or a count on the floor.
 
 ### Named Rules
-**The No Costume Rule.** Mono is for numbers and data, not for decoration: no uppercase mono eyebrows, headers or badges. No label sits above a heading; the heading carries itself.
+**The No Costume Rule.** Mono is for numbers and data, not for decoration. Short uppercase mono is allowed only for data: a date (`DEC 2026`), a status, a place, a count label, a footer column title. It never sits above a heading as an eyebrow, and never serves as a badge. No label sits above a heading; the heading carries itself.
 
 **The Mono Numbers Rule.** Back numbers, X counts, placings, prices and event numbers are always mono and tabular so columns line up.
 
@@ -286,6 +298,17 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 ### Page header
 - Display title, optional description, actions on the right. No label above the title.
 
+### Public site
+These apply to the public pages only. They reuse the tokens above; nothing here introduces a colour.
+
+- **Hero:** black, edge to edge, flush under the navbar. A plain headline and one short paragraph on the left; the dance photo fades in from the right with a mask. No gradient glow, no marquee, no logo art.
+- **Section head:** Section title over a 1px Charcoal rule, with the link ("All events →") at the right in small semibold with a 2px gold underline. Sections are separated by generous space, not boxes.
+- **Photo card (upcoming events):** 8px radius, 4:5 on laptop and square on phones, 24px gap. The photo fills the card in black and white and goes to colour with a slow zoom on hover. A dark scrim under the text only. The day is a Figure in white, the month and year small mono (white, gold on hover), a countdown ("In 34 days") top right, the name and venue at the foot. Every card using the same photo uses the same crop. A "Register" bar (full width, Podium Gold, Ink Black text, arrow rotating on hover) slides up from the bottom edge on hover while the name moves up; on touch devices it is always shown. Use photos only where a real one exists.
+- **Joined sheet (How to join):** cells share 1px Hairline borders in one grid, like a result sheet. Each step has a small gold mono number, a title and a grey line; the fourth cell is solid Podium Gold and is the call to action. Titles line up across the row.
+- **Competition panel (On the floor):** a black header band with the competition name (1.25rem), date and venue, the gold action and a "Program" link, over a light body. The live round shows a status dot, event and round in small gold mono, the dance in large type, and three Figures (Dancing, Heats, Recalled) at the right.
+- **Disciplines:** one row per discipline: its name and event counts on the left, the dances as a run of large type with small gold numbers on the right.
+- **Footer:** black, a larger logo, column titles in small gold mono caps, links in white at 70% that turn gold on hover, a hairline and a bottom bar with the copyright and "Integrity | Precision | Excellence".
+
 ## Do's and Don'ts
 
 ### Do:
@@ -308,3 +331,8 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 - **Don't** use low-contrast text or a beige palette.
 - **Don't** load fonts or assets from a CDN; BIS must work offline.
 - **Don't** say "judge"; say "adjudicator".
+- **Don't** use blur, frosted glass or a gradient as decoration. The one gradient allowed is a scrim behind text on a photo.
+- **Don't** fill a card or row solid black on hover.
+- **Don't** set a section title larger than the Section title size, or a day or count larger than a Figure.
+- **Don't** reach for the stock layouts: a numbered timeline with a connecting line, three equal icon-and-text columns, a centred band of steps, pastel-tinted cards, a pin icon on every row.
+- **Don't** repeat one photo with different crops to look varied.

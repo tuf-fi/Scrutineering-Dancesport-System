@@ -11,8 +11,19 @@ import type {
   AdjudicatorSubmission,
   AthleteInput,
   AthletePage,
+  EntryRequest,
+  EntryRequestInput,
+  MemberAccount,
+  MemberClaimRow,
+  MemberInput,
+  MemberRoster,
+  PaymentMethod,
+  MemberRosterRow,
   AthleteProfile,
+  AdjudicatorAssignment,
+  AthleteNotification,
   AthleteRow,
+  MyActivity,
   Announcement,
   AuditEntry,
   BackupStatus,
@@ -69,7 +80,7 @@ import type {
 import { auth, call, getSessionFromServer } from './http.ts'
 
 export type { CompetitionInput, EventInput, RankingFilter } from '@bis/shared'
-export { subscribeSubmissions, getSubmissionSnapshot } from './realtime.ts'
+export { subscribeSubmissions, getSubmissionSnapshot, subscribeNotifications, subscribeAlerts } from './realtime.ts'
 
 // ---- Reading ----
 
@@ -228,12 +239,44 @@ export const signInStaff = (username: string, password: string, code?: string) =
 export const signInAdjudicator = (pin: string) => auth<SessionUser>('adjudicator', { pin })
 export const signInAthlete = (email: string, password: string) => auth<SessionUser>('athlete', { email, password })
 export const signUpAthlete = (name: string, email: string, password: string) => auth<SessionUser>('athlete/sign-up', { name, email, password })
+export const signInMember = (role: 'coach' | 'team', email: string, password: string) => auth<SessionUser>(role, { email, password })
+export const signUpMember = (role: 'coach' | 'team', name: string, email: string, password: string) => auth<SessionUser>(`${role}/sign-up`, { name, email, password })
+export const getMyMember = (_memberId: string) => call<MemberAccount>('getMyMember')
+export const saveMyMember = (_memberId: string, input: MemberInput) => call<MemberAccount>('saveMyMember', input)
+export const saveMyMemberPhoto = (_memberId: string, photo: string | null) => call<MemberAccount>('saveMyMemberPhoto', photo)
+export const getMyEntrants = (_requesterId: string) => call<MemberRosterRow[]>('getMyEntrants')
+export const getEntryPaymentMethods = (_requesterId: string) => call<PaymentMethod[]>('getEntryPaymentMethods')
+export const quoteMyEntries = (_requesterId: string, competitorId: string, eventIds: string[]) => call<RegistrationQuote>('quoteMyEntries', competitorId, eventIds)
+export const submitEntryRequest = (_requesterId: string, input: EntryRequestInput) => call<EntryRequest>('submitEntryRequest', input)
+export const getMyEntryRequests = (_requesterId: string) => call<EntryRequest[]>('getMyEntryRequests')
+export const cancelEntryRequest = (_requesterId: string, id: string) => call<void>('cancelEntryRequest', id)
+export const getEntryRequests = () => call<EntryRequest[]>('getEntryRequests')
+export const approveEntryRequest = (_actorId: string, id: string) => call<EntryRequest[]>('approveEntryRequest', id)
+export const rejectEntryRequest = (_actorId: string, id: string, reason: string) => call<EntryRequest[]>('rejectEntryRequest', id, reason)
+export const claimRecord = (_memberId: string, targetId: string) => call<MemberAccount>('claimRecord', targetId)
+export const cancelClaim = (_memberId: string) => call<MemberAccount>('cancelClaim')
+export const getMyRoster = (_memberId: string) => call<MemberRoster>('getMyRoster')
+export const getMemberClaims = () => call<MemberClaimRow[]>('getMemberClaims')
+export const approveMemberClaim = (_actorId: string, memberId: string) => call<MemberClaimRow[]>('approveMemberClaim', memberId)
+export const rejectMemberClaim = (_actorId: string, memberId: string) => call<MemberClaimRow[]>('rejectMemberClaim', memberId)
 
 // ---- Athletes ----
 
 export const getMyAthlete = (_athleteId: string) => call<AthletePage>('getMyAthlete')
 export const saveMyAthlete = (_athleteId: string, input: AthleteInput) => call<AthleteProfile>('saveMyAthlete', input)
-export const requestMembership = (_athleteId: string, input: { method: string; reference: string }) => call<AthleteProfile>('requestMembership', input)
+export const requestMembership = (_athleteId: string, input: { method: string; receipt: string }) => call<AthleteProfile>('requestMembership', input)
+export const changeMyPassword = (_athleteId: string, current: string, next: string) => call<void>('changeMyPassword', current, next)
+export const signOutEverywhere = (_athleteId: string) => call<void>('signOutEverywhere')
+export const saveMyPhoto = (_athleteId: string, photo: string | null) => call<AthleteProfile>('saveMyPhoto', photo)
+export const getMyActivity = (_athleteId: string) => call<MyActivity>('getMyActivity')
+export const approveProfileChange = (_actorId: string, id: string) => call<void>('approveProfileChange', id)
+export const rejectProfileChange = (_actorId: string, id: string, reason: string) => call<void>('rejectProfileChange', id, reason)
+export const getAdjudicatorAssignments = (adjudicatorId: string) => call<AdjudicatorAssignment[]>('getAdjudicatorAssignments', adjudicatorId)
+export const getCompetitorActivity = (competitorId: string) => call<MyActivity>('getCompetitorActivity', competitorId)
+export const changeMyStaffPassword = (_actorId: string, current: string, next: string) => call<void>('changeMyStaffPassword', current, next)
+export const saveMyStaffName = (_actorId: string, name: string) => call<StaffUser>('saveMyStaffName', name)
+export const getMyNotifications = (_athleteId: string) => call<AthleteNotification[]>('getMyNotifications')
+export const markNotificationsRead = (_athleteId: string, ids?: string[]) => call<void>('markNotificationsRead', ids)
 export const getAthletes = () => call<AthleteRow[]>('getAthletes')
 export const confirmMembership = (_actorId: string, id: string) => call<void>('confirmMembership', id)
 export const rejectMembership = (_actorId: string, id: string, reason: string) => call<void>('rejectMembership', id, reason)

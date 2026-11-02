@@ -1,18 +1,30 @@
-import type { Dance, MarkingTask, MarkSubmission } from '@bis/shared'
+import type { AgeGroup, Class, Dance, Discipline, MarkingTask, MarkSubmission, RoundType } from '@bis/shared'
 import { useState } from 'react'
 import { Button, Dialog, Tabs } from '../../components/ui/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
 import { PlacingBoard } from './PlacingBoard.tsx'
 import { SignaturePad } from './SignaturePad.tsx'
-import { XTable } from './XTable.tsx'
+import { NumberGrid } from './NumberGrid.tsx'
 
 export type Answers = Partial<Record<Dance, string[]>>
+
+// The event after this one, as the program has it
+export interface NextEvent {
+  eventNumber: number
+  dances: Dance[]
+  roundType: RoundType
+  ageGroup: AgeGroup | null
+  class: Class | null
+  discipline: Discipline | null
+}
 
 // How many marks a dance needs: the recall number, or everyone in a final
 const marksNeeded = (task: MarkingTask) => task.recallNumber ?? task.competitors.length
 
 interface MarkSheetProps {
   task: MarkingTask
+  // The event after this one; shown under the event
+  next?: NextEvent | null
   // Answers already made, e.g. a draft kept on the phone
   initial?: Answers
   // Called after every change, so a draft can be kept
@@ -33,10 +45,12 @@ const OWN_MARKS = {
 
 // The marking screen: X marks for early rounds, placings for a final. Used on the adjudicator's phone and,
 // for a paper sheet, on the scrutineer's laptop.
-export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS }: MarkSheetProps) {
+export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS }: MarkSheetProps) {
   const [answers, setAnswers] = useState<Answers>(initial)
   const [dance, setDance] = useState<Dance>(task.dances[0])
   const [confirming, setConfirming] = useState(false)
+  // With a signature there are two steps: look over the numbers, then sign to finalize
+  const [step, setStep] = useState<'review' | 'sign'>('review')
   const [signature, setSignature] = useState<string | null>(null)
 
   const isFinal = task.recallNumber === null
@@ -52,7 +66,7 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
       return updated
     })
 
-  // An X round is one table with a column for every dance; a final has a tab and a board for each dance
+  // A round with several dances has a tab for each: choose the numbers of one dance at a time
   const table = !isFinal
   const several = table && task.dances.length > 1
   const doneDances = task.dances.filter((d) => countOf(d) === total).length
@@ -76,6 +90,7 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
     <div className="flex flex-1 flex-col gap-6">
       <header className="flex flex-col gap-4 overflow-hidden rounded-2xl bg-brown-950 bg-[radial-gradient(40rem_16rem_at_100%_0%,rgb(228_178_46/0.16),transparent_60%)] p-5 text-white sm:p-6">
         <div className="flex flex-col gap-2">
+          <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">Event</span>
           <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">{eventDances(task.event)}</h1>
           <p className="flex flex-wrap items-center gap-x-3 text-small text-brown-100">
             <span className="font-mono tabular-nums text-gold-400">{eventCode(task.event)}</span>
@@ -83,12 +98,31 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
             {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
           </p>
         </div>
-        <p className="text-small text-brown-100">
-          {isFinal ? `Place all ${total} finalists, 1st to ${ordinal(total)}.` : `Mark an X for exactly ${total} in each dance.`}
+        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-white/10 pt-3 text-small">
+          <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">Next event</span>
+          {next ? (
+            <span className="font-medium text-white/85">
+              <span className="mr-2 font-mono tabular-nums text-gold-400">{eventCode({ number: next.eventNumber })}</span>
+              {next.dances.map((d) => DANCE_LABEL[d]).join(', ')}
+              <span className="ml-2 text-brown-100">
+                {ROUND_TYPE_LABEL[next.roundType]}
+                {next.ageGroup && next.class && next.discipline ? ` · ${eventGrade({ ageGroup: next.ageGroup, class: next.class, discipline: next.discipline })}` : ''}
+              </span>
+            </span>
+          ) : (
+            <span className="text-white/50">–</span>
+          )}
+        </p>
+        <p className="flex items-baseline gap-3 border-t border-white/10 pt-3">
+          <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">{isFinal ? 'Place' : 'Select'}</span>
+          <span aria-hidden className="font-mono text-4xl font-semibold leading-none tabular-nums text-gold-400">{total}</span>
+          <span className="text-small text-brown-100">
+            {isFinal ? `Place all ${total} finalists, 1st to ${ordinal(total)}.` : `Mark an X for exactly ${total} in each dance.`}
+          </span>
         </p>
       </header>
 
-      {isFinal && task.dances.length > 1 && (
+      {task.dances.length > 1 && (
         <Tabs
           large
           label="Dance"
@@ -98,23 +132,15 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
         />
       )}
 
-      <section aria-label={several ? 'Marks' : DANCE_LABEL[dance]} className="flex-1 pb-4">
+      <section aria-label={DANCE_LABEL[dance]} className="flex-1 pb-4">
         {isFinal ? (
           <PlacingBoard key={dance} competitors={task.competitors} ranking={current} onChange={set} />
         ) : (
-          <XTable
+          <NumberGrid
             competitors={task.competitors}
-            dances={task.dances}
-            answers={answers}
-            total={total}
-            onToggle={(d, id) =>
-              setAnswers((a) => {
-                const list = a[d] ?? []
-                const updated = { ...a, [d]: list.includes(id) ? list.filter((x) => x !== id) : [...list, id] }
-                onChange?.(updated)
-                return updated
-              })
-            }
+            selected={current}
+            locked={current.length >= total}
+            onToggle={(id) => set(current.includes(id) ? current.filter((x) => x !== id) : [...current, id])}
           />
         )}
       </section>
@@ -141,58 +167,81 @@ export function MarkSheet({ task, initial = {}, onChange, onSubmit, busy = false
         onClose={() => {
           setConfirming(false)
           setSignature(null)
+          setStep('review')
         }}
-        title={confirm.title}
-        description={confirm.description}
+        className="rounded-none"
+        title={sign ? (step === 'review' ? (isFinal ? 'Review your placings' : 'Review your selection') : 'Sign to finalize') : confirm.title}
+        description={sign ? (step === 'review' ? 'Check the numbers. You cannot change them once they are sent.' : 'Your signature finalizes your marks for this round.') : confirm.description}
         actions={
           <>
             <Button
-              variant="ghost"
-              size="xl"
-              className="text-xl"
+              variant="secondary"
+              size="lg"
+              className="flex-1 whitespace-nowrap rounded-none"
               onClick={() => {
-                setConfirming(false)
-                setSignature(null)
+                if (sign && step === 'sign') {
+                  setStep('review')
+                  setSignature(null)
+                } else {
+                  setConfirming(false)
+                  setSignature(null)
+                }
               }}
             >
               Back
             </Button>
             <Button
-              size="xl"
-              className="text-xl"
-              disabled={busy || (sign && !signature)}
+              size="lg"
+              className="flex-[2] whitespace-nowrap rounded-none"
+              disabled={busy || (sign && step === 'sign' && !signature)}
               onClick={() => {
+                if (sign && step === 'review') return setStep('sign')
                 const marks = task.dances.map((d) => ({ dance: d, competitorIds: answers[d] ?? [] }))
                 if (sign && signature) onSubmit(marks, signature)
                 else onSubmit(marks)
                 setConfirming(false)
+                setStep('review')
               }}
             >
-              {busy ? 'Sending…' : confirm.action}
+              {busy ? 'Sending…' : sign ? (step === 'review' ? 'Final and submit' : 'Finalize') : confirm.action}
             </Button>
           </>
         }
       >
-        <dl className="flex flex-col gap-3">
-          {task.dances.map((d) => (
-            <div key={d} className="flex flex-col gap-1">
-              {task.dances.length > 1 && <dt className="text-small text-neutral-600">{DANCE_LABEL[d]}</dt>}
-              <dd className="font-mono text-body tabular-nums text-neutral-900">
-                {isFinal
-                  ? (answers[d] ?? []).map((id, i) => `${ordinal(i + 1)} ${backNumber.get(id)}`).join(' · ')
-                  : [...(answers[d] ?? [])]
-                      .map((id) => backNumber.get(id) ?? 0)
-                      .sort((a, b) => a - b)
-                      .join(', ')}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        {sign && (
-          <div className="mt-5">
-            <SignaturePad key={String(confirming)} onChange={setSignature} />
+        {(!sign || step === 'review') && (
+          <div className="flex flex-col gap-5">
+            {task.dances.map((d) => {
+              const ids = answers[d] ?? []
+              return (
+                <section key={d} aria-label={task.dances.length > 1 ? DANCE_LABEL[d] : 'Your numbers'} className="flex flex-col gap-2">
+                  {task.dances.length > 1 && <h3 className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-neutral-500">{DANCE_LABEL[d]}</h3>}
+                  {isFinal ? (
+                    <ol className="border-y border-neutral-200">
+                      {ids.map((id, i) => (
+                        <li key={id} className="grid grid-cols-[4rem_1fr] items-baseline border-t border-neutral-100 py-2 first:border-t-0">
+                          <span className="font-mono text-small text-neutral-500">{ordinal(i + 1)}</span>
+                          <span className="font-mono text-xl font-semibold tabular-nums text-neutral-900">{String(backNumber.get(id) ?? '').padStart(3, '0')}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <ul className="grid grid-cols-4 gap-2">
+                      {[...ids]
+                        .map((id) => backNumber.get(id) ?? 0)
+                        .sort((x, y) => x - y)
+                        .map((n) => (
+                          <li key={n} className="border border-neutral-200 py-2.5 text-center font-mono text-lg font-semibold tabular-nums text-neutral-900">
+                            {String(n).padStart(3, '0')}
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </section>
+              )
+            })}
           </div>
         )}
+        {sign && step === 'sign' && <SignaturePad key="signature" onChange={setSignature} />}
       </Dialog>
     </div>
   )

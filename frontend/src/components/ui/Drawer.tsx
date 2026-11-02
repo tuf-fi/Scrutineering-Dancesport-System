@@ -13,11 +13,13 @@ interface DrawerProps {
   children?: ReactNode
   // Pinned to the bottom while the body scrolls
   footer?: ReactNode
+  // The body keeps no padding and does not scroll: the content scrolls its own parts, so a side menu can stay where it is
+  flush?: boolean
   className?: string
 }
 
 // Off-canvas panel from the right edge, built on Radix Dialog like Dialog
-export function Drawer({ open, onClose, title, meta, children, footer, className }: DrawerProps) {
+export function Drawer({ open, onClose, title, meta, children, footer, flush, className }: DrawerProps) {
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <RadixDialog.Portal>
@@ -37,7 +39,7 @@ export function Drawer({ open, onClose, title, meta, children, footer, className
             </RadixDialog.Close>
           </div>
 
-          <div className="no-scrollbar flex-1 overflow-y-auto px-6 py-5">{children}</div>
+          <div className={cn('no-scrollbar flex-1', flush ? 'min-h-0 overflow-hidden' : 'overflow-y-auto px-6 py-5')}>{children}</div>
 
           {footer && (
             <div className="flex flex-col gap-3 border-t border-neutral-200 bg-neutral-50 px-6 py-4">{footer}</div>

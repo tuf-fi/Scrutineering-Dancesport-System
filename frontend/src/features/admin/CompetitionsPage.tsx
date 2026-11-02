@@ -1,5 +1,5 @@
 import type { Competition } from '@bis/shared'
-import { Pencil, Trash2 } from 'lucide-react'
+import { ListOrdered, Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
   Button,
@@ -17,6 +17,7 @@ import {
 import { useCompetitions, useDeleteCompetition, useEvents } from '../../hooks/index.ts'
 import { dateParts, formatDate } from '../../lib/format.ts'
 import { CompetitionDialog } from './CompetitionDialog.tsx'
+import { CompetitionEvents } from './CompetitionEvents.tsx'
 
 export function CompetitionsPage() {
   const competitions = useCompetitions()
@@ -87,6 +88,7 @@ export function CompetitionsPage() {
         minWidthClass="min-w-0"
         paginationLabel="Competitions pagination"
         detailTitle={(c) => c.name}
+        detailSections={(c) => [{ id: 'events', label: 'Events', icon: ListOrdered, content: <CompetitionEvents competitionId={c.id} /> }]}
         empty={
           needle || year !== 'all'
             ? { title: 'No competitions match', description: 'Try a different year, name, venue or organizer.' }

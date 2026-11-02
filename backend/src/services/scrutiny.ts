@@ -56,6 +56,12 @@ const peopleOf = (ctx: Ctx, ids: string[]) =>
 
 const dancesIn = (list: Mark[]) => [...new Set(list.map((m) => m.dance))]
 
+// The confirmer's name travels with the decision: only admins can read the staff list
+function staffName(ctx: Ctx, id: string | null): string | null {
+  if (!id) return null
+  return ctx.db.select({ name: t.staffUsers.name }).from(t.staffUsers).where(eq(t.staffUsers.id, id)).get()?.name ?? null
+}
+
 function tieDecisionOf(ctx: Ctx, roundId: string): TieDecision | null {
   const row = ctx.db.select().from(t.tieDecisions).where(eq(t.tieDecisions.roundId, roundId)).get()
   return row ? { choice: row.choice, proposedBy: row.proposedBy, confirmedBy: row.confirmedBy } : null
@@ -84,7 +90,8 @@ export function recallTable(ctx: Ctx, roundId: string): RecallTable {
   const submitted = new Set(marksOf(ctx, roundId).map((m) => m.adjudicatorId))
   const numbers = backNumbers(ctx, field)
   const people = peopleOf(ctx, field)
-  const decision = result.tie ? tieDecisionOf(ctx, roundId) : null
+  const stored = result.tie ? tieDecisionOf(ctx, roundId) : null
+  const decision = stored && { ...stored, confirmedByName: staffName(ctx, stored.confirmedBy) }
 
   // A round that is already decided has its recall in the next round's heats, whatever the counts say
   const next = roundsOfEvent(ctx, round.eventId).find((r) => r.position === round.position + 1)
@@ -243,7 +250,9 @@ export const scrutiny = {
         place: g.place,
         competitors: g.ids.map((id) => ({ competitorId: id, backNumber: numbers.get(id) ?? null, names: people.get(id)?.names ?? [] })),
       })),
-      decision: row ? { mode: row.mode, order: row.order, proposedBy: row.proposedBy, confirmedBy: row.confirmedBy } : null,
+      decision: row
+        ? { mode: row.mode, order: row.order, proposedBy: row.proposedBy, confirmedBy: row.confirmedBy, confirmedByName: staffName(ctx, row.confirmedBy) }
+        : null,
     }
   },
 
@@ -460,6 +469,7 @@ function announcements(ctx: Ctx): Announcement[] {
     discipline: event.discipline,
     roundType: round.type,
     heat: null,
+    select: round.recallNumber,
     numbers: [] as number[],
     result: null,
   })
@@ -499,6 +509,7 @@ function announcements(ctx: Ctx): Announcement[] {
     const clubs = new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
     const items: Announcement[] = [
       { ...base(event, roundOut), id: `finalists:${round.id}`, kind: 'finalists', numbers: numbersOf(placed.map((p) => p.competitorId)) },
+      ...(placed.length > 0 ? [{ ...base(event, roundOut), id: `results:${round.id}`, kind: 'results' as const }] : []),
       ...placed.map<Announcement>((r) => {
         const dancer = people.get(r.competitorId)
         return {

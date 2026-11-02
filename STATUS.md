@@ -20,7 +20,7 @@ Where the system stands on 31 October 2026, what is left, and what is still uncl
 | Pilot at a real competition beside the current method; compare every result ([PILOT.md](PILOT.md)) | Testing |
 | Fix list from the pilot, then a second, smaller event | Testing |
 | Open the athlete flow in a real browser (only tests have run it) | Check |
-| Organizer reads the privacy notice (`/privacy`) and says how long entry form details are kept | Organizer |
+| Organizer reads the privacy notice (`/privacy`) and confirms it. Entry form details are kept permanently until removed; nothing is deleted automatically | Organizer |
 | Make two-step sign-in compulsory for admins, and a way to end one session at a time | Optional |
 
 ## What is still unclear

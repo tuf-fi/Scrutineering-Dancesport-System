@@ -12,7 +12,7 @@ const post = (url: string, payload: object) => app.app.inject({ method: 'POST', 
 
 describe('staff sign-in', () => {
   it('signs in, sets an httpOnly cookie and knows who the session is', async () => {
-    const res = await post('/api/auth/staff', { username: 'admin', password: SAMPLE_PASSWORD })
+    const res = await post('/api/auth/staff', { username: 'admin@sample.example', password: SAMPLE_PASSWORD })
     expect(res.statusCode).toBe(200)
     const cookie = String(res.headers['set-cookie'])
     expect(cookie).toMatch(/bis_session=/)
@@ -24,16 +24,16 @@ describe('staff sign-in', () => {
   })
 
   it('gives the same answer for a wrong password and an unknown user', async () => {
-    const wrong = await post('/api/auth/staff', { username: 'admin', password: 'nope' })
-    const unknown = await post('/api/auth/staff', { username: 'nobody', password: 'nope' })
+    const wrong = await post('/api/auth/staff', { username: 'admin@sample.example', password: 'nope' })
+    const unknown = await post('/api/auth/staff', { username: 'nobody@sample.example', password: 'nope' })
     expect(wrong.statusCode).toBe(401)
     expect(unknown.statusCode).toBe(401)
     expect(wrong.json().error).toBe(unknown.json().error)
   })
 
   it('is case-insensitive for the username only', async () => {
-    expect((await post('/api/auth/staff', { username: ' Admin ', password: SAMPLE_PASSWORD })).statusCode).toBe(200)
-    expect((await post('/api/auth/staff', { username: 'admin', password: SAMPLE_PASSWORD.toUpperCase() })).statusCode).toBe(401)
+    expect((await post('/api/auth/staff', { username: ' Admin@Sample.example ', password: SAMPLE_PASSWORD })).statusCode).toBe(200)
+    expect((await post('/api/auth/staff', { username: 'admin@sample.example', password: SAMPLE_PASSWORD.toUpperCase() })).statusCode).toBe(401)
   })
 
   it('stores only a hash of the password', () => {
@@ -46,11 +46,11 @@ describe('staff sign-in', () => {
   })
 
   it('stops after too many wrong attempts, even with the right password', async () => {
-    for (let i = 0; i < 8; i++) expect((await post('/api/auth/staff', { username: 'admin', password: 'bad' })).statusCode).toBe(401)
-    const blocked = await post('/api/auth/staff', { username: 'admin', password: SAMPLE_PASSWORD })
+    for (let i = 0; i < 8; i++) expect((await post('/api/auth/staff', { username: 'admin@sample.example', password: 'bad' })).statusCode).toBe(401)
+    const blocked = await post('/api/auth/staff', { username: 'admin@sample.example', password: SAMPLE_PASSWORD })
     expect(blocked.statusCode).toBe(429)
     // Another person is not affected
-    expect((await post('/api/auth/staff', { username: 'mc', password: SAMPLE_PASSWORD })).statusCode).toBe(200)
+    expect((await post('/api/auth/staff', { username: 'mc@sample.example', password: SAMPLE_PASSWORD })).statusCode).toBe(200)
   })
 
   it('signs out', async () => {
@@ -73,7 +73,7 @@ describe('staff sign-in', () => {
 describe('accounts changing', () => {
   it('stops a deleted account at once', async () => {
     const admin = await app.signIn.staff('admin')
-    const created = await app.ok<{ user: { id: string }; tempPassword: string }>('createStaffUser', [{ name: 'Temp Person', username: 'temp', role: 'mc' }], admin)
+    const created = await app.ok<{ user: { id: string }; tempPassword: string }>('createStaffUser', [{ name: 'Temp Person', username: 'temp@sample.example', role: 'mc' }], admin)
     const temp = await app.signIn.staff('temp', created.tempPassword)
     expect((await app.call('getAnnouncements', [], temp)).status).toBe(200)
     await app.ok('deleteStaffUser', [created.user.id], admin)
@@ -84,24 +84,24 @@ describe('accounts changing', () => {
   it('gives a new temporary password that replaces the old one', async () => {
     const admin = await app.signIn.staff('admin')
     const users = await app.ok<Array<{ id: string; username: string }>>('getStaffUsers', [], admin)
-    const mc = users.find((u) => u.username === 'mc')!
+    const mc = users.find((u) => u.username === 'mc@sample.example')!
     const { tempPassword } = await app.ok<{ tempPassword: string }>('resetStaffPassword', [mc.id], admin)
     expect(tempPassword).toHaveLength(10)
-    expect((await post('/api/auth/staff', { username: 'mc', password: SAMPLE_PASSWORD })).statusCode).toBe(401)
-    expect((await post('/api/auth/staff', { username: 'mc', password: tempPassword })).statusCode).toBe(200)
+    expect((await post('/api/auth/staff', { username: 'mc@sample.example', password: SAMPLE_PASSWORD })).statusCode).toBe(401)
+    expect((await post('/api/auth/staff', { username: 'mc@sample.example', password: tempPassword })).statusCode).toBe(200)
   })
 
   it('keeps at least one admin', async () => {
     const admin = await app.signIn.staff('admin')
     const users = await app.ok<Array<{ id: string; username: string }>>('getStaffUsers', [], admin)
-    const self = users.find((u) => u.username === 'admin')!
+    const self = users.find((u) => u.username === 'admin@sample.example')!
     expect((await app.call('deleteStaffUser', [self.id], admin)).error).toMatch(/own account/)
     expect((await app.call('updateStaffUser', [self.id, { name: 'Amelia', role: 'mc' }], admin)).error).toMatch(/at least one admin/)
   })
 
   it('refuses to make a staff account with a club or adjudicator role', async () => {
     const admin = await app.signIn.staff('admin')
-    const reply = await app.call('createStaffUser', [{ name: 'X Y', username: 'xy', role: 'club' }], admin)
+    const reply = await app.call('createStaffUser', [{ name: 'X Y', username: 'xy@sample.example', role: 'club' }], admin)
     expect(reply.status).toBe(400)
   })
 })

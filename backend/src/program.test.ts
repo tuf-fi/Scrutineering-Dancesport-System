@@ -25,7 +25,7 @@ beforeAll(async () => {
   // Start from a competition nobody has run
   app.sqlite.exec(`
     DELETE FROM tie_decisions; DELETE FROM marks; DELETE FROM submissions; DELETE FROM heat_competitors; DELETE FROM heats;
-    DELETE FROM results; DELETE FROM ranking_points; DELETE FROM rounds; UPDATE competitions SET floor_round_id = NULL;
+    DELETE FROM results; DELETE FROM ranking_points; DELETE FROM rounds; UPDATE competitions SET floor_round_id = NULL, date = date('now');
     DELETE FROM program_slots;
   `)
 })
@@ -154,6 +154,16 @@ describe('the status of each line', () => {
     // The break between two rounds is over once the later one has started
     expect(now.rows[1]!.status).toBe('completed')
     expect(c!.slotId).toBe(now.rows[3]!.slotId)
+  })
+
+  it('marks every line completed once the day has passed, even with a round left on the floor', async () => {
+    const p = await read()
+    setRound(p.rows[0]!, 'published')
+    setRound(p.rows[2]!, 'marking', true)
+    app.sqlite.prepare("UPDATE competitions SET date = '2020-01-01' WHERE id = ?").run(COMP)
+    const past = await read()
+    expect(statuses(past).filter((s) => s !== 'completed' && s !== null)).toEqual([])
+    app.sqlite.prepare("UPDATE competitions SET date = date('now') WHERE id = ?").run(COMP)
   })
 
   it('makes the next line the break when a break follows the current round', async () => {

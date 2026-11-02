@@ -32,8 +32,8 @@ describe('database', () => {
     const { sqlite } = fresh()
     expect(tableNames(sqlite)).toEqual(
       [
-        'adjudicator_pins', 'adjudicators', 'athletes', 'audit_log', 'clubs', 'coaches', 'competitions', 'competitors', 'entries', 'events', 'final_tie_decisions',
-        'heat_competitors', 'heats', 'marks', 'panel_members', 'panels', 'payments', 'points_table', 'program_slots', 'program_starts',
+        'adjudicator_pins', 'adjudicators', 'athletes', 'audit_log', 'clubs', 'coaches', 'competitions', 'competitors', 'entries', 'entry_requests', 'events', 'final_tie_decisions',
+        'heat_competitors', 'heats', 'marks', 'member_accounts', 'member_notifications', 'notifications', 'panel_members', 'panels', 'payments', 'points_table', 'program_slots', 'program_starts',
         'ranking_points', 'results', 'rounds', 'settings', 'staff_users', 'submissions', 'tie_decisions',
       ].sort(),
     )
@@ -148,5 +148,34 @@ describe('dropping offline sync (migration 0009)', () => {
     expect(sqlite.prepare('select start from program_starts').all()).toEqual([{ start: '08:00' }])
     // Writing still works with the triggers gone
     expect(() => sqlite.prepare("update events set position = 2 where id = 'e1'").run()).not.toThrow()
+  })
+})
+
+describe('clubs without a login (migration 0016)', () => {
+  it('upgrades a database that has competitors in a club, keeping them', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bis-mig-'))
+    dirs.push(dir)
+    const before = join(dir, 'before')
+    cpSync(join(import.meta.dirname, '..', '..', 'drizzle'), before, { recursive: true })
+    // Everything from 0016 on is left out
+    for (const file of readdirSync(before)) if (/^00(1[6-9]|[2-9]\d)_.*\.sql$/.test(file)) rmSync(join(before, file))
+    const journalPath = join(before, 'meta', '_journal.json')
+    const journal = JSON.parse(readFileSync(journalPath, 'utf8')) as { entries: Array<{ tag: string }> }
+    journal.entries = journal.entries.filter((e) => e.tag < '0016')
+    writeFileSync(journalPath, JSON.stringify(journal))
+
+    const { db, sqlite } = openDatabase(':memory:')
+    open.push(sqlite)
+    migrate(db, { migrationsFolder: before })
+    sqlite.prepare("insert into clubs (id, name, contact_name, contact_email, contact_phone) values ('k1', 'Naga Dancers', 'Ana', 'ana@example.com', '0917')").run()
+    sqlite.prepare("insert into competitors (id, names, club_id) values ('p1', '[\"Mia Santos\"]', 'k1')").run()
+
+    runMigrations(db)
+
+    expect(sqlite.prepare('select name from clubs').all()).toEqual([{ name: 'Naga Dancers' }])
+    expect(sqlite.prepare('select club_id from competitors').all()).toEqual([{ club_id: 'k1' }])
+    expect(sqlite.pragma('foreign_key_check')).toEqual([])
+    // Keys are back on once the migrations are done
+    expect(sqlite.pragma('foreign_keys', { simple: true })).toBe(1)
   })
 })

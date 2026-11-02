@@ -87,6 +87,8 @@ describe('a tie in a final', () => {
   it('settles in the order of the tie-break once the chairperson confirms', async () => {
     await app.ok('proposeFinalTie', [round.roundId, 'order', [top[1], top[0]]], scrutineer)
     await app.ok('confirmFinalTie', [round.roundId], chairperson)
+    // The scrutineer reads who confirmed from the tie itself, not from the admin-only staff list
+    expect((await app.ok<FinalTie>('getFinalTie', [round.roundId], scrutineer)).decision?.confirmedByName).toBe('Gregorio Almazan')
     await app.ok('approveRound', [round.roundId], scrutineer)
     const placed = results()
     const winner = app.sqlite.prepare('SELECT back_number AS b FROM competitors WHERE id = ?').get(top[1]) as { b: number }

@@ -61,7 +61,7 @@ afterAll(async () => {
 
 describe('live updates', () => {
   it('tells signed-in screens when something changes, but not guests', async () => {
-    const staff = await signIn('/api/auth/staff', { username: 'secretariat', password: SAMPLE_PASSWORD })
+    const staff = await signIn('/api/auth/staff', { username: 'secretariat@sample.example', password: SAMPLE_PASSWORD })
     const watcher = await connect(staff)
     const guest = await connect()
     const staffGot = listen(watcher, ['changed', 'submissions'])
@@ -74,7 +74,7 @@ describe('live updates', () => {
   })
 
   it('shows the scrutineer a phone arriving, marking and then submitting', async () => {
-    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
+    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer@sample.example', password: SAMPLE_PASSWORD })
     const board = await connect(scrutineer)
     const got = listen(board, ['submissions', 'floor'])
 
@@ -102,7 +102,7 @@ describe('live updates', () => {
   })
 
   it('flags a phone that has gone quiet', async () => {
-    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
+    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer@sample.example', password: SAMPLE_PASSWORD })
     const phone = await signIn('/api/auth/adjudicator', { pin: `${4100 + 4 * 111}00` })
     await call('getAdjudicatorState', [], phone)
     const recent = (await call('getSubmissions', [LIVE], scrutineer)).body.data as AdjudicatorSubmission[]
@@ -121,7 +121,7 @@ describe('live updates', () => {
   })
 
   it('shows the scrutineer a phone that is holding marks it has not been able to send', async () => {
-    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
+    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer@sample.example', password: SAMPLE_PASSWORD })
     const phone = await signIn('/api/auth/adjudicator', { pin: `${4100 + 5 * 111}00` })
     const phoneSocket = await connect(phone)
     const board = async () => ((await call('getSubmissions', [LIVE], scrutineer)).body.data as AdjudicatorSubmission[])[5]!
@@ -150,15 +150,15 @@ describe('live updates', () => {
   it('refuses a socket with a forged cookie the same as a guest', async () => {
     const forged = await connect('bis_session=not.a.token')
     const got = listen(forged, ['changed'])
-    const staff = await signIn('/api/auth/staff', { username: 'secretariat', password: SAMPLE_PASSWORD })
+    const staff = await signIn('/api/auth/staff', { username: 'secretariat@sample.example', password: SAMPLE_PASSWORD })
     await call('assignBackNumbers', [], staff)
     await settle()
     expect(got).toEqual([])
   })
 
   it('sends published results and rankings to guests', async () => {
-    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer', password: SAMPLE_PASSWORD })
-    const admin = await signIn('/api/auth/staff', { username: 'admin', password: SAMPLE_PASSWORD })
+    const scrutineer = await signIn('/api/auth/staff', { username: 'scrutineer@sample.example', password: SAMPLE_PASSWORD })
+    const admin = await signIn('/api/auth/staff', { username: 'admin@sample.example', password: SAMPLE_PASSWORD })
     const guest = await connect()
     const got = listen(guest, ['published', 'rankings', 'changed'])
     const table = (await call('getPointsTable', [], admin)).body.data as Array<{ points: number }>

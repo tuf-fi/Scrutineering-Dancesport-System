@@ -205,9 +205,7 @@ export function HeatsPage() {
           {!heats.data ? (
             <Skeleton className="h-40 w-full" />
           ) : (
-            <div className="rounded-xl border border-neutral-200 px-6">
-              <EmptyState title="No competitors yet" description="This round has no field until the previous round is decided." />
-            </div>
+            <EmptyState title="No competitors yet" description="This round has no field until the previous round is decided." />
           )}
         </>
       ) : (

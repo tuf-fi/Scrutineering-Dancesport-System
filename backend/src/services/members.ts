@@ -1,0 +1,224 @@
+import { Role, type AthleteNotification, type AthleteSignUp, type MemberAccount, type MemberInput, type MemberClaimRow, type MemberRoster, type SessionUser } from '@bis/shared'
+import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
+import { hashPassword, verifyPassword } from '../auth/password.ts'
+import { record } from '../core/audit.ts'
+import { actor, fail, found, type Ctx } from '../core/context.ts'
+import * as t from '../db/schema.ts'
+import { newId, now } from '../ids.ts'
+import { bumpSessionVersion } from '../auth/signin.ts'
+import { MAX_PHOTO, MIN_PASSWORD, PHOTO, clean } from './shared.ts'
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Makes a coach's or a team's account and returns who it is, so the caller can sign them in
+export function createMember(ctx: Ctx, role: 'coach' | 'team', input: AthleteSignUp): SessionUser {
+  const name = clean(input?.name)
+  const email = clean(input?.email).toLowerCase()
+  const password = typeof input?.password === 'string' ? input.password : ''
+  if (!name || name.length > 100) return fail(role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
+  if (!EMAIL.test(email) || email.length > 200) return fail('Enter a valid email address.')
+  if (password.length < MIN_PASSWORD || password.length > 128) return fail(`Use a password of at least ${MIN_PASSWORD} characters.`)
+  if (ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.email, email)).get()) {
+    return fail('An account with this email already exists. Sign in instead.', 409)
+  }
+  const id = newId()
+  ctx.db.insert(t.memberAccounts).values({ id, role, name, email, passwordHash: hashPassword(password) }).run()
+  record(ctx.db, id, role === 'team' ? 'Team signed up' : 'Coach signed up', name)
+  return { id, name, role: role === 'team' ? Role.Team : Role.Coach }
+}
+
+const mine = (ctx: Ctx) => found(ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, actor(ctx).id)).get(), 'Account')
+
+// The name of the coach or club record an account of this kind can stand for
+function recordName(ctx: Ctx, role: 'coach' | 'team', id: string): string | null {
+  const row =
+    role === 'coach'
+      ? ctx.db.select({ name: t.coaches.name }).from(t.coaches).where(eq(t.coaches.id, id)).get()
+      : ctx.db.select({ name: t.clubs.name }).from(t.clubs).where(eq(t.clubs.id, id)).get()
+  return row?.name ?? null
+}
+
+function toAccount(ctx: Ctx, row: typeof t.memberAccounts.$inferSelect): MemberAccount {
+  const linked = row.linkedId ? recordName(ctx, row.role, row.linkedId) : null
+  const claim = row.claimId ? recordName(ctx, row.role, row.claimId) : null
+  return {
+    id: row.id,
+    role: row.role,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    birthDate: row.birthDate,
+    province: row.province,
+    address: row.address,
+    photo: row.photo,
+    linked: row.linkedId && linked !== null ? { id: row.linkedId, name: linked } : null,
+    claim: row.claimId && claim !== null ? { id: row.claimId, name: claim, requestedAt: row.claimedAt ?? '' } : null,
+  }
+}
+
+export const getMyMember = (ctx: Ctx): MemberAccount => toAccount(ctx, mine(ctx))
+
+// Asks to be linked to a coach or club record; the secretariat decides
+export function claimRecord(ctx: Ctx, targetId: string): MemberAccount {
+  const row = mine(ctx)
+  if (row.linkedId) return fail('Your account is already linked.', 409)
+  const name = typeof targetId === 'string' ? recordName(ctx, row.role, targetId) : null
+  if (name === null) return fail(row.role === 'team' ? 'Choose your club from the list.' : 'Choose your name from the list of coaches.')
+  const values = { claimId: targetId, claimedAt: now() }
+  ctx.db.update(t.memberAccounts).set(values).where(eq(t.memberAccounts.id, row.id)).run()
+  record(ctx.db, row.id, 'Asked to be linked to a record', row.name, { after: { claimId: targetId } })
+  ctx.defer(() => ctx.hub.alert([Role.Secretariat], { title: 'Account link request', detail: `${row.name} wants to be linked to ${name}`, link: '/secretariat/account-links' }))
+  return toAccount(ctx, { ...row, ...values })
+}
+
+export function cancelClaim(ctx: Ctx): MemberAccount {
+  const row = mine(ctx)
+  const values = { claimId: null, claimedAt: null }
+  ctx.db.update(t.memberAccounts).set(values).where(eq(t.memberAccounts.id, row.id)).run()
+  return toAccount(ctx, { ...row, ...values })
+}
+
+// Their dancers, and for a team its payments, for a coach the membership years. Nothing until the account is linked.
+export function getMyRoster(ctx: Ctx): MemberRoster {
+  const row = mine(ctx)
+  const empty: MemberRoster = { rows: [], payments: [], membership: null }
+  if (!row.linkedId) return empty
+
+  const clubs = new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
+  const competitors = memberCompetitors(ctx)
+  const ids = competitors.map((c) => c.id)
+  const entryCounts = new Map<string, number>()
+  if (ids.length > 0) {
+    for (const e of ctx.db.select().from(t.entries).where(inArray(t.entries.competitorId, ids)).all()) {
+      if (!e.scratched) entryCounts.set(e.competitorId, (entryCounts.get(e.competitorId) ?? 0) + 1)
+    }
+  }
+  const rows = competitors
+    .map((c) => ({ competitorId: c.id, names: c.names, backNumber: c.backNumber, clubName: clubs.get(c.clubId) ?? '', entries: entryCounts.get(c.id) ?? 0 }))
+    .sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? ''))
+
+  if (row.role === 'coach') {
+    const coach = ctx.db.select().from(t.coaches).where(eq(t.coaches.id, row.linkedId)).get()
+    return { rows, payments: [], membership: coach ? { memberYear: coach.memberYear, summitYear: coach.summitYear } : null }
+  }
+  const competitions = new Map(ctx.db.select({ id: t.competitions.id, name: t.competitions.name, date: t.competitions.date }).from(t.competitions).all().map((c) => [c.id, c]))
+  const payments = ctx.db
+    .select()
+    .from(t.payments)
+    .where(and(eq(t.payments.clubId, row.linkedId), isNotNull(t.payments.competitionId)))
+    .all()
+        .map((p) => ({ id: p.id, competitionName: competitions.get(p.competitionId ?? '')?.name ?? '', date: competitions.get(p.competitionId ?? '')?.date ?? '', amountDue: p.amountDue, amountPaid: p.amountPaid, status: p.status }))
+    // Newest competition first
+    .sort((a, b) => b.date.localeCompare(a.date))
+  return { rows, payments, membership: null }
+}
+
+// ---- What the system tells them ----
+
+function notifyMember(ctx: Ctx, memberId: string, note: Pick<AthleteNotification, 'kind' | 'title' | 'detail' | 'link'>) {
+  ctx.db.insert(t.memberNotifications).values({ id: newId(), memberId, ...note, createdAt: now(), readAt: null }).run()
+  ctx.defer(() => ctx.hub.notify(memberId))
+}
+
+export function memberNotifications(ctx: Ctx): AthleteNotification[] {
+  return ctx.db.select().from(t.memberNotifications).where(eq(t.memberNotifications.memberId, mine(ctx).id)).orderBy(desc(t.memberNotifications.createdAt)).limit(50).all()
+}
+
+export function markMemberNotificationsRead(ctx: Ctx, ids?: string[]): void {
+  const own = and(eq(t.memberNotifications.memberId, mine(ctx).id), isNull(t.memberNotifications.readAt))
+  const where = Array.isArray(ids) && ids.length > 0 ? and(own, inArray(t.memberNotifications.id, ids.map(String))) : own
+  ctx.db.update(t.memberNotifications).set({ readAt: now() }).where(where).run()
+}
+
+// ---- The secretariat's side ----
+
+export function getMemberClaims(ctx: Ctx): MemberClaimRow[] {
+  return ctx.db
+    .select()
+    .from(t.memberAccounts)
+    .where(isNotNull(t.memberAccounts.claimId))
+    .all()
+    .flatMap((m) => {
+      const targetName = m.claimId ? recordName(ctx, m.role, m.claimId) : null
+      return m.claimId && targetName !== null
+        ? [{ memberId: m.id, role: m.role, name: m.name, email: m.email, targetId: m.claimId, targetName, requestedAt: m.claimedAt ?? '' }]
+        : []
+    })
+    .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt))
+}
+
+function waiting(ctx: Ctx, memberId: string) {
+  const row = found(ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, memberId)).get(), 'Account')
+  if (!row.claimId) return fail('This account has no request waiting.', 409)
+  return row
+}
+
+export function approveMemberClaim(ctx: Ctx, memberId: string): MemberClaimRow[] {
+  const row = waiting(ctx, memberId)
+  const taken = ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.linkedId, row.claimId!)).get()
+  if (taken && taken.id !== row.id) return fail('That record is already linked to another account.', 409)
+  ctx.db.update(t.memberAccounts).set({ linkedId: row.claimId, claimId: null, claimedAt: null }).where(eq(t.memberAccounts.id, row.id)).run()
+  record(ctx.db, actor(ctx).id, 'Linked an account to a record', row.name, { after: { linkedId: row.claimId } })
+  const target = recordName(ctx, row.role, row.claimId!) ?? ''
+  notifyMember(ctx, row.id, { kind: 'link_approved', title: `You are linked to ${target}`, detail: row.role === 'team' ? 'Your dancers and payments are on your page now.' : 'Your athletes are on your page now.', link: `/${row.role}/dancers` })
+  return getMemberClaims(ctx)
+}
+
+export function rejectMemberClaim(ctx: Ctx, memberId: string): MemberClaimRow[] {
+  const row = waiting(ctx, memberId)
+  ctx.db.update(t.memberAccounts).set({ claimId: null, claimedAt: null }).where(eq(t.memberAccounts.id, row.id)).run()
+  record(ctx.db, actor(ctx).id, 'Turned down a request to link an account', row.name, { before: { claimId: row.claimId } })
+  notifyMember(ctx, row.id, { kind: 'link_rejected', title: 'Your request to be linked was turned down', detail: 'Check that you chose the right record and ask again.', link: `/${row.role}` })
+  return getMemberClaims(ctx)
+}
+
+// ---- Their own account ----
+
+export const isMember = (ctx: Ctx) => ctx.user?.role === Role.Coach || ctx.user?.role === Role.Team
+
+export function saveMyMember(ctx: Ctx, input: MemberInput): MemberAccount {
+  const row = mine(ctx)
+  const name = clean(input?.name)
+  if (!name || name.length > 100) return fail(row.role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
+  const birthDate = clean(input?.birthDate)
+  if (birthDate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || birthDate > new Date().toISOString().slice(0, 10))) return fail('Enter a valid date of birth.')
+  const values = { name, phone: clean(input?.phone).slice(0, 40), birthDate, province: clean(input?.province).slice(0, 100), address: clean(input?.address).slice(0, 300) }
+  ctx.db.update(t.memberAccounts).set(values).where(eq(t.memberAccounts.id, row.id)).run()
+  record(ctx.db, row.id, 'Changed their account details', name)
+  return toAccount(ctx, { ...row, ...values })
+}
+
+export function saveMyMemberPhoto(ctx: Ctx, photo: string | null): MemberAccount {
+  const row = mine(ctx)
+  const value = photo === null ? null : String(photo)
+  if (value !== null && (!PHOTO.test(value) || value.length > MAX_PHOTO)) return fail('Choose a JPEG, PNG or WebP picture.')
+  ctx.db.update(t.memberAccounts).set({ photo: value }).where(eq(t.memberAccounts.id, row.id)).run()
+  return toAccount(ctx, { ...row, photo: value })
+}
+
+export function changeMemberPassword(ctx: Ctx, current: string, next: string): void {
+  const row = mine(ctx)
+  if (!verifyPassword(String(current ?? ''), row.passwordHash)) return fail('Your current password is not right.')
+  const password = typeof next === 'string' ? next : ''
+  if (password.length < MIN_PASSWORD || password.length > 128) return fail(`Use a password of at least ${MIN_PASSWORD} characters.`)
+  if (password === current) return fail('Choose a password you have not used just now.')
+  ctx.db.update(t.memberAccounts).set({ passwordHash: hashPassword(password) }).where(eq(t.memberAccounts.id, row.id)).run()
+  record(ctx.db, row.id, 'Changed their password', row.name)
+}
+
+export function signOutMember(ctx: Ctx): void {
+  const row = mine(ctx)
+  bumpSessionVersion(ctx, 'member', row.id)
+  record(ctx.db, row.id, 'Signed out everywhere', row.name)
+}
+
+// The competitors a linked account stands for: a team's club, or the dancers who name the coach
+export function memberCompetitors(ctx: Ctx) {
+  const row = mine(ctx)
+  if (!row.linkedId) return []
+  return ctx.db
+    .select()
+    .from(t.competitors)
+    .all()
+    .filter((c) => (row.role === 'team' ? c.clubId === row.linkedId : c.details?.coachId === row.linkedId))
+}

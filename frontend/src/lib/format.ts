@@ -92,8 +92,16 @@ export const ROLE_LABEL: Record<Role, string> = {
   chairperson: 'Chairperson of Adjudicators',
   adjudicator: 'Adjudicator',
   athlete: 'Athlete',
+  coach: 'Coach',
+  team: 'Team',
   mc: 'MC',
   public: 'Public',
+}
+
+// Today as "YYYY-MM-DD" in local time, to compare with competition dates
+export function todayIso() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
 // "10 October 2026"

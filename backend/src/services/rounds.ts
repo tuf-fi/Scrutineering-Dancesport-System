@@ -1,4 +1,5 @@
 import {
+  Role,
   SubmissionStatus,
   type AdjudicatorState,
   type AdjudicatorSubmission,
@@ -357,8 +358,16 @@ function storeMarks(
   record(ctx.db, enteredBy ?? adjudicatorId, enteredBy ? 'Entered marks from paper' : 'Submitted marks', roundId, {
     after: { adjudicatorId, marks: incoming.length },
   })
+  // The scrutineer's and the chairperson's screens: who just submitted, and when the whole panel has
+  const who = ctx.db.select({ letter: t.adjudicators.letter }).from(t.adjudicators).where(eq(t.adjudicators.id, adjudicatorId)).get()
+  const done = submitted >= panel.length
   ctx.defer(() => {
     ctx.hub.submissions(roundId, submissionSnapshot(ctx, roundId))
     ctx.hub.floor(roundId)
+    ctx.hub.alert([Role.Scrutineer, Role.Chairperson], {
+      title: done ? 'Round ready to review' : `Adjudicator ${who?.letter ?? ''} submitted`.replace('  ', ' '),
+      detail: done ? `E${event.number} · every adjudicator has submitted` : `E${event.number} · ${submitted} of ${panel.length} adjudicators`,
+      link: '/scrutineer/live',
+    })
   })
 }

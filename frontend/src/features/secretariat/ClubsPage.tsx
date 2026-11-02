@@ -1,14 +1,19 @@
 import type { Club } from '@bis/shared'
-import { Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpRight, Pencil, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useClubs, useCompetitorRows, useDeleteClub } from '../../hooks/index.ts'
+import { useAuth } from '../../stores/auth.ts'
 import { ClubDialog } from './ClubDialog.tsx'
+import { ClubMembers } from './ClubMembers.tsx'
 
 export function ClubsPage() {
   const clubs = useClubs()
   const competitors = useCompetitorRows()
   const remove = useDeleteClub()
+  // Admins and the secretariat each have their own competitors page
+  const section = useAuth((s) => (s.user?.role === 'admin' ? '/admin' : '/secretariat'))
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState<Club | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Club | null>(null)
@@ -38,12 +43,29 @@ export function ClubsPage() {
         minWidthClass="min-w-0"
         paginationLabel="Clubs pagination"
         detailTitle={(c) => c.name}
+        detailSections={(c) => [{ id: 'competitors', label: 'Competitors', icon: Users, content: <ClubMembers club={c} section={section} /> }]}
         empty={needle ? { title: 'No clubs match', description: 'Try a different name.' } : { title: 'No clubs yet', description: 'Add the clubs named on the entry forms.' }}
         columns={[
           { key: 'name', header: 'Club', cell: (c) => <span className="font-medium">{c.name}</span> },
           { key: 'contact', header: 'Contact person', cell: (c) => c.contactName || '–', muted: true, hideBelow: 'sm' },
           { key: 'phone', header: 'Contact no.', cell: (c) => c.contactPhone || '–', mono: true, muted: true, hideBelow: 'md' },
-          { key: 'dancers', header: 'Competitors', cell: (c) => dancers.get(c.id) ?? 0, mono: true, align: 'right' },
+          {
+            key: 'dancers',
+            header: 'Competitors',
+            mono: true,
+            align: 'right',
+            cell: (c) => (
+              <Link
+                to={`${section}/competitors?club=${c.id}`}
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`${dancers.get(c.id) ?? 0} competitors of ${c.name}`}
+                className="group/count inline-flex items-center gap-1.5 text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500 focus-visible:outline-2 focus-visible:outline-gold-500"
+              >
+                {dancers.get(c.id) ?? 0}
+                <ArrowUpRight aria-hidden className="size-3.5 text-neutral-400 transition duration-300 group-hover/count:rotate-45 group-hover/count:text-gold-500" strokeWidth={1.75} />
+              </Link>
+            ),
+          },
           {
             key: 'actions',
             header: '',

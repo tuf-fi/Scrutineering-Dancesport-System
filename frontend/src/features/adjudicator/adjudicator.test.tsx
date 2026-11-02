@@ -9,6 +9,17 @@ import { renderApp, sign } from '../../test-utils.tsx'
 const adjudicator = { id: 'adj-d', name: 'Celeste B. Ilagan', letter: 'D' }
 const open = (path = '/adjudicator/waiting') => renderApp(path, Role.Adjudicator, adjudicator)
 
+// After Submit: look over the numbers, press Final and submit, then sign to finalize
+const finalize = async () => {
+  const review = await screen.findByRole('dialog', { name: /^Review your/ })
+  await userEvent.click(within(review).getByRole('button', { name: 'Final and submit' }))
+  const signing = await screen.findByRole('dialog', { name: 'Sign to finalize' })
+  // The marks cannot be sent until the adjudicator has signed
+  expect(within(signing).getByRole('button', { name: 'Finalize' })).toBeDisabled()
+  sign(signing)
+  await userEvent.click(within(signing).getByRole('button', { name: 'Finalize' }))
+}
+
 const tilesIn = (name: string) => within(screen.getByRole('region', { name }))
 const startDemo = async (label: string) => {
   await userEvent.selectOptions(await screen.findByLabelText('Round'), label)
@@ -21,6 +32,10 @@ describe('adjudicator marking', () => {
   it('marks exactly the recall number of X, then confirms and submits', async () => {
     const router = open()
     await screen.findByText(/Mark an X for exactly 12/)
+    // The sheet names the event and the one after it, and how many to select
+    expect(screen.getByText('Event')).toBeInTheDocument()
+    expect(screen.getByText('Next event')).toBeInTheDocument()
+    expect(screen.getByText('Select')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/adjudicator/mark')
     const submit = screen.getByRole('button', { name: 'Submit' })
     expect(submit).toBeDisabled()
@@ -38,11 +53,9 @@ describe('adjudicator marking', () => {
     expect(tiles[0]).toBeEnabled()
 
     await userEvent.click(submit)
-    const dialog = await screen.findByRole('dialog', { name: 'Submit your marks?' })
-    // The marks cannot be sent until the adjudicator has signed
-    expect(within(dialog).getByRole('button', { name: 'Confirm' })).toBeDisabled()
-    sign(dialog)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm' }))
+    // The selection is shown for review first
+    expect(await screen.findByRole('dialog', { name: 'Review your selection' })).toBeInTheDocument()
+    await finalize()
     expect(await screen.findByRole('heading', { name: 'Submitted' })).toBeInTheDocument()
   })
 
@@ -72,9 +85,7 @@ describe('adjudicator marking', () => {
     await userEvent.click(first.getAllByRole('button', { name: /^Place / })[0])
 
     await userEvent.click(submit)
-    const dialog = await screen.findByRole('dialog')
-    sign(dialog)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm' }))
+    await finalize()
     expect(await screen.findByRole('heading', { name: 'Submitted' })).toBeInTheDocument()
   })
 
@@ -102,9 +113,7 @@ describe('adjudicator marking', () => {
 
     act(() => useConnection.setState({ online: false }))
     await userEvent.click(submit)
-    const dialog = await screen.findByRole('dialog')
-    sign(dialog)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirm' }))
+    await finalize()
     expect(await screen.findByRole('heading', { name: 'Saved, sending…' })).toBeInTheDocument()
     expect(screen.getByText(/saved on this phone/)).toBeInTheDocument()
 

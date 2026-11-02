@@ -1,7 +1,9 @@
 import type { MarkingTask, MarkSubmission } from '@bis/shared'
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
+import { ProgramKind } from '@bis/shared'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
+import { useProgram } from '../../hooks/index.ts'
 import { loadDraft, saveDraft } from '../../lib/phoneDb.ts'
 import { useOutbox } from '../../stores/outbox.ts'
 import { MarkSheet, type Answers } from './MarkSheet.tsx'
@@ -13,6 +15,12 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
   const navigate = useNavigate()
   const save = useOutbox((s) => s.save)
   const roundId = task.round.id
+  // The next event in the running order, if the secretariat has set one
+  const program = useProgram(task.event.competitionId)
+  const rows = program.data?.rows ?? []
+  const here = rows.findIndex((r) => r.eventId === task.event.id && r.roundType === task.round.type)
+  const after = here >= 0 ? rows.slice(here + 1).find((r) => r.kind === ProgramKind.Round && r.eventNumber !== null && r.roundType !== null) : undefined
+  const next = after ? { eventNumber: after.eventNumber!, dances: after.dances, roundType: after.roundType!, ageGroup: after.ageGroup, class: after.class, discipline: after.discipline } : null
   const [draft, setDraft] = useState<Answers | null | undefined>(undefined)
   const sending = useRef(false)
 
@@ -37,6 +45,7 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
   return (
     <MarkSheet
       task={task}
+      next={next}
       initial={draft ?? {}}
       onChange={(answers) => void saveDraft({ adjudicatorId, roundId, answers, savedAt: new Date().toISOString() })}
       sign

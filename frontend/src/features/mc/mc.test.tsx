@@ -24,31 +24,47 @@ describe('MC screen', () => {
     expect(await screen.findByText('Next to the floor')).toBeInTheDocument()
   })
 
+  it('draws the call as a sheet: the event, the next event, the numbers as tiles, and what to do', async () => {
+    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    await screen.findByText('Next to the floor')
+    // "Next event" is also the name of a control, so look inside the sheet
+    const sheet = screen.getByLabelText('Back numbers').parentElement!
+    expect(within(sheet).getByText('Event')).toBeInTheDocument()
+    expect(within(sheet).getByText('Next event')).toBeInTheDocument()
+    // Back numbers are written with three digits
+    for (const n of within(screen.getByLabelText('Back numbers')).getAllByRole('listitem')) expect(n.textContent).toMatch(/^[0-9]{3}$/)
+    // What each adjudicator does with them, or that it is a final
+    expect(screen.getByLabelText('What to do').textContent).toMatch(/^(Heat[0-9]+)?(Select[0-9]+|Final)$/)
+  })
+
   it('jumps to finalists, then reads results from last place up one at a time', async () => {
     renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
 
     await userEvent.keyboard('3')
     // Finalists is also the name of the control, so look at what is on the screen
-    await screen.findByText('6 competitors')
+    expect(await screen.findByLabelText('What to do')).toHaveTextContent('Finalists6')
     expect(within(screen.getByLabelText('Back numbers')).getAllByRole('listitem')).toHaveLength(6)
 
     await userEvent.keyboard('4')
-    expect(await screen.findByText('6th place')).toBeInTheDocument()
+    // The slide that says it is time for the results comes before the first place
+    expect(await screen.findByRole('heading', { level: 1, name: 'Results' })).toBeInTheDocument()
+    await userEvent.keyboard(' ')
+    expect(await screen.findByRole('heading', { level: 1, name: '6th place' })).toBeInTheDocument()
     // Places not yet read out show a dash
-    expect(within(screen.getByLabelText('Results so far')).getAllByText('—')).toHaveLength(5)
+    expect(within(screen.getByLabelText('Results')).getAllByText('—')).toHaveLength(5)
 
     await userEvent.keyboard(' ')
-    expect(await screen.findByText('5th place')).toBeInTheDocument()
-    const board = screen.getByLabelText('Results so far')
+    expect(await screen.findByRole('heading', { level: 1, name: '5th place' })).toBeInTheDocument()
+    const board = screen.getByLabelText('Results')
     expect(within(board).getAllByRole('listitem')).toHaveLength(6)
     expect(within(board).getByText('6th')).toBeInTheDocument()
 
     for (let i = 0; i < 4; i++) await userEvent.keyboard('{ArrowRight}')
-    expect(await screen.findByText('1st place')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: '1st place' })).toBeInTheDocument()
     // The last announcement stays on screen
     await userEvent.keyboard('{ArrowRight}')
-    expect(screen.getByText('1st place')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: '1st place' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Next announcement' })).toBeDisabled()
   })
 
@@ -85,5 +101,39 @@ describe('MC program view', () => {
     await userEvent.keyboard('1')
     expect(await screen.findByText('Next to the floor')).toBeInTheDocument()
     expect(counter()).toHaveTextContent(/^1 \//)
+  })
+})
+
+describe('MC up next', () => {
+  it('says what the next screen is before it is opened', async () => {
+    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    await screen.findByText('Next to the floor')
+    const hint = screen.getByLabelText('Up next')
+    expect(hint).toHaveTextContent(/Up next(Next event|Recalled)/)
+    await userEvent.keyboard('3')
+    await screen.findByLabelText('What to do')
+    // After the finalists comes the slide that says it is time for the results
+    expect(screen.getByLabelText('Up next')).toHaveTextContent('ResultsE')
+    await userEvent.keyboard('{ArrowRight}')
+    expect(await screen.findByRole('heading', { level: 1, name: 'Results' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Up next')).toHaveTextContent('6th place')
+  })
+})
+
+describe('MC account menu', () => {
+  it('opens My account and signs out from the navbar menu', async () => {
+    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    await screen.findByText('Next to the floor')
+    await userEvent.click(screen.getByRole('button', { name: /Dante Ibarra/ }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'My account' }))
+    expect(await screen.findByRole('heading', { name: 'My account' })).toBeInTheDocument()
+  })
+
+  it('signs out', async () => {
+    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    await screen.findByText('Next to the floor')
+    await userEvent.click(screen.getByRole('button', { name: /Dante Ibarra/ }))
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
+    expect(await screen.findByRole('heading', { name: /sign-in|Sign in/i })).toBeInTheDocument()
   })
 })

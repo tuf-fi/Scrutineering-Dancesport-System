@@ -37,7 +37,7 @@ beforeAll(async () => {
     ['staff-chair', 'Chair One', 'chairperson', 'chairperson'],
   ] as const
   for (const [id, name, username, role] of staff) {
-    app.db.insert(t.staffUsers).values({ id, name, username, role, passwordHash: hashPassword('pw-' + username), disabled: false }).run()
+    app.db.insert(t.staffUsers).values({ id, name, username: `${username}@sample.example`, role, passwordHash: hashPassword('pw-' + username), disabled: false }).run()
   }
   writePaymentSettings(app.sqlite, { fees: { solo: 500, couple: 800 }, methods: [] })
   // Every approval should trigger a backup
@@ -163,6 +163,9 @@ describe('the semi-final', () => {
     const signature = 'data:image/png;base64,iVBORw0KGgo='
     const first = await Promise.all(sets.slice(0, 3).map((ids, i) => app.call('submitAdjudicatorMarks', [semiId, x(...ids), i === 0 ? signature : undefined], phones[i])))
     expect(first.map((r) => r.status)).toEqual([200, 200, 200])
+    // The scrutineer's and the chairperson's screens are told as each one comes in
+    const told = app.hub.sent.filter((e) => e.event === 'alert').map((e) => e.payload as { roles: string[]; note: { title: string; detail: string } })
+    expect(told.at(-1)).toMatchObject({ roles: ['scrutineer', 'chairperson'], note: { detail: expect.stringContaining('3 of') } })
     // Only the signed submission has a signature to print
     const signed = await app.ok<Array<{ signature: string }>>('getSignatures', [semiId], scrutineer)
     expect(signed.map((r) => r.signature)).toEqual([signature])
@@ -204,6 +207,7 @@ describe('the semi-final', () => {
     await app.ok('confirmTieDecision', [semiId], chairperson)
 
     const decided = await app.ok<RecallTable>('getRecallTable', [semiId], scrutineer)
+    expect(decided.tie?.decision?.confirmedByName ?? 'settled').toBeTruthy()
     expect(decided.recalled).toBe(4)
     expect(decided.rows.filter((r) => r.outcome === 'recalled')).toHaveLength(4)
   })
@@ -288,9 +292,9 @@ describe('the final', () => {
     const history = await app.ok<Array<{ place: number; points: number }>>('getCompetitorHistory', [byNumber[0]!])
     expect(history).toEqual([expect.objectContaining({ place: 1, points: 200 })])
 
-    // The MC reads the recall, then the finalists, then results from last place up
+    // The MC reads the recall, then the finalists, then a slide that says it is time for the results, then them from last place up
     const list = await app.ok<Announcement[]>('getAnnouncements', [], scrutineer)
-    expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'result', 'result', 'result', 'result'])
+    expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'results', 'result', 'result', 'result', 'result'])
     expect(list.filter((a) => a.kind === 'result').map((a) => a.result!.place)).toEqual([4, 3, 2, 1])
     expect(list[0]!.numbers).toEqual([1, 2, 3, 4])
   })

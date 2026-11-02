@@ -47,10 +47,14 @@ export async function startTestApp(options: TestOptions = {}) {
   }
 
   const signIn = {
-    staff: (username: string, password = SAMPLE_PASSWORD) => cookieFrom('/api/auth/staff', { username, password }),
+    // A bare name such as 'admin' means that sample account's email
+    staff: (username: string, password = SAMPLE_PASSWORD) =>
+      cookieFrom('/api/auth/staff', { username: username.includes('@') ? username : `${username}@sample.example`, password }),
     adjudicator: (pin: string) => cookieFrom('/api/auth/adjudicator', { pin }),
     athlete: (email: string, password: string) => cookieFrom('/api/auth/athlete', { email, password }),
     athleteSignUp: (name: string, email: string, password: string) => cookieFrom('/api/auth/athlete/sign-up', { name, email, password }),
+    member: (role: 'coach' | 'team', email: string, password: string) => cookieFrom(`/api/auth/${role}`, { email, password }),
+    memberSignUp: (role: 'coach' | 'team', name: string, email: string, password: string) => cookieFrom(`/api/auth/${role}/sign-up`, { name, email, password }),
   }
 
   async function call<T = unknown>(name: string, args: unknown[] = [], cookie?: string): Promise<Reply<T>> {

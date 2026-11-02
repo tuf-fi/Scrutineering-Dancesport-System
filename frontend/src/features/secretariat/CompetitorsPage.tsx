@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router'
 import type { CompetitorRow } from '@bis/shared'
 import { Hash, ListPlus, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -27,6 +28,9 @@ import { competitorName, eventCode, eventDances } from '../../lib/format.ts'
 import { BackNumberDialog } from './BackNumberDialog.tsx'
 import { CompetitorDialog } from './CompetitorDialog.tsx'
 import { ImportDialog } from './ImportDialog.tsx'
+import { ListChecks, Medal, Trophy } from 'lucide-react'
+import { CompetitorEntries, CompetitorRankings, CompetitorResults } from '../../components/CompetitorActivity.tsx'
+import { CompetitorFacts } from './CompetitorFacts.tsx'
 import { RegistrationDialog } from './RegistrationDialog.tsx'
 
 export function CompetitorsPage() {
@@ -37,7 +41,18 @@ export function CompetitorsPage() {
   const [competitionId, setCompetitionId] = useState('all')
   const [eventId, setEventId] = useState('all')
   const [query, setQuery] = useState('')
-  const [clubId, setClubId] = useState('all')
+  // The club filter lives in the address (?club=<id>), so the clubs page can link to one club's competitors
+  const [params, setParams] = useSearchParams()
+  const clubId = params.get('club') ?? 'all'
+  const setClubId = (id: string) =>
+    setParams(
+      (p) => {
+        if (id === 'all') p.delete('club')
+        else p.set('club', id)
+        return p
+      },
+      { replace: true },
+    )
   // The competitor being edited, or 'new' while adding one
   const [editing, setEditing] = useState<CompetitorRow | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<CompetitorRow | null>(null)
@@ -153,6 +168,12 @@ export function CompetitorsPage() {
         minWidthClass="min-w-0"
         paginationLabel="Competitors pagination"
         detailTitle={(c) => competitorName(c.names)}
+        detailExtra={(c) => <CompetitorFacts competitor={c} />}
+        detailSections={(c) => [
+          { id: 'entries', label: 'Entries', icon: ListChecks, content: <CompetitorEntries competitorId={c.id} /> },
+          { id: 'results', label: 'Results', icon: Trophy, content: <CompetitorResults competitorId={c.id} /> },
+          { id: 'rankings', label: 'Rankings', icon: Medal, content: <CompetitorRankings competitorId={c.id} /> },
+        ]}
         empty={
           needle || clubId !== 'all' || scoped
             ? { title: 'No competitors match', description: 'Try a different event, name, number or club.' }
@@ -160,7 +181,7 @@ export function CompetitorsPage() {
         }
         columns={[
           { key: 'back', header: 'Back no.', cell: (c) => c.backNumber ?? '–', mono: true, widthClass: 'w-28' },
-          { key: 'who', header: 'Competitor', cell: (c) => <span className="font-medium">{competitorName(c.names)}</span> },
+          { key: 'who', header: 'Competitor', cell: (c) => <span className="font-medium">{competitorName(c.names)}</span>, detail: false },
           { key: 'club', header: 'Club', cell: (c) => c.clubName, muted: true, hideBelow: 'md' },
           ...(scoped
             ? [

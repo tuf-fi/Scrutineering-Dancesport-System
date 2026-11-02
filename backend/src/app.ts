@@ -2,14 +2,15 @@ import cookie from '@fastify/cookie'
 import jwt from '@fastify/jwt'
 import fastifyStatic from '@fastify/static'
 import { ScoringError } from '@bis/scoring'
-import type { SessionUser } from '@bis/shared'
+import { Role, type SessionUser } from '@bis/shared'
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
 import { sql } from 'drizzle-orm'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { RequestLimiter } from './auth/ratelimit.ts'
-import { adjudicatorSession, athleteSession, AttemptLimiter, resolveSession, staffSession, startVersion } from './auth/signin.ts'
+import { adjudicatorSession, athleteSession, memberSession, AttemptLimiter, resolveSession, staffSession, startVersion } from './auth/signin.ts'
 import { createAthlete } from './services/athletes.ts'
+import { createMember } from './services/members.ts'
 import { record } from './core/audit.ts'
 import { noBackups, type Backups } from './backup.ts'
 import type { Config } from './config.ts'
@@ -34,6 +35,9 @@ export interface AppDeps {
 }
 
 const SESSION_HOURS = 12
+
+// When the admin was last told about a wrong PIN
+let lastPinAlert = 0
 
 export async function buildApp({ config, sqlite, db, hub: givenHub, backups = noBackups(), liveBoardMs = 3000 }: AppDeps) {
   const options = { logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: typeof config.trustProxy === 'number' ? (_address: string, hop: number) => hop < (config.trustProxy as number) : config.trustProxy }
@@ -128,7 +132,14 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
       if (error instanceof HttpError && error.status === 401) {
         limiter.failed(key)
         wide.failed(wideKey)
-        if (kind === 'pin') record(db, 'pin-sign-in', 'Failed PIN sign-in', request.ip)
+        if (kind === 'pin') {
+          record(db, 'pin-sign-in', 'Failed PIN sign-in', request.ip)
+          // A wrong PIN now and then is normal; the admin hears about it at most once a minute
+          if (Date.now() - lastPinAlert > 60_000) {
+            lastPinAlert = Date.now()
+            hub.alert([Role.Admin], { title: 'Wrong PIN tried', detail: 'Someone entered a PIN that is not registered', link: '/admin/security' })
+          }
+        }
       }
       return sendError(reply, error)
     }
@@ -158,6 +169,21 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
       return sendError(reply, error)
     }
   })
+  for (const role of ['coach', 'team'] as const) {
+    app.post(`/api/auth/${role}`, small, (request, reply) =>
+      attempt(request, reply, String(body(request).email ?? ''), (ctx) => memberSession(ctx, role, String(body(request).email ?? ''), String(body(request).password ?? ''))),
+    )
+    app.post(`/api/auth/${role}/sign-up`, small, async (request, reply) => {
+      if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
+      try {
+        const input = body(request)
+        const user = sqlite.transaction(() => createMember(baseContext(null), role, { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? '') }))()
+        return startSession(reply, user, 0)
+      } catch (error) {
+        return sendError(reply, error)
+      }
+    })
+  }
   app.post('/api/auth/sign-out', async (_request, reply) => {
     reply.clearCookie(SESSION_COOKIE, { path: '/' })
     return { data: null }

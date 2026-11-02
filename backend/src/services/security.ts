@@ -1,7 +1,7 @@
-import type { TotpSetup, TotpStatus } from '@bis/shared'
+import type { StaffUser, TotpSetup, TotpStatus } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { checkSecondStep, saveSecondStep } from '../auth/signin.ts'
-import { verifyPassword } from '../auth/password.ts'
+import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { hashRecovery, newRecoveryCodes, newSecret, otpauthUri, verifyCode } from '../auth/totp.ts'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -15,6 +15,27 @@ const mine = (ctx: Ctx) => found(ctx.db.select().from(t.staffUsers).where(eq(t.s
 // Two-step sign-in for staff: after the password, a code from an authenticator app. Each person turns it on for
 // themselves; an admin can switch it off for someone who lost their phone.
 export const security = {
+  // Staff change their own password by giving the current one, so someone at an unlocked laptop cannot
+  changeMyStaffPassword(ctx: Ctx, current: string, next: string): void {
+    const row = mine(ctx)
+    if (!verifyPassword(String(current ?? ''), row.passwordHash)) return fail('Your current password is not right.')
+    const password = typeof next === 'string' ? next : ''
+    if (password.length < 8 || password.length > 128) return fail('Use a password of at least 8 characters.')
+    if (password === current) return fail('Choose a password you have not used just now.')
+    ctx.db.update(t.staffUsers).set({ passwordHash: hashPassword(password) }).where(eq(t.staffUsers.id, row.id)).run()
+    record(ctx.db, row.id, 'Changed their password', row.name)
+  },
+
+  // The only detail staff may change about themselves; the username and role are the admin's to set
+  saveMyStaffName(ctx: Ctx, name: string): StaffUser {
+    const row = mine(ctx)
+    const clean = String(name ?? '').replace(/\s+/g, ' ').trim()
+    if (!clean || clean.length > 100) return fail('Enter your name.')
+    ctx.db.update(t.staffUsers).set({ name: clean }).where(eq(t.staffUsers.id, row.id)).run()
+    record(ctx.db, row.id, 'Changed their name', clean, { before: { name: row.name }, after: { name: clean } })
+    return { id: row.id, name: clean, username: row.username, role: row.role, twoStep: row.totpEnabled }
+  },
+
   getTotpStatus(ctx: Ctx): TotpStatus {
     const row = mine(ctx)
     return { enabled: row.totpEnabled, recoveryLeft: row.totpRecovery.length }

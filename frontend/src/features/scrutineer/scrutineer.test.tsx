@@ -27,7 +27,7 @@ describe('rounds dashboard', () => {
 })
 
 describe('heats', () => {
-  it('splits a round evenly into heats and saves them, and is read-only for the chairperson', async () => {
+  it('splits a round evenly into heats and saves them, and keeps the chairperson out', async () => {
     renderApp('/scrutineer/heats', Role.Scrutineer, scrutineer)
     await waitFor(() => expect(bodyRows()[0]).toHaveTextContent(/\d/))
     const size = screen.getByLabelText('Per heat')
@@ -40,8 +40,7 @@ describe('heats', () => {
 
     cleanup()
     renderApp('/scrutineer/heats', Role.Chairperson, chairperson)
-    await waitFor(() => expect(bodyRows()[0]).toHaveTextContent(/\d/))
-    expect(screen.getByRole('status')).toHaveTextContent('3 heats')
+    expect(await screen.findByRole('link', { name: 'Live board' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Save heats' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Per heat')).not.toBeInTheDocument()
   })

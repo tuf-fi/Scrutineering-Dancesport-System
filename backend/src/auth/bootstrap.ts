@@ -10,8 +10,9 @@ import { hashPassword, temporaryPassword } from './password.ts'
 export function createAdmin(db: Db, input: { username: string; name: string; password?: string }): { id: string; username: string; password: string } {
   const username = input.username.trim().toLowerCase()
   const name = input.name.trim()
-  if (!username || !name) throw new Error('Give a username and a name.')
-  if (db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) throw new Error(`The username "${username}" is already taken.`)
+  if (!username || !name) throw new Error('Give an email and a name.')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) throw new Error('Enter a valid email address.')
+  if (db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) throw new Error(`The email "${username}" is already used by another account.`)
   const password = input.password ?? temporaryPassword()
   if (password.length < 8) throw new Error('Use a password of at least 8 characters.')
   const id = newId()

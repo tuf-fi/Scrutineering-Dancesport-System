@@ -1,21 +1,11 @@
 import { ProgramKind, ProgramStatus, RoundType, type ProgramRow } from '@bis/shared'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
-import {
-  Button,
-  ButtonLink,
-  ErrorState,
-  Input,
-  PageHeader,
-  SearchField,
-  Select,
-  Skeleton,
-  Table,
-  Toolbar,
-  ToolbarActions,
-} from '../../components/ui/index.ts'
+import { Button, ButtonLink, EmptyState, ErrorState, Input, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
 import { useCompetition, useEntriesByBackNumber, useProgram } from '../../hooks/index.ts'
+import { usePagination } from '../../hooks/usePagination.ts'
+import { cn } from '../../lib/cn.ts'
 import {
   ROUND_TYPE_LABEL,
   eventCode,
@@ -25,35 +15,38 @@ import {
   formatDate,
   letterRanges,
   programAction,
-  programLineName,
+  todayIso,
 } from '../../lib/format.ts'
+import { PublicHeader } from './PublicHeader.tsx'
 import { filterProgram, programPrintPath } from '../../lib/programFilter.ts'
 
-// The line itself in words, for the strip above the table
+const COLS = 'lg:grid-cols-[6rem_minmax(0,1.6fr)_minmax(0,1fr)_5rem_8rem]'
+
+// The line itself in words, for the strip above the list
 function Line({ label, row, empty }: { label: string; row: ProgramRow | undefined; empty: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <h2 className="text-small font-semibold text-neutral-900">{label}</h2>
+    <div className="flex min-w-0 flex-col gap-2">
+      <h2 className="font-mono text-xs font-medium uppercase text-gold-300">{label}</h2>
       {row ? (
         <>
-          <p className="text-balance text-title font-semibold text-neutral-900">
+          <p className="text-balance text-[1.5rem] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
             {row.kind === ProgramKind.Round && row.eventNumber !== null ? (
               <>
-                <span className="mr-2 font-mono font-medium text-neutral-600">{eventCode({ number: row.eventNumber })}</span>
+                <span className="mr-2 font-mono font-medium text-white/65">{eventCode({ number: row.eventNumber })}</span>
                 {eventDances(row)}
               </>
             ) : (
               row.label
             )}
           </p>
-          <p className="text-small text-neutral-600">
+          <p className="text-small text-white/70">
             {formatClock(row.startTime)}
             {row.roundType && ` · ${ROUND_TYPE_LABEL[row.roundType]}`}
             {programAction(row) && ` · ${programAction(row)}`}
           </p>
         </>
       ) : (
-        <p className="text-small text-neutral-600">{empty}</p>
+        <p className="text-small text-white/70">{empty}</p>
       )}
     </div>
   )
@@ -71,33 +64,58 @@ export function ProgramPage() {
   const number = /^\d+$/.test(back.trim()) ? Number(back) : null
   const mine = useEntriesByBackNumber(competitionId, number)
 
+  // A competition held on an earlier day is finished: every line reads Completed, whatever the round states say
+  const past = competition.data ? competition.data.date < todayIso() : false
+  const all = (program.data?.rows ?? []).map((r) => (past && r.kind === ProgramKind.Round ? { ...r, status: ProgramStatus.Completed } : r))
+  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data ?? []))
+  const { page, setPage, pageSize, total, pageItems } = usePagination(rows, `${query}|${round}|${back}`)
+
   if (competition.isError || program.isError) {
     return <ErrorState onRetry={() => void Promise.all([competition.refetch(), program.refetch()])} />
   }
   if (!competition.data) return <Skeleton className="h-24 w-full max-w-xl" />
 
-  const all = program.data?.rows ?? []
-  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data ?? []))
   const now = all.find((r) => r.status === ProgramStatus.Current)
   const next = all.find((r) => r.status === ProgramStatus.Next)
   const finished = all.length > 0 && all.every((r) => r.status === ProgramStatus.Completed)
   const filtered = query.trim() !== '' || round !== 'all' || back.trim() !== ''
+  const loading = program.isLoading || (number !== null && mine.isLoading)
 
   return (
     <div className="flex flex-col gap-8">
-      <Link to={`/competitions/${competitionId}`} className="w-fit text-small text-neutral-600 hover:text-neutral-900">
-        {competition.data.name}
-      </Link>
-      <PageHeader title="Program" description={`${formatDate(competition.data.date)} · ${competition.data.venue}`} />
+      <PublicHeader
+        back={{ to: `/competitions/${competitionId}`, label: competition.data.name }}
+        eyebrow={formatDate(competition.data.date)}
+        title="Program"
+        description={
+          <>
+            <span className="block">{competition.data.venue}</span>
+            <span className="block">Organized by {competition.data.organizer}</span>
+          </>
+        }
+        aside={
+          all.length > 0 && (
+            <div className="flex gap-2">
+              <ButtonLink to={programPrintPath(competitionId, query, round, false, back)} target="_blank">
+                Print
+              </ButtonLink>
+              <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, true, back)} target="_blank">
+                PDF
+              </ButtonLink>
+            </div>
+          )
+        }
+      />
 
       {program.isLoading ? (
         <Skeleton className="h-28 w-full" />
       ) : (
-        all.length > 0 && (
+        all.length > 0 &&
+        !past && (
           <section
             aria-label="On the floor and up next"
             aria-live="polite"
-            className="grid gap-6 border-y border-neutral-200 py-6 sm:grid-cols-2"
+            className="grid gap-8 rounded-lg bg-black px-6 py-7 text-white sm:grid-cols-2 sm:gap-10 sm:px-8"
           >
             <Line label="On the floor" row={now} empty={finished ? 'The program is complete' : 'Nothing on the floor right now'} />
             <Line label="Up next" row={next} empty={finished ? 'Nothing left' : 'Nothing queued'} />
@@ -105,92 +123,101 @@ export function ProgramPage() {
         )
       )}
 
-      <Toolbar>
-        <SearchField className="w-full sm:w-72" label="Search program" value={query} onChange={setQuery} />
-        <div className="w-full sm:w-52">
-          <Select label="Round" value={round} onChange={(e) => setRound(e.target.value)}>
-            <option value="all">All rounds</option>
-            {Object.values(RoundType).map((t) => (
-              <option key={t} value={t}>
-                {ROUND_TYPE_LABEL[t]}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="w-full sm:w-36">
-          <Input label="Back number" inputMode="numeric" value={back} onChange={(e) => setBack(e.target.value)} className="font-mono tabular-nums" />
-        </div>
-        {all.length > 0 && (
-          <ToolbarActions>
-            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, false, back)} target="_blank">
-              Print
-            </ButtonLink>
-            <ButtonLink variant="secondary" to={programPrintPath(competitionId, query, round, true, back)} target="_blank">
-              PDF
-            </ButtonLink>
-          </ToolbarActions>
-        )}
-      </Toolbar>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_8rem] sm:gap-x-4">
+        <SearchField className="col-span-2 sm:col-span-1" label="Search program" value={query} onChange={setQuery} />
+        <Select label="Round" value={round} onChange={(e) => setRound(e.target.value)}>
+          <option value="all">All rounds</option>
+          {Object.values(RoundType).map((t) => (
+            <option key={t} value={t}>
+              {ROUND_TYPE_LABEL[t]}
+            </option>
+          ))}
+        </Select>
+        <Input label="Back number" inputMode="numeric" value={back} onChange={(e) => setBack(e.target.value)} className="font-mono tabular-nums" />
+      </div>
 
-      <Table<ProgramRow>
-        loading={program.isLoading || (number !== null && mine.isLoading)}
-        rows={rows}
-        rowKey={(r) => r.slotId}
-        minWidthClass="min-w-0"
-        paginationLabel="Program pagination"
-        detailTitle={programLineName}
-        rowClassName={(r) => (r.status === ProgramStatus.Current ? 'bg-gold-50' : undefined)}
-        empty={
-          all.length === 0
-            ? { title: 'No program yet', description: 'The running order appears here once the organizers publish it.' }
-            : {
-                title: 'No lines match',
-                description: 'Try a different round or search.',
-                action: filtered ? (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setQuery('')
-                      setRound('all')
-                      setBack('')
-                    }}
-                  >
-                    Clear filters
-                  </Button>
-                ) : undefined,
-              }
-        }
-        columns={[
-          { key: 'time', header: 'Time', cell: (r) => formatClock(r.startTime), mono: true, widthClass: 'w-28' },
-          {
-            key: 'event',
-            header: 'Event',
-            cell: (r) =>
-              r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline ? (
-                <div className="flex flex-col">
-                  <span className="font-medium text-neutral-900">
-                    <span className="mr-2 font-mono tabular-nums text-neutral-600">{eventCode({ number: r.eventNumber })}</span>
-                    {eventDances(r)}
-                  </span>
-                  <span className="text-xs text-neutral-600">{eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}</span>
-                  {r.roundType && (
-                    <span className="text-xs font-medium text-neutral-900 sm:hidden">
-                      {ROUND_TYPE_LABEL[r.roundType]}
-                      {programAction(r) && ` · ${programAction(r)}`}
-                    </span>
+      <section aria-labelledby="running-order" className="flex flex-col gap-4">
+        <h2 id="running-order" className="text-small font-bold uppercase tracking-wide text-neutral-900">
+          Running order
+        </h2>
+
+        {loading ? (
+          <div aria-hidden>
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="flex flex-col gap-3 border-t border-neutral-200 py-5 sm:px-3">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-5 w-2/3 max-w-sm" />
+              </div>
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <EmptyState
+            title={all.length === 0 ? 'No program yet' : 'No lines match'}
+            description={all.length === 0 ? 'The running order appears here once the organizers publish it.' : 'Try a different round or search.'}
+            action={
+              all.length > 0 && filtered ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setQuery('')
+                    setRound('all')
+                    setBack('')
+                  }}
+                >
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div>
+            <div aria-hidden className={cn('hidden gap-x-8 px-3 pb-3 font-mono text-xs uppercase text-neutral-500 lg:grid', COLS)}>
+              <span>Time</span>
+              <span>Event</span>
+              <span>Round / Action</span>
+              <span>Dancing</span>
+              <span className="text-right">Status</span>
+            </div>
+            <ul aria-label="Running order" className="border-b border-neutral-200">
+              {pageItems.map((r) => (
+                <li
+                  key={r.slotId}
+                  className={cn(
+                    'grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 border-t border-neutral-200 py-4 sm:px-3 lg:items-baseline lg:gap-x-8 lg:py-5',
+                    COLS,
+                    r.status === ProgramStatus.Current && 'bg-gold-50',
                   )}
-                </div>
-              ) : (
-                <span className="font-medium text-neutral-900">{r.label}</span>
-              ),
-          },
-          { key: 'round', header: 'Round', cell: (r) => (r.roundType ? ROUND_TYPE_LABEL[r.roundType] : ''), muted: true, hideBelow: 'sm' },
-          { key: 'dancing', header: 'Dancing', cell: (r) => (r.kind === ProgramKind.Round ? r.entryCount : ''), mono: true, align: 'right', hideBelow: 'md' },
-          { key: 'action', header: 'Action', cell: programAction, muted: true, hideBelow: 'md' },
-          { key: 'panel', header: 'Adjudicators', cell: (r) => letterRanges(r.panel), mono: true, muted: true, hideBelow: 'md' },
-          { key: 'status', header: 'Status', cell: (r) => <ProgramStatusBadge status={r.status} />, align: 'right' },
-        ]}
-      />
+                >
+                  <span className="col-span-2 font-mono text-xs font-medium tabular-nums text-gold-700 lg:col-span-1">{formatClock(r.startTime)}</span>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    {r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline ? (
+                      <>
+                        <h3 className="font-semibold tracking-[-0.01em] text-neutral-900 lg:text-[1.0625rem]">
+                          <span className="mr-2 font-mono text-small font-medium tabular-nums text-neutral-500">{eventCode({ number: r.eventNumber })}</span>
+                          {eventDances(r)}
+                        </h3>
+                        <p className="text-small text-neutral-600">{eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}</p>
+                      </>
+                    ) : (
+                      <h3 className="font-semibold tracking-[-0.01em] text-neutral-900 lg:text-[1.0625rem]">{r.label}</h3>
+                    )}
+                  </div>
+                  <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
+                    {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}
+                    {r.panel.length > 0 && <span className="block font-mono text-xs">{letterRanges(r.panel)}</span>}
+                  </p>
+                  <span className="hidden font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}</span>
+                  <span className="col-start-2 row-start-2 self-start lg:col-start-auto lg:row-start-auto lg:justify-self-end">
+                    <ProgramStatusBadge status={r.status} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="Program pagination" />}
+      </section>
     </div>
   )
 }

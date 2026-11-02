@@ -1,4 +1,4 @@
-import type { AthletePage, AthleteProfile, AthleteRow, RegistrationQuote } from '@bis/shared'
+import type { AthleteNotification, AthletePage, AthleteProfile, AthleteRow, RegistrationQuote } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -10,11 +10,12 @@ let app: TestApp
 let secretariat = ''
 let athlete = ''
 
+const SHOT = 'data:image/png;base64,iVBORw0KGgo='
 const PROFILE = { name: 'Ana Cruz', birthDate: '2017-03-02', phone: '0917', address: 'Naga City', province: 'Camarines Sur', clubId: 'club-1', coachId: null }
 
 beforeAll(async () => {
   app = await startTestApp({ seed: false })
-  app.db.insert(t.staffUsers).values({ id: 's2', name: 'secretariat', username: 'secretariat', role: 'secretariat', passwordHash: hashPassword('pw-secretariat'), disabled: false }).run()
+  app.db.insert(t.staffUsers).values({ id: 's2', name: 'secretariat', username: 'secretariat@sample.example', role: 'secretariat', passwordHash: hashPassword('pw-secretariat'), disabled: false }).run()
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   app.db.insert(t.clubs).values({ id: 'club-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' }).run()
   app.db.insert(t.competitions).values({ id: 'c1', name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT' } as typeof t.competitions.$inferInsert).run()
@@ -52,29 +53,31 @@ describe('athlete accounts', () => {
   })
 
   it('takes a membership payment report, and the secretariat confirms it', async () => {
-    expect((await app.call('requestMembership', [{ method: '', reference: '123' }], athlete)).error).toMatch(/how you paid/)
-    const sent = await app.ok<AthleteProfile>('requestMembership', [{ method: 'GCash', reference: 'REF-1' }], athlete)
-    expect(sent.request).toMatchObject({ year: 2026, method: 'GCash', reference: 'REF-1' })
-    expect((await app.call('requestMembership', [{ method: 'GCash', reference: 'REF-2' }], athlete)).status).toBe(409)
+    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: '' }], athlete)).error).toMatch(/screenshot/)
+    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: 'data:text/html;base64,PGI+' }], athlete)).status).toBe(400)
+    expect((await app.call('requestMembership', [{ method: '', receipt: SHOT }], athlete)).error).toMatch(/how you paid/)
+    const sent = await app.ok<AthleteProfile>('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)
+    expect(sent.request).toMatchObject({ year: 2026, method: 'GCash', receipt: SHOT })
+    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)).status).toBe(409)
 
     const [row] = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
     expect(row).toMatchObject({ name: 'Ana Cruz', clubName: 'Naga Dancers', memberYear: null })
     await app.ok('confirmMembership', [row!.id], secretariat)
     const page = await app.ok<AthletePage>('getMyAthlete', [], athlete)
     expect(page.profile).toMatchObject({ memberYear: 2026, request: null })
-    expect((await app.call('requestMembership', [{ method: 'GCash', reference: 'REF-3' }], athlete)).error).toMatch(/already paid/)
+    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)).error).toMatch(/already paid/)
   })
 
   it('lets the athlete send a payment again after it was turned down', async () => {
     const other = await app.signIn.athleteSignUp('Ben Reyes', 'ben@test.example', 'a-long-password')
-    await app.ok('requestMembership', [{ method: 'Maya', reference: 'BAD' }], other)
+    await app.ok('requestMembership', [{ method: 'Maya', receipt: SHOT }], other)
     const ben = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ben Reyes')!
     expect((await app.call('rejectMembership', [ben.id, ' '], secretariat)).status).toBe(400)
     await app.ok('rejectMembership', [ben.id, 'No payment found for that reference'], secretariat)
     expect((await app.ok<AthletePage>('getMyAthlete', [], other)).profile.request?.rejectedReason).toMatch(/No payment/)
     expect((await app.call('confirmMembership', [ben.id], secretariat)).status).toBe(409)
-    await app.ok('requestMembership', [{ method: 'Maya', reference: 'GOOD' }], other)
-    expect((await app.ok<AthletePage>('getMyAthlete', [], other)).profile.request).toMatchObject({ reference: 'GOOD' })
+    await app.ok('requestMembership', [{ method: 'Maya', receipt: SHOT }], other)
+    expect((await app.ok<AthletePage>('getMyAthlete', [], other)).profile.request).toMatchObject({ receipt: SHOT })
   })
 
   it('signs the athlete out everywhere when the password is reset', async () => {
@@ -97,5 +100,91 @@ describe('athlete accounts', () => {
     const rows = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
     await app.ok('deleteAthlete', [rows[0]!.id], secretariat)
     expect(await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).toHaveLength(rows.length - 1)
+  })
+})
+
+describe('the athlete account beyond the basics', () => {
+  let dana = ''
+
+  beforeAll(async () => {
+    // Inserted directly: sign-ups are limited per connection and this file has used them up
+    app.db.insert(t.athletes).values({ id: 'dana', name: 'Dana Lopez', email: 'dana@test.example', passwordHash: hashPassword('a-long-password') }).run()
+    dana = await app.signIn.athlete('dana@test.example', 'a-long-password')
+  })
+
+  it('sets a first club straight away, but asks the secretariat to change it', async () => {
+    const first = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez' }], dana)
+    expect(first).toMatchObject({ clubId: 'club-1', changeRequest: null })
+
+    app.db.insert(t.clubs).values({ id: 'club-2', name: 'Bicol Movers', contactName: '', contactEmail: '', contactPhone: '' }).run()
+    const asked = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez', clubId: 'club-2' }], dana)
+    expect(asked.clubId).toBe('club-1')
+    expect(asked.changeRequest).toMatchObject({ clubId: 'club-2' })
+
+    const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Dana Lopez')!
+    expect(row).toMatchObject({ requestedClubName: 'Bicol Movers' })
+    expect((await app.call('rejectProfileChange', [row.id, ' '], secretariat)).status).toBe(400)
+    await app.ok('rejectProfileChange', [row.id, 'Ask your coach first'], secretariat)
+    expect((await app.ok<AthletePage>('getMyAthlete', [], dana)).profile.changeRequest?.rejectedReason).toMatch(/coach/)
+    expect((await app.call('approveProfileChange', [row.id], secretariat)).status).toBe(409)
+
+    await app.ok('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez', clubId: 'club-2' }], dana)
+    await app.ok('approveProfileChange', [row.id], secretariat)
+    expect((await app.ok<AthletePage>('getMyAthlete', [], dana)).profile).toMatchObject({ clubId: 'club-2', changeRequest: null })
+    expect((await app.call('approveProfileChange', [row.id], dana)).status).toBe(403)
+  })
+
+  it('keeps a history of every payment', async () => {
+    await app.ok('requestMembership', [{ method: 'GCash', receipt: SHOT }], dana)
+    const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Dana Lopez')!
+    await app.ok('rejectMembership', [row.id, 'Wrong reference'], secretariat)
+    await app.ok('requestMembership', [{ method: 'GCash', receipt: SHOT }], dana)
+    await app.ok('confirmMembership', [row.id], secretariat)
+    const { history } = (await app.ok<AthletePage>('getMyAthlete', [], dana)).profile
+    expect(history.map((h) => h.kind)).toEqual(['sent', 'rejected', 'sent', 'confirmed'])
+    expect(history[1]).toMatchObject({ reason: 'Wrong reference', method: 'GCash' })
+  })
+
+  it('takes a small picture, and only a picture', async () => {
+    const png = 'data:image/png;base64,iVBORw0KGgo='
+    expect((await app.call('saveMyPhoto', ['data:text/html;base64,PGI+'], dana)).status).toBe(400)
+    expect((await app.ok<AthleteProfile>('saveMyPhoto', [png], dana)).photo).toBe(png)
+    expect((await app.ok<AthleteProfile>('saveMyPhoto', [null], dana)).photo).toBeNull()
+  })
+
+  it('finds the results and entries of the competitors carrying their name, with no approval', async () => {
+    expect((await app.ok<{ competitorIds: string[] }>('getMyActivity', [], dana)).competitorIds).toEqual([])
+    const details = { province: 'Camarines Sur', coachId: null, dancers: [], beginner: false, memberYear: null }
+    const couple = await app.ok<{ id: string }>('createCompetitor', [{ names: ['dana  lopez', 'Eli Tan'], clubId: 'club-1', details }], secretariat)
+    app.db.insert(t.entries).values({ id: 'en1', eventId: 'e1', competitorId: couple.id }).run()
+    const activity = await app.ok<{ competitorIds: string[]; entries: { names: string[]; eventNumber: number }[] }>('getMyActivity', [], dana)
+    expect(activity.competitorIds).toEqual([couple.id])
+    expect(activity.entries).toMatchObject([{ names: ['dana  lopez', 'Eli Tan'], eventNumber: 1 }])
+  })
+
+  it('tells the athlete, and only them, when the secretariat decides something', async () => {
+    const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Dana Lopez')!
+    // The history test above ended with a confirmed membership, so the athlete already has two notices
+    const before = await app.ok<AthleteNotification[]>('getMyNotifications', [], dana)
+    expect(before.map((n) => n.kind).sort()).toEqual(['change_approved', 'membership_confirmed', 'membership_rejected', 'change_rejected'].sort())
+    expect(before.every((n) => n.readAt === null)).toBe(true)
+    expect(app.hub.sent.filter((e) => e.event === 'notification' && e.payload === row.id)).toHaveLength(4)
+
+    const [newest] = before
+    await app.ok('markNotificationsRead', [[newest!.id]], dana)
+    const some = await app.ok<AthleteNotification[]>('getMyNotifications', [], dana)
+    expect(some.filter((n) => n.readAt !== null)).toHaveLength(1)
+    await app.ok('markNotificationsRead', [], dana)
+    expect((await app.ok<AthleteNotification[]>('getMyNotifications', [], dana)).every((n) => n.readAt !== null)).toBe(true)
+
+    // Someone else's athlete id in the list changes nothing, and the secretariat has no notifications
+    expect((await app.call('getMyNotifications', [], secretariat)).status).toBe(403)
+  })
+
+  it('signs the athlete out on every device', async () => {
+    expect((await app.me(dana))?.role).toBe('athlete')
+    await app.ok('signOutEverywhere', [], dana)
+    expect(await app.me(dana)).toBeNull()
+    expect(await app.signIn.athlete('dana@test.example', 'a-long-password')).toContain('=')
   })
 })

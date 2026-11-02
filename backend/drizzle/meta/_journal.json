@@ -134,6 +134,62 @@
       "when": 1793500286384,
       "tag": "0018_closed_events",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1793594117711,
+      "tag": "0019_athlete_account",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1793596056349,
+      "tag": "0020_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1793607095657,
+      "tag": "0021_member_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1793609112051,
+      "tag": "0022_member_links",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1793612551808,
+      "tag": "0023_member_phone",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1793612982211,
+      "tag": "0024_member_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1793613094794,
+      "tag": "0025_member_profile",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1793614427721,
+      "tag": "0026_entry_requests",
+      "breakpoints": true
     }
   ]
 }

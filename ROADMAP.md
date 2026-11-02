@@ -65,7 +65,7 @@ Built as a club portal with online proof of payment and Messenger messages, then
 - [x] The secretariat enters clubs, coaches and competitors from the entry forms, with the entry form's details, fees, deadlines and entry warnings.
 - [x] Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms or turns it down.
 - [x] Payments are a read-only ledger; the secretariat records how each was paid.
-- [ ] Data Privacy Act of 2012: the privacy notice (`/privacy`) was rewritten for the entry form and athlete accounts. The organizer must confirm it, and say how long the details are kept.
+- [ ] Data Privacy Act of 2012: the privacy notice (`/privacy`) was rewritten for the entry form and athlete accounts. The organizer must confirm it. Retention is settled: details are kept permanently until removed.
 
 ## Program (running order) (built)
 
@@ -85,7 +85,7 @@ Built:
 - Sign out everywhere: an admin can end every session of a staff member, adjudicator or athlete. A reset password or a new PIN does the same.
 - Two-step sign-in with an authenticator app (TOTP) for any staff account, with recovery codes; an admin can reset it for someone who lost their phone. It is optional, each person turns it on from the Security screen.
 - A cap per address on calls that need no sign-in (`PUBLIC_RATE_LIMIT`, default 600 a minute).
-- Security headers from Caddy (the Content-Security-Policy is report-only until checked in a browser) and a Secure session cookie.
+- Security headers from Caddy (including an enforced Content-Security-Policy) and a Secure session cookie.
 
 Not built: making two-step sign-in compulsory for admins (today it is each person's choice), and a way to see and end individual sessions (sign out everywhere ends all of them).
 

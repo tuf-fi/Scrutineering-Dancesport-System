@@ -5,6 +5,8 @@ export const Role = {
   Chairperson: 'chairperson',
   Adjudicator: 'adjudicator',
   Athlete: 'athlete',
+  Coach: 'coach',
+  Team: 'team',
   Mc: 'mc',
   Public: 'public',
 } as const

@@ -98,6 +98,11 @@
       opacity: 0;
     }
   }
+  @keyframes slide-progress {
+    from {
+      width: 0;
+    }
+  }
   @keyframes skeleton {
     50% {
       opacity: 0.5;

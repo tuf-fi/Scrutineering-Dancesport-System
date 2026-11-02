@@ -3,10 +3,10 @@ import { loadConfig } from '../config.ts'
 import { openDatabase } from './client.ts'
 import { runMigrations } from './migrate.ts'
 
-// pnpm --filter @bis/backend admin:create <username> "<Full name>" [password]
+// pnpm --filter @bis/backend admin:create <email> "<Full name>" [password]
 const [username, name, password] = process.argv.slice(2)
 if (!username || !name) {
-  console.error('Usage: admin:create <username> "<Full name>" [password]')
+  console.error('Usage: admin:create <email> "<Full name>" [password]')
   process.exit(1)
 }
 

@@ -3,6 +3,7 @@ import { DEFAULT_FEE_SCHEDULE } from '@bis/shared'
 import { useState } from 'react'
 import { Button, Input, toast } from '../../components/ui/index.ts'
 import { useSavePaymentSettings } from '../../hooks/index.ts'
+import { SectionHead } from './SectionHead.tsx'
 
 const isPesos = (v: string) => /^\d{1,6}$/.test(v.trim())
 
@@ -58,43 +59,54 @@ export function RegistrationFees({ saved }: { saved: PaymentSettings }) {
     save.mutate({ fees: saved.fees, methods, schedule: next }, { onSuccess: () => toast.success('Registration fees saved'), onError: (e) => setFailure(e.message) })
   }
 
+  const field = 'h-9! bg-white px-2.5 text-right font-mono tabular-nums'
+  const changed = Object.keys(draft).filter((k) => draft[k]!.trim() !== original[k]).length
+
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-title font-semibold text-neutral-900">Registration fees</h2>
-        <p className="text-small text-neutral-600">What the secretariat charges when it enters a team from an entry form.</p>
+    <section className="flex flex-col gap-6">
+      <SectionHead title="Registration fees" note="What the secretariat charges when it enters a team from an entry form." />
+
+      <div className="flex flex-col gap-3">
+        <div aria-hidden className="grid grid-cols-[minmax(0,1fr)_6.5rem_6.5rem] gap-x-3 font-mono text-xs uppercase text-neutral-500">
+          <span>Events</span>
+          <span className="text-right">First (₱)</span>
+          <span className="text-right">Each extra (₱)</span>
+        </div>
+        <ul className="border-y border-neutral-200">
+          {TIERS.map(({ key, label }) => (
+            <li key={key} className="grid grid-cols-[minmax(0,1fr)_6.5rem_6.5rem] items-center gap-x-3 border-t border-neutral-200 py-2.5 first:border-t-0">
+              <span className="text-small text-neutral-900">{label}</span>
+              <Input label={`${label}, first entry`} hideLabel inputMode="numeric" className={field} value={draft[`${key}.first`]!} onChange={set(`${key}.first`)} error={error(`${key}.first`)} />
+              <Input label={`${label}, each extra entry`} hideLabel inputMode="numeric" className={field} value={draft[`${key}.additional`]!} onChange={set(`${key}.additional`)} error={error(`${key}.additional`)} />
+            </li>
+          ))}
+        </ul>
       </div>
-      <div className="grid max-w-2xl gap-x-4 gap-y-3 sm:grid-cols-[1fr_8rem_8rem]">
-        <span className="hidden text-small font-medium text-neutral-600 sm:block">Events</span>
-        <span className="hidden text-small font-medium text-neutral-600 sm:block">First entry (₱)</span>
-        <span className="hidden text-small font-medium text-neutral-600 sm:block">Each extra (₱)</span>
-        {TIERS.map(({ key, label }) => (
-          <div key={key} className="contents">
-            <span className="self-center text-small text-neutral-900">{label}</span>
-            <Input label={`${label}, first entry`} hideLabel inputMode="numeric" className="font-mono tabular-nums" value={draft[`${key}.first`]!} onChange={set(`${key}.first`)} error={error(`${key}.first`)} />
-            <Input label={`${label}, each extra entry`} hideLabel inputMode="numeric" className="font-mono tabular-nums" value={draft[`${key}.additional`]!} onChange={set(`${key}.additional`)} error={error(`${key}.additional`)} />
-          </div>
-        ))}
-        {SINGLES.map(({ key, label }) => (
-          <div key={key} className="contents">
-            <span className="self-center text-small text-neutral-900">{label}</span>
-            <Input label={`${label} (₱)`} hideLabel inputMode="numeric" className="font-mono tabular-nums" value={draft[key]!} onChange={set(key)} error={error(key)} />
-            <span aria-hidden className="hidden sm:block" />
-          </div>
-        ))}
+
+      <div className="flex flex-col gap-3">
+        <p aria-hidden className="font-mono text-xs uppercase text-neutral-500">Fixed fees</p>
+        <ul className="border-y border-neutral-200">
+          {SINGLES.map(({ key, label }) => (
+            <li key={key} className="grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-x-3 border-t border-neutral-200 py-2.5 first:border-t-0">
+              <span className="text-small text-neutral-900">{label}</span>
+              <Input label={`${label} (₱)`} hideLabel inputMode="numeric" className={field} value={draft[key]!} onChange={set(key)} error={error(key)} />
+            </li>
+          ))}
+        </ul>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <Button className="rounded-lg" disabled={!dirty || !valid || save.isPending} onClick={onSave}>
-          {save.isPending ? 'Saving…' : 'Save registration fees'}
-        </Button>
-        <Button variant="ghost" disabled={!dirty} onClick={() => setDraft(original)}>
-          Discard changes
-        </Button>
-        {failure && (
-          <p role="alert" className="text-small text-danger">
-            {failure}
-          </p>
-        )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p role={failure ? 'alert' : undefined} className={failure ? 'text-small text-danger' : dirty ? 'text-small font-medium text-neutral-900' : 'text-small text-neutral-500'}>
+          {failure ?? (dirty ? `${changed} unsaved ${changed === 1 ? 'change' : 'changes'}` : 'All changes saved')}
+        </p>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" disabled={!dirty} onClick={() => setDraft(original)}>
+            Discard
+          </Button>
+          <Button disabled={!dirty || !valid || save.isPending} onClick={onSave}>
+            {save.isPending ? 'Saving…' : 'Save registration fees'}
+          </Button>
+        </div>
       </div>
     </section>
   )

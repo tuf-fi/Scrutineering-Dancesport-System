@@ -21,6 +21,7 @@ function base(event: Event, round: Round) {
     discipline: event.discipline,
     roundType: round.type,
     heat: null,
+    select: round.recallNumber,
     numbers: [] as number[],
     result: null,
   }
@@ -60,6 +61,7 @@ export function announcements(): Announcement[] {
       kind: 'finalists',
       numbers: backNumbers(placed.map((r) => r.competitorId)),
     })
+    list.push({ ...base(completedEvent, final), id: `results:${final.id}`, kind: 'results' })
     // Read out from last place up, one at a time
     for (const r of placed) {
       const dancer = person(r.competitorId)

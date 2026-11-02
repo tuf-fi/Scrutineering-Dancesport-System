@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router'
+import { Navigate, useNavigate } from 'react-router'
 import { roleHome } from '../../app/nav.ts'
 import { ApiError } from '../../api/http.ts'
 import { Button, Input } from '../../components/ui/index.ts'
@@ -8,6 +8,8 @@ import { useAuth } from '../../stores/auth.ts'
 import { AuthShell } from './AuthShell.tsx'
 import { CredentialsForm } from './CredentialsForm.tsx'
 import { DevHint } from './DevHint.tsx'
+import { PinSignIn } from './PinSignIn.tsx'
+import { cn } from '../../lib/cn.ts'
 
 // The second step, for an account with two-step sign-in on: a code from the authenticator app, or a recovery code
 function CodeForm({ onSubmit, onBack }: { onSubmit: (code: string) => Promise<void>; onBack: () => void }) {
@@ -54,6 +56,7 @@ export function StaffSignIn() {
   const signIn = useAuth((s) => s.signIn)
   const navigate = useNavigate()
   const staff = useSignInStaff()
+  const [pin, setPin] = useState(false)
   // Set once the password was right and the account wants a code as well
   const [asking, setAsking] = useState<{ username: string; password: string } | null>(null)
 
@@ -68,24 +71,38 @@ export function StaffSignIn() {
   return (
     <AuthShell
       title="Sign in"
-      footer={
-        <>
-          <p className="text-neutral-600">
-            Adjudicator?{' '}
-            <Link to="/adjudicator" className="font-semibold text-neutral-900 underline underline-offset-4">
-              Sign in with your PIN
-            </Link>
-          </p>
-          <DevHint kind="staff" />
-        </>
-      }
+      description={pin ? 'The scrutineer gave you a PIN for today.' : 'For the secretariat, scrutineers, the MC and the admin.'}
+      footer={<DevHint kind={pin ? 'pin' : 'staff'} />}
     >
-      {asking ? (
+      <div role="tablist" aria-label="Sign in as" className="mb-6 grid grid-cols-2 border-b border-neutral-200">
+        {[
+          { label: 'Staff', value: false },
+          { label: 'Adjudicator', value: true },
+        ].map((tab) => (
+          <button
+            key={tab.label}
+            type="button"
+            role="tab"
+            aria-selected={pin === tab.value}
+            onClick={() => setPin(tab.value)}
+            className={cn(
+              '-mb-px h-11 border-b-2 text-small font-semibold transition-colors',
+              pin === tab.value ? 'border-gold-400 text-neutral-900' : 'border-transparent text-neutral-500 hover:bg-gold-50 hover:text-neutral-900',
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {pin ? (
+        <PinSignIn />
+      ) : asking ? (
         <CodeForm onSubmit={(code) => finish(asking.username, asking.password, code)} onBack={() => setAsking(null)} />
       ) : (
         <CredentialsForm
-          idLabel="Username"
-          idAutoComplete="username"
+          idLabel="Email"
+          idType="email"
+          idAutoComplete="email"
           onSubmit={async (username, password) => {
             try {
               await finish(username, password)

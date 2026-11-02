@@ -1,6 +1,6 @@
-import { PageHeader } from '../../components/ui/index.ts'
+import { PublicHeader } from './PublicHeader.tsx'
 
-// TODO: the organizer must read and confirm this notice, including how long entry form details are kept
+// TODO: the organizer must read and confirm this notice (details are kept permanently until removed)
 const SECTIONS: Array<{ title: string; body: string[] }> = [
   {
     title: 'What we keep',
@@ -27,7 +27,7 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
   {
     title: 'How long',
     body: [
-      'Entry form details are kept for the organizer’s records until the organizer removes them. Results and rankings are kept as the public record.',
+      'Entry form details are kept permanently as the organizer’s record. Nothing is deleted automatically; details are removed only when the organizer does it, or when you ask. Results and rankings are kept as the public record.',
     ],
   },
   {
@@ -41,18 +41,25 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
 
 export function PrivacyPage() {
   return (
-    <div className="flex max-w-2xl flex-col gap-8">
-      <PageHeader title="Privacy notice" description="What BIS keeps about dancers, clubs and coaches, and for how long." />
-      {SECTIONS.map((section) => (
-        <section key={section.title} className="flex flex-col gap-2">
-          <h2 className="text-title font-semibold text-neutral-900">{section.title}</h2>
-          {section.body.map((text) => (
-            <p key={text} className="text-body text-neutral-700">
-              {text}
-            </p>
-          ))}
-        </section>
-      ))}
+    <div className="flex flex-col gap-10 sm:gap-12">
+      <PublicHeader title="Privacy notice" eyebrow="Data Privacy Act of 2012" description="What BIS keeps about dancers, clubs and coaches, and for how long." />
+      <div className="flex flex-col">
+        {SECTIONS.map((section, i) => (
+          <section key={section.title} className="grid gap-4 border-b border-neutral-200 py-8 first:pt-0 lg:grid-cols-[14rem_1fr] lg:gap-12">
+            <h2 className="flex items-baseline gap-3 text-[1.25rem] font-semibold leading-tight tracking-[-0.015em] text-neutral-900">
+              <span className="font-mono text-xs font-medium tabular-nums text-neutral-500">{String(i + 1).padStart(2, '0')}</span>
+              {section.title}
+            </h2>
+            <div className="flex max-w-2xl flex-col gap-3">
+              {section.body.map((text) => (
+                <p key={text} className="text-body text-neutral-700">
+                  {text}
+                </p>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   )
 }

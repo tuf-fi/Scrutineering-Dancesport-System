@@ -72,7 +72,7 @@ function medalWarnings(ctx: Ctx, competitorId: string, competition: typeof t.com
 }
 
 // Prices the entries of one dancer or couple, and notes what the secretariat should look at
-function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachFees = { membership: false, summit: false }) {
+export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachFees = { membership: false, summit: false }) {
   const competitor = getCompetitorRow(ctx, competitorId)
   const ids = Array.isArray(eventIds) ? [...new Set(eventIds)] : []
   if (ids.length === 0) return fail('Choose at least one event.')
@@ -120,6 +120,61 @@ function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachFees = {
     warnings.push(`Fees were due on ${competition.feeDeadline}. An entry still unpaid is subject to disqualification.`)
   }
   return { lines, total, warnings, ...(coach ? { coach } : {}), year: competitionYear, newMembers, collect, coachId: coachRow?.id }
+}
+
+// Enters one dancer or couple in several events at once, with one payment; a receipt is kept when it was sent online
+export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: string): RegistrationResult {
+  const competitor = getCompetitorRow(ctx, input?.competitorId)
+  if (!Object.values(PayMethod).includes(input.method)) return fail('Choose how it was paid.')
+  const priced = quote(ctx, competitor.id, input.eventIds, input.coachFees)
+  for (const id of new Set(input.eventIds)) {
+    const event = getEventRow(ctx, id)
+    checkEligible(ctx, competitor.id, event)
+    if (ctx.db.select().from(t.entries).where(and(eq(t.entries.eventId, id), eq(t.entries.competitorId, competitor.id))).get()) {
+      return fail(`Already entered in E${event.number}.`, 409)
+    }
+    checkNotStarted(ctx, id)
+  }
+
+  const user = actor(ctx)
+  const paid = input.method !== PayMethod.Unpaid
+  const paymentId = newId()
+  // What the payment settles once it is paid, now or later
+  const coachSettled = priced.collect.membership || priced.collect.summit
+  const settles: t.PaymentSettles | null =
+    priced.newMembers > 0 || coachSettled
+      ? {
+          year: priced.year,
+          ...(priced.newMembers > 0 ? { competitorId: competitor.id } : {}),
+          ...(coachSettled ? { coachId: priced.coachId, coachMembership: priced.collect.membership, coachSummit: priced.collect.summit } : {}),
+        }
+      : null
+  ctx.db
+    .insert(t.payments)
+    .values({
+      id: paymentId,
+      clubId: competitor.clubId,
+      competitionId: getEventRow(ctx, input.eventIds[0]!).competitionId,
+      late: false,
+      amountDue: priced.total,
+      amountPaid: paid ? priced.total : null,
+      referenceNumber: paid ? clean(input.reference) || null : null,
+      method: input.method,
+      settles,
+      receipt: receipt ?? null,
+      status: !paid ? PaymentStatus.Unpaid : input.method === PayMethod.Cash ? PaymentStatus.PaidAtVenue : PaymentStatus.Approved,
+      checkedBy: paid ? user.id : null,
+      checkedAt: paid ? now() : null,
+    })
+    .run()
+  for (const eventId of new Set(input.eventIds)) {
+    ctx.db.insert(t.entries).values({ id: newId(), eventId, competitorId: competitor.id, scratched: false, paymentId, late: false }).run()
+  }
+  if (paid) applySettles(ctx, paymentId)
+  record(ctx.db, user.id, 'Registered entries', competitor.names.join(' & '), {
+    after: { events: input.eventIds.length, total: priced.total, method: input.method },
+  })
+  return { lines: priced.lines, total: priced.total, warnings: priced.warnings, paymentId }
 }
 
 export const registration = {
@@ -191,55 +246,6 @@ export const registration = {
 
   // Enters one dancer or couple in several events at once, as on the paper entry form, with one payment
   registerCompetitor(ctx: Ctx, input: RegistrationInput): RegistrationResult {
-    const competitor = getCompetitorRow(ctx, input?.competitorId)
-    if (!Object.values(PayMethod).includes(input.method)) return fail('Choose how it was paid.')
-    const priced = quote(ctx, competitor.id, input.eventIds, input.coachFees)
-    for (const id of new Set(input.eventIds)) {
-      const event = getEventRow(ctx, id)
-      checkEligible(ctx, competitor.id, event)
-      if (ctx.db.select().from(t.entries).where(and(eq(t.entries.eventId, id), eq(t.entries.competitorId, competitor.id))).get()) {
-        return fail(`Already entered in E${event.number}.`, 409)
-      }
-      checkNotStarted(ctx, id)
-    }
-
-    const user = actor(ctx)
-    const paid = input.method !== PayMethod.Unpaid
-    const paymentId = newId()
-    // What the payment settles once it is paid, now or later
-    const coachSettled = priced.collect.membership || priced.collect.summit
-    const settles: t.PaymentSettles | null =
-      priced.newMembers > 0 || coachSettled
-        ? {
-            year: priced.year,
-            ...(priced.newMembers > 0 ? { competitorId: competitor.id } : {}),
-            ...(coachSettled ? { coachId: priced.coachId, coachMembership: priced.collect.membership, coachSummit: priced.collect.summit } : {}),
-          }
-        : null
-    ctx.db
-      .insert(t.payments)
-      .values({
-        id: paymentId,
-        clubId: competitor.clubId,
-        competitionId: getEventRow(ctx, input.eventIds[0]!).competitionId,
-        late: false,
-        amountDue: priced.total,
-        amountPaid: paid ? priced.total : null,
-        referenceNumber: paid ? clean(input.reference) || null : null,
-        method: input.method,
-        settles,
-        status: !paid ? PaymentStatus.Unpaid : input.method === PayMethod.Cash ? PaymentStatus.PaidAtVenue : PaymentStatus.Approved,
-        checkedBy: paid ? user.id : null,
-        checkedAt: paid ? now() : null,
-      })
-      .run()
-    for (const eventId of new Set(input.eventIds)) {
-      ctx.db.insert(t.entries).values({ id: newId(), eventId, competitorId: competitor.id, scratched: false, paymentId, late: false }).run()
-    }
-    if (paid) applySettles(ctx, paymentId)
-    record(ctx.db, user.id, 'Registered entries', competitor.names.join(' & '), {
-      after: { events: input.eventIds.length, total: priced.total, method: input.method },
-    })
-    return { lines: priced.lines, total: priced.total, warnings: priced.warnings, paymentId }
+    return enterCompetitor(ctx, input)
   },
 }

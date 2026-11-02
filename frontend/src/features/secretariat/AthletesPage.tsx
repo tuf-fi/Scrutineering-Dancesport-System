@@ -8,15 +8,21 @@ type Filter = 'all' | 'waiting'
 
 const isWaiting = (a: AthleteRow) => a.request !== null && !a.request.rejectedReason
 
-function PaymentCell({ athlete }: { athlete: AthleteRow }) {
+function PaymentCell({ athlete, onView }: { athlete: AthleteRow; onView: (athlete: AthleteRow) => void }) {
   const { request } = athlete
   if (!request) return <span className="text-neutral-500">–</span>
   return (
     <span className="flex flex-col gap-0.5">
       <Badge pill tone={request.rejectedReason ? 'danger' : 'gold'}>{request.rejectedReason ? 'Not confirmed' : 'Waiting'}</Badge>
-      <span className="font-mono text-small text-neutral-600">
-        {request.method} {request.reference}
-      </span>
+      {request.receipt ? (
+        <button type="button" onClick={() => onView(athlete)} className="w-fit text-left text-small text-neutral-700 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900">
+          {request.method} screenshot
+        </button>
+      ) : (
+        <span className="font-mono text-small text-neutral-600">
+          {request.method} {request.reference}
+        </span>
+      )}
     </span>
   )
 }
@@ -27,6 +33,7 @@ export function AthletesPage() {
   const reject = useRejectMembership()
   const reset = useResetAthletePassword()
   const remove = useDeleteAthlete()
+  const [viewing, setViewing] = useState<AthleteRow | null>(null)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [rejecting, setRejecting] = useState<AthleteRow | null>(null)
@@ -55,7 +62,7 @@ export function AthletesPage() {
         <SearchField className="w-full sm:w-64" label="Search athletes" value={query} onChange={setQuery} />
         <Select label="Show" hideLabel className="w-full sm:w-52" value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
           <option value="all">All athletes</option>
-          <option value="waiting">Payment waiting</option>
+          <option value="waiting">Waiting for you</option>
         </Select>
       </Toolbar>
 
@@ -74,14 +81,14 @@ export function AthletesPage() {
         columns={[
           { key: 'name', header: 'Athlete', cell: (a) => <span className="font-medium">{a.name}</span> },
           { key: 'email', header: 'Email', cell: (a) => a.email, muted: true, hideBelow: 'md' },
-          { key: 'club', header: 'Club', cell: (a) => a.clubName || '–', muted: true, hideBelow: 'md' },
+          { key: 'club', header: 'Team', cell: (a) => a.clubName || '–', muted: true, hideBelow: 'md' },
           { key: 'member', header: 'Membership', cell: (a) => a.memberYear ?? 'Not paid', mono: true, muted: true, hideBelow: 'sm' },
-          { key: 'payment', header: 'Payment', cell: (a) => <PaymentCell athlete={a} /> },
+          { key: 'payment', header: 'Payment', cell: (a) => <PaymentCell athlete={a} onView={setViewing} /> },
           {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-36',
+            widthClass: 'w-44',
             cell: (a) => (
               <div className="flex justify-end gap-0.5">
                 {a.request && (
@@ -144,6 +151,20 @@ export function AthletesPage() {
         }
       >
         <Textarea label="Reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+      </Dialog>
+
+      <Dialog
+        open={viewing !== null}
+        onClose={() => setViewing(null)}
+        title={`Payment of ${viewing?.name ?? ''}`}
+        description={viewing?.request ? `${viewing.request.method}, ${viewing.request.year} membership` : undefined}
+        actions={
+          <Button variant="ghost" onClick={() => setViewing(null)}>
+            Close
+          </Button>
+        }
+      >
+        {viewing?.request?.receipt && <img src={viewing.request.receipt} alt={`Payment screenshot of ${viewing.name}`} className="max-h-[60vh] w-full rounded-md border border-neutral-200 object-contain" />}
       </Dialog>
 
       <Dialog

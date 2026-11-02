@@ -9,9 +9,9 @@ import { renderApp } from './test-utils.tsx'
 const C = 'comp-sorsogon-2026'
 
 const screens: Array<{ name: string; path: string; role?: Role; user?: Record<string, string>; ready: () => Promise<unknown> }> = [
-  { name: 'public home', path: '/', ready: () => screen.findByRole('heading', { name: 'Sorsogon Dancesport Open 2026' }) },
+  { name: 'public home', path: '/', ready: () => screen.findByRole('heading', { name: 'How to join' }) },
   { name: 'rankings', path: '/rankings', ready: () => screen.findByRole('heading', { name: /Junior I/ }) },
-  { name: 'staff sign-in', path: '/login', ready: () => screen.findByRole('heading', { name: 'Sign in' }) },
+  { name: 'staff sign-in', path: '/staff-access', ready: () => screen.findByRole('heading', { name: 'Sign in' }) },
   { name: 'adjudicator PIN sign-in', path: '/adjudicator', ready: () => screen.findByRole('heading', { name: 'Enter your PIN' }) },
   { name: 'admin competitions', path: '/admin/competitions', role: Role.Admin, ready: () => screen.findByText('Legazpi Dancesport Cup 2026') },
   { name: 'admin payments', path: '/admin/payments', role: Role.Admin, ready: () => screen.findByRole('columnheader', { name: 'Club' }) },

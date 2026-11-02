@@ -37,6 +37,17 @@ describe('guessing a PIN', () => {
     expect((await pin(app, '10.0.3.2', wrongPin(51))).statusCode).toBe(429)
   })
 
+  it('tells the admin about a wrong PIN, but only once a minute', async () => {
+    const app = await start()
+    const before = app.hub.sent.filter((e) => e.event === 'alert').length
+    await pin(app, '10.0.5.1', '0001')
+    await pin(app, '10.0.5.2', '0002')
+    const alerts = app.hub.sent.filter((e) => e.event === 'alert').slice(before)
+    // The throttle is shared by the whole process, so it may already have fired in an earlier test: at most one came from these two
+    expect(alerts.length).toBeLessThanOrEqual(1)
+    if (alerts[0]) expect(alerts[0].payload).toMatchObject({ roles: ['admin'], note: { title: 'Wrong PIN tried' } })
+  })
+
   it('records every failed and successful sign-in', async () => {
     const app = await start()
     await pin(app, '10.0.0.1', '0000')
@@ -50,16 +61,16 @@ describe('guessing a PIN', () => {
 describe('guessing a password', () => {
   it('runs out per account even when every guess comes from a different address', async () => {
     const app = await start()
-    for (let i = 0; i < 20; i++) expect((await from(app, `10.1.0.${i}`, '/api/auth/staff', { username: 'admin', password: `wrong-${i}` })).statusCode).toBe(401)
-    expect((await from(app, '10.1.1.1', '/api/auth/staff', { username: 'admin', password: 'wrong-again' })).statusCode).toBe(429)
+    for (let i = 0; i < 20; i++) expect((await from(app, `10.1.0.${i}`, '/api/auth/staff', { username: 'admin@sample.example', password: `wrong-${i}` })).statusCode).toBe(401)
+    expect((await from(app, '10.1.1.1', '/api/auth/staff', { username: 'admin@sample.example', password: 'wrong-again' })).statusCode).toBe(429)
     // Another account is not affected
-    expect((await from(app, '10.1.1.2', '/api/auth/staff', { username: 'scrutineer', password: 'wrong' })).statusCode).toBe(401)
+    expect((await from(app, '10.1.1.2', '/api/auth/staff', { username: 'scrutineer@sample.example', password: 'wrong' })).statusCode).toBe(401)
   })
 
   it('does not count a correct sign-in against the account', async () => {
     const app = await start()
     for (let round = 0; round < 3; round++) {
-      for (let i = 0; i < 6; i++) await from(app, `10.2.${round}.${i}`, '/api/auth/staff', { username: 'admin', password: 'nope' })
+      for (let i = 0; i < 6; i++) await from(app, `10.2.${round}.${i}`, '/api/auth/staff', { username: 'admin@sample.example', password: 'nope' })
       expect(await app.signIn.staff('admin')).toMatch(/^bis_session=/)
     }
   })
@@ -99,7 +110,7 @@ describe('trusting the proxy', () => {
       app.app.inject({
         method: 'POST',
         url: '/api/auth/staff',
-        payload: { username: 'scrutineer', password: 'wrong' },
+        payload: { username: 'scrutineer@sample.example', password: 'wrong' },
         remoteAddress: '172.18.0.2',
         // The proxy appends the real visitor on the right; the visitor can only invent what is to the left
         headers: { 'x-forwarded-for': `${forged}, 198.51.100.9` },

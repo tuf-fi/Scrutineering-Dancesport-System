@@ -1,14 +1,25 @@
+import { IdCard, type LucideIcon } from 'lucide-react'
 import { useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
-import { Dialog } from './Dialog.tsx'
+import { Drawer } from './Drawer.tsx'
 import { EmptyState } from './EmptyState.tsx'
 import { Pagination, Showing } from './Pagination.tsx'
 import { Skeleton } from './Skeleton.tsx'
 
+// A part of a row's detail panel: it gets its own place in the panel's side menu
+export interface DetailSection {
+  id: string
+  label: string
+  icon?: LucideIcon
+  content: ReactNode
+}
+
 export interface Column<T> {
   key: string
   header: string
+  // Shown in the header instead of the text, e.g. a select-all checkbox; the text still names the column elsewhere
+  headerCell?: ReactNode
   cell: (row: T) => ReactNode
   align?: 'left' | 'right' | 'center'
   // Numbers (back numbers, counts, placings) use the mono face so columns line up
@@ -18,11 +29,13 @@ export interface Column<T> {
   // Bold header and values, for the column a table is read by
   bold?: boolean
   // Hides the column on screens narrower than this breakpoint
-  hideBelow?: 'sm' | 'md'
+  hideBelow?: 'sm' | 'md' | 'lg'
   // Fixed width class for narrow columns such as a rank
   widthClass?: string
   // In the row detail modal: leave out a column that repeats the title
   detail?: false
+  // Only in the row detail modal: the table itself does not show it
+  detailOnly?: true
   // In the row detail modal: columns with the same group share one compact section
   group?: string
 }
@@ -37,8 +50,12 @@ interface TableProps<T> {
   rowClassName?: (row: T) => string | undefined
   // Makes whole rows clickable; keep a real link in the row for keyboard and screen readers
   onRowClick?: (row: T) => void
-  // Clicking a row opens a modal listing every column, including the ones narrow screens hide
+  // Clicking a row opens a panel from the right edge listing every column, including the ones narrow screens hide
   detailTitle?: (row: T) => string
+  // More for the Details part of the panel, under the columns: facts about the row that are not table columns
+  detailExtra?: (row: T) => ReactNode
+  // Further parts of the panel, each its own place in a side menu (Details first), like the fees page: entries, history and so on
+  detailSections?: (row: T) => DetailSection[]
   // Below this width the table scrolls sideways inside its card instead of squeezing its columns
   minWidthClass?: string
   // Names the pager for screen readers when a page has more than one table
@@ -47,7 +64,7 @@ interface TableProps<T> {
 }
 
 const align = { left: 'text-left', right: 'text-right', center: 'text-center' } as const
-const hide = { sm: 'hidden sm:table-cell', md: 'hidden md:table-cell' } as const
+const hide = { sm: 'hidden sm:table-cell', md: 'hidden md:table-cell', lg: 'hidden lg:table-cell' } as const
 
 // Shows 10 rows at a time with a pager underneath
 export function Table<T>({
@@ -59,6 +76,8 @@ export function Table<T>({
   rowClassName,
   onRowClick,
   detailTitle,
+  detailExtra,
+  detailSections,
   minWidthClass = 'min-w-[34rem]',
   paginationLabel,
   className,
@@ -67,18 +86,16 @@ export function Table<T>({
   const resetKey = `${rows.length}|${rows[0] ? rowKey(rows[0]) : ''}|${rows.length ? rowKey(rows[rows.length - 1]) : ''}`
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, resetKey)
   const [detail, setDetail] = useState<T | null>(null)
-  const open = onRowClick ?? (detailTitle ? setDetail : undefined)
+  const visible = columns.filter((c) => !c.detailOnly)
+  const [section, setSection] = useState('details')
+  const open = onRowClick ?? (detailTitle ? (row: T) => (setSection('details'), setDetail(row)) : undefined)
 
   // Buttons, links and fields inside a row do their own thing
   const fromControl = (e: MouseEvent | KeyboardEvent) =>
     (e.target as HTMLElement).closest('a,button,input,select,textarea,label') !== null
 
   if (!loading && rows.length === 0) {
-    return (
-      <div className="rounded-lg border border-dashed border-neutral-300 px-6">
-        <EmptyState {...empty} />
-      </div>
-    )
+    return <EmptyState {...empty} />
   }
 
   return (
@@ -88,7 +105,7 @@ export function Table<T>({
         <table className={cn('w-full border-collapse text-small', minWidthClass)}>
           <thead>
             <tr>
-              {columns.map((c) => (
+              {visible.map((c) => (
                 <th
                   key={c.key}
                   scope="col"
@@ -101,7 +118,7 @@ export function Table<T>({
                     c.widthClass,
                   )}
                 >
-                  {c.header || <span className="sr-only">Actions</span>}
+                  {c.headerCell ?? (c.header || <span className="sr-only">Actions</span>)}
                 </th>
               ))}
             </tr>
@@ -110,7 +127,7 @@ export function Table<T>({
             {loading
               ? Array.from({ length: 5 }, (_, i) => (
                   <tr key={i}>
-                    {columns.map((c) => (
+                    {visible.map((c) => (
                       <td
                         key={c.key}
                         className={cn(
@@ -143,7 +160,7 @@ export function Table<T>({
                       rowClassName?.(row),
                     )}
                   >
-                    {columns.map((c) => (
+                    {visible.map((c) => (
                       <td
                         key={c.key}
                         className={cn(
@@ -169,51 +186,98 @@ export function Table<T>({
         <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label={paginationLabel} showSummary={false} />
       )}
       {detailTitle && (
-        <Dialog
+        <Drawer
           open={detail !== null}
           onClose={() => setDetail(null)}
           title={detail ? detailTitle(detail) : ''}
-          className="max-w-lg"
+          flush={Boolean(detailSections && detail && detailSections(detail).length > 0)}
+          className={detailSections ? 'sm:max-w-3xl' : undefined}
         >
-          {detail && (
-            <div className="flex flex-col gap-8">
-              <dl className="flex flex-wrap gap-x-10 gap-y-5">
-                {columns
-                  .filter((c) => c.header && c.detail !== false && !c.group)
-                  .map((c) => (
-                    <div key={c.key} className="flex min-w-0 flex-col gap-1.5">
-                      <dt className="text-xs text-neutral-500">{c.header}</dt>
-                      <dd
-                        className={cn(
-                          'min-w-0 break-words text-neutral-900',
-                          c.mono ? 'font-mono text-title tabular-nums' : 'text-small',
-                          c.bold && 'font-bold',
-                        )}
-                      >
-                        {c.cell(detail)}
-                      </dd>
-                    </div>
-                  ))}
-              </dl>
-              {[...new Set(columns.flatMap((c) => (c.group ? [c.group] : [])))].map((group) => (
-                <section key={group} className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
-                  <h3 className="text-small font-semibold text-neutral-900">{group}</h3>
-                  <dl className="flex flex-wrap gap-x-7 gap-y-5">
-                    {columns
-                      .filter((c) => c.group === group)
-                      .map((c) => (
-                        <div key={c.key} className="flex min-w-8 flex-col items-start gap-1.5">
-                          <dt className="font-mono text-xs text-neutral-500">{c.header}</dt>
-                          <dd className="font-mono text-small font-medium tabular-nums text-neutral-900">{c.cell(detail)}</dd>
-                        </div>
-                      ))}
-                  </dl>
-                </section>
-              ))}
-            </div>
-          )}
-        </Dialog>
+          {detail && <DetailBody row={detail} columns={columns} more={detailExtra?.(detail)} extra={detailSections?.(detail)} section={section} onSection={setSection} />}
+        </Drawer>
       )}
+    </div>
+  )
+}
+
+// What the columns say about one row, as the panel's first section: one row per item, the name on the left and the value on the right
+function DetailColumns<T>({ row, columns }: { row: T; columns: Column<T>[] }) {
+  const item = (c: Column<T>) => (
+    <div key={c.key} className="grid grid-cols-[8rem_minmax(0,1fr)] items-baseline gap-x-4 border-t border-neutral-100 py-3 first:border-t-0">
+      <dt className="text-small text-neutral-500">{c.header}</dt>
+      <dd className={cn('min-w-0 break-words text-small text-neutral-900', c.mono && 'font-mono tabular-nums', c.bold && 'font-bold')}>{c.cell(row)}</dd>
+    </div>
+  )
+  return (
+    <div className="flex flex-col gap-8">
+      <dl className="flex flex-col">{columns.filter((c) => c.header && c.detail !== false && !c.group).map(item)}</dl>
+      {[...new Set(columns.flatMap((c) => (c.group ? [c.group] : [])))].map((group) => (
+        <section key={group} className="flex flex-col gap-2 border-t border-neutral-200 pt-6">
+          <h3 className="font-mono text-xs uppercase text-neutral-500">{group}</h3>
+          <dl className="flex flex-col">{columns.filter((c) => c.group === group).map(item)}</dl>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+// The inside of the detail panel: just the columns, or a side menu with a part of the row's story in each of its sections
+function DetailBody<T>({
+  row,
+  columns,
+  more,
+  extra,
+  section,
+  onSection,
+}: {
+  row: T
+  columns: Column<T>[]
+  more?: ReactNode
+  extra?: DetailSection[]
+  section: string
+  onSection: (id: string) => void
+}) {
+  const details = (
+    <div className="flex flex-col gap-8">
+      <DetailColumns row={row} columns={columns} />
+      {more && <div className="flex flex-col gap-6 border-t border-neutral-200 pt-6">{more}</div>}
+    </div>
+  )
+  if (!extra || extra.length === 0) return details
+
+  const all: DetailSection[] = [{ id: 'details', label: 'Details', icon: IdCard, content: details }, ...extra]
+  const current = all.find((x) => x.id === section) ?? all[0]!
+
+  return (
+    <div className="flex h-full min-h-0 flex-col sm:flex-row">
+      <nav
+        aria-label="Sections"
+        className="no-scrollbar flex shrink-0 gap-1 overflow-x-auto border-b border-neutral-200 bg-neutral-50 px-3 py-3 sm:w-48 sm:flex-col sm:overflow-x-visible sm:overflow-y-auto sm:border-b-0 sm:border-r sm:px-3 sm:py-5"
+      >
+        {all.map((x) => {
+          const Icon = x.icon
+          const active = x.id === current.id
+          return (
+            <button
+              key={x.id}
+              type="button"
+              aria-current={active ? 'page' : undefined}
+              onClick={() => onSection(x.id)}
+              className={cn(
+                'flex h-10 shrink-0 items-center gap-3 whitespace-nowrap rounded-md border px-3 text-left text-small font-medium transition-colors',
+                active ? 'border-neutral-200 bg-white text-neutral-900' : 'border-transparent text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900',
+              )}
+            >
+              {Icon && <Icon aria-hidden className={cn('size-[18px] shrink-0', active && 'text-gold-600')} strokeWidth={1.75} />}
+              {x.label}
+            </button>
+          )
+        })}
+      </nav>
+      <section aria-label={current.label} className="no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
+        <h3 className="text-body font-semibold text-neutral-900">{current.label}</h3>
+        {current.content}
+      </section>
     </div>
   )
 }

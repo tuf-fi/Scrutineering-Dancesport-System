@@ -18,8 +18,19 @@ import {
   type Adjudicator,
   type AthleteInput,
   type AthletePage,
+  type AlertNote,
+  type EntryRequest,
+  type EntryRequestInput,
+  type MemberAccount,
+  type MemberRosterRow,
+  type MemberClaimRow,
+  type MemberInput,
+  type MemberRoster,
   type AthleteProfile,
+  type AdjudicatorAssignment,
+  type AthleteNotification,
   type AthleteRow,
+  type MyActivity,
   type CompetitionInput,
   type Coach,
   type CoachInput,
@@ -83,7 +94,7 @@ import {
   skatingTable,
 } from './scrutinizing.ts'
 import { adjudicatorState, demoRounds, startDemoRound, submitMarks, taskFor } from './adjudicating.ts'
-import { heats, rounds } from './data/progress.ts'
+import { heats, marks, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
 import { isLiveRound, liveRoundComplete, visibleMarks } from './realtime.ts'
@@ -164,6 +175,8 @@ export const getCompetitorHistory = (competitorId: string) =>
         return [
           {
             resultId: r.id,
+            eventId: event.id,
+            competitorId: r.competitorId,
             competitionId: competition.id,
             competitionName: competition.name,
             competitionDate: competition.date,
@@ -186,6 +199,33 @@ export const getStaffUsers = () => reply(staffUsers.map((s) => ({ ...s, twoStep:
 export const getAuditLog = () => reply(auditLog)
 
 export const getPaymentDetails = () => reply(payments.map(paymentDetail))
+export const getAdjudicatorAssignments = (adjudicatorId: string) =>
+  reply<AdjudicatorAssignment[]>(
+    panels
+      .filter((p) => p.adjudicatorIds.includes(adjudicatorId))
+      .flatMap((p) => {
+        const event = events.find((e) => e.id === p.eventId)
+        const competition = competitions.find((c) => c.id === event?.competitionId)
+        if (!event || !competition) return []
+        const roundIds = rounds.filter((r) => r.eventId === event.id).map((r) => r.id)
+        return [
+          {
+            competitionId: competition.id,
+            competitionName: competition.name,
+            competitionDate: competition.date,
+            eventId: event.id,
+            eventNumber: event.number,
+            dances: event.dances,
+            ageGroup: event.ageGroup,
+            class: event.class,
+            discipline: event.discipline,
+            roundsMarked: new Set(marks.filter((m) => m.adjudicatorId === adjudicatorId && roundIds.includes(m.roundId)).map((m) => m.roundId)).size,
+          },
+        ]
+      })
+      .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber),
+  )
+
 export const getPanels = (competitionId: string) =>
   reply(
     panels.filter((p) => events.find((e) => e.id === p.eventId)?.competitionId === competitionId),
@@ -252,8 +292,9 @@ export const createStaffUser = (
   settle(() => {
     const username = input.username.trim().toLowerCase()
     const name = input.name.trim()
-    if (!name || !username) throw new Error('Enter a name and a username.')
-    if (staffUsers.some((s) => s.username === username)) throw new Error('That username is taken.')
+    if (!name || !username) throw new Error('Enter a name and an email.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) throw new Error('Enter a valid email address.')
+    if (staffUsers.some((s) => s.username === username)) throw new Error('That email is already used by another account.')
     const user: StaffUser = { id: `staff-${username}`, name, username, role: input.role }
     const password = tempPassword()
     passwords.set(username, password)
@@ -429,11 +470,28 @@ export const SAMPLE_TOTP_CODE = '123456'
 const sampleTotp = new Map<string, { enabled: boolean; secret: string | null; recovery: number }>()
 const totpOf = (id: string) => sampleTotp.get(id) ?? { enabled: false, secret: null, recovery: 0 }
 
+export const changeMyStaffPassword = (actorId: string, current: string, next: string) =>
+  settle<void>(() => {
+    const user = found(staffUsers.find((s) => s.id === actorId), 'Account')
+    if (current !== (passwords.get(user.username) ?? SAMPLE_PASSWORD)) throw new Error('Your current password is not right.')
+    if (next.length < 8) throw new Error('Use a password of at least 8 characters.')
+    passwords.set(user.username, next)
+  })
+
+export const saveMyStaffName = (actorId: string, name: string) =>
+  settle<StaffUser>(() => {
+    const user = found(staffUsers.find((s) => s.id === actorId), 'Account')
+    const clean = name.replace(/\s+/g, ' ').trim()
+    if (!clean) throw new Error('Enter your name.')
+    user.name = clean
+    return { ...user }
+  })
+
 export const signInStaff = (username: string, password: string, code?: string) =>
   settle<SessionUser>(() => {
     const user = staffUsers.find((s) => s.username === username.trim().toLowerCase())
     if (!user || password !== (passwords.get(user.username) ?? SAMPLE_PASSWORD)) {
-      throw new Error('Wrong username or password.')
+      throw new Error('Wrong email or password.')
     }
     if (totpOf(user.id).enabled) {
       if (!code) throw new ApiError(428, 'Enter the 6-digit code from your authenticator app, or a recovery code.')
@@ -492,6 +550,9 @@ export const getSampleCredentials = () =>
   settle(() => ({
     password: SAMPLE_PASSWORD,
     usernames: staffUsers.map((s) => s.username),
+    athleteEmail: SAMPLE_ATHLETE_EMAIL,
+    coachEmail: SAMPLE_COACH_EMAIL,
+    teamEmail: SAMPLE_TEAM_EMAIL,
     pins: adjudicatorPins
       .filter((p) => p.competitionId === currentCompetitionId)
       .slice(0, 3)
@@ -1064,7 +1125,12 @@ export const deleteEvent = (actorId: string, id: string) =>
 export const getAdjudicatorState = (adjudicatorId: string) => reply(adjudicatorState(adjudicatorId))
 
 export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, submissions: MarkSubmission[], _signature?: string) =>
-  settle<void>(() => submitMarks(adjudicatorId, roundId, submissions))
+  settle<void>(() => {
+    submitMarks(adjudicatorId, roundId, submissions)
+    // The scrutineer's and the chairperson's screens are told, as the real server does
+    const letter = adjudicators.find((a) => a.id === adjudicatorId)?.letter ?? ''
+    emitAlert([Role.Scrutineer, Role.Chairperson], { title: `Adjudicator ${letter} submitted`.replace('  ', ' '), detail: 'Marks are in for the round on the floor', link: '/scrutineer/live' })
+  })
 
 // TODO: dev-only controls that stand in for the scrutineer starting a round
 export const getDemoRounds = () => reply(demoRounds())
@@ -1160,9 +1226,9 @@ export const getResultEventIds = (competitionId: string) =>
 // ---- Fees and payment details ----
 
 const sampleMethods: PaymentMethod[] = [
-  { name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' },
-  { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' },
-  { name: 'Bank transfer', accountName: 'BN IT Scrutineer', number: '0000 0000 0000', note: 'BDO Savings, Sorsogon branch' },
+  { name: 'GCash', accountName: 'BIS', number: '0917 000 0000' },
+  { name: 'Maya', accountName: 'BIS', number: '0918 000 0000' },
+  { name: 'Bank transfer', accountName: 'BIS', number: '0000 0000 0000', note: 'BDO Savings, Sorsogon branch' },
 ]
 let samplePaymentSettings: PaymentSettings = { fees: { solo: 500, couple: 800 }, methods: sampleMethods, schedule: DEFAULT_FEE_SCHEDULE }
 
@@ -1179,7 +1245,64 @@ export const savePaymentSettings = (actorId: string, input: PaymentSettings) =>
 interface SampleAthlete extends AthleteProfile {
   password: string
 }
-const sampleAthletes: SampleAthlete[] = []
+const SAMPLE_ATHLETE_EMAIL = 'athlete@sample.example'
+const sampleAthletes: SampleAthlete[] = [
+  {
+    id: 'athlete-sample',
+    email: SAMPLE_ATHLETE_EMAIL,
+    name: 'Ana Cruz',
+    birthDate: '',
+    phone: '',
+    address: '',
+    province: '',
+    clubId: clubs[0]?.id ?? null,
+    coachId: null,
+    memberYear: null,
+    request: null,
+    photo: null,
+    history: [],
+    changeRequest: null,
+    password: SAMPLE_PASSWORD,
+  },
+]
+
+const sampleNotifications = new Map<string, AthleteNotification[]>()
+const notificationListeners = new Set<() => void>()
+export const subscribeNotifications = (listener: () => void) => {
+  notificationListeners.add(listener)
+  return () => void notificationListeners.delete(listener)
+}
+
+const alertListeners = new Set<(note: AlertNote & { roles: Role[] }) => void>()
+export const subscribeAlerts = (listener: (note: AlertNote & { roles: Role[] }) => void) => {
+  alertListeners.add(listener)
+  return () => void alertListeners.delete(listener)
+}
+
+// A pop-up for the screens of some roles; the sample has no server to pick them, so the note says who it is for
+export function emitAlert(roles: Role[], note: AlertNote) {
+  alertListeners.forEach((listener) => listener({ ...note, roles }))
+}
+
+// Tells an athlete something; the open screens hear it straight away, as they would over the socket
+export function notifyAthlete(athleteId: string, note: Pick<AthleteNotification, 'kind' | 'title' | 'detail' | 'link'>) {
+  const list = sampleNotifications.get(athleteId) ?? []
+  list.unshift({ id: `note-${athleteId}-${list.length + 1}-${Date.now()}`, ...note, createdAt: new Date().toISOString(), readAt: null })
+  sampleNotifications.set(athleteId, list)
+  notificationListeners.forEach((listener) => listener())
+}
+
+export const getMyNotifications = (athleteId: string) => reply<AthleteNotification[]>([...(sampleNotifications.get(athleteId) ?? [])])
+
+export const markNotificationsRead = (athleteId: string, ids?: string[]) =>
+  settle<void>(() => {
+    const at = new Date().toISOString()
+    const list = sampleNotifications.get(athleteId) ?? []
+    sampleNotifications.set(
+      athleteId,
+      list.map((n) => (n.readAt === null && (!ids || ids.length === 0 || ids.includes(n.id)) ? { ...n, readAt: at } : n)),
+    )
+  })
 
 const membershipYear = () => Number(competitions.find((c) => c.id === currentCompetitionId)?.date.slice(0, 4) ?? 2026)
 const athleteOf = (id: string) => found(sampleAthletes.find((a) => a.id === id), 'Athlete')
@@ -1204,6 +1327,9 @@ export const signUpAthlete = (name: string, email: string, password: string) =>
       coachId: null,
       memberYear: null,
       request: null,
+      photo: null,
+      history: [],
+      changeRequest: null,
       password,
     }
     sampleAthletes.push(athlete)
@@ -1216,6 +1342,357 @@ export const signInAthlete = (email: string, password: string) =>
     if (!athlete || athlete.password !== password) throw new Error('Wrong email or password.')
     return { id: athlete.id, name: athlete.name, role: Role.Athlete }
   })
+
+const SAMPLE_COACH_EMAIL = 'coach@sample.example'
+const SAMPLE_TEAM_EMAIL = 'team@sample.example'
+interface SampleMember {
+  id: string
+  role: 'coach' | 'team'
+  name: string
+  email: string
+  password: string
+  phone: string
+  birthDate: string
+  province: string
+  address: string
+  photo: string | null
+  linkedId: string | null
+  claimId: string | null
+  claimedAt: string | null
+}
+
+// The sample coach and team start out linked, so their pages show something
+const sampleMembers: SampleMember[] = [
+  { id: 'member-sample-coach', role: 'coach', name: 'Rico Bautista', email: SAMPLE_COACH_EMAIL, password: SAMPLE_PASSWORD, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: 'coach-1', claimId: null, claimedAt: null },
+  { id: 'member-sample-team', role: 'team', name: 'Sample Dance Team', email: SAMPLE_TEAM_EMAIL, password: SAMPLE_PASSWORD, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: clubs[0]?.id ?? null, claimId: null, claimedAt: null },
+]
+
+const memberOf = (id: string) => found(sampleMembers.find((m) => m.id === id), 'Account')
+const recordName = (role: 'coach' | 'team', id: string) => (role === 'coach' ? coaches.find((c) => c.id === id)?.name : clubs.find((c) => c.id === id)?.name) ?? null
+
+function memberAccount(m: SampleMember): MemberAccount {
+  const linked = m.linkedId ? recordName(m.role, m.linkedId) : null
+  const claim = m.claimId ? recordName(m.role, m.claimId) : null
+  return {
+    id: m.id,
+    role: m.role,
+    name: m.name,
+    email: m.email,
+    phone: m.phone,
+    birthDate: m.birthDate,
+    province: m.province,
+    address: m.address,
+    photo: m.photo,
+    linked: m.linkedId && linked !== null ? { id: m.linkedId, name: linked } : null,
+    claim: m.claimId && claim !== null ? { id: m.claimId, name: claim, requestedAt: m.claimedAt ?? '' } : null,
+  }
+}
+
+const claimRow = (m: SampleMember): MemberClaimRow => ({
+  memberId: m.id,
+  role: m.role,
+  name: m.name,
+  email: m.email,
+  targetId: m.claimId ?? '',
+  targetName: recordName(m.role, m.claimId ?? '') ?? '',
+  requestedAt: m.claimedAt ?? '',
+})
+
+export const signUpMember = (role: 'coach' | 'team', name: string, email: string, password: string) =>
+  settle<SessionUser>(() => {
+    const address = email.trim().toLowerCase()
+    if (!name.trim()) throw new Error(role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) throw new Error('Enter a valid email address.')
+    if (password.length < 8) throw new Error('Use a password of at least 8 characters.')
+    if (sampleMembers.some((m) => m.email === address)) throw new Error('An account with this email already exists. Sign in instead.')
+    const member: SampleMember = { id: `member-${sampleMembers.length + 1}`, role, name: name.trim(), email: address, password, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: null, claimId: null, claimedAt: null }
+    sampleMembers.push(member)
+    return { id: member.id, name: member.name, role: role === 'team' ? Role.Team : Role.Coach }
+  })
+
+export const signInMember = (role: 'coach' | 'team', email: string, password: string) =>
+  settle<SessionUser>(() => {
+    const member = sampleMembers.find((m) => m.email === email.trim().toLowerCase() && m.role === role)
+    if (!member || member.password !== password) throw new Error('Wrong email or password.')
+    return { id: member.id, name: member.name, role: member.role === 'team' ? Role.Team : Role.Coach }
+  })
+
+// The sample competitors have no entry form, so the sample coach is given the first dancers that have results
+const dancersOf = (m: SampleMember) =>
+  !m.linkedId
+    ? []
+    : m.id === 'member-sample-coach'
+      ? competitors.filter((c) => results.some((r) => r.competitorId === c.id)).slice(0, 12)
+      : competitors.filter((c) => (m.role === 'team' ? c.clubId === m.linkedId : c.details?.coachId === m.linkedId))
+
+export const saveMyMember = (memberId: string, input: MemberInput) =>
+  settle<MemberAccount>(() => {
+    const member = memberOf(memberId)
+    if (!input.name.trim()) throw new Error(member.role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
+    member.name = input.name.trim()
+    member.phone = input.phone.trim()
+    member.birthDate = input.birthDate
+    member.province = input.province.trim()
+    member.address = input.address.trim()
+    return memberAccount(member)
+  })
+
+export const saveMyMemberPhoto = (memberId: string, photo: string | null) =>
+  settle<MemberAccount>(() => {
+    const member = memberOf(memberId)
+    if (photo !== null && !/^data:image\/(jpeg|png|webp);base64,/.test(photo)) throw new Error('Choose a JPEG, PNG or WebP picture.')
+    member.photo = photo
+    return memberAccount(member)
+  })
+
+export const getMyMember = (memberId: string) => settle<MemberAccount>(() => memberAccount(memberOf(memberId)))
+
+export const claimRecord = (memberId: string, targetId: string) =>
+  settle<MemberAccount>(() => {
+    const member = memberOf(memberId)
+    if (member.linkedId) throw new Error('Your account is already linked.')
+    if (recordName(member.role, targetId) === null) throw new Error(member.role === 'team' ? 'Choose your club from the list.' : 'Choose your name from the list of coaches.')
+    member.claimId = targetId
+    member.claimedAt = new Date().toISOString()
+    emitAlert([Role.Secretariat], { title: 'Account link request', detail: `${member.name} wants to be linked to ${recordName(member.role, targetId) ?? ''}`, link: '/secretariat/account-links' })
+    return memberAccount(member)
+  })
+
+export const cancelClaim = (memberId: string) =>
+  settle<MemberAccount>(() => {
+    const member = memberOf(memberId)
+    member.claimId = null
+    member.claimedAt = null
+    return memberAccount(member)
+  })
+
+export const getMyRoster = (memberId: string) =>
+  settle<MemberRoster>(() => {
+    const member = memberOf(memberId)
+    const linkedId = member.linkedId
+    if (!linkedId) return { rows: [], payments: [], membership: null }
+    const own = dancersOf(member)
+    const rows = own
+      .map((c) => ({
+        competitorId: c.id,
+        names: c.names,
+        backNumber: c.backNumber,
+        clubName: clubs.find((k) => k.id === c.clubId)?.name ?? '',
+        entries: entries.filter((e) => e.competitorId === c.id && !e.scratched).length,
+      }))
+      .sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? ''))
+    if (member.role === 'coach') {
+      const coach = coaches.find((c) => c.id === linkedId)
+      return { rows, payments: [], membership: coach ? { memberYear: coach.memberYear, summitYear: coach.summitYear } : null }
+    }
+    const current = competitions.find((c) => c.id === currentCompetitionId)
+    const competitionName = current?.name ?? ''
+    const paid = payments.filter((p) => p.clubId === linkedId).map((p) => ({ id: p.id, competitionName, date: current?.date ?? '', amountDue: p.amountDue, amountPaid: p.amountPaid, status: p.status }))
+    return { rows, payments: paid, membership: null }
+  })
+
+export const getMemberClaims = () => settle<MemberClaimRow[]>(() => sampleMembers.filter((m) => m.claimId && recordName(m.role, m.claimId) !== null).map(claimRow))
+
+export const approveMemberClaim = (actorId: string, memberId: string) =>
+  settle<MemberClaimRow[]>(() => {
+    const member = memberOf(memberId)
+    if (!member.claimId) throw new Error('This account has no request waiting.')
+    if (sampleMembers.some((m) => m.id !== member.id && m.role === member.role && m.linkedId === member.claimId)) throw new Error('That record is already linked to another account.')
+    member.linkedId = member.claimId
+    member.claimId = null
+    member.claimedAt = null
+    record(actorId, 'Linked an account to a record', member.name)
+    notifyAthlete(member.id, { kind: 'link_approved', title: `You are linked to ${recordName(member.role, member.linkedId) ?? ''}`, detail: member.role === 'team' ? 'Your dancers and payments are on your page now.' : 'Your athletes are on your page now.', link: `/${member.role}/dancers` })
+    return sampleMembers.filter((m) => m.claimId).map(claimRow)
+  })
+
+export const rejectMemberClaim = (actorId: string, memberId: string) =>
+  settle<MemberClaimRow[]>(() => {
+    const member = memberOf(memberId)
+    if (!member.claimId) throw new Error('This account has no request waiting.')
+    member.claimId = null
+    member.claimedAt = null
+    record(actorId, 'Turned down a request to link an account', member.name)
+    notifyAthlete(member.id, { kind: 'link_rejected', title: 'Your request to be linked was turned down', detail: 'Check that you chose the right record and ask again.', link: `/${member.role}` })
+    return sampleMembers.filter((m) => m.claimId).map(claimRow)
+  })
+
+// ---- Entering a competition online ----
+
+type SampleRequest = EntryRequest & { receipt: string; eventIds: string[]; requesterId: string }
+const sampleRequests: SampleRequest[] = []
+const ONLINE_METHODS: string[] = [PayMethod.GCash, PayMethod.Maya, PayMethod.Bank]
+
+// Who is asking: a team's account (its club's dancers) or an athlete (the dancers that carry their name)
+function entrantsFor(requesterId: string) {
+  const member = sampleMembers.find((m) => m.id === requesterId)
+  if (member) {
+    if (member.role !== 'team') throw new Error('Only a team or an athlete can send an entry request.')
+    return { role: 'team' as const, name: member.name, dancers: member.linkedId ? competitors.filter((c) => c.clubId === member.linkedId) : [] }
+  }
+  const athlete = athleteOf(requesterId)
+  const me = normalName(athlete.name)
+  return { role: 'athlete' as const, name: athlete.name, dancers: competitors.filter((c) => c.names.some((n) => normalName(n) === me)) }
+}
+
+const entrantRow = (c: (typeof competitors)[number]): MemberRosterRow => ({
+  competitorId: c.id,
+  names: c.names,
+  ageGroup: ageGroupOf.get(c.id) ?? null,
+  backNumber: c.backNumber,
+  clubName: clubs.find((k) => k.id === c.clubId)?.name ?? '',
+  entries: entries.filter((e) => e.competitorId === c.id && !e.scratched).length,
+})
+
+const ownDancer = (requesterId: string, competitorId: string) => {
+  const who = entrantsFor(requesterId)
+  if (!who.dancers.some((c) => c.id === competitorId)) throw new Error('You can only enter your own dancers.')
+  return who
+}
+
+// Requests already sent, so the secretariat's list and the team's My requests have something in them
+function seedRequests() {
+  const club = clubs[0]
+  if (!club) return
+  const team = sampleMembers.find((m) => m.id === 'member-sample-team')
+  const soloDancers = competitors.filter((c) => c.clubId === club.id && c.names.length === 1)
+  const open = events.filter((e) => e.competitionId === 'comp-legazpi-2026' && e.isSolo)
+  const states = ['waiting', 'rejected', 'approved'] as const
+  soloDancers.slice(0, 3).forEach((dancer, i) => {
+    const mine = open.filter((e) => e.ageGroup === ageGroupOf.get(dancer.id)).slice(0, 2)
+    if (mine.length === 0 || !team) return
+    const status = states[i]!
+    const { total } = priceRegistration(dancer.id, mine.map((e) => e.id)).quote
+    sampleRequests.push({
+      id: `entry-request-seed-${i + 1}`,
+      competitorId: dancer.id,
+      names: dancer.names,
+      competitionId: 'comp-legazpi-2026',
+      competitionName: competitions.find((c) => c.id === 'comp-legazpi-2026')?.name ?? '',
+      eventNumbers: mine.map((e) => e.number).sort((a, b) => a - b),
+      total,
+      warnings: [],
+      method: [PayMethod.GCash, PayMethod.Maya, PayMethod.Bank][i]!,
+      reference: `REF${7040012 + i}`,
+      status,
+      rejectedReason: status === 'rejected' ? 'The screenshot is cut off. Send the whole payment.' : null,
+      createdAt: new Date(Date.now() - (i + 1) * 20 * 3_600_000).toISOString(),
+      decidedAt: status === 'waiting' ? null : new Date(Date.now() - i * 20 * 3_600_000).toISOString(),
+      requesterRole: 'team',
+      requesterName: team.name,
+      receipt: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGD4DwABBAEAoQ7cyAAAAABJRU5ErkJggg==',
+      eventIds: mine.map((e) => e.id),
+      requesterId: team.id,
+    })
+  })
+}
+seedRequests()
+
+export const getEntryPaymentMethods = (_requesterId: string) => reply(samplePaymentSettings.methods)
+
+export const getMyEntrants = (requesterId: string) =>
+  settle<MemberRosterRow[]>(() => entrantsFor(requesterId).dancers.map(entrantRow).sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? '')))
+
+export const quoteMyEntries = (requesterId: string, competitorId: string, eventIds: string[]) =>
+  settle<RegistrationQuote>(() => {
+    ownDancer(requesterId, competitorId)
+    return priceRegistration(competitorId, eventIds).quote
+  })
+
+export const submitEntryRequest = (requesterId: string, input: EntryRequestInput) =>
+  settle<EntryRequest>(() => {
+    const who = ownDancer(requesterId, input.competitorId)
+    if (!ONLINE_METHODS.includes(input.method)) throw new Error('Choose GCash, Maya or bank. Cash is paid at the venue.')
+    if (!input.receipt) throw new Error('Send a screenshot of your payment.')
+    const { competitor, chosen, quote } = priceRegistration(input.competitorId, input.eventIds)
+    for (const event of chosen) {
+      checkEligible(competitor.id, event)
+      if (entries.some((e) => e.eventId === event.id && e.competitorId === competitor.id)) throw new Error(`Already entered in E${event.number}.`)
+    }
+    if (sampleRequests.some((r) => r.status === 'waiting' && r.competitorId === competitor.id && r.eventIds.some((id) => input.eventIds.includes(id)))) {
+      throw new Error('An entry request for one of these events is already waiting.')
+    }
+    const competition = found(competitions.find((c) => c.id === chosen[0]!.competitionId), 'Competition')
+    const row: SampleRequest = {
+      id: `entry-request-${sampleRequests.length + 1}`,
+      competitorId: competitor.id,
+      names: competitor.names,
+      competitionId: competition.id,
+      competitionName: competition.name,
+      eventNumbers: chosen.map((e) => e.number).sort((a, b) => a - b),
+      total: quote.total,
+      warnings: quote.warnings,
+      method: input.method,
+      reference: input.reference.trim(),
+      status: 'waiting' as const,
+      rejectedReason: null,
+      createdAt: new Date().toISOString(),
+      decidedAt: null,
+      requesterRole: who.role,
+      requesterName: who.name,
+      receipt: input.receipt,
+      requesterId,
+      eventIds: [...new Set(input.eventIds)],
+    }
+    sampleRequests.push(row)
+    emitAlert([Role.Secretariat], { title: 'New entry request', detail: `${competitor.names.join(' & ')} · ${who.name}`, link: '/secretariat/entry-requests' })
+    const { receipt: _receipt, eventIds: _eventIds, requesterId: _requesterId, ...shown } = row
+    return shown
+  })
+
+export const getMyEntryRequests = (requesterId: string) =>
+  settle<EntryRequest[]>(() =>
+    sampleRequests
+      .filter((r) => r.requesterId === requesterId)
+      .map(({ receipt: _receipt, eventIds: _eventIds, requesterId: _requesterId, ...r }) => r)
+      .reverse(),
+  )
+
+export const cancelEntryRequest = (requesterId: string, id: string) =>
+  settle<void>(() => {
+    const i = sampleRequests.findIndex((r) => r.id === id && r.requesterId === requesterId)
+    if (i < 0) throw new Error('Entry request not found.')
+    if (sampleRequests[i]!.status !== 'waiting') throw new Error('This request was already decided.')
+    sampleRequests.splice(i, 1)
+  })
+
+const allRequests = (): EntryRequest[] =>
+  [...sampleRequests]
+    .map(({ eventIds: _eventIds, requesterId: _requesterId, ...r }) => r)
+    .reverse()
+    .sort((a, b) => Number(b.status === 'waiting') - Number(a.status === 'waiting'))
+
+export const getEntryRequests = () => reply<EntryRequest[]>(allRequests())
+
+const tellRequester = (r: SampleRequest, note: Parameters<typeof notifyAthlete>[1]) => notifyAthlete(r.requesterId, note)
+
+export const approveEntryRequest = async (actorId: string, id: string): Promise<EntryRequest[]> => {
+  const row = found(sampleRequests.find((r) => r.id === id), 'Entry request')
+  if (row.status !== 'waiting') throw new Error('This request was already decided.')
+  await registerCompetitor(actorId, { competitorId: row.competitorId, eventIds: row.eventIds, method: row.method, reference: row.reference })
+  row.status = 'approved'
+  row.decidedAt = new Date().toISOString()
+  record(actorId, 'Approved an entry request', row.requesterName)
+  tellRequester(row, { kind: 'entry_approved', title: 'Your entry was approved', detail: `${row.eventIds.length} ${row.eventIds.length === 1 ? 'event' : 'events'} entered. Your payment was received.`, link: `/${row.requesterRole}/entries` })
+  return allRequests()
+}
+
+export const rejectEntryRequest = (actorId: string, id: string, reason: string) =>
+  settle<EntryRequest[]>(() => {
+    const row = found(sampleRequests.find((r) => r.id === id), 'Entry request')
+    if (row.status !== 'waiting') throw new Error('This request was already decided.')
+    if (!reason.trim()) throw new Error('Say why it is turned down, so they can fix it.')
+    row.status = 'rejected'
+    row.rejectedReason = reason.trim()
+    row.decidedAt = new Date().toISOString()
+    record(actorId, 'Turned down an entry request', row.requesterName)
+    tellRequester(row, { kind: 'entry_rejected', title: 'Your entry was not approved', detail: row.rejectedReason, link: `/${row.requesterRole}/register` })
+    return allRequests()
+  })
+
+// The sample coach and team start with a notification each, so their bell and page have something to show
+notifyAthlete('member-sample-coach', { kind: 'link_approved', title: 'You are linked to Ramon Villanueva', detail: 'Your athletes are on your page now.', link: '/coach/dancers' })
+notifyAthlete('member-sample-team', { kind: 'link_approved', title: `You are linked to ${clubs[0]?.name ?? 'your club'}`, detail: 'Your dancers and payments are on your page now.', link: '/team/dancers' })
 
 export const getMyAthlete = (athleteId: string) =>
   reply<AthletePage>({
@@ -1231,20 +1708,39 @@ export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
     if (!input.name.trim()) throw new Error('Enter your name.')
     if (input.birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate)) throw new Error('Enter a valid date of birth.')
     if (input.clubId && !clubs.some((c) => c.id === input.clubId)) throw new Error('Choose a club from the list.')
-    Object.assign(athlete, { ...input, name: input.name.trim() })
+    const clubId = input.clubId || null
+    const coachId = input.coachId || null
+    const nextClub = athlete.clubId === null ? clubId : athlete.clubId
+    const nextCoach = athlete.coachId === null ? coachId : athlete.coachId
+    const asksForChange = clubId !== nextClub || coachId !== nextCoach
+    Object.assign(athlete, { ...input, name: input.name.trim(), clubId: nextClub, coachId: nextCoach })
+    if (asksForChange) {
+      athlete.changeRequest = { clubId, coachId, requestedAt: new Date().toISOString() }
+      emitAlert([Role.Secretariat], { title: 'Team or coach change', detail: `${athlete.name} asks to change team or coach`, link: '/secretariat/profile-changes' })
+    }
     return publicAthlete(athlete)
   })
 
-export const requestMembership = (athleteId: string, input: { method: string; reference: string }) =>
+export const requestMembership = (athleteId: string, input: { method: string; receipt: string }) =>
   settle<AthleteProfile>(() => {
     const athlete = athleteOf(athleteId)
     const year = membershipYear()
     if (athlete.memberYear === year) throw new Error(`Your ${year} membership is already paid.`)
     if (athlete.request && !athlete.request.rejectedReason) throw new Error('You already sent a payment. Wait for the secretariat to confirm it.')
     if (!input.method.trim()) throw new Error('Say how you paid.')
-    if (!input.reference.trim()) throw new Error('Enter the reference number of your payment.')
-    athlete.request = { year, method: input.method.trim(), reference: input.reference.trim(), requestedAt: new Date().toISOString() }
+    if (!input.receipt) throw new Error('Send a screenshot of your payment.')
+    athlete.request = { year, method: input.method.trim(), receipt: input.receipt, requestedAt: new Date().toISOString() }
+    athlete.history.push({ at: athlete.request.requestedAt, kind: 'sent', year, method: athlete.request.method })
+    emitAlert([Role.Secretariat], { title: 'Membership payment sent', detail: `${athlete.name} · ${year} membership by ${athlete.request.method}`, link: '/secretariat/athletes' })
     return publicAthlete(athlete)
+  })
+
+export const changeMyPassword = (athleteId: string, current: string, next: string) =>
+  settle<void>(() => {
+    const athlete = sampleMembers.find((m) => m.id === athleteId) ?? athleteOf(athleteId)
+    if (athlete.password !== current) throw new Error('Your current password is not right.')
+    if (next.length < 8) throw new Error('Use a password of at least 8 characters.')
+    athlete.password = next
   })
 
 export const getAthletes = () =>
@@ -1260,16 +1756,99 @@ export const getAthletes = () =>
         coachName: coaches.find((c) => c.id === a.coachId)?.name ?? '',
         memberYear: a.memberYear,
         request: a.request,
+        changeRequest: a.changeRequest,
+        requestedClubName: clubs.find((c) => c.id === a.changeRequest?.clubId)?.name ?? '',
+        requestedCoachName: coaches.find((c) => c.id === a.changeRequest?.coachId)?.name ?? '',
       })),
   )
+
+export const approveProfileChange = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const athlete = athleteOf(id)
+    const change = athlete.changeRequest
+    if (!change || change.rejectedReason) throw new Error('This athlete has no change waiting.')
+    athlete.clubId = change.clubId
+    athlete.coachId = change.coachId
+    athlete.changeRequest = null
+    record(actorId, 'Approved a club or coach change', athlete.name)
+    notifyAthlete(id, { kind: 'change_approved', title: 'Your club or coach change was approved', detail: '', link: '/athlete' })
+  })
+
+export const rejectProfileChange = (actorId: string, id: string, reason: string) =>
+  settle<void>(() => {
+    const athlete = athleteOf(id)
+    if (!athlete.changeRequest || athlete.changeRequest.rejectedReason) throw new Error('This athlete has no change waiting.')
+    if (!reason.trim()) throw new Error('Say why it was turned down.')
+    athlete.changeRequest = { ...athlete.changeRequest, rejectedReason: reason.trim() }
+    record(actorId, 'Turned down a club or coach change', athlete.name)
+    notifyAthlete(id, { kind: 'change_rejected', title: 'Your club or coach change was turned down', detail: reason.trim(), link: '/athlete/edit' })
+  })
+
+export const saveMyPhoto = (athleteId: string, photo: string | null) =>
+  settle<AthleteProfile>(() => {
+    const athlete = athleteOf(athleteId)
+    if (photo !== null && !/^data:image\/(jpeg|png|webp);base64,/.test(photo)) throw new Error('Choose a JPEG, PNG or WebP picture.')
+    athlete.photo = photo
+    return publicAthlete(athlete)
+  })
+
+// There is no real session to end in the sample, so this only checks the account exists
+export const signOutEverywhere = (athleteId: string) =>
+  settle<void>(() => {
+    if (!sampleMembers.some((m) => m.id === athleteId)) athleteOf(athleteId)
+  })
+
+const normalName = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+
+async function activityOf(mine: typeof competitors): Promise<MyActivity> {
+  const ids = mine.map((c) => c.id)
+  const history = await Promise.all(ids.map((id) => getCompetitorHistory(id)))
+  const entryLines = entries
+    .filter((e) => ids.includes(e.competitorId))
+    .flatMap((e) => {
+      const event = events.find((v) => v.id === e.eventId)
+      const competition = competitions.find((c) => c.id === event?.competitionId)
+      if (!event || !competition) return []
+      return [
+        {
+          entryId: e.id,
+          eventId: e.eventId,
+          competitionId: competition.id,
+          competitionName: competition.name,
+          competitionDate: competition.date,
+          eventNumber: event.number,
+          dances: event.dances,
+          ageGroup: event.ageGroup,
+          class: event.class,
+          discipline: event.discipline,
+          scratched: e.scratched,
+          names: mine.find((c) => c.id === e.competitorId)?.names ?? [],
+        },
+      ]
+    })
+    .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber)
+  return { competitorIds: ids, results: history.flat(), entries: entryLines }
+}
+
+export const getMyActivity = (athleteId: string) => {
+  const member = sampleMembers.find((m) => m.id === athleteId)
+  if (member) return activityOf(dancersOf(member))
+  const me = normalName(athleteOf(athleteId).name)
+  return activityOf(competitors.filter((c) => c.names.some((n) => normalName(n) === me)))
+}
+
+export const getCompetitorActivity = (competitorId: string) => activityOf(competitors.filter((c) => c.id === competitorId))
 
 export const confirmMembership = (actorId: string, id: string) =>
   settle<void>(() => {
     const athlete = athleteOf(id)
     if (!athlete.request || athlete.request.rejectedReason) throw new Error('This athlete has no payment waiting.')
-    athlete.memberYear = athlete.request.year
+    athlete.history.push({ at: new Date().toISOString(), kind: 'confirmed', year: athlete.request.year, method: athlete.request.method })
+    const confirmed = athlete.request
+    athlete.memberYear = confirmed.year
     athlete.request = null
     record(actorId, 'Confirmed membership', athlete.name)
+    notifyAthlete(id, { kind: 'membership_confirmed', title: `Your ${confirmed.year} membership was confirmed`, detail: `Your ${confirmed.method} payment was received. You are a member until December ${confirmed.year}.`, link: '/athlete/membership' })
   })
 
 export const rejectMembership = (actorId: string, id: string, reason: string) =>
@@ -1277,8 +1856,10 @@ export const rejectMembership = (actorId: string, id: string, reason: string) =>
     const athlete = athleteOf(id)
     if (!athlete.request) throw new Error('This athlete has no payment waiting.')
     if (!reason.trim()) throw new Error('Say why it could not be confirmed.')
+    athlete.history.push({ at: new Date().toISOString(), kind: 'rejected', year: athlete.request.year, method: athlete.request.method, reason: reason.trim() })
     athlete.request = { ...athlete.request, rejectedReason: reason.trim() }
     record(actorId, 'Turned down a membership payment', athlete.name)
+    notifyAthlete(id, { kind: 'membership_rejected', title: 'Your membership payment was not confirmed', detail: reason.trim(), link: '/athlete/membership' })
   })
 
 export const resetAthletePassword = (actorId: string, id: string) =>

@@ -1,4 +1,4 @@
-import type { AdjudicatorSubmission } from '@bis/shared'
+import type { AdjudicatorSubmission, AlertNote, Role } from '@bis/shared'
 
 // How long without a heartbeat before a phone counts as quiet
 export const QUIET_MS = 20_000
@@ -14,6 +14,10 @@ export interface Hub {
   // A round's results went public: the only thing the guest network receives, besides rankings
   published(info: { competitionId: string; eventId: string; roundId: string }): void
   rankings(): void
+  // An athlete has a new notification: only that athlete's open screens hear it
+  notify(athleteId: string): void
+  // A pop-up for every open screen of the given roles
+  alert(roles: Role[], note: AlertNote): void
   // The running order or what is on the floor changed: the only live signal besides results that guests receive
   program(): void
   // A phone says it is alive, and which round it is holding unsent marks for, if any
@@ -52,6 +56,8 @@ export function silentHub(presence = new Presence()): Hub & { sent: Array<{ even
     floor: (roundId) => void sent.push({ event: 'floor', payload: roundId }),
     published: (info) => void sent.push({ event: 'published', payload: info }),
     rankings: () => void sent.push({ event: 'rankings', payload: null }),
+    notify: (athleteId) => void sent.push({ event: 'notification', payload: athleteId }),
+    alert: (roles, note) => void sent.push({ event: 'alert', payload: { roles, note } }),
     program: () => void sent.push({ event: 'program', payload: null }),
     seen: (id, holding) => presence.seen(id, holding ?? null),
     lastSeen: (id) => presence.lastSeen(id),

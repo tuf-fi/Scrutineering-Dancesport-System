@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import {
   Activity,
+  ArrowLeftRight,
   Award,
   Banknote,
   Building2,
@@ -9,7 +10,9 @@ import {
   Clock,
   ClipboardCheck,
   IdCard,
+  Inbox,
   Layers,
+  Link2,
   ShieldCheck,
   LayoutGrid,
   ListChecks,
@@ -17,6 +20,7 @@ import {
   Trophy,
   UserRound,
   Users,
+  Megaphone,
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
@@ -26,8 +30,12 @@ export interface NavItem {
   label: string
   // Matches only its own path, not nested ones (the section's landing screen)
   end?: boolean
+  // Other paths that count as this item, like a profile under its list
+  also?: string[]
   // Shown in the staff sidebar
   icon?: LucideIcon
+  // The small heading this item sits under in the staff sidebar; items with the same one are shown together
+  group?: string
 }
 
 export type StaffRole = typeof Role.Admin | typeof Role.Secretariat | typeof Role.Scrutineer | typeof Role.Chairperson
@@ -43,47 +51,58 @@ const scrutineerNav: NavItem[] = [
 
 export const staffNav: Record<StaffRole, NavItem[]> = {
   admin: [
-    { to: '/admin/competitions', label: 'Competitions', icon: Trophy },
-    { to: '/admin/staff', label: 'Staff accounts', icon: Users },
-    { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck },
-    { to: '/admin/points', label: 'Points table', icon: ListOrdered },
-    { to: '/admin/payments', label: 'Payments', icon: Wallet },
-    { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote },
-    { to: '/admin/clubs', label: 'Clubs', icon: Building2 },
-    { to: '/admin/security', label: 'Security', icon: ShieldCheck },
+    { to: '/admin/competitions', label: 'Competitions', icon: Trophy, group: 'Events' },
+    { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Events' },
+    { to: '/admin/points', label: 'Points table', icon: ListOrdered, group: 'Scoring and fees' },
+    { to: '/admin/payments', label: 'Payments', icon: Wallet, group: 'Scoring and fees' },
+    { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote, group: 'Scoring and fees' },
+    { to: '/admin/staff', label: 'Staff accounts', icon: Users, group: 'System' },
+    { to: '/admin/security', label: 'Security', icon: ShieldCheck, group: 'System' },
   ],
   secretariat: [
-    { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays },
-    { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound },
-    { to: '/secretariat/clubs', label: 'Clubs', icon: Building2 },
-    { to: '/secretariat/coaches', label: 'Coaches', icon: Users },
-    { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard },
-    { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock },
-    { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock },
-    { to: '/secretariat/program', label: 'Program', icon: ListOrdered },
-    { to: '/secretariat/security', label: 'Security', icon: ShieldCheck },
+    { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays, group: 'Entries' },
+    { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound, group: 'Entries' },
+    { to: '/secretariat/clubs', label: 'Clubs', icon: Building2, group: 'Entries' },
+    { to: '/secretariat/coaches', label: 'Coaches', icon: Users, group: 'Entries' },
+    { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
+    { to: '/secretariat/entry-requests', label: 'Entry requests', icon: Inbox, group: 'Entries' },
+    { to: '/secretariat/account-links', label: 'Account links', icon: Link2, group: 'Entries' },
+    { to: '/secretariat/profile-changes', label: 'Team and coach changes', icon: ArrowLeftRight, group: 'Entries' },
+    { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock, group: 'Entries' },
+    { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock, group: 'The day' },
+    { to: '/secretariat/program', label: 'Program', icon: ListOrdered, group: 'The day' },
+    { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' },
   ],
   scrutineer: scrutineerNav,
-  // The chairperson sees the scrutineer's screens, read-only
-  chairperson: scrutineerNav,
+  // The chairperson watches and confirms ties; starting rounds and setting heats are the scrutineer's
+  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats'].includes(item.to)),
 }
 
 export const publicNav: NavItem[] = [
   { to: '/', label: 'Home', end: true },
   { to: '/competitions', label: 'Competitions' },
+  { to: '/athletes', label: 'Athletes', also: ['/competitors'] },
   { to: '/rankings', label: 'Rankings' },
 ]
 
+// The announcer has one screen; the account page's sidebar offers it so there is a way back
+export const mcNav: NavItem[] = [{ to: '/mc', label: 'Announcer', icon: Megaphone }]
+
 export const isStaffRole = (role: Role): role is StaffRole => role in staffNav
+
+// Staff and adjudicators sign in here; it is not linked from any public page
+export const STAFF_SIGN_IN = '/staff-access'
 
 // Where each role lands after signing in
 export const roleHome: Record<Role, string> = {
   admin: '/admin',
   secretariat: '/secretariat',
   scrutineer: '/scrutineer',
-  chairperson: '/scrutineer',
+  chairperson: '/scrutineer/live',
   adjudicator: '/adjudicator/waiting',
   athlete: '/athlete',
+  coach: '/coach',
+  team: '/team',
   mc: '/mc',
   public: '/',
 }

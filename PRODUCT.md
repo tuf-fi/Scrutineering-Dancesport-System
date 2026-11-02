@@ -48,12 +48,11 @@ Built for the Bicol competition circuit and the way these events actually run: o
 
 ## Brand Commitments
 
-- Palette is binding: brown, black, white and gold. The supplied logo (`BIS-logo.jpg`, black ground with metallic copper, silver, red, navy and green) does not drive the palette.
+- Palette is binding: brown, black, white and gold. The logo (`frontend/src/assets/logo.png`, white lettering with metallic copper, silver, red, navy and green, on transparent) does not drive the palette.
 - Adjudicators are always "adjudicators".
 
 ## Evidence on Hand
 
-- `BIS-logo.jpg`: logo on black.
 - `printed-result.jpg`: a real printed "Qualified Solos for the final" sheet, E47, JUN 1 - E1 Latin, Sorsogon Provincial Gymnasium, 10/Oct/2026, organizer and executor "BN IT Scrutineer", 6 solos of a total of 21, with back numbers 60 to 219.
 - No client testimonials, rankings data, fee amounts, bank or wallet details, or a points table approved by the client yet. The points table in ROLES_README is a suggestion awaiting approval. Do not invent these.
 

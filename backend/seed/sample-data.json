@@ -90,7 +90,7 @@
    ],
    "backNumber": 278,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-002",
@@ -99,7 +99,7 @@
    ],
    "backNumber": 381,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-003",
@@ -108,7 +108,7 @@
    ],
    "backNumber": 79,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-004",
@@ -117,7 +117,7 @@
    ],
    "backNumber": 330,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-005",
@@ -126,7 +126,7 @@
    ],
    "backNumber": 9,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-006",
@@ -135,7 +135,7 @@
    ],
    "backNumber": 133,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-007",
@@ -144,7 +144,7 @@
    ],
    "backNumber": 251,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-008",
@@ -153,7 +153,7 @@
    ],
    "backNumber": 12,
    "clubId": "club-4",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-009",
@@ -162,7 +162,7 @@
    ],
    "backNumber": 238,
    "clubId": "club-7",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-010",
@@ -171,7 +171,7 @@
    ],
    "backNumber": 368,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-011",
@@ -180,7 +180,7 @@
    ],
    "backNumber": 67,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-012",
@@ -189,7 +189,7 @@
    ],
    "backNumber": 136,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-013",
@@ -198,7 +198,7 @@
    ],
    "backNumber": 321,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-014",
@@ -207,7 +207,7 @@
    ],
    "backNumber": 74,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-015",
@@ -216,7 +216,7 @@
    ],
    "backNumber": 262,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-016",
@@ -225,7 +225,7 @@
    ],
    "backNumber": 169,
    "clubId": "club-4",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-017",
@@ -234,7 +234,7 @@
    ],
    "backNumber": 398,
    "clubId": "club-8",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-018",
@@ -243,7 +243,7 @@
    ],
    "backNumber": 391,
    "clubId": "club-7",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-019",
@@ -252,7 +252,7 @@
    ],
    "backNumber": 225,
    "clubId": "club-4",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-020",
@@ -261,7 +261,7 @@
    ],
    "backNumber": 146,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-021",
@@ -270,7 +270,7 @@
    ],
    "backNumber": 301,
    "clubId": "club-8",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-022",
@@ -279,7 +279,7 @@
    ],
    "backNumber": 319,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-023",
@@ -288,7 +288,7 @@
    ],
    "backNumber": 149,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-024",
@@ -297,7 +297,7 @@
    ],
    "backNumber": 298,
    "clubId": "club-5",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-025",
@@ -306,7 +306,7 @@
    ],
    "backNumber": 155,
    "clubId": "club-5",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-026",
@@ -315,7 +315,7 @@
    ],
    "backNumber": 38,
    "clubId": "club-8",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-027",
@@ -324,7 +324,7 @@
    ],
    "backNumber": 113,
    "clubId": "club-7",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-028",
@@ -333,7 +333,7 @@
    ],
    "backNumber": 126,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-029",
@@ -342,7 +342,7 @@
    ],
    "backNumber": 184,
    "clubId": "club-4",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-030",
@@ -351,7 +351,7 @@
    ],
    "backNumber": 334,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-031",
@@ -360,7 +360,7 @@
    ],
    "backNumber": 93,
    "clubId": "club-8",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-032",
@@ -369,7 +369,7 @@
    ],
    "backNumber": 387,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-033",
@@ -378,7 +378,7 @@
    ],
    "backNumber": 92,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-034",
@@ -387,7 +387,7 @@
    ],
    "backNumber": 379,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-035",
@@ -396,7 +396,7 @@
    ],
    "backNumber": 286,
    "clubId": "club-7",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-036",
@@ -405,7 +405,7 @@
    ],
    "backNumber": 312,
    "clubId": "club-7",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-037",
@@ -414,7 +414,7 @@
    ],
    "backNumber": 55,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-038",
@@ -423,7 +423,7 @@
    ],
    "backNumber": 29,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-039",
@@ -432,7 +432,7 @@
    ],
    "backNumber": 266,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-040",
@@ -441,7 +441,7 @@
    ],
    "backNumber": 300,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-041",
@@ -2251,7 +2251,7 @@
    ],
    "backNumber": 15,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-242",
@@ -2261,7 +2261,7 @@
    ],
    "backNumber": 342,
    "clubId": "club-4",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-243",
@@ -2271,7 +2271,7 @@
    ],
    "backNumber": 130,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-244",
@@ -2281,7 +2281,7 @@
    ],
    "backNumber": 102,
    "clubId": "club-1",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-245",
@@ -2291,7 +2291,7 @@
    ],
    "backNumber": 97,
    "clubId": "club-3",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-246",
@@ -2301,7 +2301,7 @@
    ],
    "backNumber": 341,
    "clubId": "club-7",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-247",
@@ -2311,7 +2311,7 @@
    ],
    "backNumber": 42,
    "clubId": "club-5",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-248",
@@ -2321,7 +2321,7 @@
    ],
    "backNumber": 13,
    "clubId": "club-8",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-249",
@@ -2331,7 +2331,7 @@
    ],
    "backNumber": 245,
    "clubId": "club-8",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-250",
@@ -2341,7 +2341,7 @@
    ],
    "backNumber": 308,
    "clubId": "club-5",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-251",
@@ -2351,7 +2351,7 @@
    ],
    "backNumber": 210,
    "clubId": "club-6",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-252",
@@ -2361,7 +2361,7 @@
    ],
    "backNumber": 178,
    "clubId": "club-2",
-   "ageGroup": "juvenile"
+   "ageGroup": "juvenile_1"
   },
   {
    "id": "c-253",
@@ -2969,7 +2969,7 @@
    "id": "comp-sorsogon-2026:e1",
    "competitionId": "comp-sorsogon-2026",
    "number": 1,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -2981,7 +2981,7 @@
    "id": "comp-sorsogon-2026:e2",
    "competitionId": "comp-sorsogon-2026",
    "number": 2,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -2993,7 +2993,7 @@
    "id": "comp-sorsogon-2026:e3",
    "competitionId": "comp-sorsogon-2026",
    "number": 3,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -3005,7 +3005,7 @@
    "id": "comp-sorsogon-2026:e4",
    "competitionId": "comp-sorsogon-2026",
    "number": 4,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -3017,7 +3017,7 @@
    "id": "comp-sorsogon-2026:e5",
    "competitionId": "comp-sorsogon-2026",
    "number": 5,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -3029,7 +3029,7 @@
    "id": "comp-sorsogon-2026:e6",
    "competitionId": "comp-sorsogon-2026",
    "number": 6,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -3041,7 +3041,7 @@
    "id": "comp-sorsogon-2026:e7",
    "competitionId": "comp-sorsogon-2026",
    "number": 7,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -3053,7 +3053,7 @@
    "id": "comp-sorsogon-2026:e8",
    "competitionId": "comp-sorsogon-2026",
    "number": 8,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "dances": [
@@ -3067,7 +3067,7 @@
    "id": "comp-sorsogon-2026:e9",
    "competitionId": "comp-sorsogon-2026",
    "number": 9,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "dances": [
@@ -3641,7 +3641,7 @@
    "id": "comp-legazpi-2026:e1",
    "competitionId": "comp-legazpi-2026",
    "number": 1,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -3653,7 +3653,7 @@
    "id": "comp-legazpi-2026:e2",
    "competitionId": "comp-legazpi-2026",
    "number": 2,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -3665,7 +3665,7 @@
    "id": "comp-legazpi-2026:e3",
    "competitionId": "comp-legazpi-2026",
    "number": 3,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -3677,7 +3677,7 @@
    "id": "comp-legazpi-2026:e4",
    "competitionId": "comp-legazpi-2026",
    "number": 4,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -3689,7 +3689,7 @@
    "id": "comp-legazpi-2026:e5",
    "competitionId": "comp-legazpi-2026",
    "number": 5,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -3701,7 +3701,7 @@
    "id": "comp-legazpi-2026:e6",
    "competitionId": "comp-legazpi-2026",
    "number": 6,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -3713,7 +3713,7 @@
    "id": "comp-legazpi-2026:e7",
    "competitionId": "comp-legazpi-2026",
    "number": 7,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -3725,7 +3725,7 @@
    "id": "comp-legazpi-2026:e8",
    "competitionId": "comp-legazpi-2026",
    "number": 8,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "dances": [
@@ -3739,7 +3739,7 @@
    "id": "comp-legazpi-2026:e9",
    "competitionId": "comp-legazpi-2026",
    "number": 9,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "dances": [
@@ -4313,7 +4313,7 @@
    "id": "comp-naga-2025:e1",
    "competitionId": "comp-naga-2025",
    "number": 1,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -4325,7 +4325,7 @@
    "id": "comp-naga-2025:e2",
    "competitionId": "comp-naga-2025",
    "number": 2,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -4337,7 +4337,7 @@
    "id": "comp-naga-2025:e3",
    "competitionId": "comp-naga-2025",
    "number": 3,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -4349,7 +4349,7 @@
    "id": "comp-naga-2025:e4",
    "competitionId": "comp-naga-2025",
    "number": 4,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "dances": [
@@ -4361,7 +4361,7 @@
    "id": "comp-naga-2025:e5",
    "competitionId": "comp-naga-2025",
    "number": 5,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -4373,7 +4373,7 @@
    "id": "comp-naga-2025:e6",
    "competitionId": "comp-naga-2025",
    "number": 6,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -4385,7 +4385,7 @@
    "id": "comp-naga-2025:e7",
    "competitionId": "comp-naga-2025",
    "number": 7,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "dances": [
@@ -4397,7 +4397,7 @@
    "id": "comp-naga-2025:e8",
    "competitionId": "comp-naga-2025",
    "number": 8,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "dances": [
@@ -4411,7 +4411,7 @@
    "id": "comp-naga-2025:e9",
    "competitionId": "comp-naga-2025",
    "number": 9,
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "dances": [
@@ -29083,7 +29083,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-015",
    "competitorId": "c-015",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29092,7 +29092,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-034",
    "competitorId": "c-034",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29101,7 +29101,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-025",
    "competitorId": "c-025",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29110,7 +29110,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-032",
    "competitorId": "c-032",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29119,7 +29119,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-012",
    "competitorId": "c-012",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29128,7 +29128,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-017",
    "competitorId": "c-017",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29137,7 +29137,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29146,7 +29146,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-008",
    "competitorId": "c-008",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29155,7 +29155,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-002",
    "competitorId": "c-002",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29164,7 +29164,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-026",
    "competitorId": "c-026",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29173,7 +29173,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e1:c-018",
    "competitorId": "c-018",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29182,7 +29182,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-030",
    "competitorId": "c-030",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29191,7 +29191,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29200,7 +29200,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-005",
    "competitorId": "c-005",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29209,7 +29209,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-039",
    "competitorId": "c-039",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29218,7 +29218,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-038",
    "competitorId": "c-038",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29227,7 +29227,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-014",
    "competitorId": "c-014",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29236,7 +29236,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-032",
    "competitorId": "c-032",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29245,7 +29245,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-008",
    "competitorId": "c-008",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29254,7 +29254,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-006",
    "competitorId": "c-006",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29263,7 +29263,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e2:c-031",
    "competitorId": "c-031",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29272,7 +29272,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-032",
    "competitorId": "c-032",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29281,7 +29281,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-030",
    "competitorId": "c-030",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29290,7 +29290,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-028",
    "competitorId": "c-028",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29299,7 +29299,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29308,7 +29308,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29317,7 +29317,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-033",
    "competitorId": "c-033",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29326,7 +29326,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-017",
    "competitorId": "c-017",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29335,7 +29335,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-036",
    "competitorId": "c-036",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29344,7 +29344,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e3:c-020",
    "competitorId": "c-020",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29353,7 +29353,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-018",
    "competitorId": "c-018",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29362,7 +29362,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-038",
    "competitorId": "c-038",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29371,7 +29371,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-031",
    "competitorId": "c-031",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29380,7 +29380,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-011",
    "competitorId": "c-011",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29389,7 +29389,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29398,7 +29398,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-030",
    "competitorId": "c-030",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29407,7 +29407,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29416,7 +29416,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-028",
    "competitorId": "c-028",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29425,7 +29425,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-013",
    "competitorId": "c-013",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29434,7 +29434,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-005",
    "competitorId": "c-005",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29443,7 +29443,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-029",
    "competitorId": "c-029",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29452,7 +29452,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e4:c-010",
    "competitorId": "c-010",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29461,7 +29461,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-014",
    "competitorId": "c-014",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29470,7 +29470,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-005",
    "competitorId": "c-005",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29479,7 +29479,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-008",
    "competitorId": "c-008",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29488,7 +29488,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-025",
    "competitorId": "c-025",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29497,7 +29497,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-028",
    "competitorId": "c-028",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29506,7 +29506,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-032",
    "competitorId": "c-032",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29515,7 +29515,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-011",
    "competitorId": "c-011",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29524,7 +29524,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-004",
    "competitorId": "c-004",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29533,7 +29533,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-036",
    "competitorId": "c-036",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29542,7 +29542,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-039",
    "competitorId": "c-039",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29551,7 +29551,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-001",
    "competitorId": "c-001",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29560,7 +29560,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e5:c-012",
    "competitorId": "c-012",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29569,7 +29569,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-011",
    "competitorId": "c-011",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29578,7 +29578,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-012",
    "competitorId": "c-012",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29587,7 +29587,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-023",
    "competitorId": "c-023",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29596,7 +29596,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29605,7 +29605,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-013",
    "competitorId": "c-013",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29614,7 +29614,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29623,7 +29623,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-022",
    "competitorId": "c-022",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29632,7 +29632,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-030",
    "competitorId": "c-030",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29641,7 +29641,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e6:c-027",
    "competitorId": "c-027",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29650,7 +29650,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29659,7 +29659,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-002",
    "competitorId": "c-002",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29668,7 +29668,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-028",
    "competitorId": "c-028",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29677,7 +29677,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-025",
    "competitorId": "c-025",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29686,7 +29686,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-020",
    "competitorId": "c-020",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29695,7 +29695,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-015",
    "competitorId": "c-015",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29704,7 +29704,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-026",
    "competitorId": "c-026",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29713,7 +29713,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-036",
    "competitorId": "c-036",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29722,7 +29722,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-013",
    "competitorId": "c-013",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29731,7 +29731,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-008",
    "competitorId": "c-008",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29740,7 +29740,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29749,7 +29749,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e7:c-034",
    "competitorId": "c-034",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29758,7 +29758,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-247",
    "competitorId": "c-247",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29767,7 +29767,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-242",
    "competitorId": "c-242",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29776,7 +29776,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-243",
    "competitorId": "c-243",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29785,7 +29785,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-251",
    "competitorId": "c-251",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29794,7 +29794,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-250",
    "competitorId": "c-250",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29803,7 +29803,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-252",
    "competitorId": "c-252",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29812,7 +29812,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-241",
    "competitorId": "c-241",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29821,7 +29821,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e8:c-248",
    "competitorId": "c-248",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-legazpi-2026",
@@ -29830,7 +29830,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e9:c-249",
    "competitorId": "c-249",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29839,7 +29839,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e9:c-245",
    "competitorId": "c-245",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29848,7 +29848,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e9:c-242",
    "competitorId": "c-242",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29857,7 +29857,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e9:c-243",
    "competitorId": "c-243",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -29866,7 +29866,7 @@
   {
    "id": "rp:res:comp-legazpi-2026:e9:c-241",
    "competitorId": "c-241",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-legazpi-2026",
@@ -33250,7 +33250,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33259,7 +33259,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33268,7 +33268,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-015",
    "competitorId": "c-015",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33277,7 +33277,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-016",
    "competitorId": "c-016",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33286,7 +33286,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-038",
    "competitorId": "c-038",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33295,7 +33295,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-010",
    "competitorId": "c-010",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33304,7 +33304,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-029",
    "competitorId": "c-029",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33313,7 +33313,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-036",
    "competitorId": "c-036",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33322,7 +33322,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-026",
    "competitorId": "c-026",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33331,7 +33331,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-033",
    "competitorId": "c-033",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33340,7 +33340,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-017",
    "competitorId": "c-017",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33349,7 +33349,7 @@
   {
    "id": "rp:res:comp-naga-2025:e1:c-032",
    "competitorId": "c-032",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33358,7 +33358,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-006",
    "competitorId": "c-006",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33367,7 +33367,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-016",
    "competitorId": "c-016",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33376,7 +33376,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-034",
    "competitorId": "c-034",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33385,7 +33385,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-019",
    "competitorId": "c-019",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33394,7 +33394,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-011",
    "competitorId": "c-011",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33403,7 +33403,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33412,7 +33412,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-018",
    "competitorId": "c-018",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33421,7 +33421,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-004",
    "competitorId": "c-004",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33430,7 +33430,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33439,7 +33439,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-029",
    "competitorId": "c-029",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33448,7 +33448,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-017",
    "competitorId": "c-017",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33457,7 +33457,7 @@
   {
    "id": "rp:res:comp-naga-2025:e2:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33466,7 +33466,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-031",
    "competitorId": "c-031",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33475,7 +33475,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33484,7 +33484,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-027",
    "competitorId": "c-027",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33493,7 +33493,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-007",
    "competitorId": "c-007",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33502,7 +33502,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-025",
    "competitorId": "c-025",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33511,7 +33511,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-013",
    "competitorId": "c-013",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33520,7 +33520,7 @@
   {
    "id": "rp:res:comp-naga-2025:e3:c-012",
    "competitorId": "c-012",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33529,7 +33529,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-002",
    "competitorId": "c-002",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33538,7 +33538,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-004",
    "competitorId": "c-004",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33547,7 +33547,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-017",
    "competitorId": "c-017",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33556,7 +33556,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-020",
    "competitorId": "c-020",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33565,7 +33565,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33574,7 +33574,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-026",
    "competitorId": "c-026",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33583,7 +33583,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-008",
    "competitorId": "c-008",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33592,7 +33592,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-033",
    "competitorId": "c-033",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33601,7 +33601,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-031",
    "competitorId": "c-031",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33610,7 +33610,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-039",
    "competitorId": "c-039",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33619,7 +33619,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-011",
    "competitorId": "c-011",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33628,7 +33628,7 @@
   {
    "id": "rp:res:comp-naga-2025:e4:c-035",
    "competitorId": "c-035",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33637,7 +33637,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-022",
    "competitorId": "c-022",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33646,7 +33646,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-024",
    "competitorId": "c-024",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33655,7 +33655,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33664,7 +33664,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-034",
    "competitorId": "c-034",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33673,7 +33673,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-031",
    "competitorId": "c-031",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33682,7 +33682,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-008",
    "competitorId": "c-008",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33691,7 +33691,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33700,7 +33700,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-040",
    "competitorId": "c-040",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33709,7 +33709,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-033",
    "competitorId": "c-033",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33718,7 +33718,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-004",
    "competitorId": "c-004",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33727,7 +33727,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-006",
    "competitorId": "c-006",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33736,7 +33736,7 @@
   {
    "id": "rp:res:comp-naga-2025:e5:c-002",
    "competitorId": "c-002",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33745,7 +33745,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-021",
    "competitorId": "c-021",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33754,7 +33754,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-037",
    "competitorId": "c-037",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33763,7 +33763,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-007",
    "competitorId": "c-007",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33772,7 +33772,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-006",
    "competitorId": "c-006",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33781,7 +33781,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-033",
    "competitorId": "c-033",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33790,7 +33790,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-029",
    "competitorId": "c-029",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33799,7 +33799,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-010",
    "competitorId": "c-010",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33808,7 +33808,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-023",
    "competitorId": "c-023",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33817,7 +33817,7 @@
   {
    "id": "rp:res:comp-naga-2025:e6:c-028",
    "competitorId": "c-028",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33826,7 +33826,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-005",
    "competitorId": "c-005",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33835,7 +33835,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-039",
    "competitorId": "c-039",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33844,7 +33844,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-012",
    "competitorId": "c-012",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33853,7 +33853,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-019",
    "competitorId": "c-019",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33862,7 +33862,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-029",
    "competitorId": "c-029",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33871,7 +33871,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-006",
    "competitorId": "c-006",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33880,7 +33880,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-018",
    "competitorId": "c-018",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33889,7 +33889,7 @@
   {
    "id": "rp:res:comp-naga-2025:e7:c-017",
    "competitorId": "c-017",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "E1",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33898,7 +33898,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-243",
    "competitorId": "c-243",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33907,7 +33907,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-250",
    "competitorId": "c-250",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33916,7 +33916,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-248",
    "competitorId": "c-248",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33925,7 +33925,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-252",
    "competitorId": "c-252",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33934,7 +33934,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-244",
    "competitorId": "c-244",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33943,7 +33943,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-251",
    "competitorId": "c-251",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33952,7 +33952,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-242",
    "competitorId": "c-242",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33961,7 +33961,7 @@
   {
    "id": "rp:res:comp-naga-2025:e8:c-249",
    "competitorId": "c-249",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "D",
    "discipline": "latin",
    "competitionId": "comp-naga-2025",
@@ -33970,7 +33970,7 @@
   {
    "id": "rp:res:comp-naga-2025:e9:c-243",
    "competitorId": "c-243",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33979,7 +33979,7 @@
   {
    "id": "rp:res:comp-naga-2025:e9:c-244",
    "competitorId": "c-244",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33988,7 +33988,7 @@
   {
    "id": "rp:res:comp-naga-2025:e9:c-249",
    "competitorId": "c-249",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -33997,7 +33997,7 @@
   {
    "id": "rp:res:comp-naga-2025:e9:c-245",
    "competitorId": "c-245",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -34006,7 +34006,7 @@
   {
    "id": "rp:res:comp-naga-2025:e9:c-248",
    "competitorId": "c-248",
-   "ageGroup": "juvenile",
+   "ageGroup": "juvenile_1",
    "class": "C",
    "discipline": "standard",
    "competitionId": "comp-naga-2025",
@@ -37257,31 +37257,31 @@
   {
    "id": "staff-admin",
    "name": "Amelia Rosales",
-   "username": "admin",
+   "username": "admin@sample.example",
    "role": "admin"
   },
   {
    "id": "staff-secretariat",
    "name": "Jonas Bellosillo",
-   "username": "secretariat",
+   "username": "secretariat@sample.example",
    "role": "secretariat"
   },
   {
    "id": "staff-scrutineer",
    "name": "Teresita Quimpo",
-   "username": "scrutineer",
+   "username": "scrutineer@sample.example",
    "role": "scrutineer"
   },
   {
    "id": "staff-chairperson",
    "name": "Gregorio Almazan",
-   "username": "chairperson",
+   "username": "chairperson@sample.example",
    "role": "chairperson"
   },
   {
    "id": "staff-mc",
    "name": "Dante Ibarra",
-   "username": "mc",
+   "username": "mc@sample.example",
    "role": "mc"
   }
  ],

@@ -1,4 +1,4 @@
-import { useParams } from 'react-router'
+import { useParams, useSearchParams } from 'react-router'
 import { QrCode } from '../../components/QrCode.tsx'
 import { EmptyState, ErrorState, Skeleton } from '../../components/ui/index.ts'
 import { useAdjudicatorPins, useAdjudicators, useCompetition } from '../../hooks/index.ts'
@@ -9,6 +9,8 @@ const signInAddress = (pin: string) => `${window.location.origin}/adjudicator#pi
 // One card per adjudicator to hand out: the PIN to type, and a QR code that signs the phone in. Cut along the lines.
 export function PinCardsPage() {
   const { competitionId = '' } = useParams()
+  // ?ids=a,b prints only those adjudicators' cards; without it every card is printed
+  const chosen = new Set((useSearchParams()[0].get('ids') ?? '').split(',').filter(Boolean))
   const competition = useCompetition(competitionId)
   const adjudicators = useAdjudicators()
   const pins = useAdjudicatorPins(competitionId)
@@ -20,6 +22,7 @@ export function PinCardsPage() {
 
   const cards = [...adjudicators.data]
     .sort((a, b) => a.letter.localeCompare(b.letter))
+    .filter((a) => chosen.size === 0 || chosen.has(a.id))
     .flatMap((a) => {
       const pin = pins.data.find((p) => p.adjudicatorId === a.id)?.pin
       return pin ? [{ adjudicator: a, pin }] : []

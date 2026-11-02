@@ -166,36 +166,36 @@ describe('staff accounts', () => {
   const dialogFor = (name: string | RegExp) => screen.findByRole('dialog', { name })
   const rowFor = (name: RegExp) => screen.findByRole('row', { name })
 
-  it('adds an account in a modal, shows a one-time password that works, and rejects a duplicate username', async () => {
+  it('adds an account in a modal, shows a one-time password that works, and rejects a duplicate email', async () => {
     renderApp('/admin/staff', Role.Admin)
     await userEvent.click(await screen.findByRole('button', { name: 'Add account' }))
     let dialog = await dialogFor('Add an account')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add account' }))
     expect(await within(dialog).findByText('Enter a name.')).toBeInTheDocument()
-    expect(within(dialog).getByText('Enter a username.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Enter a valid email address.')).toBeInTheDocument()
 
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Mark Dela Rosa')
-    await userEvent.type(within(dialog).getByLabelText('Username'), 'markd')
+    await userEvent.type(within(dialog).getByLabelText('Email'), 'markd@sample.example')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add account' }))
 
     const shown = await dialogFor('Account created')
     const password = within(shown).getByText(/^[a-z0-9]{4,12}$/).textContent ?? ''
     await userEvent.click(within(shown).getByRole('button', { name: 'Done' }))
-    await expect(api.signInStaff('markd', password)).resolves.toMatchObject({ role: Role.Secretariat })
+    await expect(api.signInStaff('markd@sample.example', password)).resolves.toMatchObject({ role: Role.Secretariat })
 
     await userEvent.click(screen.getByRole('button', { name: 'Add account' }))
     dialog = await dialogFor('Add an account')
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Someone Else')
-    await userEvent.type(within(dialog).getByLabelText('Username'), 'markd')
+    await userEvent.type(within(dialog).getByLabelText('Email'), 'markd@sample.example')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add account' }))
-    expect(await within(dialog).findByText('That username is taken.')).toBeInTheDocument()
+    expect(await within(dialog).findByText('That email is already used by another account.')).toBeInTheDocument()
   })
 
   it('edits the name and role in a modal, but never removes the last admin', async () => {
     renderApp('/admin/staff', Role.Admin)
     await userEvent.click(await screen.findByRole('button', { name: 'Edit Jonas Bellosillo' }))
     let dialog = await dialogFor('Edit account')
-    expect(within(dialog).getByLabelText('Username')).toBeDisabled()
+    expect(within(dialog).getByLabelText('Email')).toBeDisabled()
     await userEvent.selectOptions(within(dialog).getByLabelText('Role'), 'scrutineer')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
     expect(await screen.findByText('Jonas Bellosillo updated')).toBeInTheDocument()
@@ -248,8 +248,8 @@ describe('staff accounts', () => {
 
     const shown = await dialogFor('Password reset')
     const password = within(shown).getByText(/^[a-z0-9]{4,12}$/).textContent ?? ''
-    await expect(api.signInStaff('mc', password)).resolves.toMatchObject({ role: Role.Mc })
-    await expect(api.signInStaff('mc', 'bis2026')).rejects.toThrow('Wrong username or password.')
+    await expect(api.signInStaff('mc@sample.example', password)).resolves.toMatchObject({ role: Role.Mc })
+    await expect(api.signInStaff('mc@sample.example', 'bis2026')).rejects.toThrow('Wrong email or password.')
   })
 
   it('signs a person out everywhere after confirming', async () => {
@@ -261,7 +261,7 @@ describe('staff accounts', () => {
   })
 
   it('deletes an account after confirming, but not your own or the last admin', async () => {
-    await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme', role: Role.Mc })
+    await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme@sample.example', role: Role.Mc })
     renderApp('/admin/staff', Role.Admin)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Delete Me' }))
@@ -287,10 +287,29 @@ describe('staff accounts', () => {
 describe('adjudicators and panels', () => {
   const dialogFor = (name: string) => screen.findByRole('dialog', { name })
 
+  it('chooses whose PIN card to print', async () => {
+    renderApp('/admin/adjudicators', Role.Admin)
+    // Nothing is chosen yet, so there is nothing to print
+    expect(await screen.findByRole('button', { name: 'Print PIN cards' })).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Lorenzo V. Aguilar to print the PIN card' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Select Patricia M. Dizon to print the PIN card' }))
+    const two = await screen.findByRole('link', { name: 'Print 2 PIN cards' })
+    expect(two.getAttribute('href')).toMatch(/^\/print\/pin-cards\/comp-sorsogon-2026\?ids=[^,]+,[^,]+$/)
+
+    // The box in the header selects everyone, and a second click clears them again
+    const everyone = screen.getByRole('checkbox', { name: 'Select every adjudicator with a PIN' })
+    await userEvent.click(everyone)
+    expect(screen.getByRole('link', { name: /^Print \d+ PIN cards$/ })).toBeInTheDocument()
+    await userEvent.click(everyone)
+    expect(await screen.findByRole('button', { name: 'Print PIN cards' })).toBeDisabled()
+  })
+
   it('adds an adjudicator in a modal with a free letter and generates the missing PIN', async () => {
     renderApp('/admin/adjudicators', Role.Admin)
-    expect(await screen.findByRole('button', { name: 'Everyone has a PIN' })).toBeDisabled()
     await screen.findByRole('button', { name: 'Edit Lorenzo V. Aguilar' })
+    // Everyone has a PIN, so there is nothing to generate
+    expect(screen.queryByRole('button', { name: /^Generate \d+ missing$/ })).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Add adjudicator' }))
     const dialog = await dialogFor('Add an adjudicator')
@@ -307,7 +326,7 @@ describe('adjudicators and panels', () => {
     expect(await screen.findByText('PINs generated')).toBeInTheDocument()
     const row = await screen.findByRole('row', { name: /Cecilia R. Ventura/ })
     expect(within(row).getByText(/^\d{6}$/)).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Everyone has a PIN' })).toBeDisabled()
+    await waitFor(() => expect(screen.queryByRole('button', { name: /^Generate \d+ missing$/ })).not.toBeInTheDocument())
   })
 
   it('edits an adjudicator name in a modal, with the letter locked', async () => {
@@ -360,24 +379,20 @@ describe('adjudicators and panels', () => {
     expect(after).not.toBe(before)
   })
 
-  it('assigns a panel to an event', async () => {
+  it('assigns a panel on a grid of events and adjudicators, saved with each tap', async () => {
     renderApp('/admin/adjudicators', Role.Admin)
     await userEvent.click(await screen.findByRole('tab', { name: 'Panels' }))
-    const events = await screen.findByRole('list', { name: 'Events' })
     // The event list shows 10 at a time; E11 is the first one on page 2
-    expect(within(events).getAllByRole('button')).toHaveLength(10)
-    await userEvent.click(screen.getByRole('button', { name: 'Next page' }))
-    await userEvent.click(await within(events).findByRole('button', { name: /^E11 / }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Next page' }))
 
-    const tile = await screen.findByRole('button', { name: /^HHelena/ })
-    expect(tile).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('button', { name: 'Save panel' })).toBeDisabled()
-    await userEvent.click(tile)
-    expect(tile).toHaveAttribute('aria-pressed', 'true')
-    await userEvent.click(screen.getByRole('button', { name: 'Save panel' }))
+    const cell = await screen.findByRole('button', { name: /^E11 Helena/ })
+    expect(cell).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(cell)
+    await waitFor(() => expect(screen.getByRole('button', { name: /^E11 Helena/ })).toHaveAttribute('aria-pressed', 'true'))
 
-    expect(await screen.findByText('Panel saved for E11')).toBeInTheDocument()
-    expect(await within(events).findByRole('button', { name: /^E11 .*A–H$/ })).toBeInTheDocument()
+    // Taking one off again works while others stay; the last one cannot be taken off
+    await userEvent.click(screen.getByRole('button', { name: /^E11 Helena/ }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /^E11 Helena/ })).toHaveAttribute('aria-pressed', 'false'))
   })
 })
 

@@ -205,7 +205,7 @@ describe('an adjudicator on a bad day', () => {
     const response = await realFetch(`http://127.0.0.1:${port}/api/auth/staff`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: 'scrutineer', password: 'bis2026' }),
+      body: JSON.stringify({ username: 'scrutineer@sample.example', password: 'bis2026' }),
     })
     jar.set('phone', response.headers.get('set-cookie')!.split(';')[0]!)
     const board: AdjudicatorSubmission[] = await client.getSubmissions(LIVE)

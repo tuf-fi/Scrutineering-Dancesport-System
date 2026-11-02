@@ -67,6 +67,36 @@ describe('what guests may not see', () => {
     expect(staff.every((c) => c.contactEmail !== '')).toBe(true)
   })
 
+  it('hides birth dates and contact details of competitors from everyone but admin and secretariat', async () => {
+    const [club] = await app.ok<Array<{ id: string }>>('getClubs', [], cookies.secretariat)
+    await app.ok('createCompetitor', [
+      {
+        names: ['Test Dancer'],
+        clubId: club!.id,
+        details: {
+          province: 'Albay',
+          coachId: null,
+          dancers: [{ birthDate: '2012-03-04', address: '1 Rizal St', email: 'dancer@example.com', phone: '0917 555 0101' }],
+          beginner: false,
+          memberYear: null,
+        },
+      },
+    ], cookies.secretariat)
+    const withDetails = async (cookie?: string) =>
+      (await app.ok<Array<{ details?: unknown }>>('getCompetitors', [], cookie)).filter((c) => c.details !== undefined).length
+    expect(await withDetails()).toBe(0)
+    expect(await withDetails(cookies.mc)).toBe(0)
+    expect(await withDetails(cookies.scrutineer)).toBe(0)
+    expect(await withDetails(cookies.secretariat)).toBeGreaterThan(0)
+  })
+
+  it('keeps the MC to announcements, and marks away from the admin', async () => {
+    expect((await app.call('getEntryRows', [], cookies.mc)).status).toBe(403)
+    expect((await app.call('getSubmissions', ['x'], cookies.mc)).status).toBe(403)
+    expect((await app.call('getAnnouncements', [], cookies.mc)).status).toBe(200)
+    expect((await app.call('getMarks', ['x'], cookies.admin)).status).toBe(403)
+  })
+
   it('refuses raw marks and payments', async () => {
     expect((await app.call('getMarks', ['x'])).status).toBe(401)
     expect((await app.call('getPaymentDetails', [])).status).toBe(401)

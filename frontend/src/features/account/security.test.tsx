@@ -60,8 +60,8 @@ describe('signing in with two-step on', () => {
   it('asks for the code after the password, refuses a wrong one, and signs in with the right one', async () => {
     await api.startTotpSetup('staff-scrutineer')
     await api.confirmTotpSetup('staff-scrutineer', CODE)
-    const router = renderApp('/login')
-    await userEvent.type(await screen.findByLabelText('Username'), 'scrutineer')
+    const router = renderApp('/staff-access')
+    await userEvent.type(await screen.findByLabelText('Email'), 'scrutineer@sample.example')
     await userEvent.type(screen.getByLabelText('Password'), 'bis2026')
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
@@ -81,8 +81,8 @@ describe('signing in with two-step on', () => {
   it('goes back to the password step', async () => {
     await api.startTotpSetup('staff-mc')
     await api.confirmTotpSetup('staff-mc', CODE)
-    renderApp('/login')
-    await userEvent.type(await screen.findByLabelText('Username'), 'mc')
+    renderApp('/staff-access')
+    await userEvent.type(await screen.findByLabelText('Email'), 'mc@sample.example')
     await userEvent.type(screen.getByLabelText('Password'), 'bis2026')
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
     await screen.findByLabelText(/^Code from your app/)

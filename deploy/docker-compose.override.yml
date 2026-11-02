@@ -1,0 +1,5 @@
+# Local only: lets the Vite dev server on this machine reach the app on port 4000
+services:
+  app:
+    ports:
+      - "127.0.0.1:4000:4000"

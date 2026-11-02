@@ -17,7 +17,7 @@ function cookieValue(header: string | undefined, name: string): string | null {
   return null
 }
 
-// Rooms: every connection is in "public"; a signed-in one is also in "signedin", staff roles in "staff", and "me:<id>"
+// Rooms: every connection is in "public"; a signed-in one is also in "signedin", staff roles in "staff", "me:<id>" and "role:<role>"
 export function createSocketHub(server: HttpServer | HttpsServer, verify: (token: string) => SessionUser | null): Hub {
   const io = new Server(server, { serveClient: false })
   const presence = new Presence()
@@ -30,6 +30,7 @@ export function createSocketHub(server: HttpServer | HttpsServer, verify: (token
       socket.join('signedin')
       if (STAFF_ROLES.includes(user.role)) socket.join('staff')
       socket.join(`me:${user.id}`)
+      socket.join(`role:${user.role}`)
       if (user.role === 'adjudicator') presence.seen(user.id)
       socket.on('heartbeat', (message?: { holding?: string | null }) => {
         if (user.role === 'adjudicator') presence.seen(user.id, typeof message?.holding === 'string' ? message.holding : null)
@@ -47,6 +48,8 @@ export function createSocketHub(server: HttpServer | HttpsServer, verify: (token
     },
     published: (info) => void io.to('public').emit('published', info),
     rankings: () => void io.to('public').emit('rankings', {}),
+    alert: (roles, note) => void roles.forEach((role) => io.to(`role:${role}`).emit('alert', note)),
+    notify: (athleteId) => void io.to(`me:${athleteId}`).emit('notification', {}),
     program: () => void io.to('public').emit('program', {}),
     seen: (id, holding) => presence.seen(id, holding ?? null),
     lastSeen: (id) => presence.lastSeen(id),

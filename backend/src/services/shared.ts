@@ -385,3 +385,13 @@ export function hiddenEventIds(ctx: Ctx): Set<string> {
       .map((r) => r.eventId),
   )
 }
+
+// The shortest password an athlete, coach or team can choose
+export const MIN_PASSWORD = 8
+
+// A profile picture: a small JPEG, PNG or WebP as a data URL
+export const PHOTO = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/
+export const MAX_PHOTO = 400_000
+
+// A payment screenshot, as a data URL
+export const MAX_RECEIPT = 1_500_000

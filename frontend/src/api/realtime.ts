@@ -1,4 +1,4 @@
-import type { AdjudicatorSubmission } from '@bis/shared'
+import type { AdjudicatorSubmission, AlertNote } from '@bis/shared'
 import { io, type Socket } from 'socket.io-client'
 import { call } from './http.ts'
 
@@ -16,6 +16,22 @@ export interface RealtimeOptions {
   onDisconnect: () => void
   // Something changed on the server
   onChange: () => void
+}
+
+const notificationListeners = new Set<() => void>()
+
+// Called when the server says this athlete has a new notification; returns a function that stops listening
+export function subscribeNotifications(listener: () => void): () => void {
+  notificationListeners.add(listener)
+  return () => void notificationListeners.delete(listener)
+}
+
+const alertListeners = new Set<(note: AlertNote) => void>()
+
+// Called when the server pushes a pop-up for this person's role; returns a function that stops listening
+export function subscribeAlerts(listener: (note: AlertNote) => void): () => void {
+  alertListeners.add(listener)
+  return () => void alertListeners.delete(listener)
 }
 
 const listeners = new Map<string, Set<(snapshot: AdjudicatorSubmission[]) => void>>()
@@ -44,6 +60,8 @@ export function connectRealtime(options: RealtimeOptions): () => void {
     beat = undefined
     options.onDisconnect()
   })
+  socket.on('notification', () => notificationListeners.forEach((listener) => listener()))
+  socket.on('alert', (note: AlertNote) => alertListeners.forEach((listener) => listener(note)))
   for (const event of ['changed', 'floor', 'published', 'rankings', 'program']) socket.on(event, options.onChange)
   socket.on('submissions', (message: { roundId: string; snapshot: AdjudicatorSubmission[] }) =>
     deliver(message.roundId, message.snapshot),

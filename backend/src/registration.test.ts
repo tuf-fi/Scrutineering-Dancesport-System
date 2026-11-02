@@ -35,7 +35,7 @@ const event = (number: number, over: Record<string, unknown> = {}) => ({
 beforeAll(async () => {
   app = await startTestApp({ seed: false })
   for (const [id, username, role] of [['s1', 'admin', 'admin'], ['s2', 'secretariat', 'secretariat']] as const) {
-    app.db.insert(t.staffUsers).values({ id, name: username, username, role, passwordHash: hashPassword('pw-' + username), disabled: false }).run()
+    app.db.insert(t.staffUsers).values({ id, name: username, username: `${username}@sample.example`, role, passwordHash: hashPassword('pw-' + username), disabled: false }).run()
   }
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')

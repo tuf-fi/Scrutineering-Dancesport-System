@@ -16,6 +16,10 @@ export const useClubs = () => useQuery({ queryKey: ['clubs'], queryFn: api.getCl
 export const useCompetitors = () =>
   useQuery({ queryKey: ['competitors'], queryFn: api.getCompetitors })
 
+// The events an adjudicator was on the panel of; only loaded while their detail panel is open
+export const useAdjudicatorAssignments = (adjudicatorId: string | undefined) =>
+  useQuery({ queryKey: ['adjudicator-assignments', adjudicatorId], queryFn: () => api.getAdjudicatorAssignments(adjudicatorId!), enabled: Boolean(adjudicatorId) })
+
 export const useAdjudicators = () =>
   useQuery({ queryKey: ['adjudicators'], queryFn: api.getAdjudicators })
 

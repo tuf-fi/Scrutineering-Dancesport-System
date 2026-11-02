@@ -58,9 +58,10 @@ export const admin = {
   createStaffUser(ctx: Ctx, input: { name: string; username: string; role: Role }): { user: StaffUser; tempPassword: string } {
     const username = clean(input?.username).toLowerCase()
     const name = clean(input?.name)
-    if (!name || !username) return fail('Enter a name and a username.')
+    if (!name || !username) return fail('Enter a name and an email.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) return fail('Enter a valid email address.')
     const role = staffRole(input.role)
-    if (ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) return fail('That username is taken.', 409)
+    if (ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) return fail('That email is already used by another account.', 409)
     const tempPassword = temporaryPassword()
     const row = { id: newId(), name, username, role, passwordHash: hashPassword(tempPassword), disabled: false }
     ctx.db.insert(t.staffUsers).values(row).run()

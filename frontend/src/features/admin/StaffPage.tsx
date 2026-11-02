@@ -1,5 +1,5 @@
 import type { StaffUser } from '@bis/shared'
-import { KeyRound, LogOut, Pencil, ShieldOff, Trash2 } from 'lucide-react'
+import { History, KeyRound, LogOut, Pencil, ShieldOff, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Avatars } from '../../components/Avatars.tsx'
 import {
@@ -19,6 +19,7 @@ import { useDeleteStaff, useResetStaffPassword, useResetTotp, useStaffUsers } fr
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { STAFF_ROLES } from './constants.ts'
+import { StaffActivity } from './StaffActivity.tsx'
 import { SignOutDialog, type SignOutTarget } from './SignOutDialog.tsx'
 import { StaffDialog } from './StaffDialog.tsx'
 import { TempPasswordDialog } from './TempPasswordDialog.tsx'
@@ -104,6 +105,7 @@ export function StaffPage() {
         minWidthClass="min-w-0"
         paginationLabel="Staff pagination"
         detailTitle={(u) => u.name}
+        detailSections={(u) => [{ id: 'activity', label: 'Activity', icon: History, content: <StaffActivity user={u} /> }]}
         empty={
           needle || role !== 'all'
             ? { title: 'No accounts match', description: 'Try a different role or name.' }

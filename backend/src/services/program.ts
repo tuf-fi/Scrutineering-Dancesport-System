@@ -9,7 +9,7 @@ import {
   type ProgramRow,
   type ProgramSlotInput,
 } from '@bis/shared'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
@@ -79,6 +79,11 @@ function build(ctx: Ctx, competitionId: string): Program {
   const start = startOf(ctx, competitionId)
   const events = new Map(ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).all().map((e) => [e.id, e]))
 
+  // Results that were entered without rounds (an imported past competition) still mean the event is done
+  const decided = new Set(
+    ctx.db.select({ eventId: t.results.eventId }).from(t.results).where(inArray(t.results.eventId, [...events.keys()])).all().map((r) => r.eventId),
+  )
+
   const roundOf = (slot: Slot) =>
     slot.eventId && slot.roundType ? roundsOfEvent(ctx, slot.eventId).find((r) => r.type === slot.roundType) : undefined
 
@@ -86,11 +91,14 @@ function build(ctx: Ctx, competitionId: string): Program {
     const round = roundOf(slot)
     if (slot.kind !== ProgramKind.Round) return null
     if (round && roundAdvanced(round.status)) return ProgramStatus.Completed
+    if (!round && slot.eventId && decided.has(slot.eventId)) return ProgramStatus.Completed
     if (round && round.id === competition.floorRoundId) return ProgramStatus.Current
     return ProgramStatus.Upcoming
   })
 
-  const status = programStatuses(states)
+  // A competition whose day has passed and that has results is over, including its trailing breaks and the awarding, even if a round was left on the floor
+  const over = competition.date < new Date().toISOString().slice(0, 10) && states.includes(ProgramStatus.Completed)
+  const status = over ? states.map(() => ProgramStatus.Completed) : programStatuses(states)
 
   let elapsed = 0
   const rows = slots.map<ProgramRow>((slot, i) => {

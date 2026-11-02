@@ -3,7 +3,7 @@ import { ArrowUpRight, Check, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Badge, Button, ErrorState, PageHeader, Skeleton, Table, toast } from '../../components/ui/index.ts'
-import { useConfirmTie, useProposeTie, useRecallTable, useStaffUsers } from '../../hooks/index.ts'
+import { useConfirmTie, useProposeTie, useRecallTable } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
@@ -17,11 +17,10 @@ const OUTCOME = {
 
 // Where the tie decision stands, for the recall panel
 function useTieStatus(table: RecallTable | undefined, isChairperson: boolean) {
-  const staff = useStaffUsers()
   const decision = table?.tie?.decision
   if (!table?.tie) return null
   if (decision?.confirmedBy) {
-    const who = staff.data?.find((u) => u.id === decision.confirmedBy)?.name ?? 'the chairperson'
+    const who = decision.confirmedByName ?? 'the chairperson'
     return { text: `Confirmed by ${who}.`, confirmed: true }
   }
   if (decision) return { text: 'Proposed. Waiting for the chairperson to confirm.', confirmed: false }

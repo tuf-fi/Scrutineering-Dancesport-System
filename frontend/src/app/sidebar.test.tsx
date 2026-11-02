@@ -31,15 +31,16 @@ describe('staff sidebar', () => {
   it('shows each section with an icon, and the signed-in user', async () => {
     renderApp('/admin/competitions', Role.Admin)
     const nav = await sidebar()
-    const links = nav.getAllByRole('link')
+    // The person at the top is a link to their own account page; the rest are the sections, in groups
+    const links = nav.getAllByRole('link').filter((l) => l.getAttribute('href') !== '/account')
+    expect(nav.getByRole('link', { name: /Amelia Rosales/ })).toHaveAttribute('href', '/account')
     expect(links.map((l) => l.textContent)).toEqual([
       'Competitions',
-      'Staff accounts',
       'Adjudicators and panels',
       'Points table',
       'Payments',
       'Fees and payment details',
-      'Clubs',
+      'Staff accounts',
       'Security',
     ])
     for (const link of links) expect(link.querySelector('svg')).not.toBeNull()
@@ -81,7 +82,7 @@ describe('staff sidebar', () => {
     const router = renderApp('/admin/competitions', Role.Admin)
     await userEvent.click((await sidebar()).getByRole('button', { name: 'Sign out' }))
     await screen.findByRole('heading', { name: 'Sign in' })
-    expect(router.state.location.pathname).toBe('/login')
+    expect(router.state.location.pathname).toBe('/staff-access')
     expect(useAuth.getState().user).toBeNull()
   })
 
@@ -134,12 +135,12 @@ describe('staff sidebar', () => {
   })
 
   it.each([
-    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Clubs', 'Coaches', 'Athletes', 'Late entries', 'Schedule', 'Program', 'Security']],
+    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Clubs', 'Coaches', 'Athletes', 'Entry requests', 'Account links', 'Team and coach changes', 'Late entries', 'Schedule', 'Program', 'Security']],
     [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
-    [Role.Chairperson, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
+    [Role.Chairperson, '/scrutineer/live', ['Live board', 'Recall', 'Results', 'Security']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {
     renderApp(path, role)
-    const links = (await sidebar()).getAllByRole('link')
+    const links = (await sidebar()).getAllByRole('link').filter((l) => l.getAttribute('href') !== '/account')
     expect(links.map((l) => l.textContent)).toEqual(labels)
     for (const link of links) expect(link.querySelector('svg')).not.toBeNull()
   })

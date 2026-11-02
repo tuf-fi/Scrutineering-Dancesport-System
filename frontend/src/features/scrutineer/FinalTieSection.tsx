@@ -1,7 +1,7 @@
 import type { FinalTie } from '@bis/shared'
 import { useState } from 'react'
 import { Button, Select, toast } from '../../components/ui/index.ts'
-import { useConfirmFinalTie, useProposeFinalTie, useStaffUsers } from '../../hooks/index.ts'
+import { useConfirmFinalTie, useProposeFinalTie } from '../../hooks/index.ts'
 import { competitorName, ordinal } from '../../lib/format.ts'
 
 type Mode = 'keep' | 'order'
@@ -10,7 +10,6 @@ type Mode = 'keep' | 'order'
 export function FinalTieSection({ tie, readOnly, isChairperson }: { tie: FinalTie; readOnly: boolean; isChairperson: boolean }) {
   const propose = useProposeFinalTie()
   const confirm = useConfirmFinalTie()
-  const staff = useStaffUsers()
   const people = tie.groups.flatMap((g) => g.competitors)
   // A tie for 1st goes to the chairperson and is usually danced off; other places can stay shared
   const settle = tie.groups.some((g) => g.place === 1) ? 'dance-off' : 'tie-break'
@@ -20,13 +19,12 @@ export function FinalTieSection({ tie, readOnly, isChairperson }: { tie: FinalTi
     Object.fromEntries((tie.decision?.order ?? []).map((id, i) => [id, String(i + 1)])),
   )
   const decision = tie.decision
-  const name = (id: string) => staff.data?.find((s) => s.id === id)?.name ?? 'the chairperson'
 
   const picked = people.map((p) => order[p.competitorId])
   const orderValid = picked.every(Boolean) && new Set(picked).size === people.length
 
   const status = decision?.confirmedBy
-    ? `Confirmed by ${name(decision.confirmedBy)}.`
+    ? `Confirmed by ${decision.confirmedByName ?? 'the chairperson'}.`
     : decision
       ? 'Proposed. Waiting for the chairperson to confirm.'
       : isChairperson

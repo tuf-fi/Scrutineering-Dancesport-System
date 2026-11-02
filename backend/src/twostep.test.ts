@@ -17,7 +17,7 @@ afterEach(async () => {
 })
 
 const signIn = (username: string, password = 'bis2026', code?: string, ip = '10.0.0.1') =>
-  app.app.inject({ method: 'POST', url: '/api/auth/staff', payload: { username, password, ...(code === undefined ? {} : { code }) }, remoteAddress: ip })
+  app.app.inject({ method: 'POST', url: '/api/auth/staff', payload: { username: username.includes('@') ? username : `${username}@sample.example`, password, ...(code === undefined ? {} : { code }) }, remoteAddress: ip })
 
 // The code the app would show now; each call moves the clock on, so a code is never the same step twice
 let clock = Date.UTC(2026, 9, 10, 8, 0, 0)
@@ -39,7 +39,7 @@ describe('turning it on', () => {
   it('gives a secret and an address for an authenticator app, and asks for nothing at sign-in until confirmed', async () => {
     const setup = await app.ok<TotpSetup>('startTotpSetup', [], admin)
     expect(setup.secret).toMatch(/^[A-Z2-7]{32}$/)
-    expect(setup.uri).toBe(`otpauth://totp/BIS%3Aadmin?secret=${setup.secret}&issuer=BIS&algorithm=SHA1&digits=6&period=30`)
+    expect(setup.uri).toBe(`otpauth://totp/BIS%3Aadmin%40sample.example?secret=${setup.secret}&issuer=BIS&algorithm=SHA1&digits=6&period=30`)
     expect(await app.ok<TotpStatus>('getTotpStatus', [], admin)).toEqual({ enabled: false, recoveryLeft: 0 })
     expect((await signIn('admin')).statusCode).toBe(200)
   })
@@ -53,7 +53,7 @@ describe('turning it on', () => {
     expect(await app.ok<TotpStatus>('getTotpStatus', [], admin)).toEqual({ enabled: true, recoveryLeft: 8 })
     expect((await app.call('startTotpSetup', [], admin)).status).toBe(409)
     // Only hashes are kept
-    const stored = app.sqlite.prepare("select totp_recovery as r from staff_users where username = 'admin'").get() as { r: string }
+    const stored = app.sqlite.prepare("select totp_recovery as r from staff_users where username = 'admin@sample.example'").get() as { r: string }
     for (const code of recovery) expect(stored.r).not.toContain(code.replace('-', ''))
   })
 
@@ -85,6 +85,8 @@ describe('signing in with it on', () => {
   it('accepts a recovery code once, whichever way it is typed', async () => {
     const { recovery } = await turnOn(admin)
     expect((await signIn('admin', 'bis2026', recovery[0]!.toLowerCase().replace('-', ' '))).statusCode).toBe(200)
+    // Using a recovery code tells the admin's open screens
+    expect(app.hub.sent.filter((e) => e.event === 'alert').at(-1)?.payload).toMatchObject({ roles: ['admin'], note: { title: 'Recovery code used' } })
     expect((await signIn('admin', 'bis2026', recovery[0]!)).statusCode).toBe(401)
     expect((await signIn('admin', 'bis2026', recovery[1]!)).statusCode).toBe(200)
     expect(await app.ok<TotpStatus>('getTotpStatus', [], admin)).toEqual({ enabled: true, recoveryLeft: 6 })
@@ -105,8 +107,8 @@ describe('signing in with it on', () => {
   it('shows on the staff list', async () => {
     await turnOn(admin)
     const staff = await app.ok<StaffUser[]>('getStaffUsers', [], admin)
-    expect(staff.find((s) => s.username === 'admin')?.twoStep).toBe(true)
-    expect(staff.find((s) => s.username === 'scrutineer')?.twoStep).toBe(false)
+    expect(staff.find((s) => s.username === 'admin@sample.example')?.twoStep).toBe(true)
+    expect(staff.find((s) => s.username === 'scrutineer@sample.example')?.twoStep).toBe(false)
   })
 })
 

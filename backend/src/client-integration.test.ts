@@ -53,7 +53,7 @@ afterAll(async () => {
 describe('signing in through the client', () => {
   it('signs in, is remembered by the cookie, and signs out', async () => {
     useDevice('admin')
-    const session = await client.signInStaff('admin', SAMPLE_PASSWORD)
+    const session = await client.signInStaff('admin@sample.example', SAMPLE_PASSWORD)
     expect(session).toMatchObject({ role: 'admin', name: 'Amelia Rosales' })
     expect(await client.getSession()).toMatchObject({ id: session.id })
     expect((await client.getStaffUsers()).length).toBe(5)
@@ -66,14 +66,14 @@ describe('signing in through the client', () => {
     const ended = vi.fn()
     onSessionEnded(ended)
     useDevice('nobody')
-    await expect(client.signInStaff('admin', 'wrong')).rejects.toMatchObject({ status: 401, message: 'Wrong username or password.' })
+    await expect(client.signInStaff('admin@sample.example', 'wrong')).rejects.toMatchObject({ status: 401, message: 'Wrong email or password.' })
     expect(ended).not.toHaveBeenCalled()
   })
 
   it('tells the app the session ended when the server stops recognising it', async () => {
     const ended = vi.fn()
     useDevice('expiring')
-    await client.signInStaff('mc', SAMPLE_PASSWORD)
+    await client.signInStaff('mc@sample.example', SAMPLE_PASSWORD)
     onSessionEnded(ended)
     jars.set('expiring', 'bis_session=not-a-real-token')
     await expect(client.getAnnouncements()).rejects.toBeInstanceOf(ApiError)
@@ -91,7 +91,7 @@ describe('every role, using the functions the screens call', () => {
 
   it('runs the secretariat\'s screens', async () => {
     useDevice('secretariat')
-    await client.signInStaff('secretariat', SAMPLE_PASSWORD)
+    await client.signInStaff('secretariat@sample.example', SAMPLE_PASSWORD)
     const result = await client.importCompetitorsCsv('ignored-actor-id', '"Cruz, Mia",,Unknown Club')
     expect(result.skipped).toEqual([{ line: 2, reason: 'Unknown club "Unknown Club".' }])
     const rows = await client.getCompetitorRows()
@@ -117,7 +117,7 @@ describe('every role, using the functions the screens call', () => {
 
   it('shows the scrutineer the phone that just submitted', async () => {
     useDevice('scrutineer')
-    await client.signInStaff('scrutineer', SAMPLE_PASSWORD)
+    await client.signInStaff('scrutineer@sample.example', SAMPLE_PASSWORD)
     const round = await client.getCurrentRoundId()
     expect(round).toBe('comp-sorsogon-2026:e11:round_2')
     const board = await client.getSubmissions(round)
@@ -129,13 +129,13 @@ describe('every role, using the functions the screens call', () => {
 
   it('refuses the chairperson what only the scrutineer may do, with a message', async () => {
     useDevice('chair')
-    await client.signInStaff('chairperson', SAMPLE_PASSWORD)
+    await client.signInStaff('chairperson@sample.example', SAMPLE_PASSWORD)
     await expect(client.approveRound('x', 'comp-sorsogon-2026:e11:round_2')).rejects.toMatchObject({ status: 403 })
   })
 
   it('runs the secretariat\'s club and registration calls', async () => {
     useDevice('secretariat')
-    await client.signInStaff('secretariat', SAMPLE_PASSWORD)
+    await client.signInStaff('secretariat@sample.example', SAMPLE_PASSWORD)
     const club = await client.saveClub('ignored-actor-id', { name: 'Client Test Club', contactName: '', contactEmail: '', contactPhone: '' })
     expect(club.name).toBe('Client Test Club')
     await expect(client.saveClub('x', { name: '  ', contactName: '', contactEmail: '', contactPhone: '' })).rejects.toMatchObject({ status: 400 })

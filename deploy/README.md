@@ -11,7 +11,7 @@ You need a small server with Docker, and a domain name pointing at it. Ports 80 
    - `DOMAIN`: the address people will use.
    - `ADJUDICATOR_PIN_DAYS`: an adjudicator's PIN works this many days either side of the competition date (default 1; `off` only to practise with a past competition).
 3. Start it: `docker compose up -d --build`. Caddy gets the HTTPS certificate on its own.
-4. Create the first admin: `docker compose exec app node_modules/.bin/tsx src/db/create-admin-cli.ts <username> "<Full name>"`. It prints a password; sign in and change it.
+4. Create the first admin: `docker compose exec app node_modules/.bin/tsx src/db/create-admin-cli.ts <email> "<Full name>"`. It prints a password; sign in and change it.
 5. Check `https://<DOMAIN>/api/health`. It should say `"status":"ok"`.
 6. Sign in as the admin and open **Fees and payment details**. Until the fees are saved, clubs cannot enter events.
 
@@ -36,7 +36,7 @@ The old `MODE`, `CLOUD_URL`, `SYNC_TOKEN`, `SYNC_TOKENS`, `VENUE_ID`, `SYNC_DELA
 - Check the server's clock. It decides which competition is current and which PINs work, so run NTP on the host.
 - Check `ADJUDICATOR_PIN_DAYS` suits the event.
 - Take a backup and check you can open it (see Backups).
-- Open the site in a browser and check the console for Content-Security-Policy reports. The header is report-only; once nothing legitimate is reported, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy` in `Caddyfile` and run `docker compose up -d`.
+- Open the site in a browser and check the console for Content-Security-Policy violations. The header is enforced, so anything it blocks is also broken on the page; if something legitimate is blocked, add its source to the policy in `Caddyfile` and run `docker compose up -d`.
 
 
 ## Backups
@@ -63,6 +63,15 @@ Restore: stop the app (`docker compose stop app`), put the chosen backup in the 
 ## Updating
 
 `git pull`, then `docker compose up -d --build`. Database changes are applied when the server starts.
+
+## Staging
+
+Run staging on its own server, never next to production: the compose file uses ports 80 and 443 and fixed volume names, and each server keeps its own database.
+
+1. Create a second server and point a subdomain at it (for example `staging.<domain>`).
+2. Follow "Set up (once)", but copy `staging.env.example` to `.env` instead of `.env.example`.
+3. Use fake clubs and athletes only. Use PayMongo test keys, never live ones.
+4. Update it like production (`git pull`, then `docker compose up -d --build`) and test every change here first.
 
 ## Notes
 

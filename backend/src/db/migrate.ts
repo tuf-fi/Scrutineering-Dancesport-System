@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { join } from 'node:path'
 import { newId } from '../ids.ts'
@@ -23,7 +24,15 @@ export const DEFAULT_POINTS = [
 // Creates the tables on a fresh database and applies any newer migrations on an existing one,
 // then makes sure the points table exists
 export function runMigrations(db: Db) {
-  migrate(db, { migrationsFolder })
+  // A migration that rebuilds a table drops it while others point at it. SQLite ignores the PRAGMA inside the
+  // migration's own transaction, so keys are turned off here, before it, and checked once it is done.
+  db.run(sql`PRAGMA foreign_keys = OFF`)
+  try {
+    migrate(db, { migrationsFolder })
+    if (db.all(sql`PRAGMA foreign_key_check`).length > 0) throw new Error('A migration left rows pointing at rows that do not exist')
+  } finally {
+    db.run(sql`PRAGMA foreign_keys = ON`)
+  }
   if (db.select().from(t.pointsTable).limit(1).all().length === 0) {
     DEFAULT_POINTS.forEach((row, sortOrder) => db.insert(t.pointsTable).values({ id: newId(), ...row, sortOrder }).run())
   }

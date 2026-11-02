@@ -1,5 +1,5 @@
 import { AgeGroup, Class, Dance, Discipline, EventKind, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
-import type { CompetitorDetails, MembershipRequest } from '@bis/shared'
+import type { AthleteNotification, CompetitorDetails, MembershipEvent, MembershipRequest, ProfileChangeRequest } from '@bis/shared'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Drizzle wants a non-empty tuple of the allowed strings
@@ -427,7 +427,101 @@ export const athletes = sqliteTable('athletes', {
   request: text('request', { mode: 'json' }).$type<MembershipRequest>(),
   // See staff_users: raising it signs the athlete out everywhere
   sessionVersion: integer('session_version').notNull().default(0),
+  // A small picture as a data URL
+  photo: text('photo'),
+  // Every payment sent, confirmed or turned down, oldest first
+  membershipHistory: text('membership_history', { mode: 'json' }).$type<MembershipEvent[]>().notNull().default([]),
+  // A club or coach change waiting for the secretariat
+  changeRequest: text('change_request', { mode: 'json' }).$type<ProfileChangeRequest>(),
 })
+
+// A coach's or a team's own account. Athletes keep their own table; these two only sign in and see their page.
+export const memberAccounts = sqliteTable('member_accounts', {
+  id: id(),
+  role: text('role', { enum: ['coach', 'team'] }).notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  phone: text('phone').notNull().default(''),
+  birthDate: text('birth_date').notNull().default(''),
+  province: text('province').notNull().default(''),
+  address: text('address').notNull().default(''),
+  // A small picture as a data URL
+  photo: text('photo'),
+  sessionVersion: integer('session_version').notNull().default(0),
+  // The coach or club record this account stands for, set when the secretariat approves a claim
+  linkedId: text('linked_id'),
+  // A coach or club the account asked to be linked to, waiting for the secretariat
+  claimId: text('claim_id'),
+  claimedAt: text('claimed_at'),
+})
+
+// A team's (or an athlete's) request to enter a dancer or couple in events, with the payment already made. The secretariat
+// checks the screenshot and approves it, which creates the entries and the payment.
+export const entryRequests = sqliteTable(
+  'entry_requests',
+  {
+    id: id(),
+    requesterId: text('requester_id').notNull(),
+    requesterRole: text('requester_role', { enum: ['team', 'athlete'] }).notNull(),
+    requesterName: text('requester_name').notNull(),
+    competitorId: text('competitor_id')
+      .notNull()
+      .references(() => competitors.id, { onDelete: 'cascade' }),
+    competitionId: text('competition_id')
+      .notNull()
+      .references(() => competitions.id, { onDelete: 'cascade' }),
+    eventIds: text('event_ids', { mode: 'json' }).$type<string[]>().notNull(),
+    total: real('total').notNull(),
+    warnings: text('warnings', { mode: 'json' }).$type<string[]>().notNull().default([]),
+    method: text('method').$type<PayMethod>().notNull(),
+    reference: text('reference').notNull().default(''),
+    // TODO: phase 6 stores receipts as private files on the cloud server; until then the screenshot is kept here as a data URL
+    receipt: text('receipt').notNull(),
+    status: text('status', { enum: ['waiting', 'approved', 'rejected'] }).notNull().default('waiting'),
+    rejectedReason: text('rejected_reason'),
+    createdAt: text('created_at').notNull(),
+    decidedAt: text('decided_at'),
+    decidedBy: text('decided_by'),
+  },
+  (t) => [index('entry_requests_by_requester').on(t.requesterId, t.createdAt), index('entry_requests_by_status').on(t.status)],
+)
+
+// What the system tells a coach or a team: whether the secretariat linked their account to a record
+export const memberNotifications = sqliteTable(
+  'member_notifications',
+  {
+    id: id(),
+    memberId: text('member_id')
+      .notNull()
+      .references(() => memberAccounts.id, { onDelete: 'cascade' }),
+    kind: text('kind').$type<AthleteNotification['kind']>().notNull(),
+    title: text('title').notNull(),
+    detail: text('detail').notNull().default(''),
+    link: text('link'),
+    createdAt: text('created_at').notNull(),
+    readAt: text('read_at'),
+  },
+  (t) => [index('member_notifications_by_member').on(t.memberId, t.createdAt)],
+)
+
+// What the system tells an athlete; the bell in their navbar and the Notifications page read these
+export const notifications = sqliteTable(
+  'notifications',
+  {
+    id: id(),
+    athleteId: text('athlete_id')
+      .notNull()
+      .references(() => athletes.id, { onDelete: 'cascade' }),
+    kind: text('kind').$type<AthleteNotification['kind']>().notNull(),
+    title: text('title').notNull(),
+    detail: text('detail').notNull().default(''),
+    link: text('link'),
+    createdAt: text('created_at').notNull(),
+    readAt: text('read_at'),
+  },
+  (t) => [index('notifications_by_athlete').on(t.athleteId, t.createdAt)],
+)
 
 export const auditLog = sqliteTable(
   'audit_log',

@@ -4,7 +4,7 @@ import { Toaster as Sonner } from 'sonner'
 export function Toaster() {
   return (
     <Sonner
-      position="bottom-center"
+      position="top-center"
       gap={8}
       toastOptions={{
         unstyled: true,

@@ -59,52 +59,63 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
 
   return (
     <>
-      <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
-        <Input label="Dancer" value={first} onChange={(e) => setFirst(e.target.value)} error={errors.first} autoFocus />
-        <Input
-          label="Partner"
-          hint="Leave empty for a solo dancer."
-          value={second}
-          onChange={(e) => setSecond(e.target.value)}
-        />
-        <Select label="Club" value={clubId} onChange={(e) => setClubId(e.target.value)} error={errors.club}>
-          <option value="">Choose a club</option>
-          {(clubs.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
-        <Input label="Province" value={province} onChange={(e) => setProvince(e.target.value)} />
-        <Select label="Coach" value={coachId} onChange={(e) => setCoachId(e.target.value)}>
-          <option value="">No coach</option>
-          {(coaches.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
-        <Input
-          label="Membership paid for"
-          hint="The year. Leave empty if not paid."
-          inputMode="numeric"
-          value={memberYear}
-          onChange={(e) => setMemberYear(e.target.value)}
-          error={errors.year}
-          className="font-mono tabular-nums"
-        />
-        <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900 sm:col-span-2">
-          <input type="checkbox" checked={beginner} onChange={(e) => setBeginner(e.target.checked)} className="size-5 accent-neutral-900" />
-          Beginner (BGB): no regional or national experience
-        </label>
+      <form id={FORM_ID} onSubmit={submit} noValidate className="flex flex-col gap-9 pb-2">
+        <section aria-label="Dancers" className="flex flex-col gap-3">
+          <h3 className="font-mono text-xs uppercase text-neutral-500">Dancers</h3>
+          <div className="flex flex-col gap-5">
+            <Input label="Dancer" value={first} onChange={(e) => setFirst(e.target.value)} error={errors.first} autoFocus />
+            <Input label="Partner" value={second} onChange={(e) => setSecond(e.target.value)} />
+          </div>
+          <p className="text-small text-neutral-500">Leave the partner empty for a solo dancer.</p>
+        </section>
+
+        <section aria-label="Team" className="flex flex-col gap-3">
+          <h3 className="font-mono text-xs uppercase text-neutral-500">Team</h3>
+          <div className="flex flex-col gap-5">
+            <Select label="Club" value={clubId} onChange={(e) => setClubId(e.target.value)} error={errors.club}>
+              <option value="">Choose a club</option>
+              {(clubs.data ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+            <Input label="Province" value={province} onChange={(e) => setProvince(e.target.value)} />
+            <Select label="Coach" value={coachId} onChange={(e) => setCoachId(e.target.value)}>
+              <option value="">No coach</option>
+              {(coaches.data ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+            <Input
+              label="Membership paid for"
+              inputMode="numeric"
+              value={memberYear}
+              onChange={(e) => setMemberYear(e.target.value)}
+              error={errors.year}
+              className="font-mono tabular-nums"
+            />
+          </div>
+          <p className="text-small text-neutral-500">Membership is the year it was paid for. Leave it empty if not paid.</p>
+          <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
+            <input type="checkbox" checked={beginner} onChange={(e) => setBeginner(e.target.checked)} className="size-5 accent-neutral-900" />
+            Beginner (BGB): no regional or national experience
+          </label>
+        </section>
 
         {names.map((name, i) => (
-          <fieldset key={i} className="grid gap-4 border-t border-neutral-200 pt-4 sm:col-span-2 sm:grid-cols-2">
-            <legend className="text-small font-semibold text-neutral-900">{name.trim() || `Dancer ${i + 1}`}</legend>
-            <Input label="Date of birth" type="date" value={dancers[i]!.birthDate} onChange={(e) => setDancer(i, { birthDate: e.target.value })} />
-            <Input label="Contact no." inputMode="tel" value={dancers[i]!.phone} onChange={(e) => setDancer(i, { phone: e.target.value })} />
-            <Input label="Email" type="email" value={dancers[i]!.email} onChange={(e) => setDancer(i, { email: e.target.value })} />
-            <Input label="Address" value={dancers[i]!.address} onChange={(e) => setDancer(i, { address: e.target.value })} />
+          <fieldset key={i} className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
+            <legend className="float-left mb-4 font-mono text-xs uppercase text-neutral-500">Details: {name.trim() || `Dancer ${i + 1}`}</legend>
+            <div className="flex w-full flex-col gap-5">
+              <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
+                <Input label="Date of birth" type="date" value={dancers[i]!.birthDate} onChange={(e) => setDancer(i, { birthDate: e.target.value })} />
+                <Input label="Contact no." inputMode="tel" value={dancers[i]!.phone} onChange={(e) => setDancer(i, { phone: e.target.value })} />
+              </div>
+              <Input label="Email" type="email" value={dancers[i]!.email} onChange={(e) => setDancer(i, { email: e.target.value })} />
+              <Input label="Address" value={dancers[i]!.address} onChange={(e) => setDancer(i, { address: e.target.value })} />
+            </div>
           </fieldset>
         ))}
       </form>

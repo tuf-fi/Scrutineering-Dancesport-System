@@ -1,5 +1,5 @@
 import type { Adjudicator } from '@bis/shared'
-import { KeyRound, LogOut, Pencil, Trash2 } from 'lucide-react'
+import { ClipboardCheck, KeyRound, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Avatars } from '../../components/Avatars.tsx'
 import {
@@ -11,7 +11,6 @@ import {
   SearchField,
   Table,
   Toolbar,
-  ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
 import {
@@ -20,6 +19,7 @@ import {
   useDeleteAdjudicator,
   useGeneratePins,
 } from '../../hooks/index.ts'
+import { AdjudicatorAssignments } from './AdjudicatorAssignments.tsx'
 import { AdjudicatorDialog } from './AdjudicatorDialog.tsx'
 import { SignOutDialog, type SignOutTarget } from './SignOutDialog.tsx'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
@@ -41,6 +41,8 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
   const [editing, setEditing] = useState<Adjudicator | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Adjudicator | null>(null)
   const [signOut, setSignOut] = useState<SignOutTarget | null>(null)
+  // The adjudicators whose PIN cards are to be printed; none chosen prints every card
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   if (adjudicators.isError || pins.isError) {
     return <ErrorState onRetry={() => void Promise.all([adjudicators.refetch(), pins.refetch()])} />
@@ -51,6 +53,27 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
   const missing = all.filter((a) => !pinOf(a.id)).length
   const needle = query.trim().toLowerCase()
   const visible = all.filter((a) => !needle || a.name.toLowerCase().includes(needle) || a.letter.toLowerCase() === needle)
+  const withPin = visible.filter((a) => pinOf(a.id))
+  const chosen = all.filter((a) => selected.has(a.id) && pinOf(a.id))
+  const allChosen = withPin.length > 0 && withPin.every((a) => selected.has(a.id))
+  const printPath = `/print/pin-cards/${competitionId}?ids=${chosen.map((a) => a.id).join(',')}`
+
+  function toggle(id: string) {
+    setSelected((current) => {
+      const next = new Set(current)
+      if (!next.delete(id)) next.add(id)
+      return next
+    })
+  }
+
+  function toggleAll() {
+    setSelected((current) => {
+      const next = new Set(current)
+      for (const a of withPin) allChosen ? next.delete(a.id) : next.add(a.id)
+      return next
+    })
+  }
+
   const lettersFree = LETTERS.some((l) => !all.some((a) => a.letter === l))
 
   function run(adjudicatorId?: string) {
@@ -78,18 +101,29 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
 
   return (
     <div className="flex flex-col gap-6">
-      <Toolbar>
-        <SearchField className="w-full sm:w-72" label="Search adjudicators" value={query} onChange={setQuery} />
-        <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />
-        <ToolbarActions>
+      <Toolbar className="justify-between gap-y-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <SearchField className="w-full sm:w-72" label="Search adjudicators" value={query} onChange={setQuery} />
+          <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />
+        </div>
+        {/* A plain row, not ToolbarActions: when it wraps under the filters it lines up with their left edge */}
+        <div className="flex flex-wrap items-center gap-2">
           {competitionId && pins.data && pins.data.length > 0 && (
-            <ButtonLink variant="secondary" to={`/print/pin-cards/${competitionId}`} target="_blank">
-              Print PIN cards
-            </ButtonLink>
+            chosen.length > 0 ? (
+              <ButtonLink variant="secondary" to={printPath} target="_blank">
+                Print {chosen.length} PIN {chosen.length === 1 ? 'card' : 'cards'}
+              </ButtonLink>
+            ) : (
+              <Button variant="secondary" disabled title="Choose whose PIN card to print">
+                Print PIN cards
+              </Button>
+            )
           )}
-          <Button variant="secondary" disabled={missing === 0 || generate.isPending} onClick={() => run()}>
-            {missing === 0 ? 'Everyone has a PIN' : `Generate ${missing} missing`}
-          </Button>
+          {missing > 0 && (
+            <Button variant="secondary" disabled={generate.isPending} onClick={() => run()}>
+              Generate {missing} missing
+            </Button>
+          )}
           <Button
             disabled={!lettersFree}
             title={lettersFree ? undefined : 'All ten letters, A to J, are in use'}
@@ -97,7 +131,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
           >
             Add adjudicator
           </Button>
-        </ToolbarActions>
+        </div>
       </Toolbar>
 
       <Table<Adjudicator>
@@ -107,12 +141,40 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
         minWidthClass="min-w-0"
         paginationLabel="Adjudicators pagination"
         detailTitle={(a) => a.name}
+        detailSections={(a) => [{ id: 'assignments', label: 'Assignments', icon: ClipboardCheck, content: <AdjudicatorAssignments adjudicatorId={a.id} /> }]}
         empty={
           needle
             ? { title: `No adjudicators match "${query.trim()}"`, description: 'Try a name or a letter.' }
             : { title: 'No adjudicators yet', description: 'Add the first adjudicator.' }
         }
         columns={[
+          {
+            key: 'select',
+            header: '',
+            detail: false,
+            widthClass: 'w-12',
+            headerCell: (
+              <input
+                type="checkbox"
+                aria-label="Select every adjudicator with a PIN"
+                checked={allChosen}
+                disabled={withPin.length === 0}
+                onChange={toggleAll}
+                className="size-4 accent-gold-500"
+              />
+            ),
+            cell: (a) => (
+              <input
+                type="checkbox"
+                aria-label={`Select ${a.name} to print the PIN card`}
+                checked={selected.has(a.id) && Boolean(pinOf(a.id))}
+                disabled={!pinOf(a.id)}
+                onChange={() => toggle(a.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="size-4 accent-gold-500"
+              />
+            ),
+          },
           {
             key: 'name',
             header: 'Adjudicator',

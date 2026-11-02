@@ -8,14 +8,17 @@ import { ClubsPage } from '../features/secretariat/ClubsPage.tsx'
 import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
-import { AthletePage } from '../features/athlete/AthletePage.tsx'
-import { AthleteSignIn } from '../features/athlete/AthleteSignIn.tsx'
+import { AccountPage, AthletePage, EditAccountPage, EntriesPage, MembershipPage, NotificationsPage, PaymentsPage as MyPaymentsPage, PasswordPage, RankingsPage as MyRankingsPage, RegisterEventsPage, RequestsPage, ResultsPage as MyResultsPage } from '../features/athlete/AthletePage.tsx'
+import { AthleteSignIn, MemberSignIn, SignInPage } from '../features/athlete/AthleteSignIn.tsx'
+import { EntryRequestsPage } from '../features/secretariat/EntryRequestsPage.tsx'
+import { AccountLinksPage } from '../features/secretariat/AccountLinksPage.tsx'
+import { ProfileChangesPage } from '../features/secretariat/ProfileChangesPage.tsx'
 import { AthletesPage } from '../features/secretariat/AthletesPage.tsx'
-import { AthleteLayout } from './layouts/AthleteLayout.tsx'
 import { AdjudicatorSignIn } from '../features/adjudicator/AdjudicatorSignIn.tsx'
 import { MarkPage } from '../features/adjudicator/MarkPage.tsx'
 import { SubmittedPage } from '../features/adjudicator/SubmittedPage.tsx'
 import { Waiting } from '../features/adjudicator/Waiting.tsx'
+import { StaffAccountPage } from '../features/auth/StaffAccountPage.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
 import { DesignPreview } from '../features/dev/DesignPreview.tsx'
 import { McHome } from '../features/mc/McHome.tsx'
@@ -24,6 +27,7 @@ import { CompetitionsPage as PublicCompetitionsPage } from '../features/public/C
 import { EventResultsPage } from '../features/public/EventResultsPage.tsx'
 import { HomePage } from '../features/public/HomePage.tsx'
 import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
+import { AthleteDirectoryPage } from '../features/public/AthleteDirectoryPage.tsx'
 import { RankingsPage } from '../features/public/RankingsPage.tsx'
 import { HeatsPage } from '../features/scrutineer/HeatsPage.tsx'
 import { LivePage } from '../features/scrutineer/LivePage.tsx'
@@ -52,6 +56,8 @@ import { McLayout } from './layouts/McLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
 import { StaffLayout } from './layouts/StaffLayout.tsx'
 import { PublicLayout } from './layouts/TopNavLayout.tsx'
+import { STAFF_SIGN_IN } from './nav.ts'
+import { MemberAccountPage, MemberDancersPage, MemberEditPage, MemberEntriesPage, MemberHome, MemberRegisterPage, MemberRequestsPage, MemberLinkPage, MemberNotificationsPage, MemberPasswordPage, MemberPaymentsPage, MemberRankingsPage, MemberResultsPage } from '../features/athlete/MemberHome.tsx'
 import { NotFound } from './NotFound.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
@@ -62,7 +68,7 @@ export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
-      { path: '/login', element: <StaffSignIn /> },
+      { path: STAFF_SIGN_IN, element: <StaffSignIn /> },
 
       {
         path: '/adjudicator',
@@ -84,20 +90,84 @@ export const routes: RouteObject[] = [
         ],
       },
 
+      // The public sign-in for athletes, coaches and teams; staff use their own address
+      { path: '/login', element: <SignInPage /> },
+      { path: '/sign-in', element: <Navigate to="/login" replace /> },
+
       {
         path: '/athlete',
         children: [
           { path: 'sign-in', element: <AthleteSignIn /> },
           {
             element: <RequireRole roles={[Role.Athlete]} signInPath="/athlete/sign-in" />,
-            children: [{ element: <AthleteLayout />, children: [{ index: true, element: <AthletePage /> }] }],
+            children: [
+              {
+                element: <PublicLayout />,
+                children: [
+                  {
+                    element: <AthletePage />,
+                    children: [
+                      { index: true, element: <AccountPage /> },
+                      { path: 'edit', element: <EditAccountPage /> },
+                      { path: 'membership', element: <MembershipPage /> },
+                      { path: 'payments', element: <MyPaymentsPage /> },
+                      { path: 'results', element: <MyResultsPage /> },
+                      { path: 'rankings', element: <MyRankingsPage /> },
+                      { path: 'entries', element: <EntriesPage /> },
+                      { path: 'register', element: <RegisterEventsPage /> },
+                      { path: 'requests', element: <RequestsPage /> },
+                      { path: 'notifications', element: <NotificationsPage /> },
+                      { path: 'password', element: <PasswordPage /> },
+                    ],
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
 
+      ...(['coach', 'team'] as const).map((kind) => ({
+        path: `/${kind}`,
+        children: [
+          { path: 'sign-in', element: <MemberSignIn kind={kind} /> },
+          {
+            element: <RequireRole roles={[kind === 'team' ? Role.Team : Role.Coach]} signInPath={`/${kind}/sign-in`} />,
+            children: [
+              {
+                element: <PublicLayout />,
+                children: [
+                  {
+                    element: <MemberHome />,
+                    children: [
+                      { index: true, element: <MemberAccountPage /> },
+                      { path: 'link', element: <MemberLinkPage /> },
+                      { path: 'edit', element: <MemberEditPage /> },
+                      { path: 'notifications', element: <MemberNotificationsPage /> },
+                      { path: 'dancers', element: <MemberDancersPage /> },
+                      { path: 'results', element: <MemberResultsPage /> },
+                      { path: 'rankings', element: <MemberRankingsPage /> },
+                      { path: 'entries', element: <MemberEntriesPage /> },
+                      { path: 'password', element: <MemberPasswordPage /> },
+                      ...(kind === 'team'
+                        ? [
+                            { path: 'payments', element: <MemberPaymentsPage /> },
+                            { path: 'register', element: <MemberRegisterPage /> },
+                            { path: 'requests', element: <MemberRequestsPage /> },
+                          ]
+                        : []),
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      })),
+
       {
         path: '/admin',
-        element: <RequireRole roles={[Role.Admin]} signInPath="/login" />,
+        element: <RequireRole roles={[Role.Admin]} signInPath={STAFF_SIGN_IN} />,
         children: [
           {
             element: <StaffLayout />,
@@ -109,7 +179,6 @@ export const routes: RouteObject[] = [
               { path: 'points', element: <PointsPage /> },
               { path: 'payments', element: <PaymentsPage /> },
               { path: 'fees', element: <FeesPage /> },
-              { path: 'clubs', element: <ClubsPage /> },
               { path: 'security', element: <SecurityPage /> },
             ],
           },
@@ -117,7 +186,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: '/secretariat',
-        element: <RequireRole roles={[Role.Secretariat]} signInPath="/login" />,
+        element: <RequireRole roles={[Role.Secretariat]} signInPath={STAFF_SIGN_IN} />,
         children: [
           {
             element: <StaffLayout />,
@@ -128,6 +197,9 @@ export const routes: RouteObject[] = [
               { path: 'clubs', element: <ClubsPage /> },
               { path: 'coaches', element: <CoachesPage /> },
               { path: 'athletes', element: <AthletesPage /> },
+              { path: 'account-links', element: <AccountLinksPage /> },
+              { path: 'profile-changes', element: <ProfileChangesPage /> },
+              { path: 'entry-requests', element: <EntryRequestsPage /> },
               { path: 'late-entries', element: <LateEntriesPage /> },
               { path: 'schedule', element: <SchedulePage /> },
               { path: 'program', element: <ProgramPage /> },
@@ -138,13 +210,18 @@ export const routes: RouteObject[] = [
       },
       {
         path: '/scrutineer',
-        element: <RequireRole roles={[Role.Scrutineer, Role.Chairperson]} signInPath="/login" />,
+        element: <RequireRole roles={[Role.Scrutineer, Role.Chairperson]} signInPath={STAFF_SIGN_IN} />,
         children: [
           {
             element: <StaffLayout />,
             children: [
-              { index: true, element: <RoundsPage /> },
-              { path: 'heats', element: <HeatsPage /> },
+              {
+                element: <RequireRole roles={[Role.Scrutineer]} signInPath={STAFF_SIGN_IN} />,
+                children: [
+                  { index: true, element: <RoundsPage /> },
+                  { path: 'heats', element: <HeatsPage /> },
+                ],
+              },
               { path: 'live', element: <LivePage /> },
               { path: 'recall', element: <RecallPage /> },
               { path: 'results', element: <ResultsPage /> },
@@ -156,13 +233,20 @@ export const routes: RouteObject[] = [
 
       {
         path: '/mc',
-        element: <RequireRole roles={[Role.Mc]} signInPath="/login" />,
+        element: <RequireRole roles={[Role.Mc]} signInPath={STAFF_SIGN_IN} />,
         children: [{ element: <McLayout />, children: [{ index: true, element: <McHome /> }] }],
       },
 
       {
+        // Every staff member's own account: their name and their password
+        path: '/account',
+        element: <RequireRole roles={[...STAFF, Role.Mc]} signInPath={STAFF_SIGN_IN} />,
+        children: [{ element: <StaffLayout />, children: [{ index: true, element: <StaffAccountPage /> }] }],
+      },
+
+      {
         path: '/print',
-        element: <RequireRole roles={STAFF} signInPath="/login" />,
+        element: <RequireRole roles={STAFF} signInPath={STAFF_SIGN_IN} />,
         children: [
           {
             element: <PrintLayout />,
@@ -197,6 +281,7 @@ export const routes: RouteObject[] = [
           { path: 'competitions/:competitionId', element: <CompetitionPage /> },
           { path: 'competitions/:competitionId/program', element: <ProgramPublicPage /> },
           { path: 'competitions/:competitionId/events/:eventId', element: <EventResultsPage /> },
+          { path: 'athletes', element: <AthleteDirectoryPage /> },
           { path: 'rankings', element: <RankingsPage /> },
           { path: 'privacy', element: <PrivacyPage /> },
           { path: 'competitors/:id', element: <CompetitorPage /> },

@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router'
+import { Role } from '@bis/shared'
+import { NavLink, Outlet, useLocation } from 'react-router'
 import { BackupNotice } from '../../components/BackupNotice.tsx'
 import { Brand } from '../../components/Brand.tsx'
 import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
@@ -7,7 +8,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import { cn } from '../../lib/cn.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useUi } from '../../stores/ui.ts'
-import { staffNav, type StaffRole } from '../nav.ts'
+import { STAFF_SIGN_IN, mcNav, staffNav, type StaffRole } from '../nav.ts'
 import { useSignOut } from '../useSignOut.ts'
 import { Sidebar } from './Sidebar.tsx'
 
@@ -17,9 +18,12 @@ export function StaffLayout() {
   const user = useAuth((s) => s.user)
   const collapsed = useUi((s) => s.sidebarCollapsed)
   const desktop = useMediaQuery('(min-width: 1024px)')
-  const signOut = useSignOut('/login')
+  // The fees page uses the whole width; the other screens stay in a readable column
+  const { pathname } = useLocation()
+  const wide = ['/admin/fees', '/admin/points', '/account'].some((p) => pathname.startsWith(p))
+  const signOut = useSignOut(STAFF_SIGN_IN)
   if (!user) return null
-  const items = staffNav[user.role as StaffRole] ?? []
+  const items = staffNav[user.role as StaffRole] ?? (user.role === Role.Mc ? mcNav : [])
 
   return (
     <div
@@ -69,7 +73,7 @@ export function StaffLayout() {
 
         <BackupNotice />
         <main className="flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
-          <div className="mx-auto w-full max-w-6xl">
+          <div className={cn('mx-auto w-full', !wide && 'max-w-6xl')}>
             <Outlet />
           </div>
         </main>

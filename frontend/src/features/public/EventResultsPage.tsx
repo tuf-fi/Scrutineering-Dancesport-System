@@ -1,8 +1,9 @@
 import { RoundStatus } from '@bis/shared'
-import { Link, useParams } from 'react-router'
-import { ErrorState, PageHeader, Skeleton } from '../../components/ui/index.ts'
+import { useParams } from 'react-router'
+import { ErrorState, Skeleton } from '../../components/ui/index.ts'
 import { useCompetition, useEvent, useRecallTable, useRounds } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, formatDate } from '../../lib/format.ts'
+import { PublicHeader } from './PublicHeader.tsx'
 import { ResultsTable } from './ResultsTable.tsx'
 
 // Who went through a published round, by back number
@@ -15,7 +16,7 @@ function Qualified({ roundId, label }: { roundId: string; label: string }) {
     .sort((a, b) => a - b)
 
   return (
-    <section aria-label={label} className="flex flex-col gap-2 border-t border-neutral-200 pt-5">
+    <section aria-label={label} className="flex flex-col gap-2 border-t border-neutral-200 py-5 sm:px-3">
       <h3 className="text-small font-medium text-neutral-900">{label}</h3>
       <p className="font-mono text-small tabular-nums leading-relaxed text-neutral-600">{numbers.join('  ')}</p>
     </section>
@@ -36,19 +37,25 @@ export function EventResultsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <Link to={`/competitions/${competitionId}`} className="w-fit text-small text-neutral-600 hover:text-neutral-900">
-        {competition.data.name}
-      </Link>
-      <PageHeader
+      <PublicHeader
+        back={{ to: `/competitions/${competitionId}`, label: competition.data.name }}
+        eyebrow={formatDate(competition.data.date)}
         title={`${eventCode(event.data)} ${eventDances(event.data)}`}
-        description={`${eventGrade(event.data)} · ${formatDate(competition.data.date)}`}
+        description={
+          <>
+            <span className="block">{eventGrade(event.data)}</span>
+            <span className="block">{competition.data.venue}</span>
+          </>
+        }
       />
 
       <ResultsTable eventId={eventId} />
 
       {earlier.length > 0 && (
-        <div className="flex flex-col gap-5">
-          <h2 className="text-title font-semibold text-neutral-900">Earlier rounds</h2>
+        <section aria-labelledby="earlier" className="flex flex-col gap-4">
+          <h2 id="earlier" className="text-small font-bold uppercase tracking-wide text-neutral-900">
+            Earlier rounds
+          </h2>
           {earlier.map((r) => {
             const next = all[all.indexOf(r) + 1]
             return (
@@ -59,7 +66,7 @@ export function EventResultsPage() {
               />
             )
           })}
-        </div>
+        </section>
       )}
     </div>
   )

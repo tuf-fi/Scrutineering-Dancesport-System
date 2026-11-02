@@ -1,12 +1,13 @@
 import { Outlet } from 'react-router'
+import { Brand } from '../../components/Brand.tsx'
 import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
-import { Button } from '../../components/ui/index.ts'
 import { useOutboxFlush } from '../../features/adjudicator/useFloor.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useSignOut } from '../useSignOut.ts'
+import { AccountMenu } from './AccountMenu.tsx'
 
 // Full-screen layout with no sidebar. One column that starts as a phone and widens with the screen,
-// so the same screens work on a phone, a tablet and a laptop.
+// so the same screens work on a phone, a tablet and a laptop. The black navbar matches the rest of the site.
 export function AdjudicatorLayout() {
   const user = useAuth((s) => s.user)
   const signOut = useSignOut('/adjudicator')
@@ -15,19 +16,12 @@ export function AdjudicatorLayout() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-neutral-100">
+      <header className="sticky top-0 z-30 bg-black text-white">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4 sm:px-8">
-          <div className="flex items-center gap-3">
-            <span className="grid size-8 place-items-center rounded-full bg-neutral-900 font-mono text-xs font-semibold text-white">
-              {user.letter}
-            </span>
-            <span className="text-small font-medium text-neutral-900">{user.name}</span>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <Brand size="sm" plate={false} />
+          <div className="flex items-center gap-3 sm:gap-4">
             <ConnectionStatus />
-            <Button variant="secondary" size="sm" onClick={signOut}>
-              Sign out
-            </Button>
+            <AccountMenu name={user.name} detail={user.letter ? `Adjudicator ${user.letter}` : 'Adjudicator'} onSignOut={signOut} />
           </div>
         </div>
       </header>

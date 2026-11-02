@@ -69,3 +69,23 @@ describe('only paid entries dance', () => {
     expect((await floor.call('startRound', [target!.roundId], scrutineer)).error ?? '').not.toMatch(/not been paid/)
   })
 })
+
+describe('a staff member changing their own account', () => {
+  it('changes the password only with the current one, and signs in with the new one', async () => {
+    const mine = await cloud.signIn.staff('scrutineer')
+    expect((await cloud.call('changeMyStaffPassword', ['wrong-password', 'a-long-password1'], mine)).error).toMatch(/current password/)
+    expect((await cloud.call('changeMyStaffPassword', ['bis2026', 'short'], mine)).error).toMatch(/at least 8/)
+    expect((await cloud.call('changeMyStaffPassword', ['bis2026', 'bis2026'], mine)).status).toBe(400)
+    await cloud.ok('changeMyStaffPassword', ['bis2026', 'a-long-password1'], mine)
+    await expect(cloud.signIn.staff('scrutineer', 'bis2026')).rejects.toThrow()
+    expect(await cloud.signIn.staff('scrutineer', 'a-long-password1')).toContain('=')
+  })
+
+  it('changes only their own name', async () => {
+    const mine = await cloud.signIn.staff('mc')
+    expect((await cloud.call('saveMyStaffName', ['  '], mine)).status).toBe(400)
+    const saved = await cloud.ok<{ name: string; username: string }>('saveMyStaffName', ['  Mina   Cruz '], mine)
+    expect(saved).toMatchObject({ name: 'Mina Cruz', username: 'mc@sample.example' })
+    expect((await cloud.call('changeMyStaffPassword', ['x', 'y'])).status).toBe(401)
+  })
+})

@@ -178,10 +178,11 @@ export function proposeTie(actorId: string, roundId: string, choice: TieDecision
 }
 
 export function confirmTie(actorId: string, roundId: string): void {
-  actorWithRole(actorId, Role.Chairperson, 'chairperson')
+  const chair = actorWithRole(actorId, Role.Chairperson, 'chairperson')
   const decision = tieDecisions.get(roundId)
   if (!decision) throw new Error('The scrutineer has not proposed a decision yet.')
   decision.confirmedBy = actorId
+  decision.confirmedByName = chair.name
 }
 
 export function skatingTable(roundId: string): SkatingTable {

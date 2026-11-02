@@ -9,8 +9,8 @@ describe('the first admin of a new database', () => {
   it('can be created on an empty database and then signs in', async () => {
     app = await startTestApp({ seed: false })
     expect(app.sqlite.prepare('select count(*) as n from staff_users').get()).toEqual({ n: 0 })
-    const admin = createAdmin(app.db, { username: ' Amelia ', name: 'Amelia Rosales' })
-    expect(admin.username).toBe('amelia')
+    const admin = createAdmin(app.db, { username: ' Amelia@Sample.example ', name: 'Amelia Rosales' })
+    expect(admin.username).toBe('amelia@sample.example')
     expect(admin.password).toHaveLength(10)
     const cookie = await app.signIn.staff('amelia', admin.password)
     expect(await app.me(cookie)).toMatchObject({ role: 'admin', name: 'Amelia Rosales' })
@@ -28,9 +28,9 @@ describe('the first admin of a new database', () => {
 
   it('uses a chosen password, and refuses a short one, a blank name and a repeated username', async () => {
     app = await startTestApp({ seed: false })
-    expect(createAdmin(app.db, { username: 'a', name: 'A', password: 'long-enough-1' }).password).toBe('long-enough-1')
-    expect(() => createAdmin(app.db, { username: 'b', name: 'B', password: 'short' })).toThrow(/at least 8/)
-    expect(() => createAdmin(app.db, { username: 'a', name: 'Other' })).toThrow(/already taken/)
-    expect(() => createAdmin(app.db, { username: 'c', name: '  ' })).toThrow(/username and a name/)
+    expect(createAdmin(app.db, { username: 'a@sample.example', name: 'A', password: 'long-enough-1' }).password).toBe('long-enough-1')
+    expect(() => createAdmin(app.db, { username: 'b@sample.example', name: 'B', password: 'short' })).toThrow(/at least 8/)
+    expect(() => createAdmin(app.db, { username: 'a@sample.example', name: 'Other' })).toThrow(/already used/)
+    expect(() => createAdmin(app.db, { username: 'c@sample.example', name: '  ' })).toThrow(/email and a name/)
   })
 })

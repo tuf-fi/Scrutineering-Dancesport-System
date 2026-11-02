@@ -108,7 +108,7 @@ export const useSaveClub = () =>
 
 export const useDeleteClub = () => useWrite((id: string) => api.deleteClub(actor(), id), ['clubs'])
 
-export const useCoaches = () => useQuery({ queryKey: ['coaches'], queryFn: api.getCoaches })
+export const useCoaches = (enabled = true) => useQuery({ queryKey: ['coaches'], queryFn: api.getCoaches, enabled })
 
 export const useSaveCoach = () =>
   useWrite((v: { input: CoachInput; id?: string }) => api.saveCoach(actor(), v.input, v.id), ['coaches'])

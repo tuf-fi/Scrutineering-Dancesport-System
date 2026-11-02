@@ -258,6 +258,8 @@ export interface Result {
 // One result in a competitor's history, with the event and competition it came from
 export interface CompetitorHistoryLine {
   resultId: Id
+  eventId: Id
+  competitorId: Id
   competitionId: Id
   competitionName: string
   competitionDate: string
@@ -413,20 +415,103 @@ export interface TotpSetup {
 }
 
 // Whose sessions an admin can end
-export type AccountKind = 'staff' | 'adjudicator' | 'athlete'
+export type AccountKind = 'staff' | 'adjudicator' | 'athlete' | 'member'
+
+// A coach's or a team's own account: a name and an email to sign in with, and the coach or club record it stands for
+export interface MemberAccount {
+  id: string
+  role: 'coach' | 'team'
+  name: string
+  email: string
+  phone: string
+  birthDate: string
+  province: string
+  address: string
+  photo: string | null
+  // Set once the secretariat approves the claim
+  linked: { id: string; name: string } | null
+  claim: { id: string; name: string; requestedAt: string } | null
+}
+
+// What a coach or team can change about their own account
+export interface MemberInput {
+  name: string
+  phone: string
+  birthDate: string
+  province: string
+  address: string
+}
+
+export interface MemberRosterRow {
+  competitorId: string
+  names: string[]
+  // Which events the dancer may enter; null when the entry form did not say
+  ageGroup?: AgeGroup | null
+  backNumber: number | null
+  clubName: string
+  entries: number
+}
+
+export interface MemberPaymentRow {
+  id: string
+  competitionName: string
+  // The competition's date, YYYY-MM-DD
+  date: string
+  amountDue: number
+  amountPaid: number | null
+  status: PaymentStatus
+}
+
+// What a linked coach or team sees: their dancers, and for a team its payments, for a coach the membership years
+export interface MemberRoster {
+  rows: MemberRosterRow[]
+  payments: MemberPaymentRow[]
+  membership: { memberYear: number | null; summitYear: number | null } | null
+}
+
+// A coach or team account waiting to be linked to a record, as the secretariat sees it
+export interface MemberClaimRow {
+  memberId: string
+  role: 'coach' | 'team'
+  name: string
+  email: string
+  targetId: string
+  targetName: string
+  requestedAt: string
+}
 
 // A membership payment the athlete reported, waiting for the secretariat to confirm it
 export interface MembershipRequest {
   year: number
   // How it was paid, e.g. GCash
   method: string
-  reference: string
+  // The screenshot of the payment as a data URL. Older requests carry a reference number instead.
+  receipt?: string
+  reference?: string
   requestedAt: Timestamp
   // Set when the secretariat could not confirm it; the athlete can send it again
   rejectedReason?: string
 }
 
 // The signed-in athlete's own page
+// One step in an athlete's membership payments, newest last
+export interface MembershipEvent {
+  at: Timestamp
+  kind: 'sent' | 'confirmed' | 'rejected'
+  year: number
+  method?: string
+  reference?: string
+  reason?: string
+}
+
+// A change of club or coach the athlete asked for; the secretariat approves or turns it down
+export interface ProfileChangeRequest {
+  clubId: Id | null
+  coachId: Id | null
+  requestedAt: Timestamp
+  rejectedReason?: string
+}
+
 export interface AthleteProfile {
   id: Id
   email: string
@@ -441,6 +526,10 @@ export interface AthleteProfile {
   // The year the membership was last paid for; it lasts until December
   memberYear: number | null
   request: MembershipRequest | null
+  // A small picture as a data URL, or null for the initials
+  photo: string | null
+  history: MembershipEvent[]
+  changeRequest: ProfileChangeRequest | null
 }
 
 export type AthleteInput = Pick<AthleteProfile, 'name' | 'birthDate' | 'phone' | 'address' | 'province' | 'clubId' | 'coachId'>
@@ -463,6 +552,61 @@ export interface AthleteRow {
   coachName: string
   memberYear: number | null
   request: MembershipRequest | null
+  changeRequest: ProfileChangeRequest | null
+  // The club and coach they asked for, in words
+  requestedClubName: string
+  requestedCoachName: string
+}
+
+// Something the system tells an athlete: a payment decided on, a change approved or turned down
+export interface AthleteNotification {
+  id: Id
+  kind: 'membership_confirmed' | 'membership_rejected' | 'change_approved' | 'change_rejected' | 'link_approved' | 'link_rejected' | 'entry_approved' | 'entry_rejected'
+  title: string
+  detail: string
+  // Where in the athlete's account it leads
+  link: string | null
+  createdAt: Timestamp
+  // Null until the athlete has seen it
+  readAt: Timestamp | null
+}
+
+// An event an adjudicator was on the panel of, and how many of its rounds they marked
+export interface AdjudicatorAssignment {
+  competitionId: Id
+  competitionName: string
+  competitionDate: string
+  eventId: Id
+  eventNumber: number
+  dances: Dance[]
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  roundsMarked: number
+}
+
+// An entry of the competitors that carry an athlete's name
+export interface MyEntry {
+  entryId: Id
+  eventId: Id
+  competitionId: Id
+  competitionName: string
+  competitionDate: string
+  eventNumber: number
+  dances: Dance[]
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  scratched: boolean
+  // Who is entered: the athlete's name, with a partner if there is one
+  names: string[]
+}
+
+// What the database holds about the competitors that carry an athlete's name. Nothing is confirmed by hand.
+export interface MyActivity {
+  competitorIds: Id[]
+  results: CompetitorHistoryLine[]
+  entries: MyEntry[]
 }
 
 export interface AthleteSignUp {
@@ -553,6 +697,8 @@ export interface TieDecision {
   choice: 'more' | 'fewer'
   proposedBy: Id
   confirmedBy: Id | null
+  // Who confirmed it, so screens need not read the staff list
+  confirmedByName?: string | null
 }
 
 // A tie in a final that the Skating System leaves as a shared place
@@ -562,6 +708,7 @@ export interface FinalTieDecision {
   order: Id[]
   proposedBy: Id
   confirmedBy: Id | null
+  confirmedByName?: string | null
 }
 
 export interface FinalTie {
@@ -612,7 +759,8 @@ export interface SkatingTable {
 // One thing for the MC to read out; the MC steps through them in order
 export interface Announcement {
   id: Id
-  kind: 'call' | 'recall' | 'finalists' | 'result'
+  // results: the slide that says it is time for the results, before the first place is read
+  kind: 'call' | 'recall' | 'finalists' | 'results' | 'result'
   eventNumber: number
   dances: Dance[]
   ageGroup: AgeGroup
@@ -621,6 +769,8 @@ export interface Announcement {
   roundType: RoundType
   // call: the heat going to the floor
   heat: number | null
+  // How many couples each adjudicator selects in this round (its recall number); null in a final
+  select: number | null
   // call, recall, finalists: the back numbers to read, lowest first
   numbers: number[]
   // result: one competitor and their place
@@ -657,6 +807,9 @@ export interface BackupStatus {
 export interface SampleCredentials {
   password: string
   usernames: string[]
+  athleteEmail?: string
+  coachEmail?: string
+  teamEmail?: string
   pins: Array<{ letter: string; pin: string }>
 }
 
@@ -666,4 +819,50 @@ export interface PaymentSettings {
   methods: PaymentMethod[]
   // The secretariat's fee schedule; the organizer's 2026 form is used until one is saved
   schedule?: FeeSchedule
+}
+
+// ---- Entering a competition online ----
+
+export type EntryRequestStatus = 'waiting' | 'approved' | 'rejected'
+
+// What a team (or an athlete, for themselves) sends: who, which events, and the payment already made
+export interface EntryRequestInput {
+  competitorId: Id
+  eventIds: Id[]
+  // GCash, Maya or bank; cash and unpaid are for the venue
+  method: PayMethod
+  reference: string
+  // A screenshot of the payment as a data URL
+  receipt: string
+}
+
+export interface EntryRequest {
+  id: Id
+  competitorId: Id
+  names: string[]
+  competitionId: Id
+  competitionName: string
+  eventNumbers: number[]
+  total: number
+  warnings: string[]
+  method: PayMethod
+  reference: string
+  status: EntryRequestStatus
+  rejectedReason: string | null
+  createdAt: Timestamp
+  decidedAt: Timestamp | null
+  // Who sent it: a team's account or an athlete
+  requesterRole: 'team' | 'athlete'
+  requesterName: string
+  // Only the secretariat gets the screenshot back
+  receipt?: string
+}
+
+// A pop-up pushed to the screens of some roles the moment something needs their attention. Nothing is stored; it is only
+// shown to whoever has a screen open at that moment.
+export interface AlertNote {
+  title: string
+  detail: string
+  // Where in the app it leads
+  link: string | null
 }

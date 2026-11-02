@@ -1,3 +1,4 @@
+import { AgeGroup } from '@bis/shared'
 import type { CompetitorRow, EntryRow, ImportResult, LateEntryRow, ScheduleItem } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { startTestApp, type TestApp } from './testing.ts'
@@ -24,6 +25,14 @@ describe('the seeded sample', () => {
     expect(await app.ok<unknown[]>('getCompetitions', [])).toHaveLength(3)
     expect(await app.ok<unknown[]>('getEvents', [])).toHaveLength(162)
     expect((await app.ok<unknown[]>('getEvents', [COMP])).length).toBeGreaterThan(50)
+  })
+
+  it('uses only age groups the app knows', async () => {
+    const known = new Set(Object.values(AgeGroup))
+    const events = await app.ok<Array<{ id: string; ageGroup: string }>>('getEvents', [])
+    expect(events.filter((e) => !known.has(e.ageGroup as AgeGroup)).map((e) => e.id)).toEqual([])
+    const competitors = await app.ok<Array<{ id: string; ageGroup?: string }>>('getCompetitors', [])
+    expect(competitors.filter((c) => c.ageGroup && !known.has(c.ageGroup as AgeGroup)).map((c) => c.id)).toEqual([])
   })
 
   it('shows the finished event\'s finals and shared places', async () => {

@@ -1,5 +1,7 @@
+import { Eye, EyeOff } from 'lucide-react'
 import {
   useId,
+  useState,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -64,14 +66,35 @@ export function Input({
   ...props
 }: CommonProps & InputHTMLAttributes<HTMLInputElement>) {
   const id = useId()
+  const [shown, setShown] = useState(false)
+  const secret = props.type === 'password'
+  const input = (
+    <input
+      id={id}
+      className={cn(control, 'h-10', secret && 'pr-11', error ? 'border-danger' : 'border-neutral-300', className)}
+      {...describe(id, hint, error)}
+      {...props}
+      type={secret && shown ? 'text' : props.type}
+    />
+  )
   return (
     <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
-      <input
-        id={id}
-        className={cn(control, 'h-10', error ? 'border-danger' : 'border-neutral-300', className)}
-        {...describe(id, hint, error)}
-        {...props}
-      />
+      {secret ? (
+        <div className="relative">
+          {input}
+          <button
+            type="button"
+            onClick={() => setShown((v) => !v)}
+            aria-label={shown ? 'Hide password' : 'Show password'}
+            aria-pressed={shown}
+            className="absolute inset-y-0 right-0 grid w-10 place-items-center rounded-r-md text-neutral-500 hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-gold-500"
+          >
+            {shown ? <EyeOff aria-hidden className="size-[18px]" strokeWidth={1.75} /> : <Eye aria-hidden className="size-[18px]" strokeWidth={1.75} />}
+          </button>
+        </div>
+      ) : (
+        input
+      )}
     </FieldShell>
   )
 }

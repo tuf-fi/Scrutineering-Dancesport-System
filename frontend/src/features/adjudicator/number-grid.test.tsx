@@ -18,27 +18,29 @@ const task = {
   ],
 } as unknown as MarkingTask
 
-const cell = (number: number, dance: string) => screen.getByRole('button', { name: `X for ${number}, ${dance}` })
+const number = (n: number) => screen.getByRole('button', { name: `Select ${n}` })
+const tab = (name: RegExp) => screen.getByRole('tab', { name })
 
-describe('X table', () => {
-  it('has a row for each back number and a column for each dance, grouped by heat', () => {
+describe('number grid', () => {
+  it('shows the back numbers as cells with three digits, grouped by heat, with a tab for each dance', () => {
     render(<MarkSheet task={task} onSubmit={() => {}} />)
-    const table = within(screen.getByRole('table'))
-    expect(within(table.getAllByRole('row')[0]).getAllByRole('columnheader').map((h) => h.textContent)).toEqual(['No.', 'Samba0/2', 'Cha Cha Cha0/2', 'Rumba0/2'])
-    // The heat headings span the dance columns, so they are column group headers, not row headers
-    expect(table.getAllByRole('rowheader').map((h) => h.textContent)).toEqual(['11', '12', '13', '14'])
-    expect(table.getAllByRole('columnheader', { name: /^Heat \d$/ }).map((h) => h.textContent)).toEqual(['Heat 1', 'Heat 2'])
-    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Samba0', 'Cha Cha Cha0', 'Rumba0'])
+    expect(screen.getAllByRole('button', { name: /^Select / }).map((b) => b.textContent)).toEqual(['011', '012', '013', '014'])
+    expect(screen.getAllByRole('heading', { name: /^Heat \d$/ }).map((h) => h.textContent)).toEqual(['Heat 1', 'Heat 2'])
   })
 
-  it('puts an X in a cell on a tap, takes it out on a second tap, and counts per dance', async () => {
+  it('chooses a number on a tap, takes it out on a second tap, and counts per dance', async () => {
     render(<MarkSheet task={task} onSubmit={() => {}} />)
     expect(screen.getByRole('status')).toHaveTextContent('0 of 3 dances done')
-    await userEvent.click(cell(11, 'Samba'))
-    expect(cell(11, 'Samba')).toHaveAttribute('aria-pressed', 'true')
-    expect(cell(11, 'Cha Cha Cha')).toHaveAttribute('aria-pressed', 'false')
-    await userEvent.click(cell(11, 'Samba'))
-    expect(cell(11, 'Samba')).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(number(11))
+    expect(number(11)).toHaveAttribute('aria-pressed', 'true')
+    expect(tab(/^Samba/)).toHaveTextContent('1')
+    // Another dance has its own choices
+    await userEvent.click(tab(/^Cha Cha Cha/))
+    expect(number(11)).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(tab(/^Samba/))
+    await userEvent.click(number(11))
+    expect(number(11)).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('submits only when every dance has exactly the recall number, and sends the marks per dance', async () => {
@@ -47,17 +49,17 @@ describe('X table', () => {
     const submit = screen.getByRole('button', { name: 'Submit' })
     expect(submit).toBeDisabled()
 
-    for (const dance of ['Samba', 'Cha Cha Cha', 'Rumba']) {
-      await userEvent.click(cell(11, dance))
-      await userEvent.click(cell(13, dance))
+    for (const dance of [/^Samba/, /^Cha Cha Cha/, /^Rumba/]) {
+      await userEvent.click(tab(dance))
+      await userEvent.click(number(11))
+      await userEvent.click(number(13))
     }
     expect(screen.getByRole('status')).toHaveTextContent('3 of 3 dances done')
     expect(submit).toBeEnabled()
 
-    // A full dance locks its other cells; its marked cells can still be taken out
-    expect(cell(12, 'Rumba')).toBeDisabled()
-    expect(cell(11, 'Rumba')).toBeEnabled()
-    expect(cell(12, 'Samba')).toBeDisabled()
+    // A full dance locks the other numbers; the chosen ones can still be taken out
+    expect(number(12)).toBeDisabled()
+    expect(number(11)).toBeEnabled()
 
     await userEvent.click(submit)
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Confirm' }))

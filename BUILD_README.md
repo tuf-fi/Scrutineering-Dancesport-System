@@ -80,7 +80,7 @@ Build every screen first, using fake data, so the client can click through and a
 6. **MC / venue screen:** recalls, finalists, results from last place up.
 7. **Printouts:** "Qualified for the next round" lists (like the E47 sheet), scores sheets with every adjudicator's marks, final results.
 8. **Public site:** latest results, past competitions, couple/solo profiles, rankings per category.
-9. **Registration:** the secretariat enters each team from the paper entry form (clubs, coaches, dancers' details, events, fees, payment). Athletes can make their own account for their details and membership; clubs and coaches have no login.
+9. **Registration:** the secretariat enters each team from the paper entry form (clubs, coaches, dancers' details, events, fees, payment). Athletes can make their own account for their details and membership. Coaches and teams can also make an account to sign in (name, email, password); the secretariat still enters their entries. A linked team (or an athlete, for the dancers that carry their name) can also send an entry online: choose the events, see the fee, pay by GCash, Maya or bank and attach the screenshot. The secretariat checks it under Entry requests and approves it, which makes the entries and records the payment. Staff and adjudicators sign in at `/staff-access`, which no public page links to.
 
 ### Phase 2: Scoring engine (shared package)
 

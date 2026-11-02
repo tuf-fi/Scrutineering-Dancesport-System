@@ -1,4 +1,4 @@
-import type { CompetitorHistoryLine, PaymentStatus, RankingFilter } from '@bis/shared'
+import { Role, type AdjudicatorAssignment, type CompetitorHistoryLine, type PaymentStatus, type RankingFilter } from '@bis/shared'
 import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 import { found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
@@ -43,7 +43,16 @@ export const reads = {
   getEntries: (ctx: Ctx, eventId: string) =>
     ctx.db.select().from(t.entries).where(eq(t.entries.eventId, eventId)).all().map(toEntry),
 
-  getCompetitors: (ctx: Ctx) => ctx.db.select().from(t.competitors).orderBy(asc(t.competitors.id)).all().map(toCompetitor),
+  // Everyone but admin and secretariat gets names, back number and club only; birth dates and contact details stay private
+  getCompetitors: (ctx: Ctx) => {
+    const sees = ctx.user?.role === Role.Admin || ctx.user?.role === Role.Secretariat
+    return ctx.db
+      .select()
+      .from(t.competitors)
+      .orderBy(asc(t.competitors.id))
+      .all()
+      .map((c) => toCompetitor(sees ? c : { ...c, details: null }))
+  },
 
   getClubs: (ctx: Ctx) => ctx.db.select().from(t.clubs).orderBy(asc(t.clubs.name)).all().map(toClub),
 
@@ -70,6 +79,40 @@ export const reads = {
       .where(inArray(t.panels.eventId, events.map((e) => e.id)))
       .all()
       .map((p) => toPanel(ctx, p))
+  },
+
+  // Every event this adjudicator was on the panel of, newest competition first, with the rounds they marked
+  getAdjudicatorAssignments: (ctx: Ctx, adjudicatorId: string): AdjudicatorAssignment[] => {
+    found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, adjudicatorId)).get(), 'Adjudicator')
+    const marked = new Map<string, number>()
+    const rows = ctx.db
+      .select({ round: t.rounds, submission: t.submissions })
+      .from(t.submissions)
+      .innerJoin(t.rounds, eq(t.rounds.id, t.submissions.roundId))
+      .where(eq(t.submissions.adjudicatorId, adjudicatorId))
+      .all()
+    for (const { round } of rows) marked.set(round.eventId, (marked.get(round.eventId) ?? 0) + 1)
+    return ctx.db
+      .select({ event: t.events, competition: t.competitions })
+      .from(t.panelMembers)
+      .innerJoin(t.panels, eq(t.panels.id, t.panelMembers.panelId))
+      .innerJoin(t.events, eq(t.events.id, t.panels.eventId))
+      .innerJoin(t.competitions, eq(t.competitions.id, t.events.competitionId))
+      .where(eq(t.panelMembers.adjudicatorId, adjudicatorId))
+      .all()
+      .map(({ event, competition }) => ({
+        competitionId: competition.id,
+        competitionName: competition.name,
+        competitionDate: competition.date,
+        eventId: event.id,
+        eventNumber: event.number,
+        dances: event.dances,
+        ageGroup: event.ageGroup,
+        class: event.class,
+        discipline: event.discipline,
+        roundsMarked: marked.get(event.id) ?? 0,
+      }))
+      .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber)
   },
 
   getRounds: (ctx: Ctx, eventId: string) =>
@@ -136,6 +179,8 @@ export const reads = {
     return rows
       .map(({ result, event, competition }) => ({
         resultId: result.id,
+        eventId: event.id,
+        competitorId,
         competitionId: competition.id,
         competitionName: competition.name,
         competitionDate: competition.date,
