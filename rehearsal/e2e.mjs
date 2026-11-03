@@ -222,7 +222,8 @@ async function approveAndPublish(roundType) {
 
 // Gets an event ready to run: a panel of the given adjudicators, and every payment behind its entries recorded
 async function setUpEvent(eventId, letters) {
-  await (await staff('admin')).call('setPanel', eventId, letters.map((l) => `adj-${l.toLowerCase()}`))
+  // An event that has started keeps the panel it has
+  await (await staff('admin')).raw('setPanel', eventId, letters.map((l) => `adj-${l.toLowerCase()}`))
   const api = await staff('secretariat')
   const entries = (await api.call('getCompetitionEntries', COMP)).filter((e) => e.eventId === eventId && !e.scratched && e.paymentId)
   const details = await api.call('getPaymentDetails')
@@ -641,7 +642,7 @@ async function main() {
       await page.getByRole('button', { name: 'Add competitor' }).first().click()
       const dialog = page.getByRole('dialog')
       await dialog.getByRole('textbox', { name: 'Dancer', exact: true }).fill('Direct Dancer')
-      await dialog.getByLabel('Team').selectOption({ index: 1 })
+      await dialog.getByRole('combobox', { name: 'Team', exact: true }).selectOption({ index: 1 })
       for (const [label, value] of [['Province', 'Sorsogon'], ['Date of birth', '2012-05-05'], ['Contact no.', '09170001111'], ['Address', '1 Test St']]) {
         const field = dialog.getByLabel(label)
         if (await field.count()) await field.first().fill(value)
@@ -758,7 +759,8 @@ async function main() {
 
   // ---------------------------------------------------------------- 12 and 13. A tie in a final
   // Four adjudicators, the last two putting the top two the other way round: Rules 9 to 11 cannot separate them
-  async function playTiedFinal(code) {
+  async function playTiedFinal(code, at = 0) {
+    const ord = ['1st', '2nd', '3rd'][at]
     const eventId = `${COMP}:e${code.slice(1)}`
     const roundId = `${eventId}:final`
     let numbers
@@ -767,19 +769,22 @@ async function main() {
     for (const letter of ['A', 'B', 'C', 'D']) {
       await markOnPhone(letter, roundId, (list) => {
         numbers ??= list
-        return letter === 'C' || letter === 'D' ? [list[1], list[0], ...list.slice(2)] : list
+        if (letter !== 'C' && letter !== 'D') return list
+        const swapped = [...list]
+        ;[swapped[at], swapped[at + 1]] = [swapped[at + 1], swapped[at]]
+        return swapped
       })
     }
     const api = await staff('scrutineer')
     const tie = await api.call('getFinalTie', roundId)
-    expect(tie.groups.length === 1 && tie.groups[0].place === 1, `${code}: expected one tie for 1st, got ${JSON.stringify(tie.groups.map((g) => g.place))}`)
+    expect(tie.groups.length === 1 && tie.groups[0].place === at + 1, `${code}: expected one tie for ${ord}, got ${JSON.stringify(tie.groups.map((g) => g.place))}`)
     const tied = tie.groups[0].competitors.map((c) => c.competitorId).sort()
-    expect(JSON.stringify(tied) === JSON.stringify([rowFor(numbers[0]).id, rowFor(numbers[1]).id].sort()), `${code}: the tied couples are not the top two`)
+    expect(JSON.stringify(tied) === JSON.stringify([rowFor(numbers[at]).id, rowFor(numbers[at + 1]).id].sort()), `${code}: the tied couples are not the ones the panel split on`)
     const blocked = await api.raw('approveRound', roundId)
     expect(blocked.status === 409 && /has a tie/.test(blocked.json.error), `${code}: approving a tied final gave HTTP ${blocked.status}`)
     await scr.goto(`${BASE}/scrutineer/results?round=${roundId}`)
     await scr.getByRole('region', { name: 'Tie in the final' }).waitFor()
-    expect(/share 1st place/.test(await text(scr)), `${code}: the screen does not say two couples share 1st place`)
+    expect(new RegExp(`share ${ord} place`).test(await text(scr)), `${code}: the screen does not say two couples share ${ord} place`)
     return { eventId, roundId, numbers, api }
   }
 
@@ -825,6 +830,43 @@ async function main() {
   const FINAL4 = `${E4}:final`
   let placed4 = 0
   const marksOf4 = async (letter) => (await (await staff('scrutineer')).call('getMarks', FINAL4)).filter((m) => m.adjudicatorId === `adj-${letter.toLowerCase()}`).length
+  await step('15a. A tie for 2nd in a final settled by a tie-break: 1st is clear, the tie-break winner is 2nd, the other 3rd', async () => {
+    const { eventId, roundId, numbers, api } = await playTiedFinal('E7', 1)
+    expect(!/dance-off/.test(await text(scr)), 'a tie below 1st should not be a dance-off')
+    await scr.getByLabel('Settle it with a tie-break').check()
+    await scr.getByLabel(`Tie-break place of No. ${Number(numbers[2])} `).selectOption("1")
+    await scr.getByLabel(`Tie-break place of No. ${Number(numbers[1])} `).selectOption("2")
+    await scr.getByRole('button', { name: 'Propose decision' }).click()
+    await until('the proposal', async () => (await api.call('getFinalTie', roundId)).decision?.mode === 'order')
+    await chairpersonConfirms(`/scrutineer/results?round=${roundId}`)
+    await approveAndPublish(roundId)
+    const results = await new Api().call('getResults', eventId)
+    const place = (n) => results.find((r) => r.competitorId === rowFor(n).id)
+    expect([0, 2, 1, 3].map((i) => place(numbers[i]).place).join() === '1,2,3,4', `expected 1st, then the tie-break winner 2nd, the other 3rd, then 4th, got ${[0, 2, 1, 3].map((i) => place(numbers[i]).place)}`)
+    expect(results.every((r) => (r.placeFrom ?? r.place) === (r.placeTo ?? r.place)), 'a place is still shared after the tie-break')
+    return 'tie-break winner 2nd, the other 3rd'
+  })
+
+  await step('15b. A tie for 2nd kept as a shared place: both couples share 2nd to 3rd, 1st and 4th onward are unaffected', async () => {
+    // E6 has a semi-final first: four adjudicators mark the same couples through to the final
+    await setUpEvent(`${COMP}:e6`, ['A', 'B', 'C', 'D'])
+    await startRound(`${COMP}:e6:semi_final`, 'Semi-final', 'E6')
+    for (const letter of ['A', 'B', 'C', 'D']) await markOnPhone(letter, `${COMP}:e6:semi_final`, (list, need) => list.slice(0, need))
+    await approveAndPublish(`${COMP}:e6:semi_final`)
+    const { eventId, roundId, numbers, api } = await playTiedFinal('E6', 1)
+    await scr.getByLabel('Keep the shared place').check()
+    await scr.getByRole('button', { name: 'Propose decision' }).click()
+    await until('the proposal', async () => (await api.call('getFinalTie', roundId)).decision?.mode === 'keep')
+    await chairpersonConfirms(`/scrutineer/results?round=${roundId}`)
+    await approveAndPublish(roundId)
+    const results = await new Api().call('getResults', eventId)
+    const place = (n) => results.find((r) => r.competitorId === rowFor(n).id)
+    expect(place(numbers[0]).place === 1 && place(numbers[0]).placeTo === (place(numbers[0]).placeFrom ?? 1), 'the winner is not placed alone in 1st')
+    for (const i of [1, 2]) expect(place(numbers[i]).placeFrom === 2 && place(numbers[i]).placeTo === 3, `a tied couple is placed ${place(numbers[i]).placeFrom}-${place(numbers[i]).placeTo}, not 2-3`)
+    expect(place(numbers[3]).place === 4, 'the couple below the tie is not 4th')
+    return 'shared 2nd to 3rd'
+  })
+
   await step('14a. A phone loses its connection while finalizing: it says so, holds the marks, and sends them once when the connection is back', async () => {
     await setUpEvent(E4, ['A', 'B'])
     await startRound(FINAL4, 'Final', 'E4')
