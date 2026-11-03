@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
-import { EmptyState, Pagination, Skeleton } from '../../components/ui/index.ts'
+import { EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
 import { useMyActivity, useRankingPoints } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
@@ -47,7 +47,7 @@ export function MyRankings({ title = 'My rankings', note = 'Where you stand in e
   return (
     <AccountSection title={title} note={note}>
       {loading ? (
-        <Skeleton className="h-40 w-full" />
+        <SkeletonList rows={5} />
       ) : standings.length === 0 ? (
         <EmptyState title="Not ranked yet" description="Points appear after a result in a ranked category." />
       ) : (

@@ -1,4 +1,4 @@
-import { EmptyState, Skeleton } from '../../components/ui/index.ts'
+import { EmptyState, SkeletonList } from '../../components/ui/index.ts'
 import { useEvents } from '../../hooks/index.ts'
 import { DANCE_LABEL, eventCode, eventGrade } from '../../lib/format.ts'
 
@@ -7,7 +7,7 @@ export function CompetitionEvents({ competitionId }: { competitionId: string }) 
   const events = useEvents(competitionId)
   const list = [...(events.data ?? [])].sort((a, b) => a.number - b.number)
 
-  if (events.isLoading) return <Skeleton className="h-40 w-full" />
+  if (events.isLoading) return <SkeletonList rows={5} />
   if (list.length === 0) return <EmptyState title="No events yet" description="The secretariat sets up the events of a competition." />
 
   return (

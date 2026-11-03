@@ -1,6 +1,6 @@
 import type { AdjudicatorAssignment } from '@bis/shared'
 import { CompetitionCard } from '../../components/CompetitionCard.tsx'
-import { EmptyState, Pagination, Skeleton } from '../../components/ui/index.ts'
+import { EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
 import { useAdjudicatorAssignments } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { DANCE_LABEL, eventCode, eventGrade, formatDate } from '../../lib/format.ts'
@@ -22,7 +22,7 @@ export function AdjudicatorAssignments({ adjudicatorId }: { adjudicatorId: strin
   const groups = groupByCompetition(lines)
   const { page, setPage, pageSize, total, pageItems } = usePagination(groups, adjudicatorId)
 
-  if (assignments.isLoading) return <Skeleton className="h-40 w-full" />
+  if (assignments.isLoading) return <SkeletonList rows={5} />
   if (groups.length === 0) return <EmptyState title="Not on a panel yet" description="The events this adjudicator is assigned to appear here." />
 
   const rounds = lines.reduce((sum, l) => sum + l.roundsMarked, 0)

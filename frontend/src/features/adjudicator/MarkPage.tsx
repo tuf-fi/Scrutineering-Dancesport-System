@@ -2,7 +2,7 @@ import type { MarkingTask, MarkSubmission } from '@bis/shared'
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { ProgramKind } from '@bis/shared'
-import { ErrorState, Skeleton } from '../../components/ui/index.ts'
+import { ErrorState, SkeletonList } from '../../components/ui/index.ts'
 import { useProgram } from '../../hooks/index.ts'
 import { loadDraft, saveDraft } from '../../lib/phoneDb.ts'
 import { useOutbox } from '../../stores/outbox.ts'
@@ -32,7 +32,7 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
     }
   }, [adjudicatorId, roundId])
 
-  if (draft === undefined) return <Skeleton className="h-40 w-full" />
+  if (draft === undefined) return <SkeletonList rows={5} />
 
   async function send(submissions: MarkSubmission[], signature?: string) {
     if (sending.current) return
@@ -58,7 +58,7 @@ export function MarkPage() {
   const { adjudicatorId, state, pending } = useFloor()
 
   if (state.isError) return <ErrorState onRetry={() => void state.refetch()} />
-  if (!state.data) return <Skeleton className="h-40 w-full" />
+  if (!state.data) return <SkeletonList rows={5} />
   if (pending || state.data.status === 'submitted') return <Navigate to="/adjudicator/submitted" replace />
   if (state.data.status === 'waiting') return <Navigate to="/adjudicator/waiting" replace />
 

@@ -8,7 +8,7 @@ import {
   Input,
   PageHeader,
   Select,
-  Skeleton,
+  SkeletonList,
   Table,
   Toolbar,
   ToolbarActions,
@@ -202,7 +202,7 @@ export function HeatsPage() {
         <>
           <Toolbar>{roundSelect}</Toolbar>
           {!heats.data ? (
-            <Skeleton className="h-40 w-full" />
+            <SkeletonList rows={5} />
           ) : (
             <EmptyState title="No competitors yet" description="This round has no field until the previous round is decided." />
           )}

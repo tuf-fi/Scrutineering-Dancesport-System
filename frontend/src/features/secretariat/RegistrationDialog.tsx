@@ -1,6 +1,6 @@
 import { PayMethod, type CompetitorRow } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, Input, Select, Skeleton, toast } from '../../components/ui/index.ts'
+import { Button, Dialog, Input, Select, Skeleton, SkeletonList, toast } from '../../components/ui/index.ts'
 import { useCompetitionEntries, useCompetitions, useEvents, useRegisterCompetitor, useRegistrationQuote } from '../../hooks/index.ts'
 import { competitorName, eventCode, eventDances, eventGrade, EVENT_KIND_LABEL, PAY_METHOD_LABEL } from '../../lib/format.ts'
 
@@ -70,7 +70,7 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
 
         {competitionId &&
           (events.isLoading ? (
-            <Skeleton className="h-40 w-full" />
+            <SkeletonList rows={5} />
           ) : options.length === 0 ? (
             <p className="text-small text-neutral-600">This competition has no {solo ? 'solo' : 'couple'} events.</p>
           ) : (

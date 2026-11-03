@@ -2,7 +2,7 @@ import { RoundStatus, type SkatingRow, type SkatingTable } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
-import { Button, ButtonLink, Dialog, ErrorState, PageHeader, Skeleton, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, ButtonLink, Dialog, ErrorState, PageHeader, SkeletonList, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
 import { DANCE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
@@ -134,7 +134,7 @@ export function ResultsPage() {
       )}
 
       {!skating.data ? (
-        <Skeleton className="h-40 w-full" />
+        <SkeletonList rows={5} />
       ) : (
         <>
           <Table<SkatingRow>

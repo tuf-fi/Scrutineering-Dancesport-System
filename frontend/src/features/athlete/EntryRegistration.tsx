@@ -1,7 +1,7 @@
 import { PayMethod, type Event } from '@bis/shared'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { Badge, Button, EmptyState, Pagination, Select, Skeleton, Table, toast } from '../../components/ui/index.ts'
+import { Badge, Button, EmptyState, Pagination, Select, Skeleton, SkeletonList, Table, toast } from '../../components/ui/index.ts'
 import {
   useCancelEntryRequest,
   useCompetitions,
@@ -51,7 +51,7 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
   const payWith = method || methods.data?.[0]?.name || ''
   const selectedMethod = (methods.data ?? []).find((m) => m.name === payWith)
 
-  if (entrants.isLoading || competitions.isLoading) return <Skeleton className="h-64 w-full max-w-3xl" />
+  if (entrants.isLoading || competitions.isLoading) return <SkeletonList rows={5} className="max-w-3xl" />
 
   const intro = who === 'team' ? 'Pick a dancer or couple from your team, then the events.' : 'Pick yourself or a couple you dance in, then the events.'
 
@@ -140,7 +140,7 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
           </div>
 
           {events.isLoading ? (
-            <Skeleton className="h-40 w-full" />
+            <SkeletonList rows={5} />
           ) : eligible.length === 0 ? (
             <EmptyState title="No events for this dancer" description="This competition has no event for their age group and for a solo or couple entry." />
           ) : (

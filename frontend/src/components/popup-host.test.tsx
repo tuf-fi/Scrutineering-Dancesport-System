@@ -1,5 +1,5 @@
 import { Role } from '@bis/shared'
-import { act, screen } from '@testing-library/react'
+import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { emitAlert, notifyAthlete } from '../mocks/api.ts'
@@ -26,7 +26,7 @@ describe('pop-up notifications', () => {
 
     await userEvent.click(screen.getByText('New entry request'))
     expect(router.state.location.pathname).toBe('/secretariat/entry-requests')
-    expect(screen.queryByText('Ana Cruz · Naga Dancers')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText('Ana Cruz · Naga Dancers')).not.toBeInTheDocument())
   })
 
   it('does not show an alert that is for another role', async () => {
@@ -51,6 +51,6 @@ describe('pop-up notifications', () => {
     await screen.findByRole('heading', { name: 'Events' })
     act(() => emitAlert([Role.Secretariat], { title: 'Account link request', detail: 'Team 1', link: null }))
     await userEvent.click(await screen.findByRole('button', { name: 'Dismiss' }))
-    expect(screen.queryByText('Account link request')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByText('Account link request')).not.toBeInTheDocument())
   })
 })

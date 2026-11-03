@@ -1,6 +1,6 @@
 import type { AthletePage as AthleteData } from '@bis/shared'
 import { Link } from 'react-router'
-import { Button, EmptyState, Pagination, Skeleton } from '../../components/ui/index.ts'
+import { Button, EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
 import { useMarkNotificationsRead, useMyNotifications } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
@@ -63,7 +63,7 @@ export function Notifications({ todos }: { todos: Todo[] }) {
         )}
 
         {notes.isLoading ? (
-          <Skeleton className="h-40 w-full" />
+          <SkeletonList rows={5} />
         ) : list.length === 0 ? (
           <EmptyState title="Nothing yet" description="When the secretariat confirms a payment or decides on a change, you will see it here and hear a chime." />
         ) : (

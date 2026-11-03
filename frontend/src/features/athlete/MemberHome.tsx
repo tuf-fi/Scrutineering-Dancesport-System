@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, Outlet, useLocation, useOutletContext } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge.tsx'
-import { Button, ButtonLink, ErrorState, Input, SearchField, Select, Skeleton, Table, toast } from '../../components/ui/index.ts'
+import { Button, ButtonLink, ErrorState, Input, SearchField, Select, Skeleton, SkeletonList, Table, toast } from '../../components/ui/index.ts'
 import { useCancelClaim, useClaimRecord, useTeams, useCoaches, useMyMember, useMyRoster, useSaveMyMember, useSaveMyMemberPhoto } from '../../hooks/index.ts'
 import { competitorName, formatDate, formatPeso } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
@@ -380,7 +380,7 @@ export function MemberHome() {
           ) : (
             <div className="flex max-w-2xl flex-col gap-5" aria-busy="true">
               <Skeleton className="h-5 w-40" />
-              <Skeleton className="h-64 w-full" />
+              <SkeletonList rows={5} />
             </div>
           )}
         </div>

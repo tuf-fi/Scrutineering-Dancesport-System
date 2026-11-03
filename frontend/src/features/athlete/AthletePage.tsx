@@ -1,7 +1,7 @@
 import type { AthletePage as AthleteData } from '@bis/shared'
 import { Bell, ClipboardList, FilePlus2, KeyRound, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, WalletCards } from 'lucide-react'
 import { Outlet, useLocation, useOutletContext } from 'react-router'
-import { ErrorState, Skeleton } from '../../components/ui/index.ts'
+import { ErrorState, Skeleton, SkeletonList } from '../../components/ui/index.ts'
 import { useMyAthlete } from '../../hooks/index.ts'
 import { Avatars } from '../../components/Avatars.tsx'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
@@ -98,7 +98,7 @@ export function AthletePage() {
           ) : (
             <div className="flex max-w-2xl flex-col gap-5" aria-busy="true">
               <Skeleton className="h-5 w-40" />
-              <Skeleton className="h-64 w-full" />
+              <SkeletonList rows={5} />
             </div>
           )}
         </div>
