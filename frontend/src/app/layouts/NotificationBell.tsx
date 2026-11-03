@@ -65,7 +65,7 @@ export function NotificationBell() {
       </button>
 
       {open && (
-        <div id={menuId} role="menu" className="absolute right-0 top-full z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+        <div id={menuId} role="menu" className="fixed inset-x-3 top-[calc(var(--nav-h,3.5rem)+0.5rem)] z-40 overflow-hidden sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[22rem] rounded-lg border border-neutral-200 bg-white shadow-sm">
           <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-4 py-3">
             <p className="text-small font-bold uppercase tracking-wide text-neutral-900">Notifications</p>
             <div className="flex items-center gap-1">

@@ -348,7 +348,7 @@ export function MemberHome() {
 
   const ready = account && roster.data
   return (
-    <div className="flex flex-col gap-8 lg:pl-[15rem]">
+    <div className="flex flex-col gap-8 max-lg:pt-14 lg:pl-[15rem]">
       {onAccount && account && (
         <PublicHeader
           eyebrow={account.role === 'team' ? 'Team account' : 'Coach account'}

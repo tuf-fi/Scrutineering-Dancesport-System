@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { ArrowUpRight } from 'lucide-react'
 import { RoundStatusBadge, ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
-import { Button, ErrorState, PageHeader, SearchField, Select, Table, Toolbar, toast } from '../../components/ui/index.ts'
+import { Button, ErrorState, DarkPanel, PageHeader, SearchField, Select, Table, Toolbar, ToolbarActions, glass, toast } from '../../components/ui/index.ts'
 import { useClearFloor, useLiveSubmissions, usePlanRounds, useStartRound } from '../../hooks/index.ts'
 import { AGE_GROUP_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 import { useRoundChoice } from './useRoundChoice.ts'
@@ -32,10 +32,7 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
   ]
 
   return (
-    <section
-      aria-label="On the floor"
-      className="relative flex flex-col gap-12 overflow-hidden rounded-2xl bg-brown-950 bg-[radial-gradient(60rem_24rem_at_100%_0%,rgb(228_178_46/0.16),transparent_60%)] p-6 text-white sm:p-10"
-    >
+    <DarkPanel aria-label="On the floor" className="flex flex-col gap-8 p-4 sm:p-6 lg:gap-10 lg:p-8">
       <div className="flex items-center justify-between gap-4">
         <p className="text-small text-brown-100">On the floor</p>
         <p className="flex items-center gap-2.5 text-small font-semibold text-white">
@@ -47,14 +44,14 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
         </p>
       </div>
       <div className="flex flex-col gap-3">
-        <h2 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{eventDances(row)}</h2>
+        <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">{eventDances(row)}</h2>
         <p className="flex items-center gap-3 text-body text-brown-100">
           <span className="font-mono tabular-nums text-gold-400">{eventCode({ number: row.eventNumber })}</span>
           <span aria-hidden className="h-3 w-px bg-white/25" />
           {AGE_GROUP_LABEL[row.ageGroup]} · {row.class}
         </p>
       </div>
-      <dl className="grid grid-cols-2 gap-y-6 sm:grid-cols-4 sm:divide-x sm:divide-white/10">
+      <dl className={`grid grid-cols-2 gap-y-6 p-4 sm:grid-cols-4 sm:divide-x sm:divide-white/10 ${glass}`}>
         {[
           ['Round', ROUND_TYPE_LABEL[row.type]],
           ['Submitted', `${submitted} of ${submissions.length}`],
@@ -99,7 +96,7 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
           </button>
         )}
       </nav>
-    </section>
+    </DarkPanel>
   )
 }
 
@@ -143,8 +140,9 @@ export function RoundsPage() {
             </Select>
           </div>
           {!readOnly && (
+            <ToolbarActions>
             <Button
-              className="w-full rounded-lg sm:ml-auto sm:w-auto"
+              className="rounded-lg"
               disabled={plan.isPending || !competitionId}
               onClick={() =>
                 plan.mutate(competitionId, {
@@ -155,6 +153,7 @@ export function RoundsPage() {
             >
               Plan rounds
             </Button>
+            </ToolbarActions>
           )}
         </Toolbar>
 

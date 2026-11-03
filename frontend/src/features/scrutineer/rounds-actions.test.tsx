@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderApp } from '../../test-utils.tsx'
+import { openMenu, renderApp } from '../../test-utils.tsx'
 
 const scrutineer = { id: 'staff-scrutineer', name: 'Teresita Quimpo' }
 const chairperson = { id: 'staff-chairperson', name: 'Gregorio Almazan' }
@@ -30,6 +30,7 @@ describe('starting rounds', () => {
   it('sends the chairperson to the live board, not the rounds controls', async () => {
     cleanup()
     renderApp('/scrutineer', Role.Chairperson, chairperson)
+    await openMenu()
     expect(await screen.findByRole('link', { name: 'Live board' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Start E\d+ / })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Plan rounds' })).not.toBeInTheDocument()

@@ -20,11 +20,11 @@ export function Dialog({ open, onClose, title, description, children, actions, c
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-[60] grid animate-fade-in place-items-center bg-black/50 p-4">
+        <RadixDialog.Overlay className="fixed inset-0 z-[60] grid animate-fade-in place-items-center bg-black/50 p-4 data-[state=closed]:animate-fade-out">
           <RadixDialog.Content
             {...(description ? {} : { 'aria-describedby': undefined })}
             className={cn(
-              'flex max-h-[90dvh] w-full max-w-md animate-dialog-in flex-col overflow-hidden rounded-xl bg-white text-neutral-900 shadow-overlay',
+              'flex max-h-[90dvh] w-full max-w-md animate-dialog-in flex-col data-[state=closed]:animate-dialog-out overflow-hidden rounded-xl bg-white text-neutral-900 shadow-overlay',
               className,
             )}
           >

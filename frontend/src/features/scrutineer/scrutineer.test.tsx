@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderApp } from '../../test-utils.tsx'
+import { openMenu, renderApp } from '../../test-utils.tsx'
 
 // The sample round state is shared across tests in this file, so they run in order as one session:
 // the live round starts with three of seven adjudicators in and finishes during the live board test
@@ -40,6 +40,7 @@ describe('heats', () => {
 
     cleanup()
     renderApp('/scrutineer/heats', Role.Chairperson, chairperson)
+    await openMenu()
     expect(await screen.findByRole('link', { name: 'Live board' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Save heats' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Per heat')).not.toBeInTheDocument()

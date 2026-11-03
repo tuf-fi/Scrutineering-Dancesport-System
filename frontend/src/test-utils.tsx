@@ -27,3 +27,10 @@ export function sign(dialog: HTMLElement) {
   fireEvent.pointerMove(box)
   fireEvent.pointerUp(box)
 }
+
+// On a phone-sized screen (the test default) the staff sections are in a drawer; this opens it
+export async function openMenu() {
+  const { screen } = await import('@testing-library/react')
+  const userEvent = (await import('@testing-library/user-event')).default
+  await userEvent.click(await screen.findByRole('button', { name: 'Open menu' }))
+}

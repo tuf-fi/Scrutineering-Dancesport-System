@@ -2,7 +2,7 @@ import type { RecallRow, RecallTable, TieDecision } from '@bis/shared'
 import { ArrowUpRight, Check, Clock } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Badge, Button, ErrorState, PageHeader, Skeleton, Table, toast } from '../../components/ui/index.ts'
+import { Badge, Button, ErrorState, DarkPanel, PageHeader, Skeleton, Table, glass, toast } from '../../components/ui/index.ts'
 import { useConfirmTie, useProposeTie, useRecallTable } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
@@ -167,7 +167,7 @@ export function RecallPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Recall" description="X marks per competitor, with the cutoff for the next round." />
-      <section aria-label="Recall" className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-brown-950 p-5 text-white sm:px-8 sm:py-6">
+      <DarkPanel aria-label="Recall" className="flex flex-col gap-5 p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <RoundSelect inline rounds={list} value={roundId} onChange={setRoundId} />
@@ -183,7 +183,7 @@ export function RecallPage() {
         {isFinal ? (
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
             <div className="flex flex-col gap-2">
-              <h2 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">A final is placed, not recalled</h2>
+              <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">A final is placed, not recalled</h2>
               <p className="text-body text-brown-100">Open the results to see the placings.</p>
             </div>
             <Link
@@ -195,7 +195,7 @@ export function RecallPage() {
             </Link>
           </div>
         ) : table ? (
-          <div role="status" className="flex flex-wrap items-end justify-between gap-x-12 gap-y-5">
+          <div role="status" className={`flex flex-wrap items-end justify-between gap-x-12 gap-y-5 p-4 ${glass}`}>
             <p className="flex items-baseline gap-3">
               <span className="font-mono text-5xl leading-none tabular-nums">{table.recalled}</span>
               <span className="text-body text-brown-100">recalled</span>
@@ -224,7 +224,7 @@ export function RecallPage() {
         ) : (
           <Skeleton className="h-20 w-full max-w-md bg-white/10" />
         )}
-      </section>
+      </DarkPanel>
 
       {isFinal || !table ? null : (
         <>

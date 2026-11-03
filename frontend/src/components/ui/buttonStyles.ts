@@ -20,7 +20,7 @@ export type ButtonSize = keyof typeof buttonSizes
 
 export function buttonStyles(variant: ButtonVariant, size: ButtonSize, className?: string) {
   return cn(
-    'inline-flex items-center justify-center gap-2 rounded-md font-semibold tracking-[-0.005em] transition-colors',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold tracking-[-0.005em] transition-colors',
     'disabled:cursor-not-allowed disabled:opacity-40',
     buttonVariants[variant],
     buttonSizes[size],

@@ -75,7 +75,7 @@ export function CompetitionsPage() {
           </Select>
         </div>
         <ToolbarActions>
-          <Button className="w-full sm:w-auto" onClick={() => setEditing('new')}>
+          <Button onClick={() => setEditing('new')}>
             New competition
           </Button>
         </ToolbarActions>

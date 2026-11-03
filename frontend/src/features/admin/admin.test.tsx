@@ -105,7 +105,7 @@ describe('competitions', () => {
     expect(order(search, year)).toBeTruthy()
     expect(order(year, newButton)).toBeTruthy()
     // All three share one toolbar
-    expect(search.closest('.flex-wrap')?.contains(newButton)).toBe(true)
+    expect(search.closest('[class*="flex-wrap"]')?.contains(newButton)).toBe(true)
   })
 
   it('filters by year with a select and by a search', async () => {

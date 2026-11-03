@@ -2,7 +2,7 @@ import { RoundStatus, type SkatingRow, type SkatingTable } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
-import { Button, ButtonLink, Dialog, ErrorState, PageHeader, Skeleton, Table, Toolbar, toast } from '../../components/ui/index.ts'
+import { Button, ButtonLink, Dialog, ErrorState, PageHeader, Skeleton, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
 import { DANCE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
@@ -96,11 +96,18 @@ export function ResultsPage() {
       <PageHeader
         title="Results"
         description="Each adjudicator's marks and how the round works out."
-        actions={status ? <RoundStatusBadge status={status} /> : undefined}
+        actions={
+          status ? (
+            <>
+              <span className="text-small font-medium text-neutral-600">Status</span>
+              <RoundStatusBadge status={status} />
+            </>
+          ) : undefined
+        }
       />
       <Toolbar>
         <RoundSelect rounds={list} value={roundId} onChange={setRoundId} />
-        <div className="flex w-full flex-wrap gap-3 sm:ml-auto sm:w-auto">
+        <ToolbarActions>
           {row && status !== RoundStatus.Pending ? (
             <ButtonLink
               className="rounded-lg"
@@ -119,7 +126,7 @@ export function ResultsPage() {
           {!readOnly && action && (
             <Button onClick={() => setConfirming(action)}>{action === 'approve' ? 'Approve results' : 'Publish results'}</Button>
           )}
-        </div>
+        </ToolbarActions>
       </Toolbar>
 
       {finalTie.data && finalTie.data.groups.length > 0 && undecided && (

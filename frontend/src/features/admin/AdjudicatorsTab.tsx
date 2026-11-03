@@ -102,12 +102,12 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
   return (
     <div className="flex flex-col gap-6">
       <Toolbar className="justify-between gap-y-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <SearchField className="w-full sm:w-72" label="Search adjudicators" value={query} onChange={setQuery} />
+        <div className="flex items-end gap-3 max-sm:!basis-full sm:flex-wrap max-sm:!flex-none">
+          <SearchField className="min-w-0 flex-1 sm:w-72 sm:flex-none" label="Search adjudicators" value={query} onChange={setQuery} />
           <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />
         </div>
         {/* A plain row, not ToolbarActions: when it wraps under the filters it lines up with their left edge */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 max-sm:!basis-full">
           {competitionId && pins.data && pins.data.length > 0 && (
             chosen.length > 0 ? (
               <ButtonLink variant="secondary" to={printPath} target="_blank">

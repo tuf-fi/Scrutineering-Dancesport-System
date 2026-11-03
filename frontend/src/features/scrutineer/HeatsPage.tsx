@@ -13,6 +13,8 @@ import {
   Toolbar,
   ToolbarActions,
   toast,
+  DarkPanel,
+  glass,
 } from '../../components/ui/index.ts'
 import { useCompetitorRows, useHeatAssignments, useSaveHeats } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
@@ -78,13 +80,10 @@ function HeatEditor({
 
   return (
     <div className="flex flex-col gap-6">
-      <div
-        role="status"
-        className="flex flex-col gap-6 overflow-hidden rounded-2xl bg-brown-950 bg-[radial-gradient(36rem_12rem_at_100%_0%,rgb(228_178_46/0.14),transparent_60%)] p-5 text-white sm:px-8 sm:py-6"
-      >
+      <DarkPanel role="status" className="flex flex-col gap-5 p-4 sm:p-6">
         <div className="flex items-center justify-between gap-4">
           <p className="flex items-baseline gap-3">
-            <span className="font-mono text-4xl leading-none tabular-nums">{heatNumbers.length}</span>{' '}
+            <span className="font-mono text-3xl leading-none tabular-nums sm:text-4xl">{heatNumbers.length}</span>{' '}
             <span className="text-body text-brown-100">
               heat{heatNumbers.length === 1 ? '' : 's'} · <span className="font-mono tabular-nums">{rows.length}</span> competitors
             </span>
@@ -101,7 +100,7 @@ function HeatEditor({
             </p>
           )}
         </div>
-        <ul className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-[repeat(auto-fit,minmax(7rem,1fr))]">
+        <ul className={`grid grid-cols-2 gap-x-6 gap-y-5 p-4 sm:grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] ${glass}`}>
           {heatNumbers.map((n, i) => (
             <li key={n} className="flex min-w-0 flex-col gap-2">
               <span aria-hidden className="h-0.5 overflow-hidden rounded-full bg-white/15">
@@ -114,7 +113,7 @@ function HeatEditor({
             </li>
           ))}
         </ul>
-      </div>
+      </DarkPanel>
 
 
       <Toolbar>

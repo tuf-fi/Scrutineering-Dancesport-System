@@ -23,11 +23,11 @@ export function Drawer({ open, onClose, title, meta, children, footer, flush, cl
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 animate-fade-in bg-black/50" />
+        <RadixDialog.Overlay className="fixed inset-0 z-40 animate-fade-in bg-black/50 data-[state=closed]:animate-fade-out" />
         <RadixDialog.Content
           aria-describedby={undefined}
           className={cn(
-            'fixed inset-y-0 right-0 z-50 flex w-full max-w-xl animate-drawer-in flex-col bg-white text-neutral-900 border-l border-neutral-200 shadow-overlay',
+            'fixed inset-y-0 right-0 z-50 flex w-full max-w-xl animate-drawer-in flex-col data-[state=closed]:animate-drawer-out bg-white text-neutral-900 border-l border-neutral-200 shadow-overlay',
             className,
           )}
         >

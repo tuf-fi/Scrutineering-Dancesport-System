@@ -3,7 +3,7 @@ import { ArrowUpRight, Check } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
-import { ErrorState, PageHeader, Skeleton } from '../../components/ui/index.ts'
+import { ErrorState, DarkPanel, PageHeader, Skeleton, glass } from '../../components/ui/index.ts'
 import { useAdjudicators, useLiveSubmissions } from '../../hooks/index.ts'
 import { AGE_GROUP_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
@@ -56,10 +56,7 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
   const done = submissions.length > 0 && submitted === submissions.length
 
   return (
-    <section
-      aria-label="On the floor"
-      className="flex flex-col gap-10 overflow-hidden rounded-2xl bg-brown-950 p-6 text-white sm:p-10"
-    >
+    <DarkPanel aria-label="On the floor" className="flex flex-col gap-6 p-4 sm:gap-8 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between gap-4">
         {select}
         <p className="flex items-center gap-2.5 text-small font-semibold">
@@ -74,7 +71,7 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
       </div>
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">{eventDances(row)}</h2>
+        <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">{eventDances(row)}</h2>
         <p className="flex items-center gap-2 text-body text-brown-100">
           <span className="font-mono tabular-nums text-gold-400">{eventCode({ number: row.eventNumber })}</span>
           <span aria-hidden>·</span>
@@ -83,9 +80,9 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
-        <div className="flex w-full max-w-md flex-col gap-4">
+        <div className={`flex w-full max-w-md flex-col gap-4 p-4 ${glass}`}>
           <p role="status" className="flex items-baseline gap-2 text-body text-brown-100">
-            <span className="font-mono text-5xl leading-none tabular-nums text-white">{submitted}</span>{' '}
+            <span className="font-mono text-4xl leading-none tabular-nums text-white sm:text-5xl">{submitted}</span>{' '}
             <span>of {submissions.length} adjudicators have submitted</span>
           </p>
           <div aria-hidden className="h-0.5 w-full overflow-hidden rounded-full bg-white/15">
@@ -109,7 +106,7 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
       {submissions.length === 0 ? (
         <p className="border-t border-white/10 pt-6 text-body text-brown-100">No adjudicators on this panel yet.</p>
       ) : (
-        <ul className="grid grid-cols-1 gap-x-16 gap-y-3.5 lg:grid-cols-2">
+        <ul className="overflow-hidden rounded-xl border border-white/10 bg-white/[0.06] px-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] backdrop-blur-xl lg:grid lg:grid-cols-2 lg:gap-x-12">
           {submissions.map((s) => {
             const silent = quietFor(s.adjudicatorId, s.quietSince ?? undefined)
             const quiet = s.status === SubmissionStatus.Marking && (Boolean(s.quietSince) || silent > QUIET_MS)
@@ -121,20 +118,20 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
             const person = people.get(s.adjudicatorId)
             const time = s.submittedAt ? new Date(s.submittedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : null
             return (
-              <li key={s.adjudicatorId} className="flex items-baseline gap-4">
-                <span className="w-4 font-mono text-xs tabular-nums text-white/40">{person?.letter ?? '?'}</span>
+              <li key={s.adjudicatorId} className="flex items-center gap-3 border-b border-white/10 py-3.5 last:border-b-0 sm:gap-4">
+                <span className="w-4 shrink-0 font-mono text-xs tabular-nums text-white/40">{person?.letter ?? '?'}</span>
                 <span className={`min-w-0 flex-1 truncate text-body ${state.name}`}>{person?.name ?? s.adjudicatorId}</span>
-                <span className={`inline-flex items-center gap-1.5 text-small ${state.note}`}>
+                <span className={`inline-flex shrink-0 items-center gap-1.5 text-small ${state.note}`}>
                   {time && <Check aria-hidden size={14} strokeWidth={2.5} className="text-success" />}
                   {state.label}
-                  {time && <span className="ml-2 tabular-nums">{time}</span>}
+                  {time && <span className="ml-1 font-mono text-xs tabular-nums max-sm:hidden">{time}</span>}
                 </span>
               </li>
             )
           })}
         </ul>
       )}
-    </section>
+    </DarkPanel>
   )
 }
 

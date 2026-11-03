@@ -37,7 +37,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
                     src={HERO_IMAGE}
                     alt=""
                     loading="lazy"
-                    className="absolute inset-0 -z-20 size-full object-cover object-[50%_18%] grayscale transition duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"
+                    className="absolute inset-0 -z-20 size-full object-cover object-[50%_18%] lg:grayscale transition duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"
                   />
                   <span aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgb(0_0_0/0.55),transparent_35%,transparent_40%,rgb(0_0_0/0.9))]" />
                   {/* The whole card opens the event; Register sits above it as its own link */}
@@ -53,7 +53,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
                     </span>
                     <span className="font-mono text-xs font-medium uppercase tabular-nums text-white/80">{days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`}</span>
                   </span>
-                  <span className="pointer-events-none flex items-end justify-between gap-4 transition-transform duration-500 ease-out group-hover:-translate-y-12 group-focus-within:-translate-y-12 [@media(hover:none)]:-translate-y-12">
+                  <span className="pointer-events-none flex items-end justify-between gap-4 transition-transform duration-500 ease-out lg:group-hover:-translate-y-12 lg:group-focus-within:-translate-y-12">
                     <span className="flex flex-col gap-1.5">
                       <span className="text-balance text-[1.25rem] font-semibold leading-[1.2] tracking-[-0.015em]">{c.name}</span>
                       <span className="text-small text-white/75">{c.venue}</span>
@@ -62,7 +62,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
                   </span>
                   <Link
                     to="/athlete"
-                    className="group/register absolute inset-x-0 bottom-0 z-10 flex h-14 translate-y-full items-center justify-between bg-gold-400 px-6 text-small font-semibold text-black transition duration-500 ease-out hover:bg-gold-300 group-hover:translate-y-0 focus-visible:translate-y-0 [@media(hover:none)]:translate-y-0"
+                    className="group/register absolute inset-x-0 bottom-0 z-10 hidden h-14 translate-y-full items-center lg:flex justify-between bg-gold-400 px-6 text-small font-semibold text-black transition duration-500 ease-out hover:bg-gold-300 lg:group-hover:translate-y-0 focus-visible:translate-y-0"
                   >
                     Register
                     <ArrowUpRight aria-hidden className="size-5 transition-transform duration-300 group-hover/register:rotate-45" strokeWidth={1.75} />

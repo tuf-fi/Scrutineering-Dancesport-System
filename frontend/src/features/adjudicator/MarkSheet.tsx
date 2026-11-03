@@ -1,6 +1,6 @@
 import type { AgeGroup, Class, Dance, Discipline, MarkingTask, MarkSubmission, RoundType } from '@bis/shared'
 import { useState } from 'react'
-import { Button, Dialog, Tabs } from '../../components/ui/index.ts'
+import { Button, Dialog, DarkPanel, Tabs } from '../../components/ui/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
 import { PlacingBoard } from './PlacingBoard.tsx'
 import { SignaturePad } from './SignaturePad.tsx'
@@ -88,7 +88,7 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <header className="flex flex-col gap-4 overflow-hidden rounded-2xl bg-brown-950 bg-[radial-gradient(40rem_16rem_at_100%_0%,rgb(228_178_46/0.16),transparent_60%)] p-5 text-white sm:p-6">
+      <DarkPanel as="header" className="flex flex-col gap-4 p-5 sm:p-6">
         <div className="flex flex-col gap-2">
           <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">Event</span>
           <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">{eventDances(task.event)}</h1>
@@ -120,7 +120,7 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
             {isFinal ? `Place all ${total} finalists, 1st to ${ordinal(total)}.` : `Mark an X for exactly ${total} in each dance.`}
           </span>
         </p>
-      </header>
+      </DarkPanel>
 
       {task.dances.length > 1 && (
         <Tabs

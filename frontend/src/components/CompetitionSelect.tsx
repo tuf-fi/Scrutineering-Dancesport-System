@@ -10,7 +10,7 @@ export function CompetitionSelect({
   onChange: (id: string) => void
 }) {
   return (
-    <div className="w-full sm:w-72">
+    <div className="min-w-0 flex-1 sm:w-72 sm:flex-none">
       <Select label="Competition" value={value ?? ''} onChange={(e) => onChange(e.target.value)} disabled={list.length === 0}>
         {list.map((c) => (
           <option key={c.id} value={c.id}>

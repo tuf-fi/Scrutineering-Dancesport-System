@@ -3,7 +3,7 @@ import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { confirmMembership, getCompetitorHistory, getCompetitors, rejectMembership, requestMembership, saveMyAthlete, signUpAthlete } from '../../mocks/api.ts'
-import { renderApp } from '../../test-utils.tsx'
+import { openMenu, renderApp } from '../../test-utils.tsx'
 
 // jsdom cannot decode or draw pictures, so the resizing helper is faked
 vi.mock('../../lib/image.ts', () => ({ screenshotImage: async () => 'data:image/jpeg;base64,/9j/', squarePhoto: async () => 'data:image/jpeg;base64,/9j/' }))
@@ -88,6 +88,7 @@ describe('athlete account', () => {
     expect(await screen.findByRole('navigation', { name: 'Account' })).toBeInTheDocument()
     cleanup()
     renderApp('/athlete', Role.Secretariat)
+    await openMenu()
     expect(await screen.findByRole('link', { name: 'Athletes' })).toBeInTheDocument()
   })
 

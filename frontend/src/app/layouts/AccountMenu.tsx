@@ -53,7 +53,7 @@ export function AccountMenu({ name, detail, photo, profile, onSignOut }: { name:
         <div
           id={menuId}
           role="menu"
-          className="absolute right-0 top-full z-40 mt-2 w-56 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-sm"
+          className="fixed inset-x-3 top-[calc(var(--nav-h,3.5rem)+0.5rem)] z-40 overflow-hidden sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-56 rounded-lg border border-neutral-200 bg-white py-1 shadow-sm"
         >
           <div className="flex flex-col border-b border-neutral-200 px-4 pb-3 pt-2">
             <span className="truncate text-small font-medium text-neutral-900">{name}</span>

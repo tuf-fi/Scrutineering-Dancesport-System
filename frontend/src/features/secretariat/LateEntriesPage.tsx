@@ -202,7 +202,7 @@ function CashTab() {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-40',
+            widthClass: 'w-36',
             cell: (p) => (
               <Button variant="secondary" size="sm" aria-label={`Mark ${p.teamName} paid at venue`} onClick={() => setTarget(p)}>
                 Paid at venue

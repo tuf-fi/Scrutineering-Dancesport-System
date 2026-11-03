@@ -34,7 +34,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 font-medium',
+        'inline-flex items-center gap-1.5 whitespace-nowrap font-medium',
         pill ? cn('rounded-full px-2.5 py-1 text-xs', pillFills[tone]) : 'text-small',
         tones[tone],
       )}

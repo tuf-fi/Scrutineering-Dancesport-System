@@ -92,7 +92,7 @@ export function StaffPage() {
           </Select>
         </div>
         <ToolbarActions>
-          <Button className="w-full sm:w-auto" onClick={() => setEditing('new')}>
+          <Button onClick={() => setEditing('new')}>
             Add account
           </Button>
         </ToolbarActions>

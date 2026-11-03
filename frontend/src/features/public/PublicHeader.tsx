@@ -42,7 +42,7 @@ export function PublicHeader({
         </Link>
       )}
       <div className="flex flex-col gap-8 border-b border-neutral-900 pb-8 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
-        <div className="flex min-w-0 items-center gap-5 sm:gap-8">
+        <div className="flex min-w-0 flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-8">
           {leading}
           <div className="flex min-w-0 max-w-2xl flex-col gap-3">
             {eyebrow && (

@@ -11,6 +11,7 @@ import { useMyAthlete, useMyMember } from '../../hooks/index.ts'
 import { useSignOut } from '../useSignOut.ts'
 import { AccountMenu } from './AccountMenu.tsx'
 import { NotificationBell } from './NotificationBell.tsx'
+import { PublicMenu } from './PublicMenu.tsx'
 import { SiteFooter } from './SiteFooter.tsx'
 
 // The site navbar, shared by the public pages and the athlete's page
@@ -34,11 +35,11 @@ function TopNavLayout({ items, right }: { items: NavItem[]; right: ReactNode }) 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip">
       <header ref={header} className="sticky top-0 z-30 bg-black text-white">
-        <div className={cn('mx-auto flex flex-wrap items-center gap-x-10 px-4 sm:px-8', wide ? 'max-w-none lg:px-12' : 'max-w-5xl')}>
-          <Link to="/" aria-label="Home" className="py-1.5">
+        <div className={cn('mx-auto flex items-center gap-x-4 lg:gap-x-10 px-4 sm:px-8', wide ? 'max-w-none lg:px-12' : 'max-w-5xl')}>
+          <Link to="/" aria-label="Home" className="py-1">
             <Brand size="md" plate={false} />
           </Link>
-          <nav aria-label="Main" className="no-scrollbar order-3 flex w-full overflow-x-auto sm:order-none sm:w-auto">
+          <nav aria-label="Main" className="no-scrollbar hidden overflow-x-auto lg:flex">
             {items.map((item) => (
               <NavLink
                 key={item.to}
@@ -55,10 +56,13 @@ function TopNavLayout({ items, right }: { items: NavItem[]; right: ReactNode }) 
               </NavLink>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-4">{right}</div>
+          <div className="ml-auto flex items-center gap-4">
+            {right}
+            <PublicMenu items={items} />
+          </div>
         </div>
       </header>
-      <main className={cn('mx-auto w-full flex-1 px-4 py-10 sm:px-8 sm:py-14', wide ? 'max-w-none lg:px-12' : 'max-w-5xl')}>
+      <main className={cn('mx-auto w-full flex-1 px-4 py-8 sm:px-8 sm:py-14', wide ? 'max-w-none lg:px-12' : 'max-w-5xl')}>
         <Outlet />
       </main>
       {!wide && <SiteFooter />}
@@ -78,7 +82,7 @@ function Account() {
   if (!user) {
     return (
       <>
-        <Button size="sm" onClick={() => setChoosing(true)}>
+        <Button size="sm" className="max-lg:hidden" onClick={() => setChoosing(true)}>
           Sign in
         </Button>
         <SignInChooser open={choosing} onClose={() => setChoosing(false)} />
