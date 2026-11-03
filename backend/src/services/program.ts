@@ -143,7 +143,7 @@ export const program = {
   getProgram: (ctx: Ctx, competitionId: string): Program => build(ctx, competitionId),
 
   // The events a back number is entered in, for "my entries" on the public program. Only event ids leave: heats and
-  // results are public anyway, and no names or clubs are given.
+  // results are public anyway, and no names or teams are given.
   getEntriesByBackNumber(ctx: Ctx, competitionId: string, backNumber: number): string[] {
     competitionRow(ctx, competitionId)
     if (!Number.isInteger(backNumber)) return []

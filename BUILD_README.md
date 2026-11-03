@@ -23,7 +23,7 @@
 
 ## One online server
 
-BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: club registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, MC) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network.
+BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: team registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, MC) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network.
 
 There is one database, a SQLite file on the server. Adjudicators' phones hold only a temporary copy of their own marks until the server has them; this is not a separate database.
 
@@ -32,7 +32,7 @@ flowchart LR
   P["Adjudicator phones<br/>(browser, PIN sign-in)"]
   L["Staff laptops:<br/>secretariat, scrutineer,<br/>chairperson, MC"]
   S["Public: phones<br/>(results, rankings, program)"]
-  G["Clubs:<br/>registration + payments"]
+  G["Teams:<br/>registration + payments"]
   A["Admin:<br/>payment checking"]
   C["Caddy (HTTPS)"]
   B["BIS server + SQLite<br/>scoring, backups"]
@@ -80,7 +80,7 @@ Build every screen first, using fake data, so the client can click through and a
 6. **MC / venue screen:** recalls, finalists, results from last place up.
 7. **Printouts:** "Qualified for the next round" lists (like the E47 sheet), scores sheets with every adjudicator's marks, final results.
 8. **Public site:** latest results, past competitions, couple/solo profiles, rankings per category.
-9. **Registration:** the secretariat enters each team from the paper entry form (clubs, coaches, dancers' details, events, fees, payment). Athletes can make their own account for their details and membership. Coaches and teams can also make an account to sign in (name, email, password); the secretariat still enters their entries. A linked team (or an athlete, for the dancers that carry their name) can also send an entry online: choose the events, see the fee, pay by GCash, Maya or bank and attach the screenshot. The secretariat checks it under Entry requests and approves it, which makes the entries and records the payment. Staff and adjudicators sign in at `/staff-access`, which no public page links to.
+9. **Registration:** the secretariat enters each team from the paper entry form (teams, coaches, dancers' details, events, fees, payment). Athletes can make their own account for their details and membership. Coaches and teams can also make an account to sign in (name, email, password); the secretariat still enters their entries. A linked team (or an athlete, for the dancers that carry their name) can also send an entry online: choose the events, see the fee, pay by GCash, Maya or bank and attach the screenshot. The secretariat checks it under Entry requests and approves it, which makes the entries and records the payment. Staff and adjudicators sign in at `/staff-access`, which no public page links to.
 
 ### Phase 2: Scoring engine (shared package)
 
@@ -151,12 +151,12 @@ On the day, the secretariat can still add late entries and mark cash payments at
 | --- | --- |
 | competitions | Name, date, venue, organizer |
 | events | Event number (E47), age group, class, discipline, dances, solo or couple |
-| competitors | Names, back number, club, entry form details (province, coach, dates of birth, contact, membership year) |
+| competitors | Names, back number, team, entry form details (province, coach, dates of birth, contact, membership year) |
 | entries | Which competitor is in which event, scratch status |
-| clubs | Club or team details and contact (no login) |
+| teams | Team details and contact (no login) |
 | coaches | Coach, contact, the years their membership and Coaches Summit were paid |
 | athletes | An athlete's account: email, password, details, membership year and any payment waiting for the secretariat |
-| payments | Club, amount, reference number, how it was paid, status, recorded by, recorded at |
+| payments | Team, amount, reference number, how it was paid, status, recorded by, recorded at |
 | adjudicators | Name, letter, PIN per competition |
 | panels | Which adjudicators adjudicate which event |
 | rounds | Event, round type, recall number, status |

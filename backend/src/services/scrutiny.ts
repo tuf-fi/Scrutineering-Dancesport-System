@@ -506,7 +506,7 @@ function announcements(ctx: Ctx): Announcement[] {
       .all()
       .sort((a, b) => b.place - a.place)
     const people = peopleOf(ctx, placed.map((p) => p.competitorId))
-    const clubs = new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
+    const teams = new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
     const items: Announcement[] = [
       { ...base(event, roundOut), id: `finalists:${round.id}`, kind: 'finalists', numbers: numbersOf(placed.map((p) => p.competitorId)) },
       ...(placed.length > 0 ? [{ ...base(event, roundOut), id: `results:${round.id}`, kind: 'results' as const }] : []),
@@ -517,7 +517,7 @@ function announcements(ctx: Ctx): Announcement[] {
           id: `result:${r.id}`,
           kind: 'result',
           // Read out from last place up, one at a time
-          result: { place: r.place, backNumber: dancer?.backNumber ?? null, names: dancer?.names ?? [], clubName: dancer ? (clubs.get(dancer.clubId) ?? '') : '' },
+          result: { place: r.place, backNumber: dancer?.backNumber ?? null, names: dancer?.names ?? [], teamName: dancer ? (teams.get(dancer.teamId) ?? '') : '' },
         }
       }),
     ]

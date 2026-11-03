@@ -99,9 +99,9 @@ describe('accounts changing', () => {
     expect((await app.call('updateStaffUser', [self.id, { name: 'Amelia', role: 'mc' }], admin)).error).toMatch(/at least one admin/)
   })
 
-  it('refuses to make a staff account with a club or adjudicator role', async () => {
+  it('refuses to make a staff account with a team or adjudicator role', async () => {
     const admin = await app.signIn.staff('admin')
-    const reply = await app.call('createStaffUser', [{ name: 'X Y', username: 'xy@sample.example', role: 'club' }], admin)
+    const reply = await app.call('createStaffUser', [{ name: 'X Y', username: 'xy@sample.example', role: 'team' }], admin)
     expect(reply.status).toBe(400)
   })
 })

@@ -46,7 +46,7 @@ export function AthletesPage() {
 
   const needle = query.trim().toLowerCase()
   const rows = (athletes.data ?? []).filter(
-    (a) => (filter === 'all' || isWaiting(a)) && (!needle || [a.name, a.email, a.clubName].some((v) => v.toLowerCase().includes(needle))),
+    (a) => (filter === 'all' || isWaiting(a)) && (!needle || [a.name, a.email, a.teamName].some((v) => v.toLowerCase().includes(needle))),
   )
 
   function closeReset() {
@@ -81,7 +81,7 @@ export function AthletesPage() {
         columns={[
           { key: 'name', header: 'Athlete', cell: (a) => <span className="font-medium">{a.name}</span> },
           { key: 'email', header: 'Email', cell: (a) => a.email, muted: true, hideBelow: 'md' },
-          { key: 'club', header: 'Team', cell: (a) => a.clubName || '–', muted: true, hideBelow: 'md' },
+          { key: 'team', header: 'Team', cell: (a) => a.teamName || '–', muted: true, hideBelow: 'md' },
           { key: 'member', header: 'Membership', cell: (a) => a.memberYear ?? 'Not paid', mono: true, muted: true, hideBelow: 'sm' },
           { key: 'payment', header: 'Payment', cell: (a) => <PaymentCell athlete={a} onView={setViewing} /> },
           {

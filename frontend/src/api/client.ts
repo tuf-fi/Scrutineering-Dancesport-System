@@ -28,7 +28,7 @@ import type {
   AuditEntry,
   BackupStatus,
   PaymentSettings,
-  Club,
+  Team,
   Competition,
   CompetitionInput,
   Competitor,
@@ -38,7 +38,7 @@ import type {
   DemoRound,
   EntryRow,
   FinalTie,
-  ClubInput,
+  TeamInput,
   Coach,
   CoachInput,
   CompetitorDetails,
@@ -90,7 +90,7 @@ export const getEvents = (competitionId?: string) => call<Event[]>('getEvents', 
 export const getEvent = (id: string) => call<Event>('getEvent', id)
 export const getEntries = (eventId: string) => call<Entry[]>('getEntries', eventId)
 export const getCompetitors = () => call<Competitor[]>('getCompetitors')
-export const getClubs = () => call<Club[]>('getClubs')
+export const getTeams = () => call<Team[]>('getTeams')
 export const getAdjudicators = () => call<Adjudicator[]>('getAdjudicators')
 export const getAdjudicatorPins = (competitionId: string) => call<AdjudicatorPin[]>('getAdjudicatorPins', competitionId)
 export const getPanel = (eventId: string) => call<Panel>('getPanel', eventId)
@@ -144,12 +144,12 @@ export const getEntryRows = (eventId: string) => call<EntryRow[]>('getEntryRows'
 export const setEntryScratched = (_actorId: string, entryId: string, scratched: boolean) =>
   call<EntryRow>('setEntryScratched', entryId, scratched)
 export const getCompetitorRows = () => call<CompetitorRow[]>('getCompetitorRows')
-export const createCompetitor = (_actorId: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
+export const createCompetitor = (_actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('createCompetitor', input)
 export const setBackNumber = (_actorId: string, competitorId: string, backNumber: number | null) =>
   call<CompetitorRow>('setBackNumber', competitorId, backNumber)
 export const assignBackNumbers = (_actorId: string) => call<number>('assignBackNumbers')
-export const importCompetitors = (_actorId: string, rows: Array<{ names: string[]; clubName: string }>) =>
+export const importCompetitors = (_actorId: string, rows: Array<{ names: string[]; teamName: string }>) =>
   call<ImportResult>('importCompetitors', rows)
 // The server reads the file itself, so quoted fields with commas come through intact
 export const importCompetitorsCsv = (_actorId: string, text: string) => call<ImportResult>('importCompetitorsCsv', text)
@@ -176,11 +176,11 @@ export const updateProgramSlot = (_actorId: string, slotId: string, input: Progr
 export const moveProgramSlot = (_actorId: string, slotId: string, direction: 'up' | 'down') =>
   call<Program>('moveProgramSlot', slotId, direction)
 export const removeProgramSlot = (_actorId: string, slotId: string) => call<Program>('removeProgramSlot', slotId)
-export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
+export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('updateCompetitor', id, input)
 export const deleteCompetitor = (_actorId: string, id: string) => call<void>('deleteCompetitor', id)
-export const saveClub = (_actorId: string, input: ClubInput, id?: string) => call<Club>('saveClub', input, ...(id ? [id] : []))
-export const deleteClub = (_actorId: string, id: string) => call<void>('deleteClub', id)
+export const saveTeam = (_actorId: string, input: TeamInput, id?: string) => call<Team>('saveTeam', input, ...(id ? [id] : []))
+export const deleteTeam = (_actorId: string, id: string) => call<void>('deleteTeam', id)
 export const getCoaches = () => call<Coach[]>('getCoaches')
 export const saveCoach = (_actorId: string, input: CoachInput, id?: string) => call<Coach>('saveCoach', input, id)
 export const deleteCoach = (_actorId: string, id: string) => call<void>('deleteCoach', id)

@@ -27,7 +27,7 @@ import {
   applySettles,
   assertFeesSet,
   feeFor,
-  getClubRow,
+  getTeamRow,
   getCompetitorRow,
   getEventRow,
   getPaymentRow,
@@ -37,7 +37,7 @@ import {
   toEvent,
 } from './shared.ts'
 
-const clubNames = (ctx: Ctx) => new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
+const teamNames = (ctx: Ctx) => new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
 
 function entryRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): EntryRow {
   const competitor = getCompetitorRow(ctx, entry.competitorId)
@@ -47,7 +47,7 @@ function entryRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): EntryRow {
     competitorId: competitor.id,
     names: competitor.names,
     backNumber: competitor.backNumber,
-    clubName: clubNames(ctx).get(competitor.clubId) ?? 'Unknown club',
+    teamName: teamNames(ctx).get(competitor.teamId) ?? 'Unknown team',
     scratched: entry.scratched,
     late: entry.late,
     paymentStatus: payment?.status ?? null,
@@ -60,7 +60,7 @@ function competitorRow(ctx: Ctx, c: typeof t.competitors.$inferSelect): Competit
     .from(t.entries)
     .where(and(eq(t.entries.competitorId, c.id), eq(t.entries.scratched, false)))
     .get()?.n
-  return { ...toCompetitor(c), clubName: clubNames(ctx).get(c.clubId) ?? 'Unknown club', entryCount: entryCount ?? 0 }
+  return { ...toCompetitor(c), teamName: teamNames(ctx).get(c.teamId) ?? 'Unknown team', entryCount: entryCount ?? 0 }
 }
 
 function checkBackNumber(ctx: Ctx, competitorId: string, backNumber: number | null) {
@@ -133,8 +133,8 @@ function checkEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: str
   if (input.kind === EventKind.Closed && !clean(input.province)) return fail('Enter the province this event is closed to.')
 }
 
-function addCompetitor(ctx: Ctx, names: string[], clubId: string, details: CompetitorDetails | null = null) {
-  const row = { id: newId(), names, ageGroup: null, birthDate: null, backNumber: null, clubId, details }
+function addCompetitor(ctx: Ctx, names: string[], teamId: string, details: CompetitorDetails | null = null) {
+  const row = { id: newId(), names, ageGroup: null, birthDate: null, backNumber: null, teamId, details }
   ctx.db.insert(t.competitors).values(row).run()
   return row
 }
@@ -176,10 +176,10 @@ export const secretariat = {
   getCompetitorRows: (ctx: Ctx): CompetitorRow[] =>
     ctx.db.select().from(t.competitors).all().map((c) => competitorRow(ctx, c)),
 
-  createCompetitor(ctx: Ctx, input: { names: string[]; clubId: string; details?: CompetitorDetails }): CompetitorRow {
+  createCompetitor(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
     const names = cleanNames(input?.names)
-    getClubRow(ctx, input.clubId)
-    const row = addCompetitor(ctx, names, input.clubId, cleanDetails(ctx, names, input.details))
+    getTeamRow(ctx, input.teamId)
+    const row = addCompetitor(ctx, names, input.teamId, cleanDetails(ctx, names, input.details))
     record(ctx.db, actor(ctx).id, 'Added competitor', names.join(' & '))
     return competitorRow(ctx, row)
   },
@@ -197,7 +197,7 @@ export const secretariat = {
 
   // Gives every competitor without a back number the next free one
   assignBackNumbers(ctx: Ctx): number {
-    const all = ctx.db.select().from(t.competitors).orderBy(asc(t.competitors.clubId), sql`${t.competitors.names} asc`).all()
+    const all = ctx.db.select().from(t.competitors).orderBy(asc(t.competitors.teamId), sql`${t.competitors.names} asc`).all()
     const taken = new Set(all.map((c) => c.backNumber).filter((n): n is number => n !== null))
     let next = 1
     let assigned = 0
@@ -214,11 +214,11 @@ export const secretariat = {
 
   importCompetitors(ctx: Ctx, rows: CompetitorCsvRow[]): ImportResult {
     const result: ImportResult = { created: 0, skipped: [] }
-    const clubs = ctx.db.select().from(t.clubs).all()
+    const teams = ctx.db.select().from(t.teams).all()
     ;(Array.isArray(rows) ? rows : []).forEach((row, i) => {
       const line = i + 2
-      const club = clubs.find((c) => c.name.toLowerCase() === clean(row?.clubName).toLowerCase())
-      if (!club) return void result.skipped.push({ line, reason: `Unknown club "${clean(row?.clubName)}".` })
+      const team = teams.find((c) => c.name.toLowerCase() === clean(row?.teamName).toLowerCase())
+      if (!team) return void result.skipped.push({ line, reason: `Unknown team "${clean(row?.teamName)}".` })
       let names: string[]
       try {
         names = cleanNames(row.names)
@@ -236,7 +236,7 @@ export const secretariat = {
           return void result.skipped.push({ line, reason: (error as Error).message })
         }
       }
-      addCompetitor(ctx, names, club.id, details)
+      addCompetitor(ctx, names, team.id, details)
       result.created++
     })
     record(ctx.db, actor(ctx).id, 'Imported competitors', `${result.created} added, ${result.skipped.length} skipped`)
@@ -278,7 +278,7 @@ export const secretariat = {
       .insert(t.payments)
       .values({
         id: paymentId,
-        clubId: competitor.clubId,
+        teamId: competitor.teamId,
         competitionId: event.competitionId,
         late: true,
         amountDue: fee,
@@ -306,7 +306,7 @@ export const secretariat = {
       .run()
     applySettles(ctx, paymentId)
     const detail = paymentDetail(ctx, getPaymentRow(ctx, paymentId))
-    record(ctx.db, actor(ctx).id, 'Recorded cash payment', detail.clubName, { before: { status: payment.status }, after: { status: PaymentStatus.PaidAtVenue } })
+    record(ctx.db, actor(ctx).id, 'Recorded cash payment', detail.teamName, { before: { status: payment.status }, after: { status: PaymentStatus.PaidAtVenue } })
     return detail
   },
 
@@ -325,18 +325,18 @@ export const secretariat = {
     return scheduleOf(ctx, competitionId)
   },
 
-  updateCompetitor(ctx: Ctx, id: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }): CompetitorRow {
+  updateCompetitor(ctx: Ctx, id: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
     const competitor = getCompetitorRow(ctx, id)
     const names = cleanNames(input?.names)
-    getClubRow(ctx, input.clubId)
+    getTeamRow(ctx, input.teamId)
     const hasEntries = ctx.db.select().from(t.entries).where(eq(t.entries.competitorId, id)).get()
     if ((names.length === 1) !== (competitor.names.length === 1) && hasEntries) {
       return fail('Remove their entries before changing between a solo dancer and a couple.', 409)
     }
     const details = input.details === undefined ? (competitor.details ?? null) : cleanDetails(ctx, names, input.details)
-    ctx.db.update(t.competitors).set({ names, clubId: input.clubId, details }).where(eq(t.competitors.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Edited competitor', names.join(' & '), { before: { names: competitor.names, clubId: competitor.clubId }, after: { names, clubId: input.clubId } })
-    return competitorRow(ctx, { ...competitor, names, clubId: input.clubId, details })
+    ctx.db.update(t.competitors).set({ names, teamId: input.teamId, details }).where(eq(t.competitors.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Edited competitor', names.join(' & '), { before: { names: competitor.names, teamId: competitor.teamId }, after: { names, teamId: input.teamId } })
+    return competitorRow(ctx, { ...competitor, names, teamId: input.teamId, details })
   },
 
   deleteCompetitor(ctx: Ctx, id: string): void {

@@ -11,8 +11,8 @@
 ## Checking payments
 **Payments**: a record of what each team owes and has paid. Open one to see what it covers and who recorded it. The secretariat records payments (cash, GCash, Maya or bank); there is nothing to approve here.
 
-## Clubs
-**Clubs**: add, edit or delete the teams on the entry forms. A club that still has competitors cannot be deleted. Teams have no sign-in; the secretariat enters their dancers.
+## Teams
+**Teams**: add, edit or delete the teams on the entry forms. A team that still has competitors cannot be deleted. Teams have no sign-in; the secretariat enters their dancers.
 
 ## Before a competition
 Check the server's clock, make sure `ADJUDICATOR_PIN_DAYS` suits the event, and take a backup (deploy/README.md). An adjudicator's PIN works only one day either side of the competition date.

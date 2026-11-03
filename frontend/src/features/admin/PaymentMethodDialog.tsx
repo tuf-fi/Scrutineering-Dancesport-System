@@ -46,7 +46,7 @@ export function PaymentMethodDialog({
       open={open}
       onClose={onClose}
       title={method ? 'Edit way to pay' : 'Add a way to pay'}
-      description="Clubs see this when they pay for their entries."
+      description="Teams see this when they pay for their entries."
       actions={
         <>
           <Button variant="ghost" onClick={onClose}>

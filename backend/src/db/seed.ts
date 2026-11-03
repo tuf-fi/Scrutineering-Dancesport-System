@@ -3,7 +3,7 @@ import type {
   Adjudicator,
   AdjudicatorPin,
   AuditEntry,
-  Club,
+  Team,
   Competition,
   Class,
   Competitor,
@@ -35,7 +35,7 @@ interface SampleData {
   currentCompetitionId: string
   liveRoundId: string
   competitions: Competition[]
-  clubs: Club[]
+  teams: Team[]
   competitors: Array<Competitor & { ageGroup: (typeof t.competitors.$inferInsert)['ageGroup'] }>
   events: Event[]
   entries: Entry[]
@@ -95,9 +95,9 @@ export function addSampleMembers(db: Pick<Db, 'insert'>, passwordHash: string) {
 }
 
 // Also used on a database that was seeded before the sample athlete existed
-export function addSampleAthlete(db: Pick<Db, 'insert'>, passwordHash: string, clubId: string | null) {
+export function addSampleAthlete(db: Pick<Db, 'insert'>, passwordHash: string, teamId: string | null) {
   db.insert(t.athletes)
-    .values({ id: 'athlete-sample', name: 'Ana Cruz', email: SAMPLE_ATHLETE_EMAIL, passwordHash, clubId })
+    .values({ id: 'athlete-sample', name: 'Ana Cruz', email: SAMPLE_ATHLETE_EMAIL, passwordHash, teamId })
     .onConflictDoNothing()
     .run()
 }
@@ -162,7 +162,7 @@ export function seedSampleData(db: Db) {
     insertAll(data.competitions, (batch) =>
       tx.insert(t.competitions).values(batch.map((c) => ({ ...c, floorRoundId: c.id === data.currentCompetitionId ? data.liveRoundId : null }))).run(),
     )
-    insertAll(data.clubs, (batch) => tx.insert(t.clubs).values(batch).run())
+    insertAll(data.teams, (batch) => tx.insert(t.teams).values(batch).run())
     insertAll(data.competitors, (batch) => tx.insert(t.competitors).values(batch).run())
 
     // Events run in event-number order until the secretariat moves them
@@ -182,7 +182,7 @@ export function seedSampleData(db: Db) {
         .values(
           batch.map((p) => ({
             id: p.id,
-            clubId: p.clubId,
+            teamId: p.teamId,
             competitionId: data.currentCompetitionId,
             late: p.id.startsWith('pay-late-'),
             amountDue: p.amountDue,
@@ -316,7 +316,7 @@ export function seedSampleData(db: Db) {
     )
 
     insertAll(data.staffUsers, (batch) => tx.insert(t.staffUsers).values(batch.map((s) => ({ ...s, passwordHash, disabled: false }))).run())
-    addSampleAthlete(tx, passwordHash, data.clubs[0]?.id ?? null)
+    addSampleAthlete(tx, passwordHash, data.teams[0]?.id ?? null)
     addSampleMembers(tx, passwordHash)
     insertAll(data.auditLog, (batch) => tx.insert(t.auditLog).values(batch.map((a) => ({ ...a, before: null, after: null }))).run())
   })
@@ -328,8 +328,8 @@ export function addSampleAthleteData(db: Db) {
   const athlete = db.select().from(t.athletes).where(eq(t.athletes.id, 'athlete-sample')).get()
   if (!athlete) return
   const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString()
-  const clubId = athlete.clubId ?? db.select().from(t.clubs).limit(1).get()?.id ?? null
-  if (!clubId) return
+  const teamId = athlete.teamId ?? db.select().from(t.teams).limit(1).get()?.id ?? null
+  if (!teamId) return
 
   db.insert(t.coaches).values({ id: 'coach-sample', name: 'Rico Bautista', email: 'rico@sample.example', phone: '0917 555 0100', memberYear: 2026, summitYear: 2026 }).onConflictDoNothing().run()
   const coachId = athlete.coachId ?? 'coach-sample'
@@ -341,7 +341,7 @@ export function addSampleAthleteData(db: Db) {
   if (!athlete.phone) patch.phone = '0917 555 0142'
   if (!athlete.address) patch.address = 'Zone 3, Barangay Triangulo, Naga City'
   if (!athlete.province) patch.province = 'Camarines Sur'
-  if (!athlete.clubId) patch.clubId = clubId
+  if (!athlete.teamId) patch.teamId = teamId
   if (!athlete.coachId) patch.coachId = coachId
   if (history.length === 0) {
     // Last year's membership: paid on the second try, so the history has a turned-down payment in it
@@ -361,8 +361,8 @@ export function addSampleAthleteData(db: Db) {
       .values([
         { id: 'note-sample-1', athleteId: 'athlete-sample', kind: 'membership_confirmed', title: 'Your 2025 membership was confirmed', detail: 'Your GCash payment was received. You are a member until December 2025.', link: '/athlete/membership', createdAt: '2025-01-17T04:20:00.000Z', readAt: '2025-01-17T05:00:00.000Z' },
         { id: 'note-sample-2', athleteId: 'athlete-sample', kind: 'membership_rejected', title: 'Your membership payment was not confirmed', detail: 'The screenshot did not show the amount', link: '/athlete/membership', createdAt: '2025-01-15T03:00:00.000Z', readAt: '2025-01-15T04:00:00.000Z' },
-        { id: 'note-sample-3', athleteId: 'athlete-sample', kind: 'change_approved', title: 'Your club or coach change was approved', detail: '', link: '/athlete', createdAt: hoursAgo(30), readAt: null },
-        { id: 'note-sample-4', athleteId: 'athlete-sample', kind: 'change_rejected', title: 'Your club or coach change was turned down', detail: 'Ask your coach to confirm the move first', link: '/athlete/edit', createdAt: hoursAgo(3), readAt: null },
+        { id: 'note-sample-3', athleteId: 'athlete-sample', kind: 'change_approved', title: 'Your team or coach change was approved', detail: '', link: '/athlete', createdAt: hoursAgo(30), readAt: null },
+        { id: 'note-sample-4', athleteId: 'athlete-sample', kind: 'change_rejected', title: 'Your team or coach change was turned down', detail: 'Ask your coach to confirm the move first', link: '/athlete/edit', createdAt: hoursAgo(3), readAt: null },
       ])
       .onConflictDoNothing()
       .run()
@@ -370,7 +370,7 @@ export function addSampleAthleteData(db: Db) {
 
   // A competitor carrying the athlete's name, as it is now: the account finds results, rankings and entries by name
   db.insert(t.competitors)
-    .values({ id: 'c-ana-cruz', names: [athlete.name], backNumber: 401, clubId, ageGroup: 'junior_1', birthDate: '2012-04-18' })
+    .values({ id: 'c-ana-cruz', names: [athlete.name], backNumber: 401, teamId, ageGroup: 'junior_1', birthDate: '2012-04-18' })
     .onConflictDoUpdate({ target: t.competitors.id, set: { names: [athlete.name] } })
     .run()
   const POINTS = [200, 180, 160, 140, 120, 100]
@@ -537,14 +537,14 @@ export function addSampleEntryData(db: Db) {
 
   const athlete = db.select().from(t.athletes).where(eq(t.athletes.id, 'athlete-sample')).get()
   const home = db.select().from(t.competitors).where(eq(t.competitors.id, 'c-ana-cruz')).get()
-  const clubId = home?.clubId ?? db.select().from(t.clubs).limit(1).get()?.id
-  if (!athlete || !home || !clubId) return
+  const teamId = home?.teamId ?? db.select().from(t.teams).limit(1).get()?.id
+  if (!athlete || !home || !teamId) return
 
-  // The sample coach and team stand for Rico Bautista and Ana's club; they were given a name and an email only
+  // The sample coach and team stand for Rico Bautista and Ana's team; they were given a name and an email only
   for (const m of db.select().from(t.memberAccounts).all()) {
     if (m.id !== 'member-sample-coach' && m.id !== 'member-sample-team') continue
     const patch: Partial<typeof t.memberAccounts.$inferInsert> = {}
-    if (!m.linkedId) patch.linkedId = m.role === 'team' ? clubId : 'coach-sample'
+    if (!m.linkedId) patch.linkedId = m.role === 'team' ? teamId : 'coach-sample'
     if (!m.phone) patch.phone = m.role === 'team' ? '0917 555 0200' : '0917 555 0100'
     if (!m.province) patch.province = 'Camarines Sur'
     if (!m.address) patch.address = m.role === 'team' ? 'Naga City Coliseum, Naga City' : 'Zone 3, Barangay Triangulo, Naga City'
@@ -552,13 +552,13 @@ export function addSampleEntryData(db: Db) {
     if (Object.keys(patch).length > 0) db.update(t.memberAccounts).set(patch).where(eq(t.memberAccounts.id, m.id)).run()
   }
 
-  // A few solo dancers of the club, so the team has someone to enter whatever the rest of the sample holds
-  const club = [
+  // A few solo dancers of the team, so the team has someone to enter whatever the rest of the sample holds
+  const teamDancers = [
     { id: 'c-sample-team-1', names: ['Lian Torres'], ageGroup: 'juvenile_1' as const, year: 2018 },
     { id: 'c-sample-team-2', names: ['Bea Mendoza'], ageGroup: 'junior_1' as const, year: 2013 },
     { id: 'c-sample-team-3', names: ['Paolo Aquino'], ageGroup: 'youth' as const, year: 2008 },
   ]
-  for (const d of club) {
+  for (const d of teamDancers) {
     const details = {
       province: 'Camarines Sur',
       coachId: 'coach-sample',
@@ -566,7 +566,7 @@ export function addSampleEntryData(db: Db) {
       beginner: false,
       memberYear: 2026,
     }
-    db.insert(t.competitors).values({ id: d.id, names: d.names, ageGroup: d.ageGroup, clubId, details }).onConflictDoNothing().run()
+    db.insert(t.competitors).values({ id: d.id, names: d.names, ageGroup: d.ageGroup, teamId, details }).onConflictDoNothing().run()
   }
 
   // The team's solo dancers, as it would enter them
@@ -574,7 +574,7 @@ export function addSampleEntryData(db: Db) {
     .select()
     .from(t.competitors)
     .all()
-    .filter((c) => club.some((d) => d.id === c.id))
+    .filter((c) => teamDancers.some((d) => d.id === c.id))
     .sort((x, y) => x.id.localeCompare(y.id))
   const soloEvents = (competitionId: string, ageGroup: string | null, take: number) =>
     db
@@ -605,7 +605,7 @@ export function addSampleEntryData(db: Db) {
     requests.push({ id: 'req-sample-approved', ...team, competitorId: c.id, competitionId: 'comp-naga-2027', eventIds: events.map((e) => e.id), total: priced(events), warnings: [], method: 'bank', reference: 'BK55102', receipt: SAMPLE_RECEIPT, status: 'approved', createdAt: at(72), decidedAt: at(70), decidedBy: 'staff-secretariat' })
     // An approved request has its entries and its payment
     const paymentId = 'pay-sample-request'
-    db.insert(t.payments).values({ id: paymentId, clubId, competitionId: 'comp-naga-2027', late: false, amountDue: priced(events), amountPaid: priced(events), referenceNumber: 'BK55102', method: 'bank', receipt: SAMPLE_RECEIPT, status: 'approved', checkedBy: 'staff-secretariat', checkedAt: at(70) }).onConflictDoNothing().run()
+    db.insert(t.payments).values({ id: paymentId, teamId, competitionId: 'comp-naga-2027', late: false, amountDue: priced(events), amountPaid: priced(events), referenceNumber: 'BK55102', method: 'bank', receipt: SAMPLE_RECEIPT, status: 'approved', checkedBy: 'staff-secretariat', checkedAt: at(70) }).onConflictDoNothing().run()
     for (const e of events) db.insert(t.entries).values({ id: `en-req-${c.id}-${e.id}`, eventId: e.id, competitorId: c.id, paymentId }).onConflictDoNothing().run()
   }
   // Ana asks to enter two more events herself
@@ -616,7 +616,7 @@ export function addSampleEntryData(db: Db) {
   // What the team and the coach were told
   db.insert(t.memberNotifications)
     .values([
-      { id: 'mnote-sample-team-1', memberId: 'member-sample-team', kind: 'link_approved', title: 'You are linked to your club', detail: 'Your dancers and payments are on your page now.', link: '/team/dancers', createdAt: at(96), readAt: at(95) },
+      { id: 'mnote-sample-team-1', memberId: 'member-sample-team', kind: 'link_approved', title: 'You are linked to your team', detail: 'Your dancers and payments are on your page now.', link: '/team/dancers', createdAt: at(96), readAt: at(95) },
       { id: 'mnote-sample-team-2', memberId: 'member-sample-team', kind: 'entry_approved', title: 'Your entry was approved', detail: '2 events entered. Your payment was received.', link: '/team/entries', createdAt: at(70), readAt: null },
       { id: 'mnote-sample-team-3', memberId: 'member-sample-team', kind: 'entry_rejected', title: 'Your entry was not approved', detail: 'The screenshot is cut off. Send the whole payment.', link: '/team/register', createdAt: at(26), readAt: null },
       { id: 'mnote-sample-coach-1', memberId: 'member-sample-coach', kind: 'link_approved', title: 'You are linked to Rico Bautista', detail: 'Your athletes are on your page now.', link: '/coach/dancers', createdAt: at(48), readAt: null },

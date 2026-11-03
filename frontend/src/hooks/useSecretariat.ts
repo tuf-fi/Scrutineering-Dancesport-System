@@ -1,4 +1,4 @@
-import type { ClubInput, CoachInput, CompetitorDetails, RegistrationInput } from '@bis/shared'
+import type { TeamInput, CoachInput, CompetitorDetails, RegistrationInput } from '@bis/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
@@ -39,7 +39,7 @@ export const useScratchEntry = () =>
   )
 
 export const useCreateCompetitor = () =>
-  useWrite((v: { names: string[]; clubId: string; details?: CompetitorDetails }) => api.createCompetitor(actor(), v), ['competitor-rows'])
+  useWrite((v: { names: string[]; teamId: string; details?: CompetitorDetails }) => api.createCompetitor(actor(), v), ['competitor-rows'])
 
 export const useSetBackNumber = () =>
   useWrite(
@@ -72,8 +72,8 @@ export const useMoveScheduledEvent = () =>
 
 export const useUpdateCompetitor = () =>
   useWrite(
-    (v: { id: string; names: string[]; clubId: string; details?: CompetitorDetails }) =>
-      api.updateCompetitor(actor(), v.id, { names: v.names, clubId: v.clubId, details: v.details }),
+    (v: { id: string; names: string[]; teamId: string; details?: CompetitorDetails }) =>
+      api.updateCompetitor(actor(), v.id, { names: v.names, teamId: v.teamId, details: v.details }),
     ['competitor-rows', 'entry-rows', 'late-entries'],
   )
 
@@ -103,10 +103,10 @@ export const useSaveEvent = () =>
 export const useDeleteEvent = () =>
   useWrite((id: string) => api.deleteEvent(actor(), id), ['events', 'schedule', 'panels'])
 
-export const useSaveClub = () =>
-  useWrite((v: { input: ClubInput; id?: string }) => api.saveClub(actor(), v.input, v.id), ['clubs', 'competitor-rows'])
+export const useSaveTeam = () =>
+  useWrite((v: { input: TeamInput; id?: string }) => api.saveTeam(actor(), v.input, v.id), ['teams', 'competitor-rows'])
 
-export const useDeleteClub = () => useWrite((id: string) => api.deleteClub(actor(), id), ['clubs'])
+export const useDeleteTeam = () => useWrite((id: string) => api.deleteTeam(actor(), id), ['teams'])
 
 export const useCoaches = (enabled = true) => useQuery({ queryKey: ['coaches'], queryFn: api.getCoaches, enabled })
 

@@ -36,7 +36,7 @@ export function KindTabs({ kind, onKind }: { kind: AccountKind; onKind: (kind: A
 const ABOUT: Record<AccountKind, string> = {
   athlete: 'Register, pay your membership and follow your results.',
   coach: 'Your coach page.',
-  team: 'Your club or team page.',
+  team: 'Your team page.',
 }
 
 // Only asks who is signing in, then opens the sign-in page for them

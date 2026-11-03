@@ -55,7 +55,7 @@ export function QualifiedPage() {
                   <tr key={r.competitorId}>
                     <td className={`${td} ${num}`}>{r.backNumber}</td>
                     <td className={td}>{competitorName(r.names)}</td>
-                    <td className={td}>{byId.get(r.competitorId)?.clubName}</td>
+                    <td className={td}>{byId.get(r.competitorId)?.teamName}</td>
                   </tr>
                 ))}
               </tbody>

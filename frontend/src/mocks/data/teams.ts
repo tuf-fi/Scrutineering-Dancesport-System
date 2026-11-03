@@ -1,4 +1,4 @@
-import type { Club } from '@bis/shared'
+import type { Team } from '@bis/shared'
 
 const rows: Array<[string, string]> = [
   ['Sorsogon DanceSport Team', 'Marites Dela Cruz'],
@@ -11,10 +11,10 @@ const rows: Array<[string, string]> = [
   ['Masbate Movers DanceSport', 'Ernesto Magbanua'],
 ]
 
-export const clubs: Club[] = rows.map(([name, contactName], i) => ({
-  id: `club-${i + 1}`,
+export const teams: Team[] = rows.map(([name, contactName], i) => ({
+  id: `team-${i + 1}`,
   name,
   contactName,
-  contactEmail: `club${i + 1}@example.com`,
+  contactEmail: `team${i + 1}@example.com`,
   contactPhone: `0917 000 ${String(1100 + i * 37).padStart(4, '0')}`,
 }))

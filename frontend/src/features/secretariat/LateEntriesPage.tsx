@@ -46,7 +46,7 @@ function LateEntriesTab({
 
   const needle = query.trim().toLowerCase()
   const rows = (late.data ?? []).filter(
-    (r) => !needle || `${competitorName(r.names)} ${r.clubName} ${eventCode({ number: r.eventNumber })}`.toLowerCase().includes(needle),
+    (r) => !needle || `${competitorName(r.names)} ${r.teamName} ${eventCode({ number: r.eventNumber })}`.toLowerCase().includes(needle),
   )
 
   return (
@@ -83,7 +83,7 @@ function LateEntriesTab({
             ),
           },
           { key: 'who', header: 'Competitor', cell: (r) => <span className="font-medium">{competitorName(r.names)}</span> },
-          { key: 'club', header: 'Club', cell: (r) => r.clubName, muted: true, hideBelow: 'md' },
+          { key: 'team', header: 'Team', cell: (r) => r.teamName, muted: true, hideBelow: 'md' },
           { key: 'fee', header: 'Fee', cell: (r) => formatPeso(r.fee), mono: true, align: 'right', hideBelow: 'sm' },
           {
             key: 'payment',
@@ -159,14 +159,14 @@ function CashTab() {
   const rows = (payments.data ?? []).filter(
     (p) =>
       (p.status === PaymentStatus.Unpaid || p.status === PaymentStatus.Rejected) &&
-      (!needle || p.clubName.toLowerCase().includes(needle)),
+      (!needle || p.teamName.toLowerCase().includes(needle)),
   )
 
   function confirm() {
     if (!target) return
     markPaid.mutate(target.id, {
       onSuccess: () => {
-        toast.success(`${target.clubName} marked as paid at the venue`)
+        toast.success(`${target.teamName} marked as paid at the venue`)
         setTarget(null)
       },
       onError: (e) => {
@@ -179,7 +179,7 @@ function CashTab() {
   return (
     <div className="flex flex-col gap-6">
       <Toolbar>
-        <SearchField className="w-full sm:w-72" label="Search clubs" value={query} onChange={setQuery} />
+        <SearchField className="w-full sm:w-72" label="Search teams" value={query} onChange={setQuery} />
       </Toolbar>
 
       <Table<PaymentDetail>
@@ -188,14 +188,14 @@ function CashTab() {
         rowKey={(p) => p.id}
         minWidthClass="min-w-0"
         paginationLabel="Cash payments pagination"
-        detailTitle={(p) => p.clubName}
+        detailTitle={(p) => p.teamName}
         empty={
           needle
-            ? { title: 'No clubs match' }
-            : { title: 'Nothing to collect', description: 'Clubs that have not paid, or whose proof was rejected, appear here.' }
+            ? { title: 'No teams match' }
+            : { title: 'Nothing to collect', description: 'Teams that have not paid, or whose proof was rejected, appear here.' }
         }
         columns={[
-          { key: 'club', header: 'Club', cell: (p) => <span className="font-medium">{p.clubName}</span> },
+          { key: 'team', header: 'Team', cell: (p) => <span className="font-medium">{p.teamName}</span> },
           { key: 'due', header: 'Amount due', cell: (p) => formatPeso(p.amountDue), mono: true, align: 'right' },
           { key: 'status', header: 'Status', cell: (p) => <PaymentStatusBadge status={p.status} />, hideBelow: 'sm' },
           {
@@ -204,7 +204,7 @@ function CashTab() {
             align: 'right',
             widthClass: 'w-40',
             cell: (p) => (
-              <Button variant="secondary" size="sm" aria-label={`Mark ${p.clubName} paid at venue`} onClick={() => setTarget(p)}>
+              <Button variant="secondary" size="sm" aria-label={`Mark ${p.teamName} paid at venue`} onClick={() => setTarget(p)}>
                 Paid at venue
               </Button>
             ),
@@ -216,7 +216,7 @@ function CashTab() {
         open={target !== null}
         onClose={() => setTarget(null)}
         title={`Record ${formatPeso(target?.amountDue ?? 0)} in cash?`}
-        description={`${target?.clubName ?? ''} paid at the venue. This replaces any proof they uploaded.`}
+        description={`${target?.teamName ?? ''} paid at the venue. This replaces any proof they uploaded.`}
         actions={
           <>
             <Button variant="ghost" onClick={() => setTarget(null)}>
@@ -239,7 +239,7 @@ export function LateEntriesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Late entries" description="Entries added at the venue, and clubs paying in cash." />
+      <PageHeader title="Late entries" description="Entries added at the venue, and teams paying in cash." />
       <Tabs label="View" items={TABS} value={tab} onChange={setTab} />
       {tab === 'late' ? (
         competitionId && (

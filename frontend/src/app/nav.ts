@@ -62,7 +62,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
   secretariat: [
     { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays, group: 'Entries' },
     { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound, group: 'Entries' },
-    { to: '/secretariat/clubs', label: 'Clubs', icon: Building2, group: 'Entries' },
+    { to: '/secretariat/teams', label: 'Teams', icon: Building2, group: 'Entries' },
     { to: '/secretariat/coaches', label: 'Coaches', icon: Users, group: 'Entries' },
     { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
     { to: '/secretariat/entry-requests', label: 'Entry requests', icon: Inbox, group: 'Entries' },

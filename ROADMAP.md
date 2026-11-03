@@ -11,7 +11,7 @@ Where the build stands and what is left. [STATUS.md](STATUS.md) has the short, c
 | 3 | Backend | Built | [deploy/README.md](deploy/README.md) |
 | 4 | Offline safety | Removed: online only | n/a |
 | 5 | Cloud backend and sync | Removed: online only; the server is built but not yet on a real host | [deploy/README.md](deploy/README.md) |
-| 6 | Registration and payments | Built, then changed: the secretariat registers teams from the entry forms; the club portal and Messenger were removed | n/a |
+| 6 | Registration and payments | Built, then changed: the secretariat registers teams from the entry forms; the team portal and Messenger were removed | n/a |
 | 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](PILOT.md) |
 
 ## Decisions still needed from the client
@@ -60,9 +60,9 @@ Built, then removed in commit `6d286f2`: a cloud mode of the server, an upload q
 
 ## Phase 6: Registration and payments (changed)
 
-Built as a club portal with online proof of payment and Messenger messages, then changed when the client said the secretariat registers every team. Removed: club accounts, proof uploads, payment approval, Messenger. What exists now:
+Built as a team portal with online proof of payment and Messenger messages, then changed when the client said the secretariat registers every team. Removed: team accounts, proof uploads, payment approval, Messenger. What exists now:
 
-- [x] The secretariat enters clubs, coaches and competitors from the entry forms, with the entry form's details, fees, deadlines and entry warnings.
+- [x] The secretariat enters teams, coaches and competitors from the entry forms, with the entry form's details, fees, deadlines and entry warnings.
 - [x] Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms or turns it down.
 - [x] Payments are a read-only ledger; the secretariat records how each was paid.
 - [ ] Data Privacy Act of 2012: the privacy notice (`/privacy`) was rewritten for the entry form and athlete accounts. The organizer must confirm it. Retention is settled: details are kept permanently until removed.

@@ -221,9 +221,9 @@ function View({ item }: { item: Announcement }) {
 // The winner block. Its type shrinks with the phase: big in the middle of the slide, small above the podium,
 // smaller still on top of its bar. Position, scale and type size all ease between the phases.
 const BLOCK = {
-  big: { box: 'translate(-50%, -50%) scale(1)', number: 'text-[26vmin]', name: 'text-[5vmin]', club: 'text-[2.6vmin]' },
-  above: { box: 'translate(-50%, -100%) scale(1)', number: 'text-[7vmin]', name: 'text-[3vmin]', club: 'text-[2vmin]' },
-  bar: { box: 'translate(-50%, -100%) scale(0.92)', number: 'text-[7vmin]', name: 'text-[3vmin]', club: 'text-[2vmin]' },
+  big: { box: 'translate(-50%, -50%) scale(1)', number: 'text-[26vmin]', name: 'text-[5vmin]', team: 'text-[2.6vmin]' },
+  above: { box: 'translate(-50%, -100%) scale(1)', number: 'text-[7vmin]', name: 'text-[3vmin]', team: 'text-[2vmin]' },
+  bar: { box: 'translate(-50%, -100%) scale(0.92)', number: 'text-[7vmin]', name: 'text-[3vmin]', team: 'text-[2vmin]' },
 } as const
 
 function WinnerBlock({ result, phase, style, still = false, raised = false }: { result: NonNullable<Announcement['result']>; phase: keyof typeof BLOCK; style: { left: number | string; top: number | string }; still?: boolean; raised?: boolean }) {
@@ -241,7 +241,7 @@ function WinnerBlock({ result, phase, style, still = false, raised = false }: { 
       <div key={result.backNumber} className="flex animate-fade-in flex-col items-center">
         <p className={cn('font-mono font-semibold leading-none tabular-nums text-white', look.number, ease)}>{result.backNumber}</p>
         <p className={cn('mt-[0.6vmin] font-semibold leading-tight tracking-[-0.02em] text-white', look.name, ease)}>{result.names.join(' & ')}</p>
-        <p className={cn('font-medium text-brown-100', look.club, ease)}>{result.clubName}</p>
+        <p className={cn('font-medium text-brown-100', look.team, ease)}>{result.teamName}</p>
       </div>
     </div>
   )

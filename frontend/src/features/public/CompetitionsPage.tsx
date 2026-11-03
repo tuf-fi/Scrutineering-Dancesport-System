@@ -24,7 +24,7 @@ function status(c: Competition) {
 
 const DOT = { live: 'bg-gold-400', soon: 'bg-neutral-900', done: 'bg-neutral-300' }
 
-// The next date a club still has to act on, if any
+// The next date a team still has to act on, if any
 function nextDeadline(c: Competition) {
   const today = todayIso()
   const open = [

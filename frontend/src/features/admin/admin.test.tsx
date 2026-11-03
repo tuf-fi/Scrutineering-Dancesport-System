@@ -423,8 +423,8 @@ describe('points table', () => {
 describe('payments', () => {
   // The rows of the table (the first on the page); a row opens the payment
   const queueRows = () => within(document.querySelector('table')!).getAllByRole('row', { hidden: true }).slice(1)
-  const clubs = async () => {
-    await screen.findByRole('columnheader', { name: 'Club' })
+  const teams = async () => {
+    await screen.findByRole('columnheader', { name: 'Team' })
     // Skeleton rows have no text until the payments load
     await waitFor(() => expect(queueRows()[0]).toHaveTextContent(/₱/))
     return queueRows()
@@ -432,7 +432,7 @@ describe('payments', () => {
 
   it('lists what is still owed, and shows what a payment covers without any decision to make', async () => {
     renderApp('/admin/payments', Role.Admin)
-    const items = await clubs()
+    const items = await teams()
     expect(items.length).toBeGreaterThanOrEqual(1)
 
     await userEvent.click(items[0])
@@ -447,7 +447,7 @@ describe('payments', () => {
 
   it('shows who recorded a payment that is paid', async () => {
     renderApp('/admin/payments?status=paid_at_venue', Role.Admin)
-    await userEvent.click((await clubs())[0])
+    await userEvent.click((await teams())[0])
     expect(await screen.findByText(/^Recorded/)).toBeInTheDocument()
   })
 })

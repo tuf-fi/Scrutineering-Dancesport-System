@@ -17,15 +17,15 @@ beforeAll(async () => {
   team = await app.signIn.memberSignUp('team', 'Naga Dancers', 'naga@test.example', 'a-long-password')
   app.db.insert(t.staffUsers).values({ id: 's2', name: 'secretariat', username: 'secretariat@sample.example', role: 'secretariat', passwordHash: hashPassword('pw-secretariat'), disabled: false }).run()
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
-  app.db.insert(t.clubs).values([
-    { id: 'club-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' },
-    { id: 'club-2', name: 'Legazpi Stars', contactName: '', contactEmail: '', contactPhone: '' },
+  app.db.insert(t.teams).values([
+    { id: 'team-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' },
+    { id: 'team-2', name: 'Legazpi Stars', contactName: '', contactEmail: '', contactPhone: '' },
   ]).run()
   app.db.insert(t.coaches).values({ id: 'coach-1', name: 'Ben Reyes', email: '', phone: '', memberYear: 2026, summitYear: null }).run()
   app.db.insert(t.competitors).values([
-    { id: 'p1', names: ['Ana Cruz', 'Luis Cruz'], clubId: 'club-1', details: { province: 'Camarines Sur', coachId: 'coach-1', dancers: [] } as never },
-    { id: 'p2', names: ['Mia Tan'], clubId: 'club-2', details: { province: 'Albay', coachId: 'coach-1', dancers: [] } as never },
-    { id: 'p3', names: ['Zed Lim'], clubId: 'club-2', details: { province: 'Albay', coachId: null, dancers: [] } as never },
+    { id: 'p1', names: ['Ana Cruz', 'Luis Cruz'], teamId: 'team-1', details: { province: 'Camarines Sur', coachId: 'coach-1', dancers: [] } as never },
+    { id: 'p2', names: ['Mia Tan'], teamId: 'team-2', details: { province: 'Albay', coachId: 'coach-1', dancers: [] } as never },
+    { id: 'p3', names: ['Zed Lim'], teamId: 'team-2', details: { province: 'Albay', coachId: null, dancers: [] } as never },
   ]).run()
 })
 afterAll(() => app.close())
@@ -64,8 +64,8 @@ describe('coach and team accounts', () => {
 
   it('shows nothing until the secretariat links the account to a record', async () => {
     expect(await app.ok<MemberRoster>('getMyRoster', [], coach)).toEqual({ rows: [], payments: [], membership: null })
-    expect((await app.call('claimRecord', ['club-1'], coach)).error).toMatch(/Choose your name/)
-    expect((await app.call('claimRecord', ['coach-1'], team)).error).toMatch(/Choose your club/)
+    expect((await app.call('claimRecord', ['team-1'], coach)).error).toMatch(/Choose your name/)
+    expect((await app.call('claimRecord', ['coach-1'], team)).error).toMatch(/Choose your team/)
 
     const asked = await app.ok<MemberAccount>('claimRecord', ['coach-1'], coach)
     expect(asked.claim).toMatchObject({ id: 'coach-1', name: 'Ben Reyes' })
@@ -89,8 +89,8 @@ describe('coach and team accounts', () => {
     expect((await app.call('claimRecord', ['coach-1'], coach)).error).toMatch(/already linked/)
   })
 
-  it('shows a team its club dancers and payments, and keeps one account per record', async () => {
-    await app.ok('claimRecord', ['club-2'], team)
+  it('shows a team its team dancers and payments, and keeps one account per record', async () => {
+    await app.ok('claimRecord', ['team-2'], team)
     const [claim] = await app.ok<MemberClaimRow[]>('getMemberClaims', [], secretariat)
     expect(claim).toMatchObject({ role: 'team', targetName: 'Legazpi Stars' })
     await app.ok('approveMemberClaim', [claim!.memberId], secretariat)
@@ -99,7 +99,7 @@ describe('coach and team accounts', () => {
     expect(roster.membership).toBeNull()
 
     const other = await extra('team', 'second')
-    await app.ok('claimRecord', ['club-2'], other)
+    await app.ok('claimRecord', ['team-2'], other)
     const [again] = await app.ok<MemberClaimRow[]>('getMemberClaims', [], secretariat)
     expect((await app.call('approveMemberClaim', [again!.memberId], secretariat)).error).toMatch(/already linked to another/)
     expect(await app.ok<MemberClaimRow[]>('rejectMemberClaim', [again!.memberId], secretariat)).toEqual([])

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Badge, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, toast } from '../../components/ui/index.ts'
 import { useApproveMemberClaim, useMemberClaims, useRejectMemberClaim } from '../../hooks/index.ts'
 
-// Coach and team accounts asking to be linked to their coach or club record
+// Coach and team accounts asking to be linked to their coach or team record
 export function AccountLinksPage() {
   const claims = useMemberClaims()
   const approve = useApproveMemberClaim()

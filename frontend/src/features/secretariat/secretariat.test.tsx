@@ -51,7 +51,7 @@ describe('events', () => {
 describe('competitors', () => {
   it('shows only the dancers entered in the chosen competition and event', async () => {
     renderApp('/secretariat/competitors', Role.Secretariat)
-    await screen.findByRole('columnheader', { name: 'Club' })
+    await screen.findByRole('columnheader', { name: 'Team' })
     await waitFor(() => expect(bodyRows().length).toBe(10))
     const allCount = screen.getByText(/^Showing /).textContent
 
@@ -77,11 +77,11 @@ describe('competitors', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Add competitor' })
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
-    expect(await within(dialog).findByText('Choose a club.')).toBeInTheDocument()
+    expect(await within(dialog).findByText('Choose a team.')).toBeInTheDocument()
 
     await userEvent.type(within(dialog).getByLabelText('Dancer'), 'Zed Testerson')
-    const club = within(dialog).getByLabelText('Club')
-    await userEvent.selectOptions(club, within(club).getAllByRole('option')[1])
+    const team = within(dialog).getByLabelText('Team')
+    await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
     expect(await screen.findByText('Added Zed Testerson')).toBeInTheDocument()
 
@@ -104,7 +104,7 @@ describe('competitors', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Import CSV' }))
     const dialog = await screen.findByRole('dialog', { name: 'Import competitors' })
 
-    const file = new File(['Dancer 1,Dancer 2,Club\nCsv Person,,Naga Dance Academy\nNo Club,,Nowhere Club\n'], 'people.csv', {
+    const file = new File(['Dancer 1,Dancer 2,Team\nCsv Person,,Naga Dance Academy\nNo Team,,Nowhere Team\n'], 'people.csv', {
       type: 'text/csv',
     })
     await userEvent.upload(within(dialog).getByLabelText('CSV file'), file)
@@ -112,7 +112,7 @@ describe('competitors', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Import 2' }))
 
     expect(await within(dialog).findByText('1 imported, 1 skipped.')).toBeInTheDocument()
-    expect(within(dialog).getByText(/Unknown club "Nowhere Club"/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Unknown team "Nowhere Team"/)).toBeInTheDocument()
   })
 })
 
@@ -172,8 +172,8 @@ describe('editing and removing', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
     let dialog = await screen.findByRole('dialog', { name: 'Add competitor' })
     await userEvent.type(within(dialog).getByLabelText('Dancer'), 'Edna Fixable')
-    const club = within(dialog).getByLabelText('Club')
-    await userEvent.selectOptions(club, within(club).getAllByRole('option')[1])
+    const team = within(dialog).getByLabelText('Team')
+    await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
     await screen.findByText('Added Edna Fixable')
 
@@ -203,11 +203,11 @@ describe('editing and removing', () => {
 
   it('opens a read-only modal with every column when a row is clicked', async () => {
     renderApp('/secretariat/competitors', Role.Secretariat)
-    await screen.findByRole('columnheader', { name: 'Club' })
+    await screen.findByRole('columnheader', { name: 'Team' })
     await waitFor(() => expect(bodyRows()[0]).toHaveTextContent(/\d/))
     await userEvent.click(bodyRows()[0].querySelectorAll('td')[1])
     const dialog = await screen.findByRole('dialog')
-    for (const label of ['Back no.', 'Club', 'Entries']) {
+    for (const label of ['Back no.', 'Team', 'Entries']) {
       expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0)
     }
     expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument()
@@ -264,17 +264,17 @@ describe('late entries', () => {
     await waitFor(() => expect(bodyRows().length).toBe(before + 1))
   })
 
-  it('records a cash payment for a club that has not paid', async () => {
+  it('records a cash payment for a team that has not paid', async () => {
     renderApp('/secretariat/late-entries', Role.Secretariat)
     await userEvent.click(await screen.findByRole('tab', { name: 'Cash payments' }))
     const buttons = await screen.findAllByRole('button', { name: /^Mark .* paid at venue$/ })
-    const club = buttons[0].getAttribute('aria-label')!.replace(/^Mark | paid at venue$/g, '')
+    const team = buttons[0].getAttribute('aria-label')!.replace(/^Mark | paid at venue$/g, '')
 
     await userEvent.click(buttons[0])
     const dialog = await screen.findByRole('dialog', { name: /^Record / })
     await userEvent.click(within(dialog).getByRole('button', { name: 'Record payment' }))
-    expect(await screen.findByText(`${club} marked as paid at the venue`)).toBeInTheDocument()
-    await waitFor(() => expect(screen.queryByRole('button', { name: `Mark ${club} paid at venue` })).not.toBeInTheDocument())
+    expect(await screen.findByText(`${team} marked as paid at the venue`)).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('button', { name: `Mark ${team} paid at venue` })).not.toBeInTheDocument())
   })
 })
 
@@ -398,8 +398,8 @@ describe('a coach who has not paid', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
     const adding = await screen.findByRole('dialog', { name: 'Add competitor' })
     await userEvent.type(within(adding).getByLabelText('Dancer'), 'Coached Solo')
-    const club = within(adding).getByLabelText('Club')
-    await userEvent.selectOptions(club, within(club).getAllByRole('option')[1])
+    const team = within(adding).getByLabelText('Team')
+    await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await userEvent.selectOptions(within(adding).getByLabelText('Coach'), 'Ramon Villanueva')
     await userEvent.click(within(adding).getByRole('button', { name: 'Add competitor' }))
     await screen.findByText('Added Coached Solo')

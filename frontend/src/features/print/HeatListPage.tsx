@@ -35,7 +35,7 @@ export function HeatListPage() {
                       <tr>
                         <th className={`${th} w-16`}>No.</th>
                         <th className={th}>{event.isSolo ? 'Solo' : 'Couple'}</th>
-                        <th className={th}>Club</th>
+                        <th className={th}>Team</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -47,7 +47,7 @@ export function HeatListPage() {
                           <tr key={c?.id}>
                             <td className={`${td} ${num}`}>{c?.backNumber}</td>
                             <td className={td}>{c ? competitorName(c.names) : ''}</td>
-                            <td className={td}>{c?.clubName}</td>
+                            <td className={td}>{c?.teamName}</td>
                           </tr>
                         ))}
                     </tbody>

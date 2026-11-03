@@ -67,15 +67,15 @@ describe('before the competition', () => {
     expect(panel.adjudicatorIds).toHaveLength(5)
   })
 
-  it('the secretariat adds a club and ten dancers, and enters nine with their payments', async () => {
-    const team = await app.ok<{ id: string }>('saveClub', [{ name: 'Test Club', contactName: 'Coach', contactEmail: '', contactPhone: '' }], secretariat)
-    // Two clubs of the same name are refused
-    expect((await app.call('saveClub', [{ name: 'test club', contactName: '', contactEmail: '', contactPhone: '' }], secretariat)).status).toBe(409)
+  it('the secretariat adds a team and ten dancers, and enters nine with their payments', async () => {
+    const team = await app.ok<{ id: string }>('saveTeam', [{ name: 'Test Team', contactName: 'Coach', contactEmail: '', contactPhone: '' }], secretariat)
+    // Two teams of the same name are refused
+    expect((await app.call('saveTeam', [{ name: 'test team', contactName: '', contactEmail: '', contactPhone: '' }], secretariat)).status).toBe(409)
     const memberYear = Number(today.slice(0, 4))
     for (let i = 1; i <= 10; i++) {
       const dancer = await app.ok<{ id: string }>(
         'createCompetitor',
-        [{ names: [`Dancer ${i}`], clubId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear } }],
+        [{ names: [`Dancer ${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear } }],
         secretariat,
       )
       dancerIds.push(dancer.id)
@@ -89,9 +89,9 @@ describe('before the competition', () => {
   })
 
   it('the secretariat assigns back numbers and adds the late entry', async () => {
-    const details = await app.ok<Array<{ status: string; clubName: string; lines: unknown[] }>>('getPaymentDetails', [], admin)
+    const details = await app.ok<Array<{ status: string; teamName: string; lines: unknown[] }>>('getPaymentDetails', [], admin)
     expect(details).toHaveLength(9)
-    expect(details[0]).toMatchObject({ status: 'approved', clubName: 'Test Club' })
+    expect(details[0]).toMatchObject({ status: 'approved', teamName: 'Test Team' })
     expect(details[0]!.lines).toHaveLength(1)
 
     const late = await app.ok<{ entryId: string; fee: number; late: boolean }>('createLateEntry', [{ competitorId: dancerIds[9], eventId, paidInCash: true }], secretariat)

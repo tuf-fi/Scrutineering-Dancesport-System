@@ -10,7 +10,7 @@ import { SectionHead } from './SectionHead.tsx'
 
 const MAX_METHODS = 8
 
-// The parts of this page, each in its own place in the side menu. "accounts" is where clubs and athletes send payment.
+// The parts of this page, each in its own place in the side menu. "accounts" is where teams and athletes send payment.
 const SECTIONS = [
   { id: 'registration', label: 'Registration fees', icon: Receipt },
   { id: 'late', label: 'Late entry fees', icon: Clock },
@@ -117,7 +117,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
             </ul>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p role={failure ? 'alert' : undefined} className={failure ? 'text-small text-danger' : 'text-small text-neutral-500'}>
-                {failure ?? (!saved.fees ? 'Until the fees are saved, clubs cannot enter events.' : '')}
+                {failure ?? (!saved.fees ? 'Until the fees are saved, teams cannot enter events.' : '')}
               </p>
               <Button disabled={!valid || save.isPending} onClick={onSave}>
                 {save.isPending ? 'Saving…' : 'Save'}
@@ -130,7 +130,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
           <section className="flex flex-col gap-6">
             <SectionHead
               title="Payment accounts"
-              note="GCash, Maya or a bank. Clubs see these when they pay."
+              note="GCash, Maya or a bank. Teams see these when they pay."
               action={
                 <Button disabled={methods.length >= MAX_METHODS} onClick={() => setEditing('new')}>
                   Add a way to pay
@@ -138,7 +138,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
               }
             />
             {methods.length === 0 ? (
-              <EmptyState title="No payment accounts yet" description="Clubs see nothing to pay to until you add one." />
+              <EmptyState title="No payment accounts yet" description="Teams see nothing to pay to until you add one." />
             ) : (
               <ul aria-label="Payment accounts" className="border-y border-neutral-200">
                 {methods.map((m, i) => (
@@ -176,7 +176,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
         open={toRemove !== null}
         onClose={() => setToRemove(null)}
         title="Remove this way to pay?"
-        description={`${toRemove !== null ? (methods[toRemove]?.name ?? '') : ''} stops showing to clubs.`}
+        description={`${toRemove !== null ? (methods[toRemove]?.name ?? '') : ''} stops showing to teams.`}
         actions={
           <>
             <Button variant="ghost" onClick={() => setToRemove(null)}>

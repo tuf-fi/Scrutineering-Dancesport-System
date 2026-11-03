@@ -90,6 +90,11 @@ function startServer() {
   server.output = () => out
 }
 
+async function stopServer() {
+  server.kill()
+  await until('the server to stop', async () => !(await fetch(`${BASE}/api/health`).then(() => true).catch(() => false)), 15000)
+}
+
 // ---- API client with its own cookie ----
 class Api {
   cookie = ''
@@ -121,16 +126,19 @@ const staff = async (role) => {
 
 // ---- Browser helpers ----
 let browser
-async function open(options, label) {
+// `quiet` pages do not record console errors: a phone made to go offline logs failed requests on purpose
+async function open(options, label, quiet = false) {
   const ctx = await browser.newContext(options)
   const page = await ctx.newPage()
   page.setDefaultTimeout(15000)
+  if (!quiet) {
   page.on('pageerror', (e) => browserIssues.push(`${label}: page error: ${e.message.slice(0, 160)}`))
   page.on('console', (m) => m.type() === 'error' && browserIssues.push(`${label}: console: ${m.text().slice(0, 160)}`))
   page.on('response', (r) => {
     const u = r.url()
     if (u.startsWith(BASE) && r.status() >= 400 && !u.endsWith('/api/auth/me')) browserIssues.push(`${label}: HTTP ${r.status()} ${u.replace(BASE, '')}`)
   })
+  }
   return { ctx, page }
 }
 const text = async (page) => (await page.locator('main').first().innerText()).replace(/\n+/g, ' | ')
@@ -144,8 +152,8 @@ const staffSignIn = async (page, role) => {
 
 // Marks one round on one phone: signs in with the PIN, picks, reviews, signs, finalizes. `choose` gets the back numbers
 // on the sheet, in order, and how many to mark (X marks) or null for a final, and returns the back numbers to tap.
-async function markOnPhone(letter, roundType, choose) {
-  const { ctx, page } = await open(PHONE, `adjudicator ${letter}`)
+async function markOnPhone(letter, roundType, choose, hooks = {}) {
+  const { ctx, page } = await open(PHONE, `adjudicator ${letter}`, hooks.quiet)
   try {
     await page.goto(`${BASE}/adjudicator`)
     await page.getByRole('button', { name: '1', exact: true }).waitFor()
@@ -174,7 +182,12 @@ async function markOnPhone(letter, roundType, choose) {
     await page.mouse.down()
     for (let i = 1; i <= 12; i++) await page.mouse.move(box.x + 20 + (i * (box.width - 40)) / 12, box.y + box.height / 2 + (i % 2 ? -18 : 18))
     await page.mouse.up()
+    await hooks.beforeFinalize?.(page, ctx)
     await page.getByRole('button', { name: 'Finalize' }).click()
+    if (hooks.afterFinalize) {
+      await hooks.afterFinalize(page, ctx, picks)
+      return picks
+    }
     await page.waitForURL((u) => u.pathname.endsWith('/submitted'))
     // The phone shows Submitted as soon as its marks are saved and sends them just after: wait for the server to have them
     const board = await staff('scrutineer')
@@ -263,7 +276,7 @@ async function main() {
     }
   })
 
-  await step('1b. Public data: competitions, events, results, clubs without contact details', async () => {
+  await step('1b. Public data: competitions, events, results, teams without contact details', async () => {
     const api = new Api()
     const comps = await api.call('getCompetitions')
     expect(comps.length >= 3, 'fewer than three competitions')
@@ -272,8 +285,8 @@ async function main() {
     const known = ['juvenile_1', 'juvenile_2', 'junior_1', 'junior_2', 'youth', 'adult', 'senior']
     const unknown = (await api.call('getEvents')).filter((e) => !known.includes(e.ageGroup))
     expect(unknown.length === 0, `${unknown.length} events have an unknown age group`)
-    const clubs = await api.call('getClubs')
-    expect(clubs.length > 0 && clubs.every((c) => c.contactEmail === ''), 'a public club list shows contact details')
+    const teams = await api.call('getTeams')
+    expect(teams.length > 0 && teams.every((c) => c.contactEmail === ''), 'a public team list shows contact details')
     let events_with_results = 0
     for (const c of comps) {
       for (const id of await api.call('getResultEventIds', c.id)) {
@@ -381,7 +394,7 @@ async function main() {
       await staffSignIn(page, 'secretariat')
       await page.goto(`${BASE}/secretariat/late-entries`)
       await page.getByRole('tab', { name: 'Cash payments' }).or(page.getByRole('button', { name: 'Cash payments' })).first().click()
-      await page.getByRole('button', { name: `Mark ${owed[0].clubName} paid at venue` }).click()
+      await page.getByRole('button', { name: `Mark ${owed[0].teamName} paid at venue` }).click()
       await page.getByRole('dialog').getByRole('button', { name: /paid|confirm|record/i }).last().click()
       await until('the first payment to be recorded', async () => (await api.call('getPaymentDetails')).find((p) => p.id === owed[0].id)?.status === 'paid_at_venue')
     } finally {
@@ -510,7 +523,7 @@ async function main() {
       await page.getByLabel('Contact no.').fill('09171234567')
       await page.getByLabel('Province').fill('Sorsogon')
       await page.getByLabel('Address').fill('12 Rizal St, Sorsogon City')
-      await page.getByLabel('Club').selectOption({ index: 1 })
+      await page.getByLabel('Team').selectOption({ index: 1 })
       await page.getByRole('button', { name: 'Save details' }).click()
       await sleep(1200)
       const api = new Api()
@@ -628,13 +641,14 @@ async function main() {
       await page.getByRole('button', { name: 'Add competitor' }).first().click()
       const dialog = page.getByRole('dialog')
       await dialog.getByRole('textbox', { name: 'Dancer', exact: true }).fill('Direct Dancer')
-      await dialog.getByLabel('Club').selectOption({ index: 1 })
+      await dialog.getByLabel('Team').selectOption({ index: 1 })
       for (const [label, value] of [['Province', 'Sorsogon'], ['Date of birth', '2012-05-05'], ['Contact no.', '09170001111'], ['Address', '1 Test St']]) {
         const field = dialog.getByLabel(label)
         if (await field.count()) await field.first().fill(value)
       }
       await dialog.getByRole('button', { name: 'Add competitor' }).click()
       direct = await until('the new dancer', async () => (await api.call('getCompetitorRows')).find((c) => c.names.join(' ') === 'Direct Dancer'))
+      await dialog.waitFor({ state: 'hidden' })
       await page.locator('tbody tr').nth(1).waitFor()
       await page.getByLabel('Search competitors').fill('Direct Dancer')
       const row = page.locator('tr', { hasText: 'Direct Dancer' }).first()
@@ -802,6 +816,59 @@ async function main() {
     }
     expect(numbers.slice(2).every((n, i) => place(n).place === i + 3), 'the couples below the tie are not 3rd, 4th, 5th')
     return 'shared 1st to 2nd, then 3rd to 5th'
+  })
+
+  // ---------------------------------------------------------------- 14. A bad connection and a restarted server, mid-round
+  // Two adjudicators on a small event: the first loses her connection while finalizing, the second finalizes while the
+  // server is down. Both must end with their marks on the server exactly once, and the second must still be signed in.
+  const E4 = `${COMP}:e4`
+  const FINAL4 = `${E4}:final`
+  let placed4 = 0
+  const marksOf4 = async (letter) => (await (await staff('scrutineer')).call('getMarks', FINAL4)).filter((m) => m.adjudicatorId === `adj-${letter.toLowerCase()}`).length
+  await step('14a. A phone loses its connection while finalizing: it says so, holds the marks, and sends them once when the connection is back', async () => {
+    await setUpEvent(E4, ['A', 'B'])
+    await startRound(FINAL4, 'Final', 'E4')
+    await markOnPhone('A', FINAL4, (list) => ((placed4 = list.length), list), {
+      quiet: true,
+      beforeFinalize: async (page, ctx) => ctx.setOffline(true),
+      afterFinalize: async (page, ctx) => {
+        await page.getByRole('heading', { name: 'Saved, sending…' }).waitFor()
+        expect(/No connection/.test(await page.locator('main').innerText()), 'the phone does not say there is no connection')
+        expect((await marksOf4('A')) === 0, 'marks reached the server while the phone was offline')
+        await ctx.setOffline(false)
+        await page.getByRole('heading', { name: 'Submitted' }).waitFor({ timeout: 30000 })
+        await sleep(1500)
+        expect((await marksOf4('A')) === placed4, `expected ${placed4} marks once, the server has ${await marksOf4('A')}`)
+      },
+    })
+    return `${placed4} marks held, then stored once`
+  })
+
+  await step('14b. The server stops while a phone finalizes: the phone holds its marks, sends them by itself after the restart, stays signed in, and nothing is doubled', async () => {
+    const before = await staff('scrutineer')
+    const outage = browserIssues.length
+    await markOnPhone('B', FINAL4, (list) => list, {
+      quiet: true,
+      beforeFinalize: async () => stopServer(),
+      afterFinalize: async (page) => {
+        await page.getByRole('heading', { name: 'Saved, sending…' }).waitFor()
+        startServer()
+        await until('the server to come back', async () => (await fetch(`${BASE}/api/health`).catch(() => null))?.ok, 40000)
+        await page.getByRole('heading', { name: 'Submitted' }).waitFor({ timeout: 60000 })
+        await sleep(1500)
+        expect(page.url().endsWith('/adjudicator/submitted'), `the phone is on ${page.url()}, not signed in on its confirmation`)
+      },
+    })
+    // Pages left open while the server was down log that their connection was refused: expected, so dropped, and only those
+    for (let i = browserIssues.length - 1; i >= outage; i--) if (/ERR_CONNECTION_REFUSED|WebSocket connection/.test(browserIssues[i])) browserIssues.splice(i, 1)
+    expect((await marksOf4('B')) === placed4, `expected ${placed4} marks once, the server has ${await marksOf4('B')}`)
+    // A session from before the restart still works: the secret is kept in the database
+    const me = await before.raw('getCurrentRoundId')
+    expect(me.status === 200, `the scrutineer was signed out by the restart (HTTP ${me.status})`)
+    await approveAndPublish(FINAL4)
+    const results = await new Api().call('getResults', E4)
+    expect(results.length === placed4 && results.every((r) => r.place >= 1), 'the final of E4 has the wrong number of results')
+    return `${placed4} marks stored once, session survived the restart`
   })
 
   await step('7. Every role opens its screens with no console errors, failed calls, blank pages or overflow', async () => {

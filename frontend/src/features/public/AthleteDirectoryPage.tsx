@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useClubs, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import { AGE_GROUP_LABEL, competitorName } from '../../lib/format.ts'
@@ -15,13 +15,13 @@ const COLS = 'lg:grid-cols-[minmax(0,1.6fr)_8rem_minmax(0,1fr)_5rem_1.5rem]'
 // Everyone who has danced here, with the age group they have scored the most points in
 export function AthleteDirectoryPage() {
   const competitors = useCompetitors()
-  const clubs = useClubs()
+  const teams = useTeams()
   const points = useRankingPoints()
   const [query, setQuery] = useState('')
   const [ageGroup, setAgeGroup] = useState('all')
 
   const rows = useMemo(() => {
-    const clubById = new Map((clubs.data ?? []).map((c) => [c.id, c.name]))
+    const teamById = new Map((teams.data ?? []).map((c) => [c.id, c.name]))
     const byAthlete = new Map<string, { total: number; byAge: Map<AgeGroup, number> }>()
     for (const p of points.data ?? []) {
       const entry = byAthlete.get(p.competitorId) ?? { total: 0, byAge: new Map<AgeGroup, number>() }
@@ -33,24 +33,24 @@ export function AthleteDirectoryPage() {
       .map((c) => {
         const scored = byAthlete.get(c.id)
         const age = scored ? [...scored.byAge].sort((a, b) => b[1] - a[1])[0]?.[0] : undefined
-        return { competitor: c, club: clubById.get(c.clubId), age, total: scored?.total ?? 0 }
+        return { competitor: c, team: teamById.get(c.teamId), age, total: scored?.total ?? 0 }
       })
       .sort((a, b) => competitorName(a.competitor.names).localeCompare(competitorName(b.competitor.names)))
-  }, [competitors.data, clubs.data, points.data])
+  }, [competitors.data, teams.data, points.data])
 
   const needle = query.trim().toLowerCase()
   const visible = rows.filter(
     (r) =>
       (ageGroup === 'all' || r.age === ageGroup) &&
-      (!needle || `${competitorName(r.competitor.names)} ${r.club ?? ''} `.toLowerCase().includes(needle)),
+      (!needle || `${competitorName(r.competitor.names)} ${r.team ?? ''} `.toLowerCase().includes(needle)),
   )
   const { page, setPage, pageSize, total, pageItems } = usePagination(visible, `${ageGroup}|${needle}`)
 
-  if (competitors.isError || clubs.isError || points.isError) {
-    return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), clubs.refetch(), points.refetch()])} />
+  if (competitors.isError || teams.isError || points.isError) {
+    return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), teams.refetch(), points.refetch()])} />
   }
 
-  const loading = competitors.isLoading || clubs.isLoading || points.isLoading
+  const loading = competitors.isLoading || teams.isLoading || points.isLoading
 
   return (
     <div className="flex flex-col gap-8">
@@ -61,7 +61,7 @@ export function AthleteDirectoryPage() {
         aside={
           <HeaderStats>
             <HeaderStat value={loading ? '–' : rows.length} label="Athletes" />
-            <HeaderStat value={loading ? '–' : new Set((clubs.data ?? []).map((c) => c.id)).size} label="Clubs" />
+            <HeaderStat value={loading ? '–' : new Set((teams.data ?? []).map((c) => c.id)).size} label="Teams" />
           </HeaderStats>
         }
       />
@@ -95,7 +95,7 @@ export function AthleteDirectoryPage() {
         ) : visible.length === 0 ? (
           <EmptyState
             title={needle || ageGroup !== 'all' ? 'No athletes match' : 'No athletes yet'}
-            description={needle || ageGroup !== 'all' ? 'Try a different name, club or age group.' : 'Athletes appear here once they are entered in a competition.'}
+            description={needle || ageGroup !== 'all' ? 'Try a different name, team or age group.' : 'Athletes appear here once they are entered in a competition.'}
           />
         ) : (
           <div>
@@ -126,12 +126,12 @@ export function AthleteDirectoryPage() {
                         {competitorName(r.competitor.names)}
                       </Link>
                       <span className="truncate text-small text-neutral-600 lg:hidden">
-                        {[r.club, r.age && AGE_GROUP_LABEL[r.age]].filter(Boolean).join(' / ')}
+                        {[r.team, r.age && AGE_GROUP_LABEL[r.age]].filter(Boolean).join(' / ')}
                       </span>
                     </div>
                   </div>
                   <span className="hidden text-small text-neutral-700 lg:block">{r.age ? AGE_GROUP_LABEL[r.age] : '–'}</span>
-                  <span className="hidden truncate text-small text-neutral-600 lg:block">{r.club}</span>
+                  <span className="hidden truncate text-small text-neutral-600 lg:block">{r.team}</span>
                   <span className="flex items-baseline justify-self-end">
                     <span className="text-[1.25rem] font-semibold leading-none tracking-[-0.03em] tabular-nums text-neutral-900">{r.total}</span>
                   </span>

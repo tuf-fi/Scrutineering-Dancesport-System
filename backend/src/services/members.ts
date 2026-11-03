@@ -29,12 +29,12 @@ export function createMember(ctx: Ctx, role: 'coach' | 'team', input: AthleteSig
 
 const mine = (ctx: Ctx) => found(ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, actor(ctx).id)).get(), 'Account')
 
-// The name of the coach or club record an account of this kind can stand for
+// The name of the coach or team record an account of this kind can stand for
 function recordName(ctx: Ctx, role: 'coach' | 'team', id: string): string | null {
   const row =
     role === 'coach'
       ? ctx.db.select({ name: t.coaches.name }).from(t.coaches).where(eq(t.coaches.id, id)).get()
-      : ctx.db.select({ name: t.clubs.name }).from(t.clubs).where(eq(t.clubs.id, id)).get()
+      : ctx.db.select({ name: t.teams.name }).from(t.teams).where(eq(t.teams.id, id)).get()
   return row?.name ?? null
 }
 
@@ -58,12 +58,12 @@ function toAccount(ctx: Ctx, row: typeof t.memberAccounts.$inferSelect): MemberA
 
 export const getMyMember = (ctx: Ctx): MemberAccount => toAccount(ctx, mine(ctx))
 
-// Asks to be linked to a coach or club record; the secretariat decides
+// Asks to be linked to a coach or team record; the secretariat decides
 export function claimRecord(ctx: Ctx, targetId: string): MemberAccount {
   const row = mine(ctx)
   if (row.linkedId) return fail('Your account is already linked.', 409)
   const name = typeof targetId === 'string' ? recordName(ctx, row.role, targetId) : null
-  if (name === null) return fail(row.role === 'team' ? 'Choose your club from the list.' : 'Choose your name from the list of coaches.')
+  if (name === null) return fail(row.role === 'team' ? 'Choose your team from the list.' : 'Choose your name from the list of coaches.')
   const values = { claimId: targetId, claimedAt: now() }
   ctx.db.update(t.memberAccounts).set(values).where(eq(t.memberAccounts.id, row.id)).run()
   record(ctx.db, row.id, 'Asked to be linked to a record', row.name, { after: { claimId: targetId } })
@@ -84,7 +84,7 @@ export function getMyRoster(ctx: Ctx): MemberRoster {
   const empty: MemberRoster = { rows: [], payments: [], membership: null }
   if (!row.linkedId) return empty
 
-  const clubs = new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
+  const teams = new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
   const competitors = memberCompetitors(ctx)
   const ids = competitors.map((c) => c.id)
   const entryCounts = new Map<string, number>()
@@ -94,7 +94,7 @@ export function getMyRoster(ctx: Ctx): MemberRoster {
     }
   }
   const rows = competitors
-    .map((c) => ({ competitorId: c.id, names: c.names, backNumber: c.backNumber, clubName: clubs.get(c.clubId) ?? '', entries: entryCounts.get(c.id) ?? 0 }))
+    .map((c) => ({ competitorId: c.id, names: c.names, backNumber: c.backNumber, teamName: teams.get(c.teamId) ?? '', entries: entryCounts.get(c.id) ?? 0 }))
     .sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? ''))
 
   if (row.role === 'coach') {
@@ -105,7 +105,7 @@ export function getMyRoster(ctx: Ctx): MemberRoster {
   const payments = ctx.db
     .select()
     .from(t.payments)
-    .where(and(eq(t.payments.clubId, row.linkedId), isNotNull(t.payments.competitionId)))
+    .where(and(eq(t.payments.teamId, row.linkedId), isNotNull(t.payments.competitionId)))
     .all()
         .map((p) => ({ id: p.id, competitionName: competitions.get(p.competitionId ?? '')?.name ?? '', date: competitions.get(p.competitionId ?? '')?.date ?? '', amountDue: p.amountDue, amountPaid: p.amountPaid, status: p.status }))
     // Newest competition first
@@ -212,7 +212,7 @@ export function signOutMember(ctx: Ctx): void {
   record(ctx.db, row.id, 'Signed out everywhere', row.name)
 }
 
-// The competitors a linked account stands for: a team's club, or the dancers who name the coach
+// The competitors a linked account stands for: a team's team, or the dancers who name the coach
 export function memberCompetitors(ctx: Ctx) {
   const row = mine(ctx)
   if (!row.linkedId) return []
@@ -220,5 +220,5 @@ export function memberCompetitors(ctx: Ctx) {
     .select()
     .from(t.competitors)
     .all()
-    .filter((c) => (row.role === 'team' ? c.clubId === row.linkedId : c.details?.coachId === row.linkedId))
+    .filter((c) => (row.role === 'team' ? c.teamId === row.linkedId : c.details?.coachId === row.linkedId))
 }

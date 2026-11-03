@@ -41,7 +41,7 @@ beforeAll(async () => {
   }
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
-  app.db.insert(t.clubs).values({ id: 'club-1', name: 'Naga Dancers', contactName: 'Coach', contactEmail: 'c@test.example', contactPhone: '1' }).run()
+  app.db.insert(t.teams).values({ id: 'team-1', name: 'Naga Dancers', contactName: 'Coach', contactEmail: 'c@test.example', contactPhone: '1' }).run()
   competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT' }], admin)).id
   const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
   await make('juv1', event(1))
@@ -54,7 +54,7 @@ afterAll(() => app.close())
 
 describe('coach fees and memberships paid later', () => {
   it('adds the coach fees when asked, and records every membership once the payment is paid', async () => {
-    const made = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Dan Gil'], clubId: 'club-1', details: details() }], secretariat)
+    const made = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Dan Gil'], teamId: 'team-1', details: details() }], secretariat)
     const asked = await app.ok<RegistrationQuote>('quoteRegistration', [made.id, [events.juv1], { membership: true, summit: true }], secretariat)
     expect(asked.coach).toEqual({ name: 'Coach Lito', membershipDue: true, summitDue: true })
     expect(asked.lines.map((l) => [l.label, l.amount])).toEqual([
@@ -93,7 +93,7 @@ describe('the fee schedule, deadlines and the beginners rule', () => {
     const bad = { ...DEFAULT_FEE_SCHEDULE, fixed: -5 }
     expect((await app.call('savePaymentSettings', [{ fees: { solo: 500, couple: 800 }, methods: [], schedule: bad }], admin)).error).toMatch(/whole pesos/)
 
-    const dancer = (await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Pat Ong'], clubId: 'club-1', details: details({ memberYear: 2026 }) }], secretariat)).id
+    const dancer = (await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Pat Ong'], teamId: 'team-1', details: details({ memberYear: 2026 }) }], secretariat)).id
     expect((await app.ok<RegistrationQuote>('quoteRegistration', [dancer, [events.juv1, events.juv2]], secretariat)).total).toBe(600)
     await app.ok('savePaymentSettings', [{ fees: { solo: 500, couple: 800 }, methods: [], schedule: DEFAULT_FEE_SCHEDULE }], admin)
   })
@@ -116,7 +116,7 @@ describe('the fee schedule, deadlines and the beginners rule', () => {
       .insert(t.events)
       .values({ id: 'earlier-bgb', competitionId: 'earlier', number: 4, position: 1, ageGroup: 'juvenile_1', class: 'C', discipline: 'latin', dances: ['cha_cha_cha'], isSolo: true, kind: 'bgb' })
       .run()
-    const ben = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Ben Diaz'], clubId: 'club-1', details: details({ beginner: true }) }], secretariat)
+    const ben = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Ben Diaz'], teamId: 'team-1', details: details({ beginner: true }) }], secretariat)
     app.db.insert(t.results).values({ id: 'r1', eventId: 'earlier-bgb', competitorId: ben.id, place: 2, placeFrom: 2, placeTo: 2, stage: 'final', approvedBy: 's2', approvedAt: '2026-09-06T10:00:00Z' }).run()
     const quote = await app.ok<RegistrationQuote>('quoteRegistration', [ben.id, [events.bgb]], secretariat)
     expect(quote.warnings.join(' ')).toMatch(/E4: placed 2nd in this event at 3rd Quarter/)
@@ -129,7 +129,7 @@ describe('the fee schedule, deadlines and the beginners rule', () => {
 describe('importing the entry form columns', () => {
   it('reads province, coach, beginner and each dancer’s details, and skips a bad row', async () => {
     const csv = [
-      'Dancer,Partner,Club,Province,Coach,Beginner,Dancer birth date,Dancer contact no.,Dancer email,Dancer address,Partner birth date',
+      'Dancer,Partner,Team,Province,Coach,Beginner,Dancer birth date,Dancer contact no.,Dancer email,Dancer address,Partner birth date',
       'Eli Lopez,Mia Lopez,Naga Dancers,Albay,Coach Lito,yes,2012-05-04,0917,e@x.example,Legazpi,2013-01-09',
       'Zed,,Naga Dancers,Albay,Nobody,,,,,',
       'Old,,Naga Dancers,,,,4 May 2012,,,',
@@ -151,8 +151,8 @@ describe('closed events', () => {
     const id = (await app.ok<{ id: string; province?: string }>('saveEvent', [competitionId, { ...closed, province: ' Camarines Sur ' }], secretariat))
     expect(id.province).toBe('Camarines Sur')
 
-    const local = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Eli Ong'], clubId: 'club-1', details: details({ province: 'camarines sur' }) }], secretariat)
-    const visitor = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Fay Uy'], clubId: 'club-1', details: details({ province: 'Albay' }) }], secretariat)
+    const local = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Eli Ong'], teamId: 'team-1', details: details({ province: 'camarines sur' }) }], secretariat)
+    const visitor = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Fay Uy'], teamId: 'team-1', details: details({ province: 'Albay' }) }], secretariat)
     expect((await app.ok<RegistrationQuote>('quoteRegistration', [local.id, [id.id]], secretariat)).warnings.join(' ')).not.toMatch(/closed to/)
     expect((await app.ok<RegistrationQuote>('quoteRegistration', [visitor.id, [id.id]], secretariat)).warnings.join(' ')).toMatch(/E9 is closed to Camarines Sur.*Albay/)
 

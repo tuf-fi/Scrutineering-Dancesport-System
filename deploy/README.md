@@ -13,7 +13,7 @@ You need a small server with Docker, and a domain name pointing at it. Ports 80 
 3. Start it: `docker compose up -d --build`. Caddy gets the HTTPS certificate on its own.
 4. Create the first admin: `docker compose exec app node_modules/.bin/tsx src/db/create-admin-cli.ts <email> "<Full name>"`. It prints a password; sign in and change it.
 5. Check `https://<DOMAIN>/api/health`. It should say `"status":"ok"`.
-6. Sign in as the admin and open **Fees and payment details**. Until the fees are saved, clubs cannot enter events.
+6. Sign in as the admin and open **Fees and payment details**. Until the fees are saved, teams cannot enter events.
 
 ## Settings
 
@@ -70,7 +70,7 @@ Run staging on its own server, never next to production: the compose file uses p
 
 1. Create a second server and point a subdomain at it (for example `staging.<domain>`).
 2. Follow "Set up (once)", but copy `staging.env.example` to `.env` instead of `.env.example`.
-3. Use fake clubs and athletes only. Use PayMongo test keys, never live ones.
+3. Use fake teams and athletes only. Use PayMongo test keys, never live ones.
 4. Update it like production (`git pull`, then `docker compose up -d --build`) and test every change here first.
 
 ## Notes

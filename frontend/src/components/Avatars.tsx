@@ -11,7 +11,7 @@ const SIZES = {
   xxl: 'size-20 text-[1.5rem] sm:size-24',
 } as const
 
-// Initials in a circle for a person, a club or a competition; overlapping for a couple. There are no photos yet.
+// Initials in a circle for a person, a team or a competition; overlapping for a couple. There are no photos yet.
 export function Avatars({ names, size = 'md', photo }: { names: string[]; size?: keyof typeof SIZES; photo?: string | null }) {
   if (photo) return <img src={photo} alt="" aria-hidden className={cn('shrink-0 rounded-full object-cover', SIZES[size])} />
   const overlapping = names.length > 1

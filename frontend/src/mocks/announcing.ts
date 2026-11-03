@@ -1,5 +1,5 @@
 import { type Announcement, type Event, type Round, RoundType } from '@bis/shared'
-import { clubs } from './data/clubs.ts'
+import { teams } from './data/teams.ts'
 import { competitors } from './data/competitors.ts'
 import { completedEvent, featuredEvent } from './data/events.ts'
 import { heats, rounds } from './data/progress.ts'
@@ -73,7 +73,7 @@ export function announcements(): Announcement[] {
           place: r.place,
           backNumber: dancer?.backNumber ?? null,
           names: dancer?.names ?? [],
-          clubName: clubs.find((c) => c.id === dancer?.clubId)?.name ?? '',
+          teamName: teams.find((c) => c.id === dancer?.teamId)?.name ?? '',
         },
       })
     }

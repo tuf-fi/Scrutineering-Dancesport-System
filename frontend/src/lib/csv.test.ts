@@ -3,18 +3,18 @@ import { parseCompetitorCsv } from './csv.ts'
 
 describe('parseCompetitorCsv', () => {
   it('reads solo and couple rows and skips the header and blank lines', () => {
-    const rows = parseCompetitorCsv('Dancer 1,Dancer 2,Club\r\nMia Cruz,,Naga Dance Academy\n\nAna Uy, Leo Co ,Legazpi Ballroom Club\n')
+    const rows = parseCompetitorCsv('Dancer 1,Dancer 2,Team\r\nMia Cruz,,Naga Dance Academy\n\nAna Uy, Leo Co ,Legazpi Ballroom Club\n')
     expect(rows).toEqual([
-      { names: ['Mia Cruz'], clubName: 'Naga Dance Academy' },
-      { names: ['Ana Uy', 'Leo Co'], clubName: 'Legazpi Ballroom Club' },
+      { names: ['Mia Cruz'], teamName: 'Naga Dance Academy' },
+      { names: ['Ana Uy', 'Leo Co'], teamName: 'Legazpi Ballroom Club' },
     ])
   })
 
   it('keeps commas, quotes and line breaks inside quoted fields', () => {
-    const rows = parseCompetitorCsv('"Cruz, Mia",,"Naga ""Elite"", Dance Academy"\n"Ana\nUy",Leo Co,Club')
+    const rows = parseCompetitorCsv('"Cruz, Mia",,"Naga ""Elite"", Dance Academy"\n"Ana\nUy",Leo Co,Team')
     expect(rows).toEqual([
-      { names: ['Cruz, Mia'], clubName: 'Naga "Elite", Dance Academy' },
-      { names: ['Ana\nUy', 'Leo Co'], clubName: 'Club' },
+      { names: ['Cruz, Mia'], teamName: 'Naga "Elite", Dance Academy' },
+      { names: ['Ana\nUy', 'Leo Co'], teamName: 'Team' },
     ])
   })
 

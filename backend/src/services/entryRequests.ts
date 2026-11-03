@@ -14,7 +14,7 @@ const normal = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace
 
 type Requester = { id: string; role: 'team' | 'athlete'; name: string }
 
-// Who is asking, and which dancers they may enter: a team its club's dancers, an athlete the couples and solos that carry their name
+// Who is asking, and which dancers they may enter: a team its team's dancers, an athlete the couples and solos that carry their name
 function requester(ctx: Ctx): Requester {
   const user = actor(ctx)
   if (user.role === Role.Team) return { id: user.id, role: 'team', name: user.name }
@@ -28,7 +28,7 @@ function mayEnter(ctx: Ctx, who: Requester, competitor: typeof t.competitors.$in
     return competitor.names.some((n) => normal(n) === me)
   }
   const member = ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, who.id)).get()
-  return Boolean(member?.linkedId) && competitor.clubId === member?.linkedId
+  return Boolean(member?.linkedId) && competitor.teamId === member?.linkedId
 }
 
 function mine(ctx: Ctx, competitorId: string) {
@@ -77,7 +77,7 @@ export const entryRequests = {
   // The dancers and couples the signed-in team or athlete may enter
   getMyEntrants(ctx: Ctx): MemberRosterRow[] {
     const who = requester(ctx)
-    const clubs = new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
+    const teams = new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
     const counts = new Map<string, number>()
     for (const e of ctx.db.select().from(t.entries).where(eq(t.entries.scratched, false)).all()) counts.set(e.competitorId, (counts.get(e.competitorId) ?? 0) + 1)
     return ctx.db
@@ -85,7 +85,7 @@ export const entryRequests = {
       .from(t.competitors)
       .all()
       .filter((c) => mayEnter(ctx, who, c))
-      .map((c) => ({ competitorId: c.id, names: c.names, ageGroup: c.ageGroup, backNumber: c.backNumber, clubName: clubs.get(c.clubId) ?? '', entries: counts.get(c.id) ?? 0 }))
+      .map((c) => ({ competitorId: c.id, names: c.names, ageGroup: c.ageGroup, backNumber: c.backNumber, teamName: teams.get(c.teamId) ?? '', entries: counts.get(c.id) ?? 0 }))
       .sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? ''))
   },
 

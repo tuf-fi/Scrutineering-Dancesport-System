@@ -2,7 +2,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, Skeleton } from '../../components/ui/index.ts'
-import { useClubs, useCompetitors, useResults } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useResults } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { useRevealRow } from '../../hooks/useRevealRow.ts'
 import { cn } from '../../lib/cn.ts'
@@ -12,18 +12,18 @@ import { competitorName, placeLabel, placeRange } from '../../lib/format.ts'
 export function ResultsTable({ eventId }: { eventId: string }) {
   const results = useResults(eventId)
   const people = useCompetitors()
-  const clubs = useClubs()
+  const teams = useTeams()
 
   const byId = new Map((people.data ?? []).map((c) => [c.id, c]))
-  const clubName = new Map((clubs.data ?? []).map((c) => [c.id, c.name]))
+  const teamName = new Map((teams.data ?? []).map((c) => [c.id, c.name]))
   const rows = [...(results.data ?? [])].sort((a, b) => a.place - b.place || (byId.get(a.competitorId)?.backNumber ?? 0) - (byId.get(b.competitorId)?.backNumber ?? 0))
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, eventId)
 
-  const revealed = useRevealRow(rows, (r) => r.competitorId, pageSize, setPage, !results.isLoading && !people.isLoading && !clubs.isLoading)
+  const revealed = useRevealRow(rows, (r) => r.competitorId, pageSize, setPage, !results.isLoading && !people.isLoading && !teams.isLoading)
 
   if (results.isError) return <ErrorState onRetry={() => void results.refetch()} />
 
-  const loading = results.isLoading || people.isLoading || clubs.isLoading
+  const loading = results.isLoading || people.isLoading || teams.isLoading
 
   return (
     <section aria-labelledby="placings" className="flex flex-col gap-4">
@@ -69,7 +69,7 @@ export function ResultsTable({ eventId }: { eventId: string }) {
                     >
                       {competitorName(c?.names ?? [])}
                     </Link>
-                    <span className="truncate text-small text-neutral-600">{c ? clubName.get(c.clubId) : ''}</span>
+                    <span className="truncate text-small text-neutral-600">{c ? teamName.get(c.teamId) : ''}</span>
                   </div>
                 </div>
 

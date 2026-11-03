@@ -10,7 +10,7 @@ export interface CompetitorCsvDetails {
 
 export interface CompetitorCsvRow {
   names: string[]
-  clubName: string
+  teamName: string
   details?: CompetitorCsvDetails
 }
 
@@ -56,14 +56,14 @@ export function parseCsv(text: string): string[][] {
   return rows
 }
 
-// Reads "Dancer, Partner, Club" lines; the partner is empty for a solo dancer. Further columns follow the entry form:
+// Reads "Dancer, Partner, Team" lines; the partner is empty for a solo dancer. Further columns follow the entry form:
 // Province, Coach, Beginner (yes or no), then for the dancer and for the partner: Date of birth, Contact no.,
 // Email, Address.
 export function parseCompetitorCsv(text: string): CompetitorCsvRow[] {
   const rows = parseCsv(text)
   if (rows[0]?.[0]?.toLowerCase().startsWith('dancer')) rows.shift()
   return rows.map((cells) => {
-    const [first = '', second = '', club = '', province = '', coachName = '', beginner = ''] = cells
+    const [first = '', second = '', team = '', province = '', coachName = '', beginner = ''] = cells
     const names = [first, second].filter(Boolean)
     const dancer = (from: number): DancerDetails => ({
       birthDate: cells[from] ?? '',
@@ -71,7 +71,7 @@ export function parseCompetitorCsv(text: string): CompetitorCsvRow[] {
       email: cells[from + 2] ?? '',
       address: cells[from + 3] ?? '',
     })
-    const row: CompetitorCsvRow = { names, clubName: club }
+    const row: CompetitorCsvRow = { names, teamName: team }
     if (cells.slice(3).some((c) => c !== '')) {
       row.details = {
         province,

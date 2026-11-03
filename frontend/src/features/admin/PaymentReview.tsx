@@ -19,7 +19,7 @@ export function PaymentReview({ payment, onClose }: { payment: PaymentDetail; on
     <Drawer
       open
       onClose={onClose}
-      title={payment.clubName}
+      title={payment.teamName}
       meta={<PaymentStatusBadge status={payment.status} />}
       footer={<p className="text-small text-neutral-600">{note}</p>}
     >

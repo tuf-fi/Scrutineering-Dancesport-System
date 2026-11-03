@@ -91,13 +91,13 @@ describe('the admin edits the points table', () => {
 
 describe('secretariat', () => {
   it('imports competitors from a CSV the server reads itself, including quoted commas', async () => {
-    const clubs = await app.ok<Array<{ name: string }>>('getClubs', [], secretariat)
-    const club = clubs[0]!.name
-    const csv = ['Dancer 1,Dancer 2,Club', `"Cruz, Mia",,"${club}"`, `Ana Uy, Leo Co ,${club}`, `Nobody,,Unknown Club`, `,,${club}`, ''].join('\r\n')
+    const teams = await app.ok<Array<{ name: string }>>('getTeams', [], secretariat)
+    const team = teams[0]!.name
+    const csv = ['Dancer 1,Dancer 2,Team', `"Cruz, Mia",,"${team}"`, `Ana Uy, Leo Co ,${team}`, `Nobody,,Unknown Team`, `,,${team}`, ''].join('\r\n')
     const result = await app.ok<ImportResult>('importCompetitorsCsv', [csv], secretariat)
     expect(result.created).toBe(2)
     expect(result.skipped).toEqual([
-      { line: 4, reason: 'Unknown club "Unknown Club".' },
+      { line: 4, reason: 'Unknown team "Unknown Team".' },
       { line: 5, reason: 'A competitor is one dancer or a couple.' },
     ])
     const rows = await app.ok<CompetitorRow[]>('getCompetitorRows', [], secretariat)

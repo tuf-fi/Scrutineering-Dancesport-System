@@ -12,7 +12,7 @@ The pilot runs BIS at a real competition while the current method (paper sheets 
 
 - [ ] Online server running on its real address (deploy/README.md). Admin account created, fees and payment details entered.
 - [ ] One team entered by the secretariat and paid, end to end. No Facebook Page or Meta app is needed.
-- [ ] Competition created online. Clubs told how to register and pay; the privacy notice read by whoever speaks to the clubs.
+- [ ] Competition created online. Teams told how to register and pay; the privacy notice read by whoever speaks to the teams.
 - [ ] Adjudicators created with their letters, panels set, PINs printed.
 - [ ] Real result sheets from a past competition typed into a CSV and compared (below), to catch scoring differences before the day.
 

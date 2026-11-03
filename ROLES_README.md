@@ -14,8 +14,8 @@
 | **MC / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop or venue screen |
 | **Competitors** | Couples or solo dancers, each with a back number | Dance in their events | No login; see results, history and rankings on the public website | Their own phone |
 | **Athletes** | Dancers who make an account | Keep their details and pay their membership | Fill in their details, report a membership payment (how it was paid and the reference number) for the secretariat to confirm | Phone or laptop (online) |
-| **Clubs / Coaches** | Dance clubs, studios or teams (the "Country" column on sheets) | Are entered by the secretariat from the entry form | No login; the secretariat keeps their records | None |
-| **Public** | Parents, fans, other clubs | Watch | Browse the program (what is on the floor, what is next, and when everything starts, with Print and PDF), results, past competitions and rankings, updated live | Phone |
+| **Teams / Coaches** | Dance teams, studios or teams (the "Country" column on sheets) | Are entered by the secretariat from the entry form | No login; the secretariat keeps their records | None |
+| **Public** | Parents, fans, other teams | Watch | Browse the program (what is on the floor, what is next, and when everything starts, with Print and PDF), results, past competitions and rankings, updated live | Phone |
 
 ## Devices at a typical competition
 

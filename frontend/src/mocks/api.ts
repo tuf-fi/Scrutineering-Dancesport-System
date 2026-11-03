@@ -44,8 +44,8 @@ import {
   type AdjudicatorPin,
   type AgeGroup,
   type BackupStatus,
-  type Club,
-  type ClubInput,
+  type Team,
+  type TeamInput,
   type PaymentMethod,
   type PaymentSettings,
   type Competition,
@@ -73,7 +73,7 @@ import {
   type StaffUser,
 } from '@bis/shared'
 import { adjudicatorPins, adjudicators, panels } from './data/adjudicators.ts'
-import { clubs } from './data/clubs.ts'
+import { teams } from './data/teams.ts'
 import { competitions, currentCompetitionId } from './data/competitions.ts'
 import { ageGroupOf, competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
@@ -126,7 +126,7 @@ export const getEvent = (id: string) => reply(found(events.find((e) => e.id === 
 
 export const getEntries = (eventId: string) => reply(entries.filter((e) => e.eventId === eventId))
 export const getCompetitors = () => reply(competitors)
-export const getClubs = () => reply(clubs)
+export const getTeams = () => reply(teams)
 
 export const getAdjudicators = () => reply(adjudicators)
 export const getAdjudicatorPins = (competitionId: string) =>
@@ -568,7 +568,7 @@ export const getSession = () => settle<SessionUser | null>(() => null)
 
 // ---- Secretariat ----
 
-const clubName = (clubId: string) => clubs.find((c) => c.id === clubId)?.name ?? 'Unknown club'
+const teamName = (teamId: string) => teams.find((c) => c.id === teamId)?.name ?? 'Unknown team'
 
 function entryRow(entry: Entry): EntryRow {
   const competitor = found(competitors.find((c) => c.id === entry.competitorId), 'Competitor')
@@ -578,7 +578,7 @@ function entryRow(entry: Entry): EntryRow {
     competitorId: competitor.id,
     names: competitor.names,
     backNumber: competitor.backNumber,
-    clubName: clubName(competitor.clubId),
+    teamName: teamName(competitor.teamId),
     scratched: entry.scratched,
     late: entry.late ?? false,
     paymentStatus: payment?.status ?? null,
@@ -608,7 +608,7 @@ export const setEntryScratched = (actorId: string, entryId: string, scratched: b
 
 const competitorRow = (c: Competitor): CompetitorRow => ({
   ...c,
-  clubName: clubName(c.clubId),
+  teamName: teamName(c.teamId),
   entryCount: entries.filter((e) => e.competitorId === c.id && !e.scratched).length,
 })
 
@@ -627,15 +627,15 @@ function cleanNames(names: string[]) {
   return cleaned
 }
 
-export const createCompetitor = (actorId: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
+export const createCompetitor = (actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   settle<CompetitorRow>(() => {
     const names = cleanNames(input.names)
-    found(clubs.find((c) => c.id === input.clubId), 'Club')
+    found(teams.find((c) => c.id === input.teamId), 'Team')
     const competitor: Competitor = {
       id: `c-${String(competitors.length + 1).padStart(3, '0')}`,
       names,
       backNumber: null,
-      clubId: input.clubId,
+      teamId: input.teamId,
       ...(input.details ? { details: input.details } : {}),
     }
     competitors.push(competitor)
@@ -675,8 +675,8 @@ export const importCompetitors = (actorId: string, rows: CompetitorCsvRow[]) =>
     const result: ImportResult = { created: 0, skipped: [] }
     rows.forEach((row, i) => {
       const line = i + 2
-      const club = clubs.find((c) => c.name.toLowerCase() === row.clubName.trim().toLowerCase())
-      if (!club) return void result.skipped.push({ line, reason: `Unknown club "${row.clubName}".` })
+      const team = teams.find((c) => c.name.toLowerCase() === row.teamName.trim().toLowerCase())
+      if (!team) return void result.skipped.push({ line, reason: `Unknown team "${row.teamName}".` })
       let names: string[]
       try {
         names = cleanNames(row.names)
@@ -702,7 +702,7 @@ export const importCompetitors = (actorId: string, rows: CompetitorCsvRow[]) =>
         id: `c-${String(competitors.length + 1).padStart(3, '0')}`,
         names,
         backNumber: null,
-        clubId: club.id,
+        teamId: team.id,
         ...(details ? { details } : {}),
       })
       result.created++
@@ -771,7 +771,7 @@ export const createLateEntry = (
     }
     payments.push({
       id: paymentId,
-      clubId: competitor.clubId,
+      teamId: competitor.teamId,
       entryIds: [entry.id],
       amountDue: fee,
       amountPaid: input.paidInCash ? fee : null,
@@ -866,7 +866,7 @@ export const registerCompetitor = (actorId: string, input: RegistrationInput) =>
     const made = chosen.map((event): Entry => ({ id: `${event.id}:${competitor.id}`, eventId: event.id, competitorId: competitor.id, scratched: false, paymentId, late: false }))
     payments.push({
       id: paymentId,
-      clubId: competitor.clubId,
+      teamId: competitor.teamId,
       entryIds: made.map((e) => e.id),
       amountDue: quote.total,
       amountPaid: paid ? quote.total : null,
@@ -900,7 +900,7 @@ export const markPaidAtVenue = (actorId: string, paymentId: string) =>
     payment.checkedBy = actorId
     payment.checkedAt = new Date().toISOString()
     const detail = paymentDetail(payment)
-    record(actorId, 'Recorded cash payment', detail.clubName)
+    record(actorId, 'Recorded cash payment', detail.teamName)
     return detail
   })
 
@@ -1002,16 +1002,16 @@ export const removeProgramSlot = (actorId: string, slotId: string) =>
     return sampleProgram.removeSlot(slotId)
   })
 
-export const updateCompetitor = (actorId: string, id: string, input: { names: string[]; clubId: string; details?: CompetitorDetails }) =>
+export const updateCompetitor = (actorId: string, id: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   settle<CompetitorRow>(() => {
     const competitor = found(competitors.find((c) => c.id === id), 'Competitor')
     const names = cleanNames(input.names)
-    found(clubs.find((c) => c.id === input.clubId), 'Club')
+    found(teams.find((c) => c.id === input.teamId), 'Team')
     if ((names.length === 1) !== (competitor.names.length === 1) && entries.some((e) => e.competitorId === id)) {
       throw new Error('Remove their entries before changing between a solo dancer and a couple.')
     }
     competitor.names = names
-    competitor.clubId = input.clubId
+    competitor.teamId = input.teamId
     if (input.details) competitor.details = input.details
     record(actorId, 'Edited competitor', names.join(' & '))
     return competitorRow(competitor)
@@ -1255,7 +1255,7 @@ const sampleAthletes: SampleAthlete[] = [
     phone: '',
     address: '',
     province: '',
-    clubId: clubs[0]?.id ?? null,
+    teamId: teams[0]?.id ?? null,
     coachId: null,
     memberYear: null,
     request: null,
@@ -1323,7 +1323,7 @@ export const signUpAthlete = (name: string, email: string, password: string) =>
       phone: '',
       address: '',
       province: '',
-      clubId: null,
+      teamId: null,
       coachId: null,
       memberYear: null,
       request: null,
@@ -1364,11 +1364,11 @@ interface SampleMember {
 // The sample coach and team start out linked, so their pages show something
 const sampleMembers: SampleMember[] = [
   { id: 'member-sample-coach', role: 'coach', name: 'Rico Bautista', email: SAMPLE_COACH_EMAIL, password: SAMPLE_PASSWORD, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: 'coach-1', claimId: null, claimedAt: null },
-  { id: 'member-sample-team', role: 'team', name: 'Sample Dance Team', email: SAMPLE_TEAM_EMAIL, password: SAMPLE_PASSWORD, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: clubs[0]?.id ?? null, claimId: null, claimedAt: null },
+  { id: 'member-sample-team', role: 'team', name: 'Sample Dance Team', email: SAMPLE_TEAM_EMAIL, password: SAMPLE_PASSWORD, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: teams[0]?.id ?? null, claimId: null, claimedAt: null },
 ]
 
 const memberOf = (id: string) => found(sampleMembers.find((m) => m.id === id), 'Account')
-const recordName = (role: 'coach' | 'team', id: string) => (role === 'coach' ? coaches.find((c) => c.id === id)?.name : clubs.find((c) => c.id === id)?.name) ?? null
+const recordName = (role: 'coach' | 'team', id: string) => (role === 'coach' ? coaches.find((c) => c.id === id)?.name : teams.find((c) => c.id === id)?.name) ?? null
 
 function memberAccount(m: SampleMember): MemberAccount {
   const linked = m.linkedId ? recordName(m.role, m.linkedId) : null
@@ -1423,7 +1423,7 @@ const dancersOf = (m: SampleMember) =>
     ? []
     : m.id === 'member-sample-coach'
       ? competitors.filter((c) => results.some((r) => r.competitorId === c.id)).slice(0, 12)
-      : competitors.filter((c) => (m.role === 'team' ? c.clubId === m.linkedId : c.details?.coachId === m.linkedId))
+      : competitors.filter((c) => (m.role === 'team' ? c.teamId === m.linkedId : c.details?.coachId === m.linkedId))
 
 export const saveMyMember = (memberId: string, input: MemberInput) =>
   settle<MemberAccount>(() => {
@@ -1451,7 +1451,7 @@ export const claimRecord = (memberId: string, targetId: string) =>
   settle<MemberAccount>(() => {
     const member = memberOf(memberId)
     if (member.linkedId) throw new Error('Your account is already linked.')
-    if (recordName(member.role, targetId) === null) throw new Error(member.role === 'team' ? 'Choose your club from the list.' : 'Choose your name from the list of coaches.')
+    if (recordName(member.role, targetId) === null) throw new Error(member.role === 'team' ? 'Choose your team from the list.' : 'Choose your name from the list of coaches.')
     member.claimId = targetId
     member.claimedAt = new Date().toISOString()
     emitAlert([Role.Secretariat], { title: 'Account link request', detail: `${member.name} wants to be linked to ${recordName(member.role, targetId) ?? ''}`, link: '/secretariat/account-links' })
@@ -1477,7 +1477,7 @@ export const getMyRoster = (memberId: string) =>
         competitorId: c.id,
         names: c.names,
         backNumber: c.backNumber,
-        clubName: clubs.find((k) => k.id === c.clubId)?.name ?? '',
+        teamName: teams.find((k) => k.id === c.teamId)?.name ?? '',
         entries: entries.filter((e) => e.competitorId === c.id && !e.scratched).length,
       }))
       .sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? ''))
@@ -1487,7 +1487,7 @@ export const getMyRoster = (memberId: string) =>
     }
     const current = competitions.find((c) => c.id === currentCompetitionId)
     const competitionName = current?.name ?? ''
-    const paid = payments.filter((p) => p.clubId === linkedId).map((p) => ({ id: p.id, competitionName, date: current?.date ?? '', amountDue: p.amountDue, amountPaid: p.amountPaid, status: p.status }))
+    const paid = payments.filter((p) => p.teamId === linkedId).map((p) => ({ id: p.id, competitionName, date: current?.date ?? '', amountDue: p.amountDue, amountPaid: p.amountPaid, status: p.status }))
     return { rows, payments: paid, membership: null }
   })
 
@@ -1523,12 +1523,12 @@ type SampleRequest = EntryRequest & { receipt: string; eventIds: string[]; reque
 const sampleRequests: SampleRequest[] = []
 const ONLINE_METHODS: string[] = [PayMethod.GCash, PayMethod.Maya, PayMethod.Bank]
 
-// Who is asking: a team's account (its club's dancers) or an athlete (the dancers that carry their name)
+// Who is asking: a team's account (its team's dancers) or an athlete (the dancers that carry their name)
 function entrantsFor(requesterId: string) {
   const member = sampleMembers.find((m) => m.id === requesterId)
   if (member) {
     if (member.role !== 'team') throw new Error('Only a team or an athlete can send an entry request.')
-    return { role: 'team' as const, name: member.name, dancers: member.linkedId ? competitors.filter((c) => c.clubId === member.linkedId) : [] }
+    return { role: 'team' as const, name: member.name, dancers: member.linkedId ? competitors.filter((c) => c.teamId === member.linkedId) : [] }
   }
   const athlete = athleteOf(requesterId)
   const me = normalName(athlete.name)
@@ -1540,7 +1540,7 @@ const entrantRow = (c: (typeof competitors)[number]): MemberRosterRow => ({
   names: c.names,
   ageGroup: ageGroupOf.get(c.id) ?? null,
   backNumber: c.backNumber,
-  clubName: clubs.find((k) => k.id === c.clubId)?.name ?? '',
+  teamName: teams.find((k) => k.id === c.teamId)?.name ?? '',
   entries: entries.filter((e) => e.competitorId === c.id && !e.scratched).length,
 })
 
@@ -1552,10 +1552,10 @@ const ownDancer = (requesterId: string, competitorId: string) => {
 
 // Requests already sent, so the secretariat's list and the team's My requests have something in them
 function seedRequests() {
-  const club = clubs[0]
-  if (!club) return
+  const teamRecord = teams[0]
+  if (!teamRecord) return
   const team = sampleMembers.find((m) => m.id === 'member-sample-team')
-  const soloDancers = competitors.filter((c) => c.clubId === club.id && c.names.length === 1)
+  const soloDancers = competitors.filter((c) => c.teamId === teamRecord.id && c.names.length === 1)
   const open = events.filter((e) => e.competitionId === 'comp-legazpi-2026' && e.isSolo)
   const states = ['waiting', 'rejected', 'approved'] as const
   soloDancers.slice(0, 3).forEach((dancer, i) => {
@@ -1692,7 +1692,7 @@ export const rejectEntryRequest = (actorId: string, id: string, reason: string) 
 
 // The sample coach and team start with a notification each, so their bell and page have something to show
 notifyAthlete('member-sample-coach', { kind: 'link_approved', title: 'You are linked to Ramon Villanueva', detail: 'Your athletes are on your page now.', link: '/coach/dancers' })
-notifyAthlete('member-sample-team', { kind: 'link_approved', title: `You are linked to ${clubs[0]?.name ?? 'your club'}`, detail: 'Your dancers and payments are on your page now.', link: '/team/dancers' })
+notifyAthlete('member-sample-team', { kind: 'link_approved', title: `You are linked to ${teams[0]?.name ?? 'your team'}`, detail: 'Your dancers and payments are on your page now.', link: '/team/dancers' })
 
 export const getMyAthlete = (athleteId: string) =>
   reply<AthletePage>({
@@ -1707,15 +1707,15 @@ export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
     const athlete = athleteOf(athleteId)
     if (!input.name.trim()) throw new Error('Enter your name.')
     if (input.birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate)) throw new Error('Enter a valid date of birth.')
-    if (input.clubId && !clubs.some((c) => c.id === input.clubId)) throw new Error('Choose a club from the list.')
-    const clubId = input.clubId || null
+    if (input.teamId && !teams.some((c) => c.id === input.teamId)) throw new Error('Choose a team from the list.')
+    const teamId = input.teamId || null
     const coachId = input.coachId || null
-    const nextClub = athlete.clubId === null ? clubId : athlete.clubId
+    const nextTeam = athlete.teamId === null ? teamId : athlete.teamId
     const nextCoach = athlete.coachId === null ? coachId : athlete.coachId
-    const asksForChange = clubId !== nextClub || coachId !== nextCoach
-    Object.assign(athlete, { ...input, name: input.name.trim(), clubId: nextClub, coachId: nextCoach })
+    const asksForChange = teamId !== nextTeam || coachId !== nextCoach
+    Object.assign(athlete, { ...input, name: input.name.trim(), teamId: nextTeam, coachId: nextCoach })
     if (asksForChange) {
-      athlete.changeRequest = { clubId, coachId, requestedAt: new Date().toISOString() }
+      athlete.changeRequest = { teamId, coachId, requestedAt: new Date().toISOString() }
       emitAlert([Role.Secretariat], { title: 'Team or coach change', detail: `${athlete.name} asks to change team or coach`, link: '/secretariat/profile-changes' })
     }
     return publicAthlete(athlete)
@@ -1752,12 +1752,12 @@ export const getAthletes = () =>
         name: a.name,
         email: a.email,
         phone: a.phone,
-        clubName: clubs.find((c) => c.id === a.clubId)?.name ?? '',
+        teamName: teams.find((c) => c.id === a.teamId)?.name ?? '',
         coachName: coaches.find((c) => c.id === a.coachId)?.name ?? '',
         memberYear: a.memberYear,
         request: a.request,
         changeRequest: a.changeRequest,
-        requestedClubName: clubs.find((c) => c.id === a.changeRequest?.clubId)?.name ?? '',
+        requestedTeamName: teams.find((c) => c.id === a.changeRequest?.teamId)?.name ?? '',
         requestedCoachName: coaches.find((c) => c.id === a.changeRequest?.coachId)?.name ?? '',
       })),
   )
@@ -1767,11 +1767,11 @@ export const approveProfileChange = (actorId: string, id: string) =>
     const athlete = athleteOf(id)
     const change = athlete.changeRequest
     if (!change || change.rejectedReason) throw new Error('This athlete has no change waiting.')
-    athlete.clubId = change.clubId
+    athlete.teamId = change.teamId
     athlete.coachId = change.coachId
     athlete.changeRequest = null
-    record(actorId, 'Approved a club or coach change', athlete.name)
-    notifyAthlete(id, { kind: 'change_approved', title: 'Your club or coach change was approved', detail: '', link: '/athlete' })
+    record(actorId, 'Approved a team or coach change', athlete.name)
+    notifyAthlete(id, { kind: 'change_approved', title: 'Your team or coach change was approved', detail: '', link: '/athlete' })
   })
 
 export const rejectProfileChange = (actorId: string, id: string, reason: string) =>
@@ -1780,8 +1780,8 @@ export const rejectProfileChange = (actorId: string, id: string, reason: string)
     if (!athlete.changeRequest || athlete.changeRequest.rejectedReason) throw new Error('This athlete has no change waiting.')
     if (!reason.trim()) throw new Error('Say why it was turned down.')
     athlete.changeRequest = { ...athlete.changeRequest, rejectedReason: reason.trim() }
-    record(actorId, 'Turned down a club or coach change', athlete.name)
-    notifyAthlete(id, { kind: 'change_rejected', title: 'Your club or coach change was turned down', detail: reason.trim(), link: '/athlete/edit' })
+    record(actorId, 'Turned down a team or coach change', athlete.name)
+    notifyAthlete(id, { kind: 'change_rejected', title: 'Your team or coach change was turned down', detail: reason.trim(), link: '/athlete/edit' })
   })
 
 export const saveMyPhoto = (athleteId: string, photo: string | null) =>
@@ -1877,30 +1877,30 @@ export const deleteAthlete = (actorId: string, id: string) =>
     record(actorId, 'Deleted an athlete account', athlete.name)
   })
 
-// ---- Clubs ----
+// ---- Teams ----
 
-export const saveClub = (actorId: string, input: ClubInput, id?: string) =>
-  settle<Club>(() => {
+export const saveTeam = (actorId: string, input: TeamInput, id?: string) =>
+  settle<Team>(() => {
     const name = input.name.trim()
-    if (!name) throw new Error('Enter the club name.')
-    if (clubs.some((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)) throw new Error('A club with this name already exists.')
+    if (!name) throw new Error('Enter the team name.')
+    if (teams.some((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)) throw new Error('A team with this name already exists.')
     const values = { name, contactName: input.contactName.trim(), contactEmail: input.contactEmail.trim(), contactPhone: input.contactPhone.trim() }
     if (id) {
-      const club = found(clubs.find((c) => c.id === id), 'Club')
-      Object.assign(club, values)
-      record(actorId, 'Edited club', name)
-      return club
+      const team = found(teams.find((c) => c.id === id), 'Team')
+      Object.assign(team, values)
+      record(actorId, 'Edited team', name)
+      return team
     }
-    const club: Club = { id: `club-${clubs.length + 1}`, ...values }
-    clubs.push(club)
-    record(actorId, 'Added club', name)
-    return club
+    const team: Team = { id: `team-${teams.length + 1}`, ...values }
+    teams.push(team)
+    record(actorId, 'Added team', name)
+    return team
   })
 
-export const deleteClub = (actorId: string, id: string) =>
+export const deleteTeam = (actorId: string, id: string) =>
   settle<void>(() => {
-    const club = found(clubs.find((c) => c.id === id), 'Club')
-    if (competitors.some((c) => c.clubId === id)) throw new Error('This club has competitors. Move or delete them first.')
-    clubs.splice(clubs.indexOf(club), 1)
-    record(actorId, 'Deleted club', club.name)
+    const team = found(teams.find((c) => c.id === id), 'Team')
+    if (competitors.some((c) => c.teamId === id)) throw new Error('This team has competitors. Move or delete them first.')
+    teams.splice(teams.indexOf(team), 1)
+    record(actorId, 'Deleted team', team.name)
   })

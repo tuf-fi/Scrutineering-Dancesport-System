@@ -41,13 +41,13 @@ afterEach(() => {
 // Functions that are not server calls
 const OTHER = new Set([
   'signInStaff',
-  'signInClub',
+  'signInTeam',
   'signInAdjudicator',
   'signInAthlete',
   'signUpAthlete',
   'signInMember',
   'signUpMember',
-  'signUpNewClub',
+  'signUpNewTeam',
   'signOut',
   'getSession',
   'subscribeSubmissions',
@@ -114,8 +114,8 @@ describe('arguments', () => {
   })
 
   it('sends the CSV text for the server to read', async () => {
-    await client.importCompetitorsCsv('staff-1', '"Cruz, Mia",,Club')
-    expect(sent[0]!.body).toEqual({ args: ['"Cruz, Mia",,Club'] })
+    await client.importCompetitorsCsv('staff-1', '"Cruz, Mia",,Team')
+    expect(sent[0]!.body).toEqual({ args: ['"Cruz, Mia",,Team'] })
   })
 })
 

@@ -1,14 +1,14 @@
 import type { Entry } from '@bis/shared'
-import { clubs } from './clubs.ts'
+import { teams } from './teams.ts'
 import { competitors, poolFor } from './competitors.ts'
 import { currentCompetitionId } from './competitions.ts'
 import { completedEvent, events, featuredEvent } from './events.ts'
 import { createRng, shuffle } from './rng.ts'
 
 const rng = createRng(7)
-const clubOf = new Map(competitors.map((c) => [c.id, c.clubId]))
+const teamOf = new Map(competitors.map((c) => [c.id, c.teamId]))
 
-export const paymentIdForClub = (clubId: string) => `pay-${clubId}`
+export const paymentIdForTeam = (teamId: string) => `pay-${teamId}`
 
 export const entries: Entry[] = events.flatMap((event) => {
   const isCurrent = event.competitionId === currentCompetitionId
@@ -29,6 +29,6 @@ export const entries: Entry[] = events.flatMap((event) => {
     competitorId: c.id,
     scratched: isCurrent && !keepAll && rng() < 0.05,
     // Past competitions were settled long ago, so no payment is linked
-    paymentId: isCurrent ? paymentIdForClub(clubOf.get(c.id) ?? clubs[0].id) : null,
+    paymentId: isCurrent ? paymentIdForTeam(teamOf.get(c.id) ?? teams[0].id) : null,
   }))
 })

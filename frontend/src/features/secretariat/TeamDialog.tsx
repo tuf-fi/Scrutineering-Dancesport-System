@@ -1,29 +1,29 @@
-import type { Club } from '@bis/shared'
+import type { Team } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, toast } from '../../components/ui/index.ts'
-import { useSaveClub } from '../../hooks/index.ts'
+import { useSaveTeam } from '../../hooks/index.ts'
 
-const FORM_ID = 'club-form'
+const FORM_ID = 'team-form'
 
-function ClubForm({ club, onDone }: { club: Club | null; onDone: () => void }) {
-  const save = useSaveClub()
-  const [name, setName] = useState(club?.name ?? '')
-  const [contactName, setContactName] = useState(club?.contactName ?? '')
-  const [contactPhone, setContactPhone] = useState(club?.contactPhone ?? '')
-  const [contactEmail, setContactEmail] = useState(club?.contactEmail ?? '')
+function TeamForm({ team, onDone }: { team: Team | null; onDone: () => void }) {
+  const save = useSaveTeam()
+  const [name, setName] = useState(team?.name ?? '')
+  const [contactName, setContactName] = useState(team?.contactName ?? '')
+  const [contactPhone, setContactPhone] = useState(team?.contactPhone ?? '')
+  const [contactEmail, setContactEmail] = useState(team?.contactEmail ?? '')
   const [error, setError] = useState<string | undefined>()
   const [failure, setFailure] = useState<string | null>(null)
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    if (!name.trim()) return setError('Enter the club name.')
+    if (!name.trim()) return setError('Enter the team name.')
     setError(undefined)
     setFailure(null)
     save.mutate(
-      { id: club?.id, input: { name, contactName, contactEmail, contactPhone } },
+      { id: team?.id, input: { name, contactName, contactEmail, contactPhone } },
       {
         onSuccess: (c) => {
-          toast.success(`${club ? 'Saved' : 'Added'} ${c.name}`)
+          toast.success(`${team ? 'Saved' : 'Added'} ${c.name}`)
           onDone()
         },
         onError: (err) => setFailure(err.message),
@@ -35,7 +35,7 @@ function ClubForm({ club, onDone }: { club: Club | null; onDone: () => void }) {
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Input label="Club" value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
+          <Input label="Team" value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
         </div>
         <Input label="Contact person" value={contactName} onChange={(e) => setContactName(e.target.value)} />
         <Input label="Contact no." inputMode="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
@@ -52,13 +52,13 @@ function ClubForm({ club, onDone }: { club: Club | null; onDone: () => void }) {
   )
 }
 
-// Adds a club (a team on the entry forms), or edits the one given
-export function ClubDialog({ open, club, onClose }: { open: boolean; club: Club | null; onClose: () => void }) {
+// Adds a team, or edits the one given
+export function TeamDialog({ open, team, onClose }: { open: boolean; team: Team | null; onClose: () => void }) {
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title={club ? 'Edit club' : 'Add club'}
+      title={team ? 'Edit team' : 'Add team'}
       description="Teams have no sign-in. The secretariat enters their dancers from the entry forms."
       className="max-w-lg"
       actions={
@@ -67,12 +67,12 @@ export function ClubDialog({ open, club, onClose }: { open: boolean; club: Club 
             Cancel
           </Button>
           <Button type="submit" form={FORM_ID}>
-            {club ? 'Save changes' : 'Add club'}
+            {team ? 'Save changes' : 'Add team'}
           </Button>
         </>
       }
     >
-      {open && <ClubForm key={club?.id ?? 'new'} club={club} onDone={onClose} />}
+      {open && <TeamForm key={team?.id ?? 'new'} team={team} onDone={onClose} />}
     </Dialog>
   )
 }

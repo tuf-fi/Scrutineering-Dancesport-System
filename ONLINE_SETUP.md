@@ -11,9 +11,9 @@ DigitalOcean and the domain seller charge in US dollars, so the peso amount depe
 | Item | What it is for | Per month | Per year |
 | --- | --- | --- | --- |
 | Online server, 2 GB size, 1 CPU, 50 GB disk (DigitalOcean, listed at 12 US dollars a month) | Space you rent on DigitalOcean's internet servers to keep the website running 24 hours a day. The secretariat enters teams on it, athletes keep their accounts on it, the competition is run on it, and the public sees results on it. | ₱744 | ₱8,928 |
-| Domain name (.com, GoDaddy) | The website address, for example `bis-bicol.com`, so clubs can find the site. | n/a | ₱1,099 (regular price) |
+| Domain name (.com, GoDaddy) | The website address, for example `bis-bicol.com`, so teams can find the site. | n/a | ₱1,099 (regular price) |
 | Backup storage (Backblaze B2) | A safe copy of the data kept away from the server, in case the server is lost. | ₱0 while the database is small | ₱0 |
-| Sentry, error tracking (free plan) | Reports errors as they happen, so I can fix a problem before clubs complain. | ₱0 | ₱0 |
+| Sentry, error tracking (free plan) | Reports errors as they happen, so I can fix a problem before teams complain. | ₱0 | ₱0 |
 | UptimeRobot, alerts when the site is down (free plan) | Checks every few minutes that the site is up, and emails you if it is not. | ₱0 | ₱0 |
 | Cloudflare, DNS and protection (free plan) | Directs the domain to the server and blocks bad traffic before it reaches the website. | ₱0 | ₱0 |
 | **Total** | | **₱744** | **₱10,027** |
@@ -80,7 +80,7 @@ All three have a free plan that is enough for BIS. Plans and limits can change, 
 
 | Tool | What it does | Cost | Setup |
 | --- | --- | --- | --- |
-| **Sentry** (sentry.io) | Reports errors as they happen, with details, so I can fix a problem before clubs complain. | ₱0 on the free plan | Needs a small addition to BIS's code, which I will do. You only create the account and invite me as a member. |
+| **Sentry** (sentry.io) | Reports errors as they happen, with details, so I can fix a problem before teams complain. | ₱0 on the free plan | Needs a small addition to BIS's code, which I will do. You only create the account and invite me as a member. |
 | **UptimeRobot** (uptimerobot.com) | Checks every few minutes that the site is up, and emails you if it goes down. | ₱0 on the free plan | Enter the website address and your email. Add my email as a second alert contact, so I hear when the site goes down. |
 | **Cloudflare** (cloudflare.com) | Free DNS for the domain, plus protection against attacks and bad traffic in front of the website. | ₱0 on the free plan | Create the account and invite me as a member. I move the domain's DNS to Cloudflare and test it before the event. |
 
@@ -92,7 +92,7 @@ After the accounts are ready, I will:
 
 1. Create the server, install BIS and connect the domain. The address then opens with a padlock (HTTPS).
 2. Create the first **admin** login and give it to you. You sign in and change the password right away.
-3. In BIS, open **Fees and payment details** and enter the entry fees and your GCash, Maya and bank account details. Clubs cannot register until the fees are saved.
+3. In BIS, open **Fees and payment details** and enter the entry fees and your GCash, Maya and bank account details. Teams cannot register until the fees are saved.
 4. Turn on the daily backup copy.
 
 ## Keeping it safe

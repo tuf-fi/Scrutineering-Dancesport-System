@@ -1,13 +1,13 @@
 import type { AthletePage as AthleteData } from '@bis/shared'
 import { ButtonLink } from '../../components/ui/index.ts'
-import { useClubs, useCoaches } from '../../hooks/index.ts'
+import { useTeams, useCoaches } from '../../hooks/index.ts'
 import { formatDate } from '../../lib/format.ts'
 import { AccountSection } from './AccountSection.tsx'
 
 // What the secretariat has on file, read-only; Edit account changes it
 export function AccountInfo({ page }: { page: AthleteData }) {
   const { profile, year } = page
-  const clubs = useClubs()
+  const teams = useTeams()
   const coaches = useCoaches()
 
   const rows = [
@@ -17,7 +17,7 @@ export function AccountInfo({ page }: { page: AthleteData }) {
     { label: 'Contact no.', value: profile.phone },
     { label: 'Province', value: profile.province },
     { label: 'Address', value: profile.address },
-    { label: 'Club', value: clubs.data?.find((c) => c.id === profile.clubId)?.name },
+    { label: 'Team', value: teams.data?.find((c) => c.id === profile.teamId)?.name },
     { label: 'Coach', value: coaches.data?.find((c) => c.id === profile.coachId)?.name },
     { label: 'Member until', value: profile.memberYear === year ? `December ${year}` : undefined },
   ]

@@ -11,13 +11,13 @@ let secretariat = ''
 let athlete = ''
 
 const SHOT = 'data:image/png;base64,iVBORw0KGgo='
-const PROFILE = { name: 'Ana Cruz', birthDate: '2017-03-02', phone: '0917', address: 'Naga City', province: 'Camarines Sur', clubId: 'club-1', coachId: null }
+const PROFILE = { name: 'Ana Cruz', birthDate: '2017-03-02', phone: '0917', address: 'Naga City', province: 'Camarines Sur', teamId: 'team-1', coachId: null }
 
 beforeAll(async () => {
   app = await startTestApp({ seed: false })
   app.db.insert(t.staffUsers).values({ id: 's2', name: 'secretariat', username: 'secretariat@sample.example', role: 'secretariat', passwordHash: hashPassword('pw-secretariat'), disabled: false }).run()
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
-  app.db.insert(t.clubs).values({ id: 'club-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' }).run()
+  app.db.insert(t.teams).values({ id: 'team-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' }).run()
   app.db.insert(t.competitions).values({ id: 'c1', name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT' } as typeof t.competitions.$inferInsert).run()
   athlete = await app.signIn.athleteSignUp('Ana Cruz', 'Ana@Test.example', 'a-long-password')
 })
@@ -43,11 +43,11 @@ describe('athlete accounts', () => {
     expect((await app.call('getMyAthlete', [])).status).toBe(401)
   })
 
-  it('saves the details, and only for clubs that exist', async () => {
-    expect((await app.call('saveMyAthlete', [{ ...PROFILE, clubId: 'nope' }], athlete)).error).toMatch(/club/)
+  it('saves the details, and only for teams that exist', async () => {
+    expect((await app.call('saveMyAthlete', [{ ...PROFILE, teamId: 'nope' }], athlete)).error).toMatch(/team/)
     expect((await app.call('saveMyAthlete', [{ ...PROFILE, birthDate: '2999-01-01' }], athlete)).error).toMatch(/date of birth/)
     const saved = await app.ok<AthleteProfile>('saveMyAthlete', [PROFILE], athlete)
-    expect(saved).toMatchObject({ name: 'Ana Cruz', clubId: 'club-1', memberYear: null, request: null })
+    expect(saved).toMatchObject({ name: 'Ana Cruz', teamId: 'team-1', memberYear: null, request: null })
     const page = await app.ok<AthletePage>('getMyAthlete', [], athlete)
     expect(page).toMatchObject({ year: 2026, fee: 500 })
   })
@@ -61,7 +61,7 @@ describe('athlete accounts', () => {
     expect((await app.call('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)).status).toBe(409)
 
     const [row] = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
-    expect(row).toMatchObject({ name: 'Ana Cruz', clubName: 'Naga Dancers', memberYear: null })
+    expect(row).toMatchObject({ name: 'Ana Cruz', teamName: 'Naga Dancers', memberYear: null })
     await app.ok('confirmMembership', [row!.id], secretariat)
     const page = await app.ok<AthletePage>('getMyAthlete', [], athlete)
     expect(page.profile).toMatchObject({ memberYear: 2026, request: null })
@@ -90,8 +90,8 @@ describe('athlete accounts', () => {
   it('counts a membership paid on the account when pricing an entry', async () => {
     app.db.insert(t.events).values({ id: 'e1', competitionId: 'c1', number: 1, position: 1, ageGroup: 'juvenile_1', class: 'C', discipline: 'latin', dances: ['samba'], isSolo: true } as typeof t.events.$inferInsert).run()
     const details = (email: string) => ({ province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: '', email, phone: '' }], beginner: false, memberYear: null })
-    const paid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], clubId: 'club-1', details: details('ANA@test.example') }], secretariat)
-    const unpaid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Cara Diaz'], clubId: 'club-1', details: details('cara@test.example') }], secretariat)
+    const paid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details: details('ANA@test.example') }], secretariat)
+    const unpaid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Cara Diaz'], teamId: 'team-1', details: details('cara@test.example') }], secretariat)
     expect((await app.ok<RegistrationQuote>('quoteRegistration', [paid.id, ['e1']], secretariat)).total).toBe(400)
     expect((await app.ok<RegistrationQuote>('quoteRegistration', [unpaid.id, ['e1']], secretariat)).total).toBe(900)
   })
@@ -112,25 +112,25 @@ describe('the athlete account beyond the basics', () => {
     dana = await app.signIn.athlete('dana@test.example', 'a-long-password')
   })
 
-  it('sets a first club straight away, but asks the secretariat to change it', async () => {
+  it('sets a first team straight away, but asks the secretariat to change it', async () => {
     const first = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez' }], dana)
-    expect(first).toMatchObject({ clubId: 'club-1', changeRequest: null })
+    expect(first).toMatchObject({ teamId: 'team-1', changeRequest: null })
 
-    app.db.insert(t.clubs).values({ id: 'club-2', name: 'Bicol Movers', contactName: '', contactEmail: '', contactPhone: '' }).run()
-    const asked = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez', clubId: 'club-2' }], dana)
-    expect(asked.clubId).toBe('club-1')
-    expect(asked.changeRequest).toMatchObject({ clubId: 'club-2' })
+    app.db.insert(t.teams).values({ id: 'team-2', name: 'Bicol Movers', contactName: '', contactEmail: '', contactPhone: '' }).run()
+    const asked = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez', teamId: 'team-2' }], dana)
+    expect(asked.teamId).toBe('team-1')
+    expect(asked.changeRequest).toMatchObject({ teamId: 'team-2' })
 
     const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Dana Lopez')!
-    expect(row).toMatchObject({ requestedClubName: 'Bicol Movers' })
+    expect(row).toMatchObject({ requestedTeamName: 'Bicol Movers' })
     expect((await app.call('rejectProfileChange', [row.id, ' '], secretariat)).status).toBe(400)
     await app.ok('rejectProfileChange', [row.id, 'Ask your coach first'], secretariat)
     expect((await app.ok<AthletePage>('getMyAthlete', [], dana)).profile.changeRequest?.rejectedReason).toMatch(/coach/)
     expect((await app.call('approveProfileChange', [row.id], secretariat)).status).toBe(409)
 
-    await app.ok('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez', clubId: 'club-2' }], dana)
+    await app.ok('saveMyAthlete', [{ ...PROFILE, name: 'Dana Lopez', teamId: 'team-2' }], dana)
     await app.ok('approveProfileChange', [row.id], secretariat)
-    expect((await app.ok<AthletePage>('getMyAthlete', [], dana)).profile).toMatchObject({ clubId: 'club-2', changeRequest: null })
+    expect((await app.ok<AthletePage>('getMyAthlete', [], dana)).profile).toMatchObject({ teamId: 'team-2', changeRequest: null })
     expect((await app.call('approveProfileChange', [row.id], dana)).status).toBe(403)
   })
 
@@ -155,7 +155,7 @@ describe('the athlete account beyond the basics', () => {
   it('finds the results and entries of the competitors carrying their name, with no approval', async () => {
     expect((await app.ok<{ competitorIds: string[] }>('getMyActivity', [], dana)).competitorIds).toEqual([])
     const details = { province: 'Camarines Sur', coachId: null, dancers: [], beginner: false, memberYear: null }
-    const couple = await app.ok<{ id: string }>('createCompetitor', [{ names: ['dana  lopez', 'Eli Tan'], clubId: 'club-1', details }], secretariat)
+    const couple = await app.ok<{ id: string }>('createCompetitor', [{ names: ['dana  lopez', 'Eli Tan'], teamId: 'team-1', details }], secretariat)
     app.db.insert(t.entries).values({ id: 'en1', eventId: 'e1', competitorId: couple.id }).run()
     const activity = await app.ok<{ competitorIds: string[]; entries: { names: string[]; eventNumber: number }[] }>('getMyActivity', [], dana)
     expect(activity.competitorIds).toEqual([couple.id])

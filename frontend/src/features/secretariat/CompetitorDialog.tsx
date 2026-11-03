@@ -1,27 +1,27 @@
 import type { CompetitorDetails, CompetitorRow, DancerDetails } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
-import { useClubs, useCoaches, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
+import { useTeams, useCoaches, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
 
 const FORM_ID = 'competitor-form'
 
 const BLANK: DancerDetails = { birthDate: '', address: '', email: '', phone: '' }
 
 function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | null; onDone: () => void }) {
-  const clubs = useClubs()
+  const teams = useTeams()
   const coaches = useCoaches()
   const create = useCreateCompetitor()
   const update = useUpdateCompetitor()
   const saved = competitor?.details
   const [first, setFirst] = useState(competitor?.names[0] ?? '')
   const [second, setSecond] = useState(competitor?.names[1] ?? '')
-  const [clubId, setClubId] = useState(competitor?.clubId ?? '')
+  const [teamId, setTeamId] = useState(competitor?.teamId ?? '')
   const [province, setProvince] = useState(saved?.province ?? '')
   const [coachId, setCoachId] = useState(saved?.coachId ?? '')
   const [beginner, setBeginner] = useState(saved?.beginner ?? false)
   const [memberYear, setMemberYear] = useState(saved?.memberYear ? String(saved.memberYear) : '')
   const [dancers, setDancers] = useState<DancerDetails[]>([saved?.dancers[0] ?? BLANK, saved?.dancers[1] ?? BLANK])
-  const [errors, setErrors] = useState<{ first?: string; club?: string; year?: string }>({})
+  const [errors, setErrors] = useState<{ first?: string; team?: string; year?: string }>({})
   const [failure, setFailure] = useState<string | null>(null)
 
   const names = second.trim() ? [first, second] : [first]
@@ -33,11 +33,11 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
     const year = memberYear.trim()
     const found = {
       first: first.trim() ? undefined : 'Enter the dancer’s name.',
-      club: clubId ? undefined : 'Choose a club.',
+      team: teamId ? undefined : 'Choose a team.',
       year: year && !/^\d{4}$/.test(year) ? 'Four digits, such as 2026.' : undefined,
     }
     setErrors(found)
-    if (found.first || found.club || found.year) return
+    if (found.first || found.team || found.year) return
     setFailure(null)
     const details: CompetitorDetails = {
       province,
@@ -53,8 +53,8 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
       },
       onError: (e: Error) => setFailure(e.message),
     }
-    if (competitor) update.mutate({ id: competitor.id, names, clubId, details }, handlers)
-    else create.mutate({ names, clubId, details }, handlers)
+    if (competitor) update.mutate({ id: competitor.id, names, teamId, details }, handlers)
+    else create.mutate({ names, teamId, details }, handlers)
   }
 
   return (
@@ -69,12 +69,12 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
           <p className="text-small text-neutral-500">Leave the partner empty for a solo dancer.</p>
         </section>
 
-        <section aria-label="Team" className="flex flex-col gap-3">
-          <h3 className="font-mono text-xs uppercase text-neutral-500">Team</h3>
+        <section aria-label="Team and coach" className="flex flex-col gap-3">
+          <h3 className="font-mono text-xs uppercase text-neutral-500">Team and coach</h3>
           <div className="flex flex-col gap-5">
-            <Select label="Club" value={clubId} onChange={(e) => setClubId(e.target.value)} error={errors.club}>
-              <option value="">Choose a club</option>
-              {(clubs.data ?? []).map((c) => (
+            <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)} error={errors.team}>
+              <option value="">Choose a team</option>
+              {(teams.data ?? []).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>

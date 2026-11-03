@@ -24,61 +24,61 @@
    "organizer": "Camarines Sur Dancesport Association"
   }
  ],
- "clubs": [
+ "teams": [
   {
-   "id": "club-1",
+   "id": "team-1",
    "name": "Sorsogon DanceSport Team",
    "contactName": "Marites Dela Cruz",
-   "contactEmail": "club1@example.com",
+   "contactEmail": "team1@example.com",
    "contactPhone": "0917 000 1100"
   },
   {
-   "id": "club-2",
+   "id": "team-2",
    "name": "TME DanceSport League",
    "contactName": "Rolando Evangelista",
-   "contactEmail": "club2@example.com",
+   "contactEmail": "team2@example.com",
    "contactPhone": "0917 000 1137"
   },
   {
-   "id": "club-3",
+   "id": "team-3",
    "name": "Juban Galaw DanceSport Team",
    "contactName": "Aileen Gonzales",
-   "contactEmail": "club3@example.com",
+   "contactEmail": "team3@example.com",
    "contactPhone": "0917 000 1174"
   },
   {
-   "id": "club-4",
+   "id": "team-4",
    "name": "CCDI Kasanggayahan DanceSport",
    "contactName": "Benedict Alcantara",
-   "contactEmail": "club4@example.com",
+   "contactEmail": "team4@example.com",
    "contactPhone": "0917 000 1211"
   },
   {
-   "id": "club-5",
+   "id": "team-5",
    "name": "Legazpi Ballroom Club",
    "contactName": "Corazon Bautista",
-   "contactEmail": "club5@example.com",
+   "contactEmail": "team5@example.com",
    "contactPhone": "0917 000 1248"
   },
   {
-   "id": "club-6",
+   "id": "team-6",
    "name": "Naga Dance Academy",
    "contactName": "Ferdinand Ocampo",
-   "contactEmail": "club6@example.com",
+   "contactEmail": "team6@example.com",
    "contactPhone": "0917 000 1285"
   },
   {
-   "id": "club-7",
+   "id": "team-7",
    "name": "Albay Rhythm Studio",
    "contactName": "Lorna Villanueva",
-   "contactEmail": "club7@example.com",
+   "contactEmail": "team7@example.com",
    "contactPhone": "0917 000 1322"
   },
   {
-   "id": "club-8",
+   "id": "team-8",
    "name": "Masbate Movers DanceSport",
    "contactName": "Ernesto Magbanua",
-   "contactEmail": "club8@example.com",
+   "contactEmail": "team8@example.com",
    "contactPhone": "0917 000 1359"
   }
  ],
@@ -89,7 +89,7 @@
     "Marco B. Abad"
    ],
    "backNumber": 278,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -98,7 +98,7 @@
     "Sofia D. Zamora"
    ],
    "backNumber": 381,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -107,7 +107,7 @@
     "Joaquin T. Salazar"
    ],
    "backNumber": 79,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -116,7 +116,7 @@
     "Trisha A. Lim"
    ],
    "backNumber": 330,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -125,7 +125,7 @@
     "Gabriel R. Lim"
    ],
    "backNumber": 9,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -134,7 +134,7 @@
     "Tomas G. Valdez"
    ],
    "backNumber": 133,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -143,7 +143,7 @@
     "Denise B. Santos"
    ],
    "backNumber": 251,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -152,7 +152,7 @@
     "Lian F. Del Rosario"
    ],
    "backNumber": 12,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "juvenile_1"
   },
   {
@@ -161,7 +161,7 @@
     "Miguel J. Del Rosario"
    ],
    "backNumber": 238,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "juvenile_1"
   },
   {
@@ -170,7 +170,7 @@
     "Tomas D. Rivera"
    ],
    "backNumber": 368,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -179,7 +179,7 @@
     "Yna F. Mendoza"
    ],
    "backNumber": 67,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -188,7 +188,7 @@
     "Miguel C. Abad"
    ],
    "backNumber": 136,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -197,7 +197,7 @@
     "Miguel D. Santos"
    ],
    "backNumber": 321,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -206,7 +206,7 @@
     "Lian F. Soriano"
    ],
    "backNumber": 74,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -215,7 +215,7 @@
     "Jericho N. Guevarra"
    ],
    "backNumber": 262,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -224,7 +224,7 @@
     "Yna H. Lim"
    ],
    "backNumber": 169,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "juvenile_1"
   },
   {
@@ -233,7 +233,7 @@
     "Louise C. Ramos"
    ],
    "backNumber": 398,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "juvenile_1"
   },
   {
@@ -242,7 +242,7 @@
     "Katrina B. Fernandez"
    ],
    "backNumber": 391,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "juvenile_1"
   },
   {
@@ -251,7 +251,7 @@
     "Miguel A. Mendoza"
    ],
    "backNumber": 225,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "juvenile_1"
   },
   {
@@ -260,7 +260,7 @@
     "Lian M. Guevarra"
    ],
    "backNumber": 146,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -269,7 +269,7 @@
     "Gabriel D. Tan"
    ],
    "backNumber": 301,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "juvenile_1"
   },
   {
@@ -278,7 +278,7 @@
     "Marco B. Castillo"
    ],
    "backNumber": 319,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -287,7 +287,7 @@
     "Gabriel P. Uy"
    ],
    "backNumber": 149,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -296,7 +296,7 @@
     "Katrina G. Uy"
    ],
    "backNumber": 298,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "juvenile_1"
   },
   {
@@ -305,7 +305,7 @@
     "Camille C. Abad"
    ],
    "backNumber": 155,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "juvenile_1"
   },
   {
@@ -314,7 +314,7 @@
     "Isabel S. Rivera"
    ],
    "backNumber": 38,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "juvenile_1"
   },
   {
@@ -323,7 +323,7 @@
     "Bea E. Del Rosario"
    ],
    "backNumber": 113,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "juvenile_1"
   },
   {
@@ -332,7 +332,7 @@
     "Rafael E. Reyes"
    ],
    "backNumber": 126,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -341,7 +341,7 @@
     "Andre S. Aquino"
    ],
    "backNumber": 184,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "juvenile_1"
   },
   {
@@ -350,7 +350,7 @@
     "Nathan G. Salazar"
    ],
    "backNumber": 334,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -359,7 +359,7 @@
     "Paolo F. Flores"
    ],
    "backNumber": 93,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "juvenile_1"
   },
   {
@@ -368,7 +368,7 @@
     "Bea A. Lacson"
    ],
    "backNumber": 387,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -377,7 +377,7 @@
     "Mia R. Bernardo"
    ],
    "backNumber": 92,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -386,7 +386,7 @@
     "Louise A. Cruz"
    ],
    "backNumber": 379,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -395,7 +395,7 @@
     "Lian A. Uy"
    ],
    "backNumber": 286,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "juvenile_1"
   },
   {
@@ -404,7 +404,7 @@
     "Dominic L. Del Rosario"
    ],
    "backNumber": 312,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "juvenile_1"
   },
   {
@@ -413,7 +413,7 @@
     "Miguel A. Domingo"
    ],
    "backNumber": 55,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -422,7 +422,7 @@
     "Katrina G. Aquino"
    ],
    "backNumber": 29,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -431,7 +431,7 @@
     "Andre J. Lim"
    ],
    "backNumber": 266,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -440,7 +440,7 @@
     "Bea J. Abad"
    ],
    "backNumber": 300,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -449,7 +449,7 @@
     "Carlo M. Zamora"
    ],
    "backNumber": 139,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -458,7 +458,7 @@
     "Marco H. Flores"
    ],
    "backNumber": 89,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -467,7 +467,7 @@
     "Jericho D. Cruz"
    ],
    "backNumber": 51,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -476,7 +476,7 @@
     "Camille F. Macaraeg"
    ],
    "backNumber": 236,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_1"
   },
   {
@@ -485,7 +485,7 @@
     "Isabel G. Garcia"
    ],
    "backNumber": 107,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -494,7 +494,7 @@
     "Nathan E. Garcia"
    ],
    "backNumber": 64,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_1"
   },
   {
@@ -503,7 +503,7 @@
     "Hannah D. Del Rosario"
    ],
    "backNumber": 397,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -512,7 +512,7 @@
     "Andre R. Garcia"
    ],
    "backNumber": 347,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -521,7 +521,7 @@
     "Isabel E. Mendoza"
    ],
    "backNumber": 324,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_1"
   },
   {
@@ -530,7 +530,7 @@
     "Trisha K. Cruz"
    ],
    "backNumber": 358,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -539,7 +539,7 @@
     "Sofia N. Pascual"
    ],
    "backNumber": 380,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -548,7 +548,7 @@
     "Selene C. Guevarra"
    ],
    "backNumber": 247,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -557,7 +557,7 @@
     "Louise L. Macaraeg"
    ],
    "backNumber": 115,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -566,7 +566,7 @@
     "Yna A. Aquino"
    ],
    "backNumber": 229,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -575,7 +575,7 @@
     "Marco G. Abad"
    ],
    "backNumber": 224,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -584,7 +584,7 @@
     "Marco R. Santos"
    ],
    "backNumber": 250,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -593,7 +593,7 @@
     "Dominic K. Lacson"
    ],
    "backNumber": 58,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -602,7 +602,7 @@
     "Bea K. Mendoza"
    ],
    "backNumber": 20,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -611,7 +611,7 @@
     "Isabel D. Cruz"
    ],
    "backNumber": 88,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -620,7 +620,7 @@
     "Dominic M. Fernandez"
    ],
    "backNumber": 183,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_1"
   },
   {
@@ -629,7 +629,7 @@
     "Selene M. Torres"
    ],
    "backNumber": 56,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -638,7 +638,7 @@
     "Camille B. Pascual"
    ],
    "backNumber": 111,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_1"
   },
   {
@@ -647,7 +647,7 @@
     "Camille H. Cruz"
    ],
    "backNumber": 4,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -656,7 +656,7 @@
     "Camille T. Navarro"
    ],
    "backNumber": 5,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -665,7 +665,7 @@
     "Tomas K. Flores"
    ],
    "backNumber": 14,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -674,7 +674,7 @@
     "Rafael K. Tolentino"
    ],
    "backNumber": 311,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_1"
   },
   {
@@ -683,7 +683,7 @@
     "Joaquin K. Macaraeg"
    ],
    "backNumber": 150,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -692,7 +692,7 @@
     "Selene J. Fernandez"
    ],
    "backNumber": 71,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -701,7 +701,7 @@
     "Lian T. Abad"
    ],
    "backNumber": 196,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_1"
   },
   {
@@ -710,7 +710,7 @@
     "Ana C. Castillo"
    ],
    "backNumber": 277,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -719,7 +719,7 @@
     "Yna G. Valdez"
    ],
    "backNumber": 7,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -728,7 +728,7 @@
     "Yna G. Cruz"
    ],
    "backNumber": 395,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_1"
   },
   {
@@ -737,7 +737,7 @@
     "Bea K. Uy"
    ],
    "backNumber": 211,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_1"
   },
   {
@@ -746,7 +746,7 @@
     "Jericho H. Navarro"
    ],
    "backNumber": 121,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_1"
   },
   {
@@ -755,7 +755,7 @@
     "Louise N. Lim"
    ],
    "backNumber": 241,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -764,7 +764,7 @@
     "Miguel M. Aquino"
    ],
    "backNumber": 197,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -773,7 +773,7 @@
     "Yna K. Tan"
    ],
    "backNumber": 367,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -782,7 +782,7 @@
     "Mia M. Bernardo"
    ],
    "backNumber": 35,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -791,7 +791,7 @@
     "Selene D. Mendoza"
    ],
    "backNumber": 244,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_1"
   },
   {
@@ -800,7 +800,7 @@
     "Marco E. Aquino"
    ],
    "backNumber": 8,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -809,7 +809,7 @@
     "Yna T. Castillo"
    ],
    "backNumber": 371,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_2"
   },
   {
@@ -818,7 +818,7 @@
     "Ana A. Lacson"
    ],
    "backNumber": 170,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_2"
   },
   {
@@ -827,7 +827,7 @@
     "Dominic M. Macaraeg"
    ],
    "backNumber": 214,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -836,7 +836,7 @@
     "Bea M. Co"
    ],
    "backNumber": 263,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_2"
   },
   {
@@ -845,7 +845,7 @@
     "Katrina E. Mendoza"
    ],
    "backNumber": 231,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_2"
   },
   {
@@ -854,7 +854,7 @@
     "Elijah A. Soriano"
    ],
    "backNumber": 48,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -863,7 +863,7 @@
     "Julian R. Uy"
    ],
    "backNumber": 85,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -872,7 +872,7 @@
     "Rafael R. Soriano"
    ],
    "backNumber": 154,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -881,7 +881,7 @@
     "Margaux B. Macaraeg"
    ],
    "backNumber": 68,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_2"
   },
   {
@@ -890,7 +890,7 @@
     "Andre F. Torres"
    ],
    "backNumber": 124,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -899,7 +899,7 @@
     "Yna L. Co"
    ],
    "backNumber": 356,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_2"
   },
   {
@@ -908,7 +908,7 @@
     "Paolo H. Tan"
    ],
    "backNumber": 27,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_2"
   },
   {
@@ -917,7 +917,7 @@
     "Sofia S. Valdez"
    ],
    "backNumber": 61,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -926,7 +926,7 @@
     "Gabriel C. Flores"
    ],
    "backNumber": 361,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_2"
   },
   {
@@ -935,7 +935,7 @@
     "Marco H. Mendoza"
    ],
    "backNumber": 114,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -944,7 +944,7 @@
     "Rafael C. Del Rosario"
    ],
    "backNumber": 194,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_2"
   },
   {
@@ -953,7 +953,7 @@
     "Julian B. Abad"
    ],
    "backNumber": 125,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -962,7 +962,7 @@
     "Miguel E. Rivera"
    ],
    "backNumber": 355,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_2"
   },
   {
@@ -971,7 +971,7 @@
     "Ana T. Mendoza"
    ],
    "backNumber": 105,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -980,7 +980,7 @@
     "Tomas C. Garcia"
    ],
    "backNumber": 75,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -989,7 +989,7 @@
     "Trisha D. Fernandez"
    ],
    "backNumber": 96,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_2"
   },
   {
@@ -998,7 +998,7 @@
     "Yna P. Macaraeg"
    ],
    "backNumber": 44,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -1007,7 +1007,7 @@
     "Pia D. Salazar"
    ],
    "backNumber": 295,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_2"
   },
   {
@@ -1016,7 +1016,7 @@
     "Andre D. Santos"
    ],
    "backNumber": 117,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_2"
   },
   {
@@ -1025,7 +1025,7 @@
     "Camille E. Reyes"
    ],
    "backNumber": 195,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -1034,7 +1034,7 @@
     "Marco B. Lim"
    ],
    "backNumber": 285,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -1043,7 +1043,7 @@
     "Lian F. Mendoza"
    ],
    "backNumber": 6,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -1052,7 +1052,7 @@
     "Bea L. Rivera"
    ],
    "backNumber": 349,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_2"
   },
   {
@@ -1061,7 +1061,7 @@
     "Andre B. Co"
    ],
    "backNumber": 78,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -1070,7 +1070,7 @@
     "Isabel T. Flores"
    ],
    "backNumber": 36,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -1079,7 +1079,7 @@
     "Andre J. Soriano"
    ],
    "backNumber": 309,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_2"
   },
   {
@@ -1088,7 +1088,7 @@
     "Yna F. Valdez"
    ],
    "backNumber": 400,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_2"
   },
   {
@@ -1097,7 +1097,7 @@
     "Jericho J. Zamora"
    ],
    "backNumber": 325,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -1106,7 +1106,7 @@
     "Paolo D. Guevarra"
    ],
    "backNumber": 320,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -1115,7 +1115,7 @@
     "Pia L. Bernardo"
    ],
    "backNumber": 66,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_2"
   },
   {
@@ -1124,7 +1124,7 @@
     "Isabel R. Tan"
    ],
    "backNumber": 386,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -1133,7 +1133,7 @@
     "Selene A. Reyes"
    ],
    "backNumber": 246,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_2"
   },
   {
@@ -1142,7 +1142,7 @@
     "Carlo N. Ramos"
    ],
    "backNumber": 135,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_2"
   },
   {
@@ -1151,7 +1151,7 @@
     "Yna M. Uy"
    ],
    "backNumber": 172,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -1160,7 +1160,7 @@
     "Andre A. Tan"
    ],
    "backNumber": 110,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_2"
   },
   {
@@ -1169,7 +1169,7 @@
     "Miguel N. Domingo"
    ],
    "backNumber": 240,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1178,7 +1178,7 @@
     "Margaux P. Valdez"
    ],
    "backNumber": 327,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -1187,7 +1187,7 @@
     "Andre A. Co"
    ],
    "backNumber": 84,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -1196,7 +1196,7 @@
     "Isabel N. Guevarra"
    ],
    "backNumber": 392,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -1205,7 +1205,7 @@
     "Rafael N. Castillo"
    ],
    "backNumber": 237,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -1214,7 +1214,7 @@
     "Trisha P. Flores"
    ],
    "backNumber": 315,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1223,7 +1223,7 @@
     "Ana B. Soriano"
    ],
    "backNumber": 228,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "youth"
   },
   {
@@ -1232,7 +1232,7 @@
     "Yna P. Zamora"
    ],
    "backNumber": 343,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1241,7 +1241,7 @@
     "Camille R. Tan"
    ],
    "backNumber": 372,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -1250,7 +1250,7 @@
     "Elijah H. Pascual"
    ],
    "backNumber": 289,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "youth"
   },
   {
@@ -1259,7 +1259,7 @@
     "Camille M. Macaraeg"
    ],
    "backNumber": 364,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "youth"
   },
   {
@@ -1268,7 +1268,7 @@
     "Katrina M. Salazar"
    ],
    "backNumber": 142,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1277,7 +1277,7 @@
     "Andre E. Zamora"
    ],
    "backNumber": 134,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "youth"
   },
   {
@@ -1286,7 +1286,7 @@
     "Nathan D. Mendoza"
    ],
    "backNumber": 281,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1295,7 +1295,7 @@
     "Bea F. Tolentino"
    ],
    "backNumber": 383,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "youth"
   },
   {
@@ -1304,7 +1304,7 @@
     "Margaux E. Soriano"
    ],
    "backNumber": 59,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1313,7 +1313,7 @@
     "Julian N. Ramos"
    ],
    "backNumber": 220,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -1322,7 +1322,7 @@
     "Denise C. Rivera"
    ],
    "backNumber": 206,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "youth"
   },
   {
@@ -1331,7 +1331,7 @@
     "Jericho K. Ramos"
    ],
    "backNumber": 272,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "youth"
   },
   {
@@ -1340,7 +1340,7 @@
     "Andre M. Aquino"
    ],
    "backNumber": 323,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1349,7 +1349,7 @@
     "Rafael R. Zamora"
    ],
    "backNumber": 314,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1358,7 +1358,7 @@
     "Rafael F. Pascual"
    ],
    "backNumber": 90,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "youth"
   },
   {
@@ -1367,7 +1367,7 @@
     "Gabriel B. Cruz"
    ],
    "backNumber": 34,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "youth"
   },
   {
@@ -1376,7 +1376,7 @@
     "Nathan E. Abad"
    ],
    "backNumber": 399,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1385,7 +1385,7 @@
     "Margaux S. Tan"
    ],
    "backNumber": 215,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1394,7 +1394,7 @@
     "Yna S. Pascual"
    ],
    "backNumber": 216,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "youth"
   },
   {
@@ -1403,7 +1403,7 @@
     "Mia L. Valdez"
    ],
    "backNumber": 164,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -1412,7 +1412,7 @@
     "Denise F. Pascual"
    ],
    "backNumber": 140,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1421,7 +1421,7 @@
     "Mia P. Uy"
    ],
    "backNumber": 76,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "youth"
   },
   {
@@ -1430,7 +1430,7 @@
     "Rafael H. Zamora"
    ],
    "backNumber": 307,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1439,7 +1439,7 @@
     "Dominic P. Cruz"
    ],
    "backNumber": 83,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -1448,7 +1448,7 @@
     "Nathan D. Garcia"
    ],
    "backNumber": 233,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "youth"
   },
   {
@@ -1457,7 +1457,7 @@
     "Trisha B. Domingo"
    ],
    "backNumber": 365,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "youth"
   },
   {
@@ -1466,7 +1466,7 @@
     "Tomas A. Aquino"
    ],
    "backNumber": 313,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -1475,7 +1475,7 @@
     "Miguel E. Lim"
    ],
    "backNumber": 162,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "youth"
   },
   {
@@ -1484,7 +1484,7 @@
     "Hannah K. Navarro"
    ],
    "backNumber": 91,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "youth"
   },
   {
@@ -1493,7 +1493,7 @@
     "Sofia S. Ramos"
    ],
    "backNumber": 336,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1502,7 +1502,7 @@
     "Margaux K. Reyes"
    ],
    "backNumber": 328,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1511,7 +1511,7 @@
     "Mia A. Fernandez"
    ],
    "backNumber": 60,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "youth"
   },
   {
@@ -1520,7 +1520,7 @@
     "Rafael T. Del Rosario"
    ],
    "backNumber": 23,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "youth"
   },
   {
@@ -1529,7 +1529,7 @@
     "Joaquin T. Mendoza"
    ],
    "backNumber": 385,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -1538,7 +1538,7 @@
     "Margaux D. Lim"
    ],
    "backNumber": 257,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -1547,7 +1547,7 @@
     "Denise J. Zamora"
    ],
    "backNumber": 390,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -1556,7 +1556,7 @@
     "Trisha N. Domingo"
    ],
    "backNumber": 198,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "adult"
   },
   {
@@ -1565,7 +1565,7 @@
     "Bea N. Lim"
    ],
    "backNumber": 284,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -1574,7 +1574,7 @@
     "Marco F. Tolentino"
    ],
    "backNumber": 242,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -1583,7 +1583,7 @@
     "Selene D. Salazar"
    ],
    "backNumber": 157,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -1592,7 +1592,7 @@
     "Paolo J. Torres"
    ],
    "backNumber": 310,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -1601,7 +1601,7 @@
     "Katrina N. Santos"
    ],
    "backNumber": 249,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -1610,7 +1610,7 @@
     "Mia A. Salazar"
    ],
    "backNumber": 370,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "adult"
   },
   {
@@ -1619,7 +1619,7 @@
     "Mia A. Del Rosario"
    ],
    "backNumber": 161,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "adult"
   },
   {
@@ -1628,7 +1628,7 @@
     "Dominic B. Pascual"
    ],
    "backNumber": 345,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "adult"
   },
   {
@@ -1637,7 +1637,7 @@
     "Louise J. Torres"
    ],
    "backNumber": 348,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "adult"
   },
   {
@@ -1646,7 +1646,7 @@
     "Selene C. Uy"
    ],
    "backNumber": 33,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -1655,7 +1655,7 @@
     "Joaquin C. Co"
    ],
    "backNumber": 18,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -1664,7 +1664,7 @@
     "Isabel T. Torres"
    ],
    "backNumber": 200,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "adult"
   },
   {
@@ -1673,7 +1673,7 @@
     "Rafael J. Pascual"
    ],
    "backNumber": 82,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -1682,7 +1682,7 @@
     "Denise D. Aquino"
    ],
    "backNumber": 70,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "adult"
   },
   {
@@ -1691,7 +1691,7 @@
     "Isabel D. Salazar"
    ],
    "backNumber": 269,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -1700,7 +1700,7 @@
     "Tomas E. Co"
    ],
    "backNumber": 167,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "adult"
   },
   {
@@ -1709,7 +1709,7 @@
     "Sofia H. Bernardo"
    ],
    "backNumber": 86,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -1718,7 +1718,7 @@
     "Hannah P. Ramos"
    ],
    "backNumber": 160,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -1727,7 +1727,7 @@
     "Sofia D. Tan"
    ],
    "backNumber": 274,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -1736,7 +1736,7 @@
     "Tomas G. Cruz"
    ],
    "backNumber": 299,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "adult"
   },
   {
@@ -1745,7 +1745,7 @@
     "Carlo J. Guevarra"
    ],
    "backNumber": 47,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "adult"
   },
   {
@@ -1754,7 +1754,7 @@
     "Selene B. Ramos"
    ],
    "backNumber": 362,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -1763,7 +1763,7 @@
     "Andre N. Bernardo"
    ],
    "backNumber": 190,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "adult"
   },
   {
@@ -1772,7 +1772,7 @@
     "Joaquin B. Torres"
    ],
    "backNumber": 11,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "adult"
   },
   {
@@ -1781,7 +1781,7 @@
     "Ana A. Co"
    ],
    "backNumber": 191,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "adult"
   },
   {
@@ -1790,7 +1790,7 @@
     "Jericho K. Castillo"
    ],
    "backNumber": 373,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -1799,7 +1799,7 @@
     "Margaux N. Soriano"
    ],
    "backNumber": 166,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "adult"
   },
   {
@@ -1808,7 +1808,7 @@
     "Yna R. Macaraeg"
    ],
    "backNumber": 288,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -1817,7 +1817,7 @@
     "Tomas S. Uy"
    ],
    "backNumber": 366,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -1826,7 +1826,7 @@
     "Andre B. Torres"
    ],
    "backNumber": 267,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "adult"
   },
   {
@@ -1835,7 +1835,7 @@
     "Andre C. Mendoza"
    ],
    "backNumber": 122,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "adult"
   },
   {
@@ -1844,7 +1844,7 @@
     "Nathan J. Lacson"
    ],
    "backNumber": 296,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -1853,7 +1853,7 @@
     "Rafael D. Santos"
    ],
    "backNumber": 326,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -1862,7 +1862,7 @@
     "Miguel S. Zamora"
    ],
    "backNumber": 45,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -1871,7 +1871,7 @@
     "Sofia C. Soriano"
    ],
    "backNumber": 374,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -1880,7 +1880,7 @@
     "Margaux L. Reyes"
    ],
    "backNumber": 77,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -1889,7 +1889,7 @@
     "Nathan C. Bernardo"
    ],
    "backNumber": 143,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "senior"
   },
   {
@@ -1898,7 +1898,7 @@
     "Katrina D. Mendoza"
    ],
    "backNumber": 344,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -1907,7 +1907,7 @@
     "Selene J. Soriano"
    ],
    "backNumber": 118,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "senior"
   },
   {
@@ -1916,7 +1916,7 @@
     "Selene P. Tan"
    ],
    "backNumber": 148,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -1925,7 +1925,7 @@
     "Dominic G. Lim"
    ],
    "backNumber": 131,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -1934,7 +1934,7 @@
     "Yna K. Cruz"
    ],
    "backNumber": 270,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -1943,7 +1943,7 @@
     "Andre A. Reyes"
    ],
    "backNumber": 282,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -1952,7 +1952,7 @@
     "Selene T. Castillo"
    ],
    "backNumber": 72,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "senior"
   },
   {
@@ -1961,7 +1961,7 @@
     "Trisha S. Fernandez"
    ],
    "backNumber": 24,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "senior"
   },
   {
@@ -1970,7 +1970,7 @@
     "Rafael K. Bernardo"
    ],
    "backNumber": 46,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -1979,7 +1979,7 @@
     "Andre L. Aquino"
    ],
    "backNumber": 306,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -1988,7 +1988,7 @@
     "Lian P. Del Rosario"
    ],
    "backNumber": 19,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -1997,7 +1997,7 @@
     "Lian S. Garcia"
    ],
    "backNumber": 335,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2006,7 +2006,7 @@
     "Carlo P. Tan"
    ],
    "backNumber": 174,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2015,7 +2015,7 @@
     "Paolo B. Mendoza"
    ],
    "backNumber": 340,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2024,7 +2024,7 @@
     "Louise G. Soriano"
    ],
    "backNumber": 219,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2033,7 +2033,7 @@
     "Margaux F. Fernandez"
    ],
    "backNumber": 234,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "senior"
   },
   {
@@ -2042,7 +2042,7 @@
     "Hannah N. Lacson"
    ],
    "backNumber": 258,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2051,7 +2051,7 @@
     "Yna F. Navarro"
    ],
    "backNumber": 179,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "senior"
   },
   {
@@ -2060,7 +2060,7 @@
     "Jericho M. Flores"
    ],
    "backNumber": 346,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2069,7 +2069,7 @@
     "Joaquin D. Bernardo"
    ],
    "backNumber": 182,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2078,7 +2078,7 @@
     "Marco N. Mendoza"
    ],
    "backNumber": 37,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2087,7 +2087,7 @@
     "Camille G. Tan"
    ],
    "backNumber": 30,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "senior"
   },
   {
@@ -2096,7 +2096,7 @@
     "Andre E. Macaraeg"
    ],
    "backNumber": 261,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2105,7 +2105,7 @@
     "Hannah H. Mendoza"
    ],
    "backNumber": 353,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2114,7 +2114,7 @@
     "Mia L. Abad"
    ],
    "backNumber": 259,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2123,7 +2123,7 @@
     "Elijah H. Torres"
    ],
    "backNumber": 73,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2132,7 +2132,7 @@
     "Julian A. Castillo"
    ],
    "backNumber": 253,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2141,7 +2141,7 @@
     "Isabel T. Fernandez"
    ],
    "backNumber": 57,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2150,7 +2150,7 @@
     "Yna C. Tolentino"
    ],
    "backNumber": 103,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2159,7 +2159,7 @@
     "Miguel T. Reyes"
    ],
    "backNumber": 384,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2168,7 +2168,7 @@
     "Katrina D. Del Rosario"
    ],
    "backNumber": 227,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2177,7 +2177,7 @@
     "Jericho P. Mendoza"
    ],
    "backNumber": 322,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2186,7 +2186,7 @@
     "Isabel P. Aquino"
    ],
    "backNumber": 331,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2195,7 +2195,7 @@
     "Andre E. Domingo"
    ],
    "backNumber": 80,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2204,7 +2204,7 @@
     "Jericho L. Bernardo"
    ],
    "backNumber": 316,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "senior"
   },
   {
@@ -2213,7 +2213,7 @@
     "Lian D. Soriano"
    ],
    "backNumber": 173,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2222,7 +2222,7 @@
     "Lian D. Zamora"
    ],
    "backNumber": 100,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "senior"
   },
   {
@@ -2231,7 +2231,7 @@
     "Denise J. Torres"
    ],
    "backNumber": 65,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2240,7 +2240,7 @@
     "Ana T. Fernandez"
    ],
    "backNumber": 112,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2250,7 +2250,7 @@
     "Selene N. Guevarra"
    ],
    "backNumber": 15,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2260,7 +2260,7 @@
     "Andre S. Soriano"
    ],
    "backNumber": 342,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2270,7 +2270,7 @@
     "Miguel S. Tolentino"
    ],
    "backNumber": 130,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2280,7 +2280,7 @@
     "Isabel B. Garcia"
    ],
    "backNumber": 102,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2290,7 +2290,7 @@
     "Katrina S. Uy"
    ],
    "backNumber": 97,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2300,7 +2300,7 @@
     "Louise B. Co"
    ],
    "backNumber": 341,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2310,7 +2310,7 @@
     "Andre L. Lacson"
    ],
    "backNumber": 42,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2320,7 +2320,7 @@
     "Jericho C. Del Rosario"
    ],
    "backNumber": 13,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2330,7 +2330,7 @@
     "Elijah T. Valdez"
    ],
    "backNumber": 245,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2340,7 +2340,7 @@
     "Nathan A. Aquino"
    ],
    "backNumber": 308,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2350,7 +2350,7 @@
     "Camille L. Fernandez"
    ],
    "backNumber": 210,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2360,7 +2360,7 @@
     "Dominic F. Co"
    ],
    "backNumber": 178,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "juvenile_1"
   },
   {
@@ -2370,7 +2370,7 @@
     "Isabel P. Mendoza"
    ],
    "backNumber": 156,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -2380,7 +2380,7 @@
     "Joaquin D. Lim"
    ],
    "backNumber": 254,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_1"
   },
   {
@@ -2390,7 +2390,7 @@
     "Isabel S. Uy"
    ],
    "backNumber": 22,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_1"
   },
   {
@@ -2400,7 +2400,7 @@
     "Trisha N. Ramos"
    ],
    "backNumber": 338,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -2410,7 +2410,7 @@
     "Pia N. Valdez"
    ],
    "backNumber": 357,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -2420,7 +2420,7 @@
     "Bea H. Torres"
    ],
    "backNumber": 43,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "junior_1"
   },
   {
@@ -2430,7 +2430,7 @@
     "Marco B. Pascual"
    ],
    "backNumber": 128,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_1"
   },
   {
@@ -2440,7 +2440,7 @@
     "Carlo A. Bernardo"
    ],
    "backNumber": 129,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_1"
   },
   {
@@ -2450,7 +2450,7 @@
     "Hannah T. Valdez"
    ],
    "backNumber": 1,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_1"
   },
   {
@@ -2460,7 +2460,7 @@
     "Margaux S. Guevarra"
    ],
    "backNumber": 165,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_1"
   },
   {
@@ -2470,7 +2470,7 @@
     "Yna K. Guevarra"
    ],
    "backNumber": 333,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_1"
   },
   {
@@ -2480,7 +2480,7 @@
     "Andre R. Bernardo"
    ],
    "backNumber": 151,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_1"
   },
   {
@@ -2490,7 +2490,7 @@
     "Elijah E. Mendoza"
    ],
    "backNumber": 378,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "junior_2"
   },
   {
@@ -2500,7 +2500,7 @@
     "Elijah D. Torres"
    ],
    "backNumber": 332,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "junior_2"
   },
   {
@@ -2510,7 +2510,7 @@
     "Ana C. Abad"
    ],
    "backNumber": 2,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -2520,7 +2520,7 @@
     "Gabriel N. Soriano"
    ],
    "backNumber": 202,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "junior_2"
   },
   {
@@ -2530,7 +2530,7 @@
     "Paolo J. Ramos"
    ],
    "backNumber": 252,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -2540,7 +2540,7 @@
     "Elijah M. Salazar"
    ],
    "backNumber": 221,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "junior_2"
   },
   {
@@ -2550,7 +2550,7 @@
     "Jericho A. Valdez"
    ],
    "backNumber": 50,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "junior_2"
   },
   {
@@ -2560,7 +2560,7 @@
     "Katrina E. Del Rosario"
    ],
    "backNumber": 104,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_2"
   },
   {
@@ -2570,7 +2570,7 @@
     "Bea K. Guevarra"
    ],
    "backNumber": 382,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "junior_2"
   },
   {
@@ -2580,7 +2580,7 @@
     "Mia P. Rivera"
    ],
    "backNumber": 26,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -2590,7 +2590,7 @@
     "Jericho K. Bernardo"
    ],
    "backNumber": 87,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -2600,7 +2600,7 @@
     "Hannah H. Tan"
    ],
    "backNumber": 199,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "junior_2"
   },
   {
@@ -2610,7 +2610,7 @@
     "Bea S. Tan"
    ],
    "backNumber": 63,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -2620,7 +2620,7 @@
     "Hannah P. Pascual"
    ],
    "backNumber": 175,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -2630,7 +2630,7 @@
     "Gabriel T. Reyes"
    ],
    "backNumber": 375,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "youth"
   },
   {
@@ -2640,7 +2640,7 @@
     "Ana A. Aquino"
    ],
    "backNumber": 283,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "youth"
   },
   {
@@ -2650,7 +2650,7 @@
     "Nathan J. Lim"
    ],
    "backNumber": 81,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -2660,7 +2660,7 @@
     "Nathan T. Domingo"
    ],
    "backNumber": 369,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "youth"
   },
   {
@@ -2670,7 +2670,7 @@
     "Camille K. Cruz"
    ],
    "backNumber": 186,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -2680,7 +2680,7 @@
     "Gabriel T. Macaraeg"
    ],
    "backNumber": 217,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -2690,7 +2690,7 @@
     "Andre E. Bernardo"
    ],
    "backNumber": 108,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "youth"
   },
   {
@@ -2700,7 +2700,7 @@
     "Julian S. Reyes"
    ],
    "backNumber": 265,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "youth"
   },
   {
@@ -2710,7 +2710,7 @@
     "Bea A. Aquino"
    ],
    "backNumber": 99,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "youth"
   },
   {
@@ -2720,7 +2720,7 @@
     "Margaux M. Valdez"
    ],
    "backNumber": 280,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "youth"
   },
   {
@@ -2730,7 +2730,7 @@
     "Elijah S. Flores"
    ],
    "backNumber": 318,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -2740,7 +2740,7 @@
     "Paolo B. Valdez"
    ],
    "backNumber": 291,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "adult"
   },
   {
@@ -2750,7 +2750,7 @@
     "Camille P. Zamora"
    ],
    "backNumber": 389,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -2760,7 +2760,7 @@
     "Sofia H. Torres"
    ],
    "backNumber": 208,
-   "clubId": "club-8",
+   "teamId": "team-8",
    "ageGroup": "adult"
   },
   {
@@ -2770,7 +2770,7 @@
     "Dominic R. Domingo"
    ],
    "backNumber": 292,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "adult"
   },
   {
@@ -2780,7 +2780,7 @@
     "Nathan S. Torres"
    ],
    "backNumber": 192,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -2790,7 +2790,7 @@
     "Nathan M. Pascual"
    ],
    "backNumber": 193,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "adult"
   },
   {
@@ -2800,7 +2800,7 @@
     "Paolo K. Soriano"
    ],
    "backNumber": 354,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "adult"
   },
   {
@@ -2810,7 +2810,7 @@
     "Andre F. Mendoza"
    ],
    "backNumber": 145,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "adult"
   },
   {
@@ -2820,7 +2820,7 @@
     "Camille J. Aquino"
    ],
    "backNumber": 304,
-   "clubId": "club-2",
+   "teamId": "team-2",
    "ageGroup": "adult"
   },
   {
@@ -2830,7 +2830,7 @@
     "Katrina H. Reyes"
    ],
    "backNumber": 181,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -2840,7 +2840,7 @@
     "Elijah A. Ramos"
    ],
    "backNumber": 180,
-   "clubId": "club-4",
+   "teamId": "team-4",
    "ageGroup": "adult"
   },
   {
@@ -2850,7 +2850,7 @@
     "Jericho D. Fernandez"
    ],
    "backNumber": 290,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "senior"
   },
   {
@@ -2860,7 +2860,7 @@
     "Paolo D. Bernardo"
    ],
    "backNumber": 268,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "senior"
   },
   {
@@ -2870,7 +2870,7 @@
     "Tomas G. Garcia"
    ],
    "backNumber": 189,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2880,7 +2880,7 @@
     "Lian S. Del Rosario"
    ],
    "backNumber": 171,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2890,7 +2890,7 @@
     "Paolo A. Lim"
    ],
    "backNumber": 394,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2900,7 +2900,7 @@
     "Carlo B. Flores"
    ],
    "backNumber": 376,
-   "clubId": "club-5",
+   "teamId": "team-5",
    "ageGroup": "senior"
   },
   {
@@ -2910,7 +2910,7 @@
     "Dominic L. Pascual"
    ],
    "backNumber": 168,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "senior"
   },
   {
@@ -2920,7 +2920,7 @@
     "Bea P. Reyes"
    ],
    "backNumber": 230,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "senior"
   },
   {
@@ -2930,7 +2930,7 @@
     "Margaux K. Domingo"
    ],
    "backNumber": 25,
-   "clubId": "club-3",
+   "teamId": "team-3",
    "ageGroup": "senior"
   },
   {
@@ -2940,7 +2940,7 @@
     "Hannah L. Torres"
    ],
    "backNumber": 39,
-   "clubId": "club-1",
+   "teamId": "team-1",
    "ageGroup": "senior"
   },
   {
@@ -2950,7 +2950,7 @@
     "Pia S. Lim"
    ],
    "backNumber": 363,
-   "clubId": "club-6",
+   "teamId": "team-6",
    "ageGroup": "senior"
   },
   {
@@ -2960,7 +2960,7 @@
     "Rafael D. Zamora"
    ],
    "backNumber": 350,
-   "clubId": "club-7",
+   "teamId": "team-7",
    "ageGroup": "senior"
   }
  ],
@@ -4988,3486 +4988,3486 @@
    "eventId": "comp-sorsogon-2026:e1",
    "competitorId": "c-002",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e1:c-035",
    "eventId": "comp-sorsogon-2026:e1",
    "competitorId": "c-035",
    "scratched": true,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e1:c-033",
    "eventId": "comp-sorsogon-2026:e1",
    "competitorId": "c-033",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e1:c-032",
    "eventId": "comp-sorsogon-2026:e1",
    "competitorId": "c-032",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-009",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-009",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-038",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-038",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-032",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-032",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-020",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-020",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-007",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-007",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-026",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-026",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-004",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-004",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e2:c-001",
    "eventId": "comp-sorsogon-2026:e2",
    "competitorId": "c-001",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e3:c-026",
    "eventId": "comp-sorsogon-2026:e3",
    "competitorId": "c-026",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e3:c-034",
    "eventId": "comp-sorsogon-2026:e3",
    "competitorId": "c-034",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e3:c-002",
    "eventId": "comp-sorsogon-2026:e3",
    "competitorId": "c-002",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e3:c-016",
    "eventId": "comp-sorsogon-2026:e3",
    "competitorId": "c-016",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e4:c-018",
    "eventId": "comp-sorsogon-2026:e4",
    "competitorId": "c-018",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e4:c-038",
    "eventId": "comp-sorsogon-2026:e4",
    "competitorId": "c-038",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e4:c-017",
    "eventId": "comp-sorsogon-2026:e4",
    "competitorId": "c-017",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e4:c-039",
    "eventId": "comp-sorsogon-2026:e4",
    "competitorId": "c-039",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e4:c-008",
    "eventId": "comp-sorsogon-2026:e4",
    "competitorId": "c-008",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e4:c-031",
    "eventId": "comp-sorsogon-2026:e4",
    "competitorId": "c-031",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-028",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-028",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-001",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-001",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-010",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-010",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-021",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-021",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-038",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-038",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-032",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-032",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-022",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-022",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-011",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-011",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-029",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-029",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-033",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-033",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-005",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-005",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-007",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-007",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-017",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-017",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e5:c-014",
    "eventId": "comp-sorsogon-2026:e5",
    "competitorId": "c-014",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-013",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-013",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-020",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-020",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-010",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-010",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-036",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-036",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-034",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-034",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-024",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-024",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-008",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-008",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-004",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-004",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-030",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-030",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e6:c-029",
    "eventId": "comp-sorsogon-2026:e6",
    "competitorId": "c-029",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e7:c-016",
    "eventId": "comp-sorsogon-2026:e7",
    "competitorId": "c-016",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e7:c-037",
    "eventId": "comp-sorsogon-2026:e7",
    "competitorId": "c-037",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e7:c-008",
    "eventId": "comp-sorsogon-2026:e7",
    "competitorId": "c-008",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e7:c-035",
    "eventId": "comp-sorsogon-2026:e7",
    "competitorId": "c-035",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e7:c-039",
    "eventId": "comp-sorsogon-2026:e7",
    "competitorId": "c-039",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-251",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-251",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-241",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-241",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-249",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-249",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-248",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-248",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-246",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-246",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-250",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-250",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e8:c-252",
    "eventId": "comp-sorsogon-2026:e8",
    "competitorId": "c-252",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e9:c-251",
    "eventId": "comp-sorsogon-2026:e9",
    "competitorId": "c-251",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e9:c-250",
    "eventId": "comp-sorsogon-2026:e9",
    "competitorId": "c-250",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e9:c-243",
    "eventId": "comp-sorsogon-2026:e9",
    "competitorId": "c-243",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e9:c-242",
    "eventId": "comp-sorsogon-2026:e9",
    "competitorId": "c-242",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e9:c-246",
    "eventId": "comp-sorsogon-2026:e9",
    "competitorId": "c-246",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e9:c-249",
    "eventId": "comp-sorsogon-2026:e9",
    "competitorId": "c-249",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-071",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-071",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-075",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-075",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-068",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-068",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-059",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-059",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-044",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-044",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-080",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-080",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-052",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-052",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-045",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-045",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-074",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-074",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-067",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-067",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-046",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-046",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-079",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-079",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-057",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-057",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-063",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-063",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-069",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-069",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e10:c-051",
    "eventId": "comp-sorsogon-2026:e10",
    "competitorId": "c-051",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-048",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-048",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-060",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-060",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-068",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-068",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-057",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-057",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-079",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-079",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-053",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-053",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-064",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-064",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-058",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-058",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-078",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-078",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-042",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-042",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-062",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-062",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-043",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-043",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-077",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-077",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-070",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-070",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-076",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-076",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-073",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-073",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-071",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-071",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-061",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-061",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-051",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-051",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-066",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-066",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-080",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-080",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-074",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-074",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-047",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-047",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-059",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-059",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-050",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-050",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-056",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-056",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-067",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-067",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-055",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-055",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-069",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-069",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-072",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-072",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-063",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-063",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-041",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-041",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-065",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-065",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e11:c-049",
    "eventId": "comp-sorsogon-2026:e11",
    "competitorId": "c-049",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-075",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-075",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-045",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-045",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-067",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-067",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-058",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-058",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-043",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-043",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-068",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-068",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-071",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-071",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-059",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-059",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-051",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-051",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-078",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-078",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-066",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-066",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-044",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-044",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-076",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-076",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-050",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-050",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-055",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-055",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-063",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-063",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-054",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-054",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-062",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-062",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-047",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-047",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e12:c-065",
    "eventId": "comp-sorsogon-2026:e12",
    "competitorId": "c-065",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-075",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-075",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-070",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-070",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-043",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-043",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-044",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-044",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-079",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-079",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-057",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-057",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-080",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-080",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-051",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-051",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-046",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-046",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-055",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-055",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-077",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-077",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-060",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-060",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-050",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-050",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-067",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-067",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e13:c-066",
    "eventId": "comp-sorsogon-2026:e13",
    "competitorId": "c-066",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-056",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-056",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-060",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-060",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-063",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-063",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-050",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-050",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-078",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-078",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-059",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-059",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-070",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-070",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-073",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-073",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-075",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-075",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-080",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-080",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e14:c-064",
    "eventId": "comp-sorsogon-2026:e14",
    "competitorId": "c-064",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-065",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-065",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-046",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-046",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-062",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-062",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-055",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-055",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-070",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-070",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-063",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-063",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-043",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-043",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-053",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-053",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-059",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-059",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-068",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-068",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-050",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-050",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-066",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-066",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-044",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-044",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e15:c-041",
    "eventId": "comp-sorsogon-2026:e15",
    "competitorId": "c-041",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-071",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-071",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-063",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-063",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-045",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-045",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-053",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-053",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-074",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-074",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-079",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-079",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-059",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-059",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-075",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-075",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-051",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-051",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-066",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-066",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-042",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-042",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-078",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-078",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-064",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-064",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e16:c-044",
    "eventId": "comp-sorsogon-2026:e16",
    "competitorId": "c-044",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e17:c-260",
    "eventId": "comp-sorsogon-2026:e17",
    "competitorId": "c-260",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e17:c-263",
    "eventId": "comp-sorsogon-2026:e17",
    "competitorId": "c-263",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e17:c-262",
    "eventId": "comp-sorsogon-2026:e17",
    "competitorId": "c-262",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e17:c-254",
    "eventId": "comp-sorsogon-2026:e17",
    "competitorId": "c-254",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e17:c-256",
    "eventId": "comp-sorsogon-2026:e17",
    "competitorId": "c-256",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e18:c-259",
    "eventId": "comp-sorsogon-2026:e18",
    "competitorId": "c-259",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e18:c-254",
    "eventId": "comp-sorsogon-2026:e18",
    "competitorId": "c-254",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e18:c-258",
    "eventId": "comp-sorsogon-2026:e18",
    "competitorId": "c-258",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-082",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-082",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-106",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-106",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-117",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-117",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-108",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-108",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-101",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-101",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-094",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-094",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-083",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-083",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-086",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-086",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-120",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-120",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-110",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-110",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e19:c-115",
    "eventId": "comp-sorsogon-2026:e19",
    "competitorId": "c-115",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-103",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-103",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-115",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-115",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-120",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-120",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-111",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-111",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-110",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-110",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-119",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-119",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-095",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-095",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-107",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-107",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-081",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-081",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-105",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-105",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-106",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-106",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e20:c-118",
    "eventId": "comp-sorsogon-2026:e20",
    "competitorId": "c-118",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-081",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-081",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-086",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-086",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-100",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-100",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-083",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-083",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-115",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-115",
    "scratched": true,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-120",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-120",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-099",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-099",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-113",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-113",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-106",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-106",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-088",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-088",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-116",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-116",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e21:c-105",
    "eventId": "comp-sorsogon-2026:e21",
    "competitorId": "c-105",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-110",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-110",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-113",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-113",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-109",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-109",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-099",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-099",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-116",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-116",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-118",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-118",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-114",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-114",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-119",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-119",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-081",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-081",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-083",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-083",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e22:c-117",
    "eventId": "comp-sorsogon-2026:e22",
    "competitorId": "c-117",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e23:c-084",
    "eventId": "comp-sorsogon-2026:e23",
    "competitorId": "c-084",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e23:c-115",
    "eventId": "comp-sorsogon-2026:e23",
    "competitorId": "c-115",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e23:c-099",
    "eventId": "comp-sorsogon-2026:e23",
    "competitorId": "c-099",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e23:c-105",
    "eventId": "comp-sorsogon-2026:e23",
    "competitorId": "c-105",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-094",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-094",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-112",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-112",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-120",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-120",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-083",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-083",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-108",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-108",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-085",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-085",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-114",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-114",
    "scratched": true,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-088",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-088",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-081",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-081",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-118",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-118",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-086",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-086",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-119",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-119",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e24:c-111",
    "eventId": "comp-sorsogon-2026:e24",
    "competitorId": "c-111",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-109",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-109",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-091",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-091",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-095",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-095",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-098",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-098",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-110",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-110",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-106",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-106",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-082",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-082",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-096",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-096",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-083",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-083",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-114",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-114",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-111",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-111",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-100",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-100",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e25:c-104",
    "eventId": "comp-sorsogon-2026:e25",
    "competitorId": "c-104",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-275",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-275",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-276",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-276",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-271",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-271",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-265",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-265",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-268",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-268",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-267",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-267",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-269",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-269",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e26:c-272",
    "eventId": "comp-sorsogon-2026:e26",
    "competitorId": "c-272",
    "scratched": true,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e27:c-272",
    "eventId": "comp-sorsogon-2026:e27",
    "competitorId": "c-272",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e27:c-273",
    "eventId": "comp-sorsogon-2026:e27",
    "competitorId": "c-273",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e27:c-271",
    "eventId": "comp-sorsogon-2026:e27",
    "competitorId": "c-271",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e27:c-269",
    "eventId": "comp-sorsogon-2026:e27",
    "competitorId": "c-269",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e28:c-144",
    "eventId": "comp-sorsogon-2026:e28",
    "competitorId": "c-144",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e28:c-157",
    "eventId": "comp-sorsogon-2026:e28",
    "competitorId": "c-157",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e28:c-159",
    "eventId": "comp-sorsogon-2026:e28",
    "competitorId": "c-159",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e28:c-149",
    "eventId": "comp-sorsogon-2026:e28",
    "competitorId": "c-149",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-142",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-142",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-128",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-128",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-123",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-123",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-152",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-152",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-129",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-129",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-132",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-132",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-154",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-154",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-134",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-134",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-159",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-159",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-156",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-156",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-147",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-147",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-138",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-138",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e29:c-121",
    "eventId": "comp-sorsogon-2026:e29",
    "competitorId": "c-121",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-146",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-146",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-150",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-150",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-160",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-160",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-138",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-138",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-135",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-135",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-143",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-143",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-123",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-123",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-132",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-132",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-151",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-151",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-157",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-157",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-124",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-124",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-139",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-139",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-136",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-136",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-140",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-140",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-153",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-153",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e30:c-122",
    "eventId": "comp-sorsogon-2026:e30",
    "competitorId": "c-122",
    "scratched": true,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e31:c-155",
    "eventId": "comp-sorsogon-2026:e31",
    "competitorId": "c-155",
    "scratched": true,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e31:c-158",
    "eventId": "comp-sorsogon-2026:e31",
    "competitorId": "c-158",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e31:c-143",
    "eventId": "comp-sorsogon-2026:e31",
    "competitorId": "c-143",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e31:c-150",
    "eventId": "comp-sorsogon-2026:e31",
    "competitorId": "c-150",
    "scratched": true,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-133",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-133",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-131",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-131",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-141",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-141",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-126",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-126",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-157",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-157",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-135",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-135",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-159",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-159",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e32:c-130",
    "eventId": "comp-sorsogon-2026:e32",
    "competitorId": "c-130",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e33:c-157",
    "eventId": "comp-sorsogon-2026:e33",
    "competitorId": "c-157",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e33:c-152",
    "eventId": "comp-sorsogon-2026:e33",
    "competitorId": "c-152",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e33:c-122",
    "eventId": "comp-sorsogon-2026:e33",
    "competitorId": "c-122",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e33:c-142",
    "eventId": "comp-sorsogon-2026:e33",
    "competitorId": "c-142",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-141",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-141",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-134",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-134",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-121",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-121",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-140",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-140",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-128",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-128",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-156",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-156",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-137",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-137",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-147",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-147",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-157",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-157",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-124",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-124",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-132",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-132",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e34:c-158",
    "eventId": "comp-sorsogon-2026:e34",
    "competitorId": "c-158",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e35:c-278",
    "eventId": "comp-sorsogon-2026:e35",
    "competitorId": "c-278",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e35:c-283",
    "eventId": "comp-sorsogon-2026:e35",
    "competitorId": "c-283",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e35:c-279",
    "eventId": "comp-sorsogon-2026:e35",
    "competitorId": "c-279",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e35:c-284",
    "eventId": "comp-sorsogon-2026:e35",
    "competitorId": "c-284",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e36:c-277",
    "eventId": "comp-sorsogon-2026:e36",
    "competitorId": "c-277",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e36:c-283",
    "eventId": "comp-sorsogon-2026:e36",
    "competitorId": "c-283",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e36:c-286",
    "eventId": "comp-sorsogon-2026:e36",
    "competitorId": "c-286",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e36:c-282",
    "eventId": "comp-sorsogon-2026:e36",
    "competitorId": "c-282",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-188",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-188",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-194",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-194",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-200",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-200",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-183",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-183",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-198",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-198",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-186",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-186",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e37:c-185",
    "eventId": "comp-sorsogon-2026:e37",
    "competitorId": "c-185",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-166",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-166",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-164",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-164",
    "scratched": true,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-169",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-169",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-172",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-172",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-175",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-175",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-189",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-189",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-200",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-200",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-180",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-180",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-185",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-185",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-191",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-191",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-176",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-176",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e38:c-173",
    "eventId": "comp-sorsogon-2026:e38",
    "competitorId": "c-173",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-197",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-197",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-183",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-183",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-175",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-175",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-192",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-192",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-167",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-167",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-182",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-182",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e39:c-172",
    "eventId": "comp-sorsogon-2026:e39",
    "competitorId": "c-172",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e40:c-172",
    "eventId": "comp-sorsogon-2026:e40",
    "competitorId": "c-172",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e40:c-192",
    "eventId": "comp-sorsogon-2026:e40",
    "competitorId": "c-192",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e40:c-166",
    "eventId": "comp-sorsogon-2026:e40",
    "competitorId": "c-166",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e40:c-186",
    "eventId": "comp-sorsogon-2026:e40",
    "competitorId": "c-186",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e40:c-173",
    "eventId": "comp-sorsogon-2026:e40",
    "competitorId": "c-173",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e40:c-169",
    "eventId": "comp-sorsogon-2026:e40",
    "competitorId": "c-169",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-179",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-179",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-187",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-187",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-164",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-164",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-178",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-178",
    "scratched": true,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-196",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-196",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-188",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-188",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-182",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-182",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-191",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-191",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-167",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-167",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-172",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-172",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e41:c-197",
    "eventId": "comp-sorsogon-2026:e41",
    "competitorId": "c-197",
    "scratched": true,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e42:c-173",
    "eventId": "comp-sorsogon-2026:e42",
    "competitorId": "c-173",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e42:c-179",
    "eventId": "comp-sorsogon-2026:e42",
    "competitorId": "c-179",
    "scratched": true,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e42:c-193",
    "eventId": "comp-sorsogon-2026:e42",
    "competitorId": "c-193",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e42:c-197",
    "eventId": "comp-sorsogon-2026:e42",
    "competitorId": "c-197",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-172",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-172",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-167",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-167",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-178",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-178",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-174",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-174",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-168",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-168",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-189",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-189",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-180",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-180",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-191",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-191",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e43:c-175",
    "eventId": "comp-sorsogon-2026:e43",
    "competitorId": "c-175",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e44:c-292",
    "eventId": "comp-sorsogon-2026:e44",
    "competitorId": "c-292",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e44:c-297",
    "eventId": "comp-sorsogon-2026:e44",
    "competitorId": "c-297",
    "scratched": true,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e44:c-295",
    "eventId": "comp-sorsogon-2026:e44",
    "competitorId": "c-295",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e44:c-291",
    "eventId": "comp-sorsogon-2026:e44",
    "competitorId": "c-291",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e44:c-296",
    "eventId": "comp-sorsogon-2026:e44",
    "competitorId": "c-296",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-295",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-295",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-298",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-298",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-292",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-292",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-299",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-299",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-290",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-290",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-296",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-296",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e45:c-297",
    "eventId": "comp-sorsogon-2026:e45",
    "competitorId": "c-297",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e46:c-210",
    "eventId": "comp-sorsogon-2026:e46",
    "competitorId": "c-210",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e46:c-223",
    "eventId": "comp-sorsogon-2026:e46",
    "competitorId": "c-223",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e46:c-214",
    "eventId": "comp-sorsogon-2026:e46",
    "competitorId": "c-214",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e46:c-235",
    "eventId": "comp-sorsogon-2026:e46",
    "competitorId": "c-235",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e46:c-228",
    "eventId": "comp-sorsogon-2026:e46",
    "competitorId": "c-228",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-228",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-228",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-221",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-221",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-224",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-224",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-202",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-202",
    "scratched": true,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-205",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-205",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-226",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-226",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-235",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-235",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-238",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-238",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-203",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-203",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-227",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-227",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-213",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-213",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e47:c-207",
    "eventId": "comp-sorsogon-2026:e47",
    "competitorId": "c-207",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-218",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-218",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-226",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-226",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-202",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-202",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-210",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-210",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-234",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-234",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-206",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-206",
    "scratched": true,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-208",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-208",
    "scratched": true,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e48:c-215",
    "eventId": "comp-sorsogon-2026:e48",
    "competitorId": "c-215",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-220",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-220",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-212",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-212",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-217",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-217",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-239",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-239",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-230",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-230",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-201",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-201",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-229",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-229",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-214",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-214",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-235",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-235",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-206",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-206",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-202",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-202",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-209",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-209",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-215",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-215",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-237",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-237",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-219",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-219",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e49:c-207",
    "eventId": "comp-sorsogon-2026:e49",
    "competitorId": "c-207",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-208",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-208",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-230",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-230",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-203",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-203",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-212",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-212",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-229",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-229",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-209",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-209",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-227",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-227",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-220",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-220",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-211",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-211",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-201",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-201",
    "scratched": false,
-   "paymentId": "pay-club-4"
+   "paymentId": "pay-team-4"
   },
   {
    "id": "comp-sorsogon-2026:e50:c-222",
    "eventId": "comp-sorsogon-2026:e50",
    "competitorId": "c-222",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-235",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-235",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-205",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-205",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-229",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-229",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-228",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-228",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-212",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-212",
    "scratched": true,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-209",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-209",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-215",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-215",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-216",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-216",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-208",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-208",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-236",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-236",
    "scratched": false,
-   "paymentId": "pay-club-2"
+   "paymentId": "pay-team-2"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-206",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-206",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-202",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-202",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-234",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-234",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-225",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-225",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e51:c-221",
    "eventId": "comp-sorsogon-2026:e51",
    "competitorId": "c-221",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e52:c-225",
    "eventId": "comp-sorsogon-2026:e52",
    "competitorId": "c-225",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e52:c-205",
    "eventId": "comp-sorsogon-2026:e52",
    "competitorId": "c-205",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e52:c-224",
    "eventId": "comp-sorsogon-2026:e52",
    "competitorId": "c-224",
    "scratched": false,
-   "paymentId": "pay-club-5"
+   "paymentId": "pay-team-5"
   },
   {
    "id": "comp-sorsogon-2026:e52:c-231",
    "eventId": "comp-sorsogon-2026:e52",
    "competitorId": "c-231",
    "scratched": false,
-   "paymentId": "pay-club-8"
+   "paymentId": "pay-team-8"
   },
   {
    "id": "comp-sorsogon-2026:e53:c-304",
    "eventId": "comp-sorsogon-2026:e53",
    "competitorId": "c-304",
    "scratched": false,
-   "paymentId": "pay-club-1"
+   "paymentId": "pay-team-1"
   },
   {
    "id": "comp-sorsogon-2026:e53:c-312",
    "eventId": "comp-sorsogon-2026:e53",
    "competitorId": "c-312",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-sorsogon-2026:e53:c-305",
    "eventId": "comp-sorsogon-2026:e53",
    "competitorId": "c-305",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e54:c-308",
    "eventId": "comp-sorsogon-2026:e54",
    "competitorId": "c-308",
    "scratched": false,
-   "paymentId": "pay-club-6"
+   "paymentId": "pay-team-6"
   },
   {
    "id": "comp-sorsogon-2026:e54:c-309",
    "eventId": "comp-sorsogon-2026:e54",
    "competitorId": "c-309",
    "scratched": false,
-   "paymentId": "pay-club-3"
+   "paymentId": "pay-team-3"
   },
   {
    "id": "comp-sorsogon-2026:e54:c-302",
    "eventId": "comp-sorsogon-2026:e54",
    "competitorId": "c-302",
    "scratched": false,
-   "paymentId": "pay-club-7"
+   "paymentId": "pay-team-7"
   },
   {
    "id": "comp-legazpi-2026:e1:c-040",
@@ -15305,8 +15305,8 @@
  ],
  "payments": [
   {
-   "id": "pay-club-1",
-   "clubId": "club-1",
+   "id": "pay-team-1",
+   "teamId": "team-1",
    "entryIds": [
     "comp-sorsogon-2026:e5:c-010",
     "comp-sorsogon-2026:e6:c-013",
@@ -15378,8 +15378,8 @@
    "checkedAt": "2026-09-26T03:40:00.000Z"
   },
   {
-   "id": "pay-club-2",
-   "clubId": "club-2",
+   "id": "pay-team-2",
+   "teamId": "team-2",
    "entryIds": [
     "comp-sorsogon-2026:e1:c-033",
     "comp-sorsogon-2026:e1:c-032",
@@ -15452,8 +15452,8 @@
    "checkedAt": null
   },
   {
-   "id": "pay-club-3",
-   "clubId": "club-3",
+   "id": "pay-team-3",
+   "teamId": "team-3",
    "entryIds": [
     "comp-sorsogon-2026:e2:c-007",
     "comp-sorsogon-2026:e5:c-028",
@@ -15530,8 +15530,8 @@
    "checkedAt": "2026-09-26T05:40:00.000Z"
   },
   {
-   "id": "pay-club-4",
-   "clubId": "club-4",
+   "id": "pay-team-4",
+   "teamId": "team-4",
    "entryIds": [
     "comp-sorsogon-2026:e3:c-016",
     "comp-sorsogon-2026:e4:c-008",
@@ -15612,8 +15612,8 @@
    "checkedAt": null
   },
   {
-   "id": "pay-club-5",
-   "clubId": "club-5",
+   "id": "pay-team-5",
+   "teamId": "team-5",
    "entryIds": [
     "comp-sorsogon-2026:e6:c-024",
     "comp-sorsogon-2026:e8:c-250",
@@ -15686,8 +15686,8 @@
    "checkedAt": null
   },
   {
-   "id": "pay-club-6",
-   "clubId": "club-6",
+   "id": "pay-team-6",
+   "teamId": "team-6",
    "entryIds": [
     "comp-sorsogon-2026:e1:c-002",
     "comp-sorsogon-2026:e2:c-020",
@@ -15763,8 +15763,8 @@
    "checkedAt": null
   },
   {
-   "id": "pay-club-7",
-   "clubId": "club-7",
+   "id": "pay-team-7",
+   "teamId": "team-7",
    "entryIds": [
     "comp-sorsogon-2026:e1:c-035",
     "comp-sorsogon-2026:e2:c-009",
@@ -15824,8 +15824,8 @@
    "checkedAt": "2026-09-26T09:40:00.000Z"
   },
   {
-   "id": "pay-club-8",
-   "clubId": "club-8",
+   "id": "pay-team-8",
+   "teamId": "team-8",
    "entryIds": [
     "comp-sorsogon-2026:e2:c-026",
     "comp-sorsogon-2026:e3:c-026",
@@ -15916,7 +15916,7 @@
   },
   {
    "id": "pay-late-1",
-   "clubId": "club-6",
+   "teamId": "team-6",
    "entryIds": [
     "comp-sorsogon-2026:e2:c-002"
    ],
@@ -15931,7 +15931,7 @@
   },
   {
    "id": "pay-late-2",
-   "clubId": "club-2",
+   "teamId": "team-2",
    "entryIds": [
     "comp-sorsogon-2026:e3:c-001"
    ],
@@ -15946,7 +15946,7 @@
   },
   {
    "id": "pay-late-3",
-   "clubId": "club-2",
+   "teamId": "team-2",
    "entryIds": [
     "comp-sorsogon-2026:e7:c-001"
    ],
@@ -15961,7 +15961,7 @@
   },
   {
    "id": "pay-late-4",
-   "clubId": "club-4",
+   "teamId": "team-4",
    "entryIds": [
     "comp-sorsogon-2026:e12:c-041"
    ],
@@ -15976,7 +15976,7 @@
   },
   {
    "id": "pay-late-5",
-   "clubId": "club-2",
+   "teamId": "team-2",
    "entryIds": [
     "comp-sorsogon-2026:e20:c-082"
    ],
@@ -15991,7 +15991,7 @@
   },
   {
    "id": "pay-late-6",
-   "clubId": "club-7",
+   "teamId": "team-7",
    "entryIds": [
     "comp-sorsogon-2026:e29:c-122"
    ],
@@ -16006,7 +16006,7 @@
   },
   {
    "id": "pay-late-7",
-   "clubId": "club-5",
+   "teamId": "team-5",
    "entryIds": [
     "comp-sorsogon-2026:e38:c-161"
    ],
@@ -16021,7 +16021,7 @@
   },
   {
    "id": "pay-late-8",
-   "clubId": "club-5",
+   "teamId": "team-5",
    "entryIds": [
     "comp-sorsogon-2026:e45:c-289"
    ],

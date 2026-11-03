@@ -11,7 +11,7 @@ runMigrations(db)
 
 if (hasData(db)) {
   // Keeps existing data; only adds the sample athlete and upcoming competitions if this database predates them
-  addSampleAthlete(db, hashPassword(SAMPLE_PASSWORD), db.select().from(t.clubs).limit(1).get()?.id ?? null)
+  addSampleAthlete(db, hashPassword(SAMPLE_PASSWORD), db.select().from(t.teams).limit(1).get()?.id ?? null)
   addSampleMembers(db, hashPassword(SAMPLE_PASSWORD))
   addSampleUpcoming(db)
   addSampleAthleteData(db)

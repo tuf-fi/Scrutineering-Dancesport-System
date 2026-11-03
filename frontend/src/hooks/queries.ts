@@ -12,7 +12,7 @@ export const useCompetition = (id: string) =>
     enabled: Boolean(id),
   })
 
-export const useClubs = () => useQuery({ queryKey: ['clubs'], queryFn: api.getClubs })
+export const useTeams = () => useQuery({ queryKey: ['teams'], queryFn: api.getTeams })
 export const useCompetitors = () =>
   useQuery({ queryKey: ['competitors'], queryFn: api.getCompetitors })
 

@@ -38,45 +38,45 @@ describe('fees and payment details', () => {
   })
 })
 
-describe('competitors per club', () => {
-  it('opens the competitors of one club from its count, and the filter is the club', async () => {
-    renderApp('/secretariat/clubs', Role.Secretariat)
-    // The counts arrive after the clubs, so wait for a club that has competitors
+describe('competitors per team', () => {
+  it('opens the competitors of one team from its count, and the filter is the team', async () => {
+    renderApp('/secretariat/teams', Role.Secretariat)
+    // The counts arrive after the teams, so wait for a team that has competitors
     const link = await waitFor(() => {
       const found = screen.getAllByRole('link', { name: /competitors of / }).find((l) => !(l.getAttribute('aria-label') ?? '').startsWith('0 '))
       if (!found) throw new Error('The counts have not loaded yet')
       return found
     })
-    expect(link.getAttribute('href')).toMatch(/^\/secretariat\/competitors\?club=/)
+    expect(link.getAttribute('href')).toMatch(/^\/secretariat\/competitors\?team=/)
     const label = link.getAttribute('aria-label') ?? ''
-    const club = label.replace(/^\d+ competitors of /, '')
+    const team = label.replace(/^\d+ competitors of /, '')
     const count = Number(label.split(' ')[0])
     await userEvent.click(link)
 
     expect(await screen.findByRole('heading', { name: 'Competitors' })).toBeInTheDocument()
-    expect(await screen.findByLabelText('Club')).toHaveDisplayValue(club)
-    // Only that club's competitors are listed, 10 at a time
+    expect(await screen.findByLabelText('Team')).toHaveDisplayValue(team)
+    // Only that team's competitors are listed, 10 at a time
     await waitFor(() => expect(screen.getAllByRole('row').length - 1).toBe(Math.min(count, 10)))
   })
 })
 
-describe('clubs', () => {
-  it('adds and deletes a club, and will not delete one that has competitors', async () => {
-    renderApp('/secretariat/clubs', Role.Secretariat)
-    await userEvent.click(await screen.findByRole('button', { name: 'Add club' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Add club' })
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add club' }))
-    expect(await within(dialog).findByText('Enter the club name.')).toBeInTheDocument()
-    await userEvent.type(within(dialog).getByLabelText('Club'), 'Zamboanga Steps')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add club' }))
+describe('teams', () => {
+  it('adds and deletes a team, and will not delete one that has competitors', async () => {
+    renderApp('/secretariat/teams', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add team' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add team' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add team' }))
+    expect(await within(dialog).findByText('Enter the team name.')).toBeInTheDocument()
+    await userEvent.type(within(dialog).getByLabelText('Team'), 'Zamboanga Steps')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add team' }))
     expect(await screen.findByText('Added Zamboanga Steps')).toBeInTheDocument()
 
-    await userEvent.type(screen.getByLabelText('Search clubs'), 'Zamboanga')
+    await userEvent.type(screen.getByLabelText('Search teams'), 'Zamboanga')
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Zamboanga Steps' }))
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
     expect(await screen.findByText('Deleted Zamboanga Steps')).toBeInTheDocument()
 
-    await userEvent.clear(screen.getByLabelText('Search clubs'))
+    await userEvent.clear(screen.getByLabelText('Search teams'))
     await userEvent.click((await screen.findAllByRole('button', { name: /^Delete / }))[0]!)
     await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
     expect(await screen.findByText(/has competitors/)).toBeInTheDocument()

@@ -1,7 +1,7 @@
 import type { PaymentMethod, PaymentSettings } from '@bis/shared'
 import type { Sqlite } from './db/client.ts'
 
-// Entry fees and where clubs send payment, set by the organizer. They live in the settings table, so a backup carries
+// Entry fees and where teams send payment, set by the organizer. They live in the settings table, so a backup carries
 // them, and late entries at the venue use the same fees.
 export const PAYMENT_SETTINGS_KEY = 'payment_settings'
 

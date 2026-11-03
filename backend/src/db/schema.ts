@@ -23,8 +23,8 @@ export const competitions = sqliteTable('competitions', {
   floorRoundId: text('floor_round_id'),
 })
 
-// A team (club) the secretariat enters dancers for; teams have no sign-in
-export const clubs = sqliteTable('clubs', {
+// A team the secretariat enters dancers for; teams have no sign-in
+export const teams = sqliteTable('teams', {
   id: id(),
   name: text('name').notNull(),
   contactName: text('contact_name').notNull().default(''),
@@ -61,18 +61,18 @@ export const competitors = sqliteTable(
     id: id(),
     // A couple has two names; a solo dancer has one
     names: text('names', { mode: 'json' }).$type<string[]>().notNull(),
-    // Worked out in the club's form from the dancers' birth years, which are not kept
+    // Worked out in the team's form from the dancers' birth years, which are not kept
     ageGroup: text('age_group', { enum: oneOf(AgeGroup) }),
     birthDate: text('birth_date'),
     // The rest of the entry form: province, coach, each dancer's details, beginner and membership
     details: text('details', { mode: 'json' }).$type<CompetitorDetails>(),
     // Null until the secretariat assigns one; unique once assigned
     backNumber: integer('back_number'),
-    clubId: text('club_id')
+    teamId: text('team_id')
       .notNull()
-      .references(() => clubs.id),
+      .references(() => teams.id),
   },
-  (t) => [uniqueIndex('competitors_back_number').on(t.backNumber), index('competitors_club').on(t.clubId)],
+  (t) => [uniqueIndex('competitors_back_number').on(t.backNumber), index('competitors_team').on(t.teamId)],
 )
 
 export interface PaymentSettles {
@@ -95,11 +95,11 @@ export const coaches = sqliteTable('coaches', {
 
 export const payments = sqliteTable('payments', {
   id: id(),
-  clubId: text('club_id')
+  teamId: text('team_id')
     .notNull()
-    .references(() => clubs.id),
+    .references(() => teams.id),
   competitionId: text('competition_id').references(() => competitions.id, { onDelete: 'cascade' }),
-  // A late entry at the venue has its own payment; the club's main payment covers its portal entries
+  // A late entry at the venue has its own payment; the team's main payment covers its portal entries
   late: integer('late', { mode: 'boolean' }).notNull().default(false),
   amountDue: real('amount_due').notNull(),
   amountPaid: real('amount_paid'),
@@ -420,7 +420,7 @@ export const athletes = sqliteTable('athletes', {
   phone: text('phone').notNull().default(''),
   address: text('address').notNull().default(''),
   province: text('province').notNull().default(''),
-  clubId: text('club_id').references(() => clubs.id, { onDelete: 'set null' }),
+  teamId: text('team_id').references(() => teams.id, { onDelete: 'set null' }),
   coachId: text('coach_id').references(() => coaches.id, { onDelete: 'set null' }),
   // The year the membership was last paid for; set when the secretariat confirms a request
   memberYear: integer('member_year'),
@@ -431,7 +431,7 @@ export const athletes = sqliteTable('athletes', {
   photo: text('photo'),
   // Every payment sent, confirmed or turned down, oldest first
   membershipHistory: text('membership_history', { mode: 'json' }).$type<MembershipEvent[]>().notNull().default([]),
-  // A club or coach change waiting for the secretariat
+  // A team or coach change waiting for the secretariat
   changeRequest: text('change_request', { mode: 'json' }).$type<ProfileChangeRequest>(),
 })
 
@@ -449,9 +449,9 @@ export const memberAccounts = sqliteTable('member_accounts', {
   // A small picture as a data URL
   photo: text('photo'),
   sessionVersion: integer('session_version').notNull().default(0),
-  // The coach or club record this account stands for, set when the secretariat approves a claim
+  // The coach or team record this account stands for, set when the secretariat approves a claim
   linkedId: text('linked_id'),
-  // A coach or club the account asked to be linked to, waiting for the secretariat
+  // A coach or team the account asked to be linked to, waiting for the secretariat
   claimId: text('claim_id'),
   claimedAt: text('claimed_at'),
 })

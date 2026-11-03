@@ -28,7 +28,7 @@ export function ProfileChangesPage() {
 
   const needle = query.trim().toLowerCase()
   const rows = (athletes.data ?? []).filter(
-    (a) => isWaiting(a) && (!needle || [a.name, a.email, a.clubName, a.requestedClubName, a.requestedCoachName].some((v) => v.toLowerCase().includes(needle))),
+    (a) => isWaiting(a) && (!needle || [a.name, a.email, a.teamName, a.requestedTeamName, a.requestedCoachName].some((v) => v.toLowerCase().includes(needle))),
   )
 
   return (
@@ -49,8 +49,8 @@ export function ProfileChangesPage() {
         columns={[
           { key: 'name', header: 'Athlete', cell: (a) => <span className="font-medium">{a.name}</span> },
           { key: 'email', header: 'Email', muted: true, hideBelow: 'lg', cell: (a) => a.email },
-          { key: 'now', header: 'Now', hideBelow: 'sm', cell: (a) => <Pair team={a.clubName} coach={a.coachName} /> },
-          { key: 'wants', header: 'Wants', cell: (a) => <Pair team={a.requestedClubName} coach={a.requestedCoachName} /> },
+          { key: 'now', header: 'Now', hideBelow: 'sm', cell: (a) => <Pair team={a.teamName} coach={a.coachName} /> },
+          { key: 'wants', header: 'Wants', cell: (a) => <Pair team={a.requestedTeamName} coach={a.requestedCoachName} /> },
           {
             key: 'actions',
             header: '',

@@ -5,7 +5,7 @@ import { SectionHead } from './SectionHead.tsx'
 const STEPS = [
   { title: 'Create an account', text: 'Sign up with your email. It takes a minute.' },
   { title: 'Pay your membership', text: 'Pay once a year, then enter the reference number. The secretariat confirms it.' },
-  { title: 'Pick your club and coach', text: 'Add them on your page so the secretariat can enter you in your events.' },
+  { title: 'Pick your team and coach', text: 'Add them on your page so the secretariat can enter you in your events.' },
 ]
 
 // Three ruled steps on the left, one gold way in on the right

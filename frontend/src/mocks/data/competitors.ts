@@ -1,5 +1,5 @@
 import { AgeGroup, type Competitor } from '@bis/shared'
-import { clubs } from './clubs.ts'
+import { teams } from './teams.ts'
 import { createRng, pick, shuffle } from './rng.ts'
 
 // Invented names only; no real dancers appear in sample data
@@ -47,7 +47,7 @@ function add(ageGroup: AgeGroup, names: string[], into: Map<AgeGroup, Competitor
     id: `c-${String(index + 1).padStart(3, '0')}`,
     names,
     backNumber: backNumbers[index],
-    clubId: pick(clubs, rng).id,
+    teamId: pick(teams, rng).id,
   }
   competitors.push(competitor)
   ageGroupOf.set(competitor.id, ageGroup)

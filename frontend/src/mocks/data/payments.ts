@@ -1,7 +1,7 @@
 import { PaymentStatus, type Event, type Payment, type PaymentDetail } from '@bis/shared'
-import { clubs } from './clubs.ts'
+import { teams } from './teams.ts'
 import { competitors } from './competitors.ts'
-import { entries, paymentIdForClub } from './entries.ts'
+import { entries, paymentIdForTeam } from './entries.ts'
 import { events } from './events.ts'
 import { at } from './rng.ts'
 
@@ -10,7 +10,7 @@ const FEE_COUPLE = 800
 
 export const feeFor = (event: Pick<Event, 'isSolo'>) => (event.isSolo ? FEE_SOLO : FEE_COUPLE)
 
-// One payment per club, cycling through every status so each queue state has data
+// One payment per team, cycling through every status so each queue state has data
 const STATUS_CYCLE = [
   PaymentStatus.Approved,
   PaymentStatus.ForChecking,
@@ -41,8 +41,8 @@ export function sampleReceipt(amount: number, reference: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-export const payments: Payment[] = clubs.flatMap((club, i) => {
-  const id = paymentIdForClub(club.id)
+export const payments: Payment[] = teams.flatMap((team, i) => {
+  const id = paymentIdForTeam(team.id)
   const own = entries.filter((e) => e.paymentId === id)
   if (own.length === 0) return []
 
@@ -56,7 +56,7 @@ export const payments: Payment[] = clubs.flatMap((club, i) => {
   return [
     {
       id,
-      clubId: club.id,
+      teamId: team.id,
       entryIds: own.map((e) => e.id),
       amountDue,
       amountPaid,
@@ -94,7 +94,7 @@ export function paymentDetail(payment: Payment): PaymentDetail {
 
   return {
     ...payment,
-    clubName: clubs.find((c) => c.id === payment.clubId)?.name ?? 'Unknown club',
+    teamName: teams.find((c) => c.id === payment.teamId)?.name ?? 'Unknown team',
     lines,
   }
 }

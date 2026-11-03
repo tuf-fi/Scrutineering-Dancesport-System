@@ -43,7 +43,7 @@ export function PaymentsPage() {
   const needle = query.trim().toLowerCase()
   const queue = all.filter(
     (p) =>
-      (filter === 'all' || p.status === filter) && (!needle || p.clubName.toLowerCase().includes(needle)),
+      (filter === 'all' || p.status === filter) && (!needle || p.teamName.toLowerCase().includes(needle)),
   )
 
   if (payments.isError) return <ErrorState onRetry={() => void payments.refetch()} />
@@ -77,7 +77,7 @@ export function PaymentsPage() {
       </div>
 
       <Toolbar>
-        <SearchField className="w-full sm:w-72" label="Search clubs" value={query} onChange={setQuery} />
+        <SearchField className="w-full sm:w-72" label="Search teams" value={query} onChange={setQuery} />
         <div className="w-full sm:w-60">
           <Select
             label="Status"
@@ -101,21 +101,21 @@ export function PaymentsPage() {
         paginationLabel="Payments pagination"
         onRowClick={(p) => update({ payment: p.id })}
         empty={{
-          title: needle ? `No clubs match "${query.trim()}"` : 'Nothing in this queue',
+          title: needle ? `No teams match "${query.trim()}"` : 'Nothing in this queue',
           description: needle
-            ? 'Try a different club name.'
+            ? 'Try a different team name.'
             : filter === PaymentStatus.ForChecking
               ? 'Payments waiting to be checked appear here.'
               : 'No payments have this status.',
         }}
         columns={[
           {
-            key: 'club',
-            header: 'Club',
+            key: 'team',
+            header: 'Team',
             cell: (p) => (
               <div className="flex items-center gap-3">
-                <Avatars names={[p.clubName]} />
-                <span className="truncate font-medium text-neutral-900">{p.clubName}</span>
+                <Avatars names={[p.teamName]} />
+                <span className="truncate font-medium text-neutral-900">{p.teamName}</span>
               </div>
             ),
           },

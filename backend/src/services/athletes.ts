@@ -25,7 +25,7 @@ const toProfile = (r: AthleteRowDb): AthleteProfile => ({
   phone: r.phone,
   address: r.address,
   province: r.province,
-  clubId: r.clubId,
+  teamId: r.teamId,
   coachId: r.coachId,
   memberYear: r.memberYear,
   request: r.request ?? null,
@@ -122,28 +122,28 @@ export const athletes = {
     if (birthDate && (!DATE.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || birthDate > now().slice(0, 10) || birthDate < '1900-01-01')) {
       return fail('Enter a valid date of birth.')
     }
-    const clubId = clean(input.clubId) || null
+    const teamId = clean(input.teamId) || null
     const coachId = clean(input.coachId) || null
-    if (clubId && !ctx.db.select().from(t.clubs).where(eq(t.clubs.id, clubId)).get()) return fail('Choose a club from the list.')
+    if (teamId && !ctx.db.select().from(t.teams).where(eq(t.teams.id, teamId)).get()) return fail('Choose a team from the list.')
     if (coachId && !ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get()) return fail('Choose a coach from the list.')
-    // A first club or coach is set straight away; changing one that is already there goes to the secretariat
-    const nextClub = row.clubId === null ? clubId : row.clubId
+    // A first team or coach is set straight away; changing one that is already there goes to the secretariat
+    const nextTeam = row.teamId === null ? teamId : row.teamId
     const nextCoach = row.coachId === null ? coachId : row.coachId
-    const asksForChange = clubId !== nextClub || coachId !== nextCoach
-    const changeRequest = asksForChange ? { clubId, coachId, requestedAt: now() } : (row.changeRequest ?? null)
+    const asksForChange = teamId !== nextTeam || coachId !== nextCoach
+    const changeRequest = asksForChange ? { teamId, coachId, requestedAt: now() } : (row.changeRequest ?? null)
     const values = {
       name,
       birthDate,
       phone: clean(input.phone).slice(0, 40),
       address: clean(input.address).slice(0, 300),
       province: clean(input.province).slice(0, 100),
-      clubId: nextClub,
+      teamId: nextTeam,
       coachId: nextCoach,
       changeRequest,
     }
     ctx.db.update(t.athletes).set(values).where(eq(t.athletes.id, row.id)).run()
     if (asksForChange) {
-      record(ctx.db, row.id, 'Asked to change club or coach', row.name, { after: { clubId, coachId } })
+      record(ctx.db, row.id, 'Asked to change team or coach', row.name, { after: { teamId, coachId } })
       ctx.defer(() => ctx.hub.alert([Role.Secretariat], { title: 'Team or coach change', detail: `${row.name} asks to change team or coach`, link: '/secretariat/profile-changes' }))
     }
     return toProfile({ ...row, ...values })
@@ -227,7 +227,7 @@ export const athletes = {
   },
 
   getAthletes(ctx: Ctx): AthleteRow[] {
-    const clubs = new Map(ctx.db.select().from(t.clubs).all().map((c) => [c.id, c.name]))
+    const teams = new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
     const coaches = new Map(ctx.db.select().from(t.coaches).all().map((c) => [c.id, c.name]))
     return ctx.db
       .select()
@@ -239,12 +239,12 @@ export const athletes = {
         name: r.name,
         email: r.email,
         phone: r.phone,
-        clubName: (r.clubId && clubs.get(r.clubId)) || '',
+        teamName: (r.teamId && teams.get(r.teamId)) || '',
         coachName: (r.coachId && coaches.get(r.coachId)) || '',
         memberYear: r.memberYear,
         request: r.request ?? null,
         changeRequest: r.changeRequest ?? null,
-        requestedClubName: (r.changeRequest?.clubId && clubs.get(r.changeRequest.clubId)) || '',
+        requestedTeamName: (r.changeRequest?.teamId && teams.get(r.changeRequest.teamId)) || '',
         requestedCoachName: (r.changeRequest?.coachId && coaches.get(r.changeRequest.coachId)) || '',
       }))
   },
@@ -253,9 +253,9 @@ export const athletes = {
     const row = found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, id)).get(), 'Athlete')
     const change = row.changeRequest
     if (!change || change.rejectedReason) return fail('This athlete has no change waiting.', 409)
-    ctx.db.update(t.athletes).set({ clubId: change.clubId, coachId: change.coachId, changeRequest: null }).where(eq(t.athletes.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Approved a club or coach change', row.name, { after: { clubId: change.clubId, coachId: change.coachId } })
-    notifyAthlete(ctx, id, { kind: 'change_approved', title: 'Your club or coach change was approved', detail: '', link: '/athlete' })
+    ctx.db.update(t.athletes).set({ teamId: change.teamId, coachId: change.coachId, changeRequest: null }).where(eq(t.athletes.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Approved a team or coach change', row.name, { after: { teamId: change.teamId, coachId: change.coachId } })
+    notifyAthlete(ctx, id, { kind: 'change_approved', title: 'Your team or coach change was approved', detail: '', link: '/athlete' })
   },
 
   rejectProfileChange(ctx: Ctx, id: string, reason: string): void {
@@ -264,8 +264,8 @@ export const athletes = {
     const rejectedReason = clean(reason)
     if (!rejectedReason) return fail('Say why it was turned down.')
     ctx.db.update(t.athletes).set({ changeRequest: { ...row.changeRequest, rejectedReason: rejectedReason.slice(0, 200) } }).where(eq(t.athletes.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Turned down a club or coach change', row.name, { after: { reason: rejectedReason } })
-    notifyAthlete(ctx, id, { kind: 'change_rejected', title: 'Your club or coach change was turned down', detail: rejectedReason.slice(0, 200), link: '/athlete/edit' })
+    record(ctx.db, actor(ctx).id, 'Turned down a team or coach change', row.name, { after: { reason: rejectedReason } })
+    notifyAthlete(ctx, id, { kind: 'change_rejected', title: 'Your team or coach change was turned down', detail: rejectedReason.slice(0, 200), link: '/athlete/edit' })
   },
 
   confirmMembership(ctx: Ctx, id: string): void {

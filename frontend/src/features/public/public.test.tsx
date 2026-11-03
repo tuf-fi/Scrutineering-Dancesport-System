@@ -97,7 +97,7 @@ describe('rankings page', () => {
     expect(classes.map((o) => o.textContent)).toEqual(['E1', 'D', 'C'])
   })
 
-  it('searches everyone in the category by name or club, and says when nothing matches', async () => {
+  it('searches everyone in the category by name or team, and says when nothing matches', async () => {
     renderApp('/rankings')
     const first = (await rowsOf())[0]
     const name = within(first).getAllByRole('link')[0].textContent ?? ''

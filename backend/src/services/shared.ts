@@ -4,7 +4,7 @@ import {
   Role,
   RoundStatus,
   type AdjudicatorPin,
-  type Club,
+  type Team,
   type Competition,
   type Competitor,
   type CompetitorDetails,
@@ -50,7 +50,7 @@ export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
 })
 
 // The password hash never leaves the server
-export const toClub = (r: typeof t.clubs.$inferSelect): Club => ({
+export const toTeam = (r: typeof t.teams.$inferSelect): Team => ({
   id: r.id,
   name: r.name,
   contactName: r.contactName,
@@ -62,7 +62,7 @@ export const toCompetitor = (r: typeof t.competitors.$inferSelect): Competitor =
   id: r.id,
   names: r.names,
   backNumber: r.backNumber,
-  clubId: r.clubId,
+  teamId: r.teamId,
   ...(r.details ? { details: r.details } : {}),
 })
 
@@ -184,8 +184,8 @@ export const getRoundRow = (ctx: Ctx, id: string) =>
 export const getCompetitorRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.competitors).where(eq(t.competitors.id, id)).get(), 'Competitor')
 
-export const getClubRow = (ctx: Ctx, id: string) =>
-  found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, id)).get(), 'Club')
+export const getTeamRow = (ctx: Ctx, id: string) =>
+  found(ctx.db.select().from(t.teams).where(eq(t.teams.id, id)).get(), 'Team')
 
 export const getPaymentRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.payments).where(eq(t.payments.id, id)).get(), 'Payment')
@@ -312,10 +312,10 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
     .innerJoin(t.competitors, eq(t.competitors.id, t.entries.competitorId))
     .where(eq(t.entries.paymentId, row.id))
     .all()
-  const club = ctx.db.select().from(t.clubs).where(eq(t.clubs.id, row.clubId)).get()
+  const team = ctx.db.select().from(t.teams).where(eq(t.teams.id, row.teamId)).get()
   const payment: Payment = {
     id: row.id,
-    clubId: row.clubId,
+    teamId: row.teamId,
     entryIds: lines.map((l) => l.entryId),
     amountDue: row.amountDue,
     amountPaid: row.amountPaid,
@@ -328,7 +328,7 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
   }
   return {
     ...payment,
-    clubName: club?.name ?? 'Unknown club',
+    teamName: team?.name ?? 'Unknown team',
     lines: lines.map((l) => ({
       entryId: l.entryId,
       eventId: l.eventId,

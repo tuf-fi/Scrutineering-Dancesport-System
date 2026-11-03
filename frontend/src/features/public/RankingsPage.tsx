@@ -1,10 +1,10 @@
-import { AgeGroup, Class, Discipline, type Club, type Competitor } from '@bis/shared'
+import { AgeGroup, Class, Discipline, type Team, type Competitor } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useClubs, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { useRevealRow } from '../../hooks/useRevealRow.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
@@ -14,7 +14,7 @@ import { cn } from '../../lib/cn.ts'
 
 interface Row extends RankingRow {
   competitor: Competitor
-  club: Club | undefined
+  team: Team | undefined
 }
 
 const DISCIPLINES = Object.values(Discipline).map((id) => ({
@@ -35,7 +35,7 @@ export function RankingsPage() {
   const [query, setQuery] = useState('')
   const points = useRankingPoints()
   const competitors = useCompetitors()
-  const clubs = useClubs()
+  const teams = useTeams()
 
   const classes = useMemo(() => availableClasses(points.data ?? []), [points.data])
   const discipline = parse(params.get('discipline'), Object.values(Discipline), Discipline.Latin)
@@ -53,23 +53,23 @@ export function RankingsPage() {
 
   const ranked = useMemo<Row[]>(() => {
     const competitorById = new Map((competitors.data ?? []).map((c) => [c.id, c]))
-    const clubById = new Map((clubs.data ?? []).map((c) => [c.id, c]))
+    const teamById = new Map((teams.data ?? []).map((c) => [c.id, c]))
     return rankCategory(points.data ?? [], {
       ageGroup,
       class: cls,
       discipline,
     }).flatMap((row) => {
       const competitor = competitorById.get(row.competitorId)
-      return competitor ? [{ ...row, competitor, club: clubById.get(competitor.clubId) }] : []
+      return competitor ? [{ ...row, competitor, team: teamById.get(competitor.teamId) }] : []
     })
-  }, [points.data, competitors.data, clubs.data, ageGroup, cls, discipline])
+  }, [points.data, competitors.data, teams.data, ageGroup, cls, discipline])
 
   const needle = query.trim().toLowerCase()
   const visible = needle
     ? ranked.filter(
         (r) =>
           competitorName(r.competitor.names).toLowerCase().includes(needle) ||
-          r.club?.name.toLowerCase().includes(needle),
+          r.team?.name.toLowerCase().includes(needle),
       )
     : ranked
   const { page, setPage, pageSize, total, pageItems } = usePagination(
@@ -77,11 +77,11 @@ export function RankingsPage() {
     `${discipline}|${ageGroup}|${cls}|${needle}`,
   )
 
-  const loading = points.isLoading || competitors.isLoading || clubs.isLoading
+  const loading = points.isLoading || competitors.isLoading || teams.isLoading
   const revealed = useRevealRow(visible, (r) => r.competitorId, pageSize, setPage, !loading)
 
-  if (points.isError || competitors.isError || clubs.isError) {
-    return <ErrorState onRetry={() => void Promise.all([points.refetch(), competitors.refetch(), clubs.refetch()])} />
+  if (points.isError || competitors.isError || teams.isError) {
+    return <ErrorState onRetry={() => void Promise.all([points.refetch(), competitors.refetch(), teams.refetch()])} />
   }
 
   return (
@@ -135,7 +135,7 @@ export function RankingsPage() {
             title={needle ? `No competitors match "${query.trim()}"` : 'No rankings in this category yet'}
             description={
               needle
-                ? 'Try a different name or club.'
+                ? 'Try a different name or team.'
                 : 'Points appear here once results from this category are approved.'
             }
           />
@@ -166,7 +166,7 @@ export function RankingsPage() {
                     >
                       {competitorName(r.competitor.names)}
                     </Link>
-                    <span className="truncate text-small text-neutral-600">{r.club?.name}</span>
+                    <span className="truncate text-small text-neutral-600">{r.team?.name}</span>
                   </div>
                 </div>
 

@@ -4,7 +4,7 @@ import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
-import { ClubsPage } from '../features/secretariat/ClubsPage.tsx'
+import { TeamsPage } from '../features/secretariat/TeamsPage.tsx'
 import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
@@ -194,7 +194,7 @@ export const routes: RouteObject[] = [
               { index: true, element: <EventsPage /> },
               { path: 'events/:eventId', element: <EventPage /> },
               { path: 'competitors', element: <CompetitorsPage /> },
-              { path: 'clubs', element: <ClubsPage /> },
+              { path: 'teams', element: <TeamsPage /> },
               { path: 'coaches', element: <CoachesPage /> },
               { path: 'athletes', element: <AthletesPage /> },
               { path: 'account-links', element: <AccountLinksPage /> },

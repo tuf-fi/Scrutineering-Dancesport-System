@@ -65,7 +65,7 @@ export function EventPage() {
         paginationLabel="Entries pagination"
         detailTitle={(r) => competitorName(r.names)}
         rowClassName={(r) => (r.scratched ? 'text-neutral-400' : undefined)}
-        empty={{ title: 'No entries yet', description: 'Entries appear here as clubs register and late entries are added.' }}
+        empty={{ title: 'No entries yet', description: 'Entries appear here as teams register and late entries are added.' }}
         columns={[
           { key: 'back', header: 'Back no.', cell: (r) => r.backNumber ?? '–', mono: true, widthClass: 'w-28' },
           {
@@ -78,7 +78,7 @@ export function EventPage() {
               </span>
             ),
           },
-          { key: 'club', header: 'Club', cell: (r) => r.clubName, muted: true, hideBelow: 'md' },
+          { key: 'team', header: 'Team', cell: (r) => r.teamName, muted: true, hideBelow: 'md' },
           {
             key: 'payment',
             header: 'Payment',

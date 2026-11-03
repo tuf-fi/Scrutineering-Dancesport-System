@@ -37,7 +37,7 @@ SEED.forEach(({ eventNumber, paidInCash }, i) => {
   entries.push(entry)
   payments.push({
     id: paymentId,
-    clubId: competitor.clubId,
+    teamId: competitor.teamId,
     entryIds: [entry.id],
     amountDue: fee,
     amountPaid: paidInCash ? fee : null,

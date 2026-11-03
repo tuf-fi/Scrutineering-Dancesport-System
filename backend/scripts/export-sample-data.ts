@@ -4,7 +4,7 @@ import { writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { adjudicatorPins, adjudicators, panels } from '../../frontend/src/mocks/data/adjudicators.ts'
-import { clubs } from '../../frontend/src/mocks/data/clubs.ts'
+import { teams } from '../../frontend/src/mocks/data/teams.ts'
 import { competitions, currentCompetitionId } from '../../frontend/src/mocks/data/competitions.ts'
 import { ageGroupOf, competitors } from '../../frontend/src/mocks/data/competitors.ts'
 import { entries } from '../../frontend/src/mocks/data/entries.ts'
@@ -26,7 +26,7 @@ const snapshot = {
   currentCompetitionId,
   liveRoundId,
   competitions,
-  clubs,
+  teams,
   competitors: competitors.map((c) => ({ ...c, ageGroup: ageGroupOf.get(c.id) ?? null })),
   events,
   entries,

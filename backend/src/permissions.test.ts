@@ -59,20 +59,20 @@ describe('every function against every role', () => {
 })
 
 describe('what guests may not see', () => {
-  it('hides club contact details', async () => {
-    const guest = await app.ok<Array<{ contactEmail: string; name: string }>>('getClubs', [])
+  it('hides team contact details', async () => {
+    const guest = await app.ok<Array<{ contactEmail: string; name: string }>>('getTeams', [])
     expect(guest.length).toBeGreaterThan(0)
     expect(guest.every((c) => c.contactEmail === '' && c.name !== '')).toBe(true)
-    const staff = await app.ok<Array<{ contactEmail: string }>>('getClubs', [], cookies.secretariat)
+    const staff = await app.ok<Array<{ contactEmail: string }>>('getTeams', [], cookies.secretariat)
     expect(staff.every((c) => c.contactEmail !== '')).toBe(true)
   })
 
   it('hides birth dates and contact details of competitors from everyone but admin and secretariat', async () => {
-    const [club] = await app.ok<Array<{ id: string }>>('getClubs', [], cookies.secretariat)
+    const [team] = await app.ok<Array<{ id: string }>>('getTeams', [], cookies.secretariat)
     await app.ok('createCompetitor', [
       {
         names: ['Test Dancer'],
-        clubId: club!.id,
+        teamId: team!.id,
         details: {
           province: 'Albay',
           coachId: null,
@@ -105,7 +105,7 @@ describe('what guests may not see', () => {
 
   it('does not let an adjudicator call staff functions', async () => {
     expect((await app.call('approveRound', ['x'], cookies.adjudicator)).status).toBe(403)
-    expect((await app.call('saveClub', [{ name: 'X' }], cookies.adjudicator)).status).toBe(403)
+    expect((await app.call('saveTeam', [{ name: 'X' }], cookies.adjudicator)).status).toBe(403)
   })
 
   it('answers an unknown function with 404', async () => {

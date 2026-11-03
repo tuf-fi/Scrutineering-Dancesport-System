@@ -4,7 +4,7 @@ import { Avatars } from '../../components/Avatars.tsx'
 import { ResultsByCompetition } from '../../components/ResultsByCompetition.tsx'
 import { Link, useLocation, useParams } from 'react-router'
 import { ButtonLink, EmptyState, ErrorState, Pagination, Skeleton } from '../../components/ui/index.ts'
-import { useClubs, useCompetitorHistory, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
+import { useTeams, useCompetitorHistory, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { competitorName, eventGrade } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
@@ -20,12 +20,12 @@ export function CompetitorPage() {
   const { id = '' } = useParams()
   const cameFromRankings = (useLocation().state as { from?: string } | null)?.from === 'rankings'
   const competitors = useCompetitors()
-  const clubs = useClubs()
+  const teams = useTeams()
   const history = useCompetitorHistory(id)
   const points = useRankingPoints()
 
   const competitor = competitors.data?.find((c) => c.id === id)
-  const club = clubs.data?.find((c) => c.id === competitor?.clubId)
+  const team = teams.data?.find((c) => c.id === competitor?.teamId)
 
   const standings = useMemo<CategoryStanding[]>(() => {
     const all = points.data ?? []
@@ -83,7 +83,7 @@ export function CompetitorPage() {
         back={cameFromRankings ? { to: '/rankings', label: 'Rankings' } : { to: '/athletes', label: 'Athletes' }}
         eyebrow="Athlete"
         title={competitorName(competitor.names)}
-        description={club?.name}
+        description={team?.name}
         leading={<Avatars names={competitor.names} size="xxl" />}
         aside={
           <HeaderStats>

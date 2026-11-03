@@ -45,7 +45,7 @@ export interface Event {
   province?: string
 }
 
-export interface Club {
+export interface Team {
   id: Id
   name: string
   contactName: string
@@ -58,7 +58,7 @@ export interface Competitor {
   // A couple has two names; a solo dancer has one
   names: string[]
   backNumber: number | null
-  clubId: Id
+  teamId: Id
   details?: CompetitorDetails
 }
 
@@ -154,7 +154,7 @@ export interface Entry {
 
 export interface Payment {
   id: Id
-  clubId: Id
+  teamId: Id
   entryIds: Id[]
   amountDue: number
   amountPaid: number | null
@@ -177,7 +177,7 @@ export interface PaymentLine {
 }
 
 export interface PaymentDetail extends Payment {
-  clubName: string
+  teamName: string
   lines: PaymentLine[]
 }
 
@@ -326,7 +326,7 @@ export interface EntryRow {
   competitorId: Id
   names: string[]
   backNumber: number | null
-  clubName: string
+  teamName: string
   scratched: boolean
   late: boolean
   // null when no payment is linked (past competitions)
@@ -334,12 +334,12 @@ export interface EntryRow {
 }
 
 export interface CompetitorRow extends Competitor {
-  clubName: string
+  teamName: string
   // Entries that are not scratched, across all competitions
   entryCount: number
 }
 
-// A late entry with its event and what the club owes for it
+// A late entry with its event and what the team owes for it
 export interface LateEntryRow extends EntryRow {
   eventId: Id
   eventNumber: number
@@ -417,7 +417,7 @@ export interface TotpSetup {
 // Whose sessions an admin can end
 export type AccountKind = 'staff' | 'adjudicator' | 'athlete' | 'member'
 
-// A coach's or a team's own account: a name and an email to sign in with, and the coach or club record it stands for
+// A coach's or a team's own account: a name and an email to sign in with, and the coach or team record it stands for
 export interface MemberAccount {
   id: string
   role: 'coach' | 'team'
@@ -448,7 +448,7 @@ export interface MemberRosterRow {
   // Which events the dancer may enter; null when the entry form did not say
   ageGroup?: AgeGroup | null
   backNumber: number | null
-  clubName: string
+  teamName: string
   entries: number
 }
 
@@ -504,9 +504,9 @@ export interface MembershipEvent {
   reason?: string
 }
 
-// A change of club or coach the athlete asked for; the secretariat approves or turns it down
+// A change of team or coach the athlete asked for; the secretariat approves or turns it down
 export interface ProfileChangeRequest {
-  clubId: Id | null
+  teamId: Id | null
   coachId: Id | null
   requestedAt: Timestamp
   rejectedReason?: string
@@ -521,7 +521,7 @@ export interface AthleteProfile {
   phone: string
   address: string
   province: string
-  clubId: Id | null
+  teamId: Id | null
   coachId: Id | null
   // The year the membership was last paid for; it lasts until December
   memberYear: number | null
@@ -532,7 +532,7 @@ export interface AthleteProfile {
   changeRequest: ProfileChangeRequest | null
 }
 
-export type AthleteInput = Pick<AthleteProfile, 'name' | 'birthDate' | 'phone' | 'address' | 'province' | 'clubId' | 'coachId'>
+export type AthleteInput = Pick<AthleteProfile, 'name' | 'birthDate' | 'phone' | 'address' | 'province' | 'teamId' | 'coachId'>
 
 export interface AthletePage {
   profile: AthleteProfile
@@ -548,13 +548,13 @@ export interface AthleteRow {
   name: string
   email: string
   phone: string
-  clubName: string
+  teamName: string
   coachName: string
   memberYear: number | null
   request: MembershipRequest | null
   changeRequest: ProfileChangeRequest | null
-  // The club and coach they asked for, in words
-  requestedClubName: string
+  // The team and coach they asked for, in words
+  requestedTeamName: string
   requestedCoachName: string
 }
 
@@ -774,7 +774,7 @@ export interface Announcement {
   // call, recall, finalists: the back numbers to read, lowest first
   numbers: number[]
   // result: one competitor and their place
-  result: { place: number; backNumber: number | null; names: string[]; clubName: string } | null
+  result: { place: number; backNumber: number | null; names: string[]; teamName: string } | null
 }
 
 export interface PaymentMethod {
@@ -785,7 +785,7 @@ export interface PaymentMethod {
 }
 
 // What the secretariat keeps about a team
-export type ClubInput = Omit<Club, 'id'>
+export type TeamInput = Omit<Team, 'id'>
 
 export type CompetitionInput = Omit<Competition, 'id'>
 

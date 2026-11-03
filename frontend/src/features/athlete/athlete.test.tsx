@@ -135,12 +135,12 @@ describe('athlete account', () => {
     expect(await screen.findByText('No results yet')).toBeInTheDocument()
   })
 
-  it('keeps a history of payments and a notice for a club change that waits for the secretariat', async () => {
+  it('keeps a history of payments and a notice for a team change that waits for the secretariat', async () => {
     const session = await signUpAthlete('Eve Dela Cruz', 'eve@test.example', 'A-long-password1')
-    const clubId = (await (await import('../../mocks/api.ts')).getClubs())[0]!.id
-    const otherClub = (await (await import('../../mocks/api.ts')).getClubs())[1]!.id
-    await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', clubId, coachId: null })
-    await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', clubId: otherClub, coachId: null })
+    const teamId = (await (await import('../../mocks/api.ts')).getTeams())[0]!.id
+    const otherTeam = (await (await import('../../mocks/api.ts')).getTeams())[1]!.id
+    await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', teamId, coachId: null })
+    await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', teamId: otherTeam, coachId: null })
     await requestMembership(session.id, { method: 'GCash', receipt: SHOT })
 
     renderApp('/athlete/payments', Role.Athlete, { id: session.id, name: 'Eve Dela Cruz' })
@@ -186,11 +186,11 @@ describe('athlete account', () => {
 
   it('lets the secretariat approve a team change', async () => {
     const session = await signUpAthlete('Fay Ocampo', 'fay@test.example', 'A-long-password1')
-    const { getClubs } = await import('../../mocks/api.ts')
-    const [first, second] = await getClubs()
+    const { getTeams } = await import('../../mocks/api.ts')
+    const [first, second] = await getTeams()
     const input = { name: 'Fay Ocampo', birthDate: '2015-01-01', phone: '0917', address: '', province: '', coachId: null }
-    await saveMyAthlete(session.id, { ...input, clubId: first!.id })
-    await saveMyAthlete(session.id, { ...input, clubId: second!.id })
+    await saveMyAthlete(session.id, { ...input, teamId: first!.id })
+    await saveMyAthlete(session.id, { ...input, teamId: second!.id })
 
     renderApp('/secretariat/profile-changes', Role.Secretariat)
     await userEvent.click(await screen.findByRole('button', { name: 'Approve change of team or coach of Fay Ocampo' }))

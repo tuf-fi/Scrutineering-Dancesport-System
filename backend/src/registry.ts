@@ -12,7 +12,7 @@ import { accountFunctions } from './services/accounts.ts'
 import { athletes } from './services/athletes.ts'
 import { entryRequests } from './services/entryRequests.ts'
 import { approveMemberClaim, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
-import { isStaff, toClub } from './services/shared.ts'
+import { isStaff, toTeam } from './services/shared.ts'
 import * as t from './db/schema.ts'
 import { asc } from 'drizzle-orm'
 
@@ -29,14 +29,14 @@ const SCORING: Role[] = [Role.Scrutineer, Role.Chairperson]
 // 'public' needs no sign-in; 'signedIn' needs any account; a list needs one of those roles
 export type Access = 'public' | 'signedIn' | Role[]
 
-// Guests get club names for results pages, never contact details
-const getClubs = (ctx: Ctx) =>
+// Guests get team names for results pages, never contact details
+const getTeams = (ctx: Ctx) =>
   ctx.db
     .select()
-    .from(t.clubs)
-    .orderBy(asc(t.clubs.name))
+    .from(t.teams)
+    .orderBy(asc(t.teams.name))
     .all()
-    .map((c) => (isStaff(ctx) ? toClub(c) : { id: c.id, name: c.name, contactName: '', contactEmail: '', contactPhone: '' }))
+    .map((c) => (isStaff(ctx) ? toTeam(c) : { id: c.id, name: c.name, contactName: '', contactEmail: '', contactPhone: '' }))
 
 const getBackupStatus = (ctx: Ctx) => ctx.backups.status()
 
@@ -61,7 +61,7 @@ const handlers: Record<string, Handler> = {
   getMemberClaims,
   approveMemberClaim,
   rejectMemberClaim,
-  getClubs,
+  getTeams,
   getBackupStatus,
 } as unknown as Record<string, Handler>
 
@@ -78,7 +78,7 @@ const access: Record<string, Access> = {
   getRankingPoints: 'public',
   getCompetitorHistory: 'public',
   getCompetitors: 'public',
-  getClubs: 'public',
+  getTeams: 'public',
   getResultEventIds: 'public',
   getCompetitionRounds: 'public',
   getProgram: 'public',
@@ -159,8 +159,8 @@ const access: Record<string, Access> = {
   updateLateEntry: ADMIN_OR_SECRETARIAT,
   saveEvent: ADMIN_OR_SECRETARIAT,
   getCoaches: [...OFFICIALS, Role.Athlete, Role.Coach],
-  saveClub: ADMIN_OR_SECRETARIAT,
-  deleteClub: ADMIN_OR_SECRETARIAT,
+  saveTeam: ADMIN_OR_SECRETARIAT,
+  deleteTeam: ADMIN_OR_SECRETARIAT,
   saveCoach: ADMIN_OR_SECRETARIAT,
   deleteCoach: ADMIN_OR_SECRETARIAT,
   quoteRegistration: ADMIN_OR_SECRETARIAT,
@@ -184,7 +184,7 @@ const access: Record<string, Access> = {
   getAdjudicatorState: [Role.Adjudicator],
   submitAdjudicatorMarks: [Role.Adjudicator],
 
-  // Fees, payment details and club accounts
+  // Fees, payment details and team accounts
   getPaymentSettings: [Role.Admin, Role.Secretariat],
   savePaymentSettings: ADMIN,
 

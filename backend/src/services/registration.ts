@@ -5,8 +5,8 @@ import {
   PaymentStatus,
   registrationFee,
   registrationWarnings,
-  type Club,
-  type ClubInput,
+  type Team,
+  type TeamInput,
   type Coach,
   type CoachInput,
   type RegistrationInput,
@@ -20,7 +20,7 @@ import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { checkEligible, checkNotStarted } from './secretariat.ts'
-import { applySettles, clean, getCompetitorRow, getEventRow, isStaff, toClub, toEvent } from './shared.ts'
+import { applySettles, clean, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
 
 const toCoach = (r: typeof t.coaches.$inferSelect): Coach => ({
   id: r.id,
@@ -153,7 +153,7 @@ export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: st
     .insert(t.payments)
     .values({
       id: paymentId,
-      clubId: competitor.clubId,
+      teamId: competitor.teamId,
       competitionId: getEventRow(ctx, input.eventIds[0]!).competitionId,
       late: false,
       amountDue: priced.total,
@@ -178,31 +178,31 @@ export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: st
 }
 
 export const registration = {
-  saveClub(ctx: Ctx, input: ClubInput, id?: string): Club {
+  saveTeam(ctx: Ctx, input: TeamInput, id?: string): Team {
     const name = clean(input?.name)
-    if (!name) return fail('Enter the club name.')
+    if (!name) return fail('Enter the team name.')
     const values = { name, contactName: clean(input.contactName), contactEmail: clean(input.contactEmail), contactPhone: clean(input.contactPhone) }
-    const same = ctx.db.select().from(t.clubs).all().find((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)
-    if (same) return fail('A club with this name already exists.', 409)
+    const same = ctx.db.select().from(t.teams).all().find((c) => c.name.toLowerCase() === name.toLowerCase() && c.id !== id)
+    if (same) return fail('A team with this name already exists.', 409)
     if (id) {
-      found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, id)).get(), 'Club')
-      ctx.db.update(t.clubs).set(values).where(eq(t.clubs.id, id)).run()
-      record(ctx.db, actor(ctx).id, 'Edited club', name)
-      return toClub({ id, ...values })
+      found(ctx.db.select().from(t.teams).where(eq(t.teams.id, id)).get(), 'Team')
+      ctx.db.update(t.teams).set(values).where(eq(t.teams.id, id)).run()
+      record(ctx.db, actor(ctx).id, 'Edited team', name)
+      return toTeam({ id, ...values })
     }
     const row = { id: newId(), ...values }
-    ctx.db.insert(t.clubs).values(row).run()
-    record(ctx.db, actor(ctx).id, 'Added club', name)
-    return toClub(row)
+    ctx.db.insert(t.teams).values(row).run()
+    record(ctx.db, actor(ctx).id, 'Added team', name)
+    return toTeam(row)
   },
 
-  deleteClub(ctx: Ctx, id: string): void {
-    const club = found(ctx.db.select().from(t.clubs).where(eq(t.clubs.id, id)).get(), 'Club')
-    if (ctx.db.select().from(t.competitors).where(eq(t.competitors.clubId, id)).get()) {
-      return fail('This club has competitors. Move or delete them first.', 409)
+  deleteTeam(ctx: Ctx, id: string): void {
+    const team = found(ctx.db.select().from(t.teams).where(eq(t.teams.id, id)).get(), 'Team')
+    if (ctx.db.select().from(t.competitors).where(eq(t.competitors.teamId, id)).get()) {
+      return fail('This team has competitors. Move or delete them first.', 409)
     }
-    ctx.db.delete(t.clubs).where(eq(t.clubs.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted club', club.name)
+    ctx.db.delete(t.teams).where(eq(t.teams.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Deleted team', team.name)
   },
 
   // An athlete picks their coach from this list, so they get names only, not contact details or payments

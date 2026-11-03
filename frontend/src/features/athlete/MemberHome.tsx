@@ -5,7 +5,7 @@ import { Link, Outlet, useLocation, useOutletContext } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge.tsx'
 import { Button, ButtonLink, ErrorState, Input, SearchField, Select, Skeleton, Table, toast } from '../../components/ui/index.ts'
-import { useCancelClaim, useClaimRecord, useClubs, useCoaches, useMyMember, useMyRoster, useSaveMyMember, useSaveMyMemberPhoto } from '../../hooks/index.ts'
+import { useCancelClaim, useClaimRecord, useTeams, useCoaches, useMyMember, useMyRoster, useSaveMyMember, useSaveMyMemberPhoto } from '../../hooks/index.ts'
 import { competitorName, formatDate, formatPeso } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
 import { AccountNav, type NavGroup } from './AccountNav.tsx'
@@ -62,17 +62,17 @@ function groupsFor(role: 'coach' | 'team'): NavGroup[] {
   ]
 }
 
-// Until the secretariat links the account to a coach or club record there is nothing to show; the account asks here
+// Until the secretariat links the account to a coach or team record there is nothing to show; the account asks here
 function LinkRecord() {
   const { account } = useMemberData()
   const team = account.role === 'team'
-  // A team picks a club and a coach picks their name; the server only lets coaches read the coach list
+  // A team picks a team and a coach picks their name; the server only lets coaches read the coach list
   const coaches = useCoaches(!team)
-  const clubs = useClubs()
+  const teams = useTeams()
   const claim = useClaimRecord()
   const cancel = useCancelClaim()
   const [target, setTarget] = useState('')
-  const options = team ? (clubs.data ?? []) : (coaches.data ?? [])
+  const options = team ? (teams.data ?? []) : (coaches.data ?? [])
 
   if (account.linked) {
     return (
@@ -117,7 +117,7 @@ function LinkRecord() {
 const THIS_YEAR = new Date().getFullYear()
 const paidFor = (year: number | null) => (year !== null && year >= THIS_YEAR ? `Paid for ${year}` : 'Not paid for this year')
 
-// What is on file, read-only, and the link to the coach or club record
+// What is on file, read-only, and the link to the coach or team record
 function AccountInfo() {
   const { account, roster } = useMemberData()
   const team = account.role === 'team'
@@ -173,12 +173,12 @@ function Dancers() {
   const { account, roster } = useMemberData()
   const [query, setQuery] = useState('')
   const needle = query.trim().toLowerCase()
-  const shown = roster.rows.filter((r) => !needle || `${competitorName(r.names)} ${r.clubName} ${r.backNumber ?? ''}`.toLowerCase().includes(needle))
+  const shown = roster.rows.filter((r) => !needle || `${competitorName(r.names)} ${r.teamName} ${r.backNumber ?? ''}`.toLowerCase().includes(needle))
 
   if (!account.linked) return <NotLinked title="Dancers" />
 
   return (
-    <AccountSection title="Dancers" note={account.role === 'team' ? 'Everyone entered under your club.' : 'The dancers whose entry form names you as their coach.'}>
+    <AccountSection title="Dancers" note={account.role === 'team' ? 'Everyone entered under your team.' : 'The dancers whose entry form names you as their coach.'}>
       {(
         <>
           <SearchField className="w-full sm:w-72" label="Search dancers" value={query} onChange={setQuery} />
@@ -199,7 +199,7 @@ function Dancers() {
                 ),
               },
               { key: 'number', header: 'Back no.', mono: true, cell: (r) => (r.backNumber === null ? '–' : String(r.backNumber).padStart(3, '0')) },
-              { key: 'club', header: 'Club', muted: true, hideBelow: 'sm', cell: (r) => r.clubName },
+              { key: 'team', header: 'Team', muted: true, hideBelow: 'sm', cell: (r) => r.teamName },
               { key: 'entries', header: 'Entries', align: 'right', mono: true, cell: (r) => r.entries },
             ]}
           />
@@ -279,7 +279,7 @@ function MemberNotifications() {
   return <Notifications todos={todos} />
 }
 
-const who = (role: 'coach' | 'team') => (role === 'team' ? 'your club' : 'your athletes')
+const who = (role: 'coach' | 'team') => (role === 'team' ? 'your team' : 'your athletes')
 
 function Results() {
   const { account } = useMemberData()

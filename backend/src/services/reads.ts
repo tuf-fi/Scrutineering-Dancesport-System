@@ -7,7 +7,7 @@ import {
   hiddenEventIds,
   paymentDetail,
   pointsRows,
-  toClub,
+  toTeam,
   toCompetition,
   toCompetitor,
   toEntry,
@@ -43,7 +43,7 @@ export const reads = {
   getEntries: (ctx: Ctx, eventId: string) =>
     ctx.db.select().from(t.entries).where(eq(t.entries.eventId, eventId)).all().map(toEntry),
 
-  // Everyone but admin and secretariat gets names, back number and club only; birth dates and contact details stay private
+  // Everyone but admin and secretariat gets names, back number and team only; birth dates and contact details stay private
   getCompetitors: (ctx: Ctx) => {
     const sees = ctx.user?.role === Role.Admin || ctx.user?.role === Role.Secretariat
     return ctx.db
@@ -54,7 +54,7 @@ export const reads = {
       .map((c) => toCompetitor(sees ? c : { ...c, details: null }))
   },
 
-  getClubs: (ctx: Ctx) => ctx.db.select().from(t.clubs).orderBy(asc(t.clubs.name)).all().map(toClub),
+  getTeams: (ctx: Ctx) => ctx.db.select().from(t.teams).orderBy(asc(t.teams.name)).all().map(toTeam),
 
   getAdjudicators: (ctx: Ctx) =>
     ctx.db
@@ -224,6 +224,6 @@ export const reads = {
 
 // getPayments returns plain payments, without the lines
 function paymentDetailToPayment(ctx: Ctx, row: typeof t.payments.$inferSelect) {
-  const { clubName: _clubName, lines: _lines, ...payment } = paymentDetail(ctx, row)
+  const { teamName: _teamName, lines: _lines, ...payment } = paymentDetail(ctx, row)
   return payment
 }

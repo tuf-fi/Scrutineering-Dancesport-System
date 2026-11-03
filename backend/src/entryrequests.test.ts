@@ -25,21 +25,21 @@ beforeAll(async () => {
   }
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
-  app.db.insert(t.clubs).values([
-    { id: 'club-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' },
-    { id: 'club-2', name: 'Legazpi Stars', contactName: '', contactEmail: '', contactPhone: '' },
+  app.db.insert(t.teams).values([
+    { id: 'team-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' },
+    { id: 'team-2', name: 'Legazpi Stars', contactName: '', contactEmail: '', contactPhone: '' },
   ]).run()
   competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2099-12-06', venue: 'Robinsons Naga', organizer: 'BGDT' }], admin)).id
   const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
   await make('solo1', event(1))
   await make('solo2', event(2, { dances: ['rumba'] }))
   await make('couple', event(3, { isSolo: false, dances: ['jive'] }))
-  await app.ok('createCompetitor', [{ names: ['Ana Cruz'], clubId: 'club-1', details }], secretariat)
-  await app.ok('createCompetitor', [{ names: ['Mia Tan'], clubId: 'club-2', details }], secretariat)
-  await app.ok('createCompetitor', [{ names: ['Ana Cruz', 'Luis Cruz'], clubId: 'club-1', details: { ...details, dancers: [details.dancers[0], details.dancers[0]] } }], secretariat)
+  await app.ok('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details }], secretariat)
+  await app.ok('createCompetitor', [{ names: ['Mia Tan'], teamId: 'team-2', details }], secretariat)
+  await app.ok('createCompetitor', [{ names: ['Ana Cruz', 'Luis Cruz'], teamId: 'team-1', details: { ...details, dancers: [details.dancers[0], details.dancers[0]] } }], secretariat)
 
   team = await app.signIn.memberSignUp('team', 'Naga Dancers', 'naga@test.example', 'a-long-password')
-  await app.ok('claimRecord', ['club-1'], team)
+  await app.ok('claimRecord', ['team-1'], team)
   const [claim] = await app.ok<MemberClaimRow[]>('getMemberClaims', [], secretariat)
   await app.ok('approveMemberClaim', [claim!.memberId], secretariat)
   athlete = await app.signIn.athleteSignUp('Ana Cruz', 'ana@test.example', 'a-long-password')
@@ -50,7 +50,7 @@ const entrantsOf = (cookie: string) => app.ok<MemberRosterRow[]>('getMyEntrants'
 const request = (competitorId: string, eventIds: string[], over: Record<string, unknown> = {}) => ({ competitorId, eventIds, method: 'gcash', reference: 'GC123', receipt: SHOT, ...over })
 
 describe('entering a competition online', () => {
-  it('lets a team enter only its own club\'s dancers, and an athlete only the ones with their name', async () => {
+  it('lets a team enter only its own team\'s dancers, and an athlete only the ones with their name', async () => {
     const teamList = await entrantsOf(team)
     expect(teamList.map((r) => r.names.join(' & ')).sort()).toEqual(['Ana Cruz', 'Ana Cruz & Luis Cruz'])
     // The athlete is a partner in the couple and a solo dancer, so both carry their name
@@ -109,7 +109,7 @@ describe('entering a competition online', () => {
     const entries = app.db.select().from(t.entries).all().filter((e) => e.competitorId === waiting!.competitorId)
     expect(entries.map((e) => e.eventId)).toEqual([events.solo1])
     const payment = app.db.select().from(t.payments).all().find((p) => p.id === entries[0]!.paymentId)!
-    expect(payment).toMatchObject({ clubId: 'club-1', method: 'gcash', referenceNumber: 'GC123', receipt: SHOT, status: 'approved' })
+    expect(payment).toMatchObject({ teamId: 'team-1', method: 'gcash', referenceNumber: 'GC123', receipt: SHOT, status: 'approved' })
     expect((await app.call('approveEntryRequest', [waiting!.id], secretariat)).status).toBe(409)
     // Already entered, so asking again is refused
     expect((await app.call('submitEntryRequest', [request(waiting!.competitorId, [events.solo1])], team)).error).toMatch(/Already entered/)

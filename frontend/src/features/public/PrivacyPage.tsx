@@ -5,9 +5,9 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
   {
     title: 'What we keep',
     body: [
-      'From the entry form: for each dancer the name, date of birth, address, email and contact number; the province, the club and the coach; whether the entry is a beginners (BGB) entry; and the year the membership was paid.',
-      'For a club or a coach: the name, a contact person, a contact number and an email. For a coach, also the years the membership and the Coaches Summit were paid.',
-      'For an athlete account: the name, email and a scrambled form of the password (never the password itself), and the details the athlete fills in on their own page (date of birth, contact number, address, province, club and coach).',
+      'From the entry form: for each dancer the name, date of birth, address, email and contact number; the province, the team and the coach; whether the entry is a beginners (BGB) entry; and the year the membership was paid.',
+      'For a team or a coach: the name, a contact person, a contact number and an email. For a coach, also the years the membership and the Coaches Summit were paid.',
+      'For an athlete account: the name, email and a scrambled form of the password (never the password itself), and the details the athlete fills in on their own page (date of birth, contact number, address, province, team and coach).',
       'For payments: the amount, how it was paid, the reference number and who recorded it. Card details and bank logins are never kept.',
     ],
   },
@@ -21,7 +21,7 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
     title: 'Who sees it',
     body: [
       'Only the organizer’s staff see dates of birth, addresses, emails, contact numbers and payments. An athlete who signs in sees only their own page.',
-      'Results, placings, ranking points, dancer names and club names are public, because that is what a published result is. Many dancers are minors, so the entry form should be signed with a parent’s or guardian’s agreement.',
+      'Results, placings, ranking points, dancer names and team names are public, because that is what a published result is. Many dancers are minors, so the entry form should be signed with a parent’s or guardian’s agreement.',
     ],
   },
   {
@@ -33,7 +33,7 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
   {
     title: 'Your rights',
     body: [
-      'A dancer, a parent or guardian, a club or a coach can ask the organizer to see, correct or remove their details. Removing them keeps the name in published results.',
+      'A dancer, a parent or guardian, a team or a coach can ask the organizer to see, correct or remove their details. Removing them keeps the name in published results.',
       'This follows the Data Privacy Act of 2012 (Republic Act 10173).',
     ],
   },
@@ -42,7 +42,7 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
 export function PrivacyPage() {
   return (
     <div className="flex flex-col gap-10 sm:gap-12">
-      <PublicHeader title="Privacy notice" eyebrow="Data Privacy Act of 2012" description="What BIS keeps about dancers, clubs and coaches, and for how long." />
+      <PublicHeader title="Privacy notice" eyebrow="Data Privacy Act of 2012" description="What BIS keeps about dancers, teams and coaches, and for how long." />
       <div className="flex flex-col">
         {SECTIONS.map((section, i) => (
           <section key={section.title} className="grid gap-4 border-b border-neutral-200 py-8 first:pt-0 lg:grid-cols-[14rem_1fr] lg:gap-12">

@@ -2,7 +2,7 @@
 
 ## Project
 
-**BIS (Bicol Information Scrutineering System)** is a dancesport competition scoring web app. It is an online system: one server, hosted with Docker behind Caddy over HTTPS, handles club registration and payments, the public pages and the running of the rounds. Staff use laptops and adjudicators use phones, all over the internet.
+**BIS (Bicol Information Scrutineering System)** is a dancesport competition scoring web app. It is an online system: one server, hosted with Docker behind Caddy over HTTPS, handles team registration and payments, the public pages and the running of the rounds. Staff use laptops and adjudicators use phones, all over the internet.
 
 Read these first:
 - [ROLES_README.md](ROLES_README.md): roles, devices and result-sheet terms
@@ -46,7 +46,7 @@ When a function is added to the server, add it to `API_FUNCTIONS` in `packages/s
   - Adjudicator: phone, one hand, large touch targets (at least 56px)
   - Staff: laptop, dense but readable tables
   - MC/venue screen: projector, very large high-contrast text
-  - Public and club: mobile-first
+  - Public and team: mobile-first
 - Make every screen responsive from the start, across all screen sizes (375px phones, tablets, 1280px laptops, 1920px venue screen). Don't wait to be asked.
 - Every screen needs empty, loading and error states. For loading, use a skeleton that matches the final layout's shape, built with the shared `Skeleton` component. Don't use a plain spinner.
 

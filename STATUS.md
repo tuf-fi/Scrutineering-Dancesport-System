@@ -6,7 +6,7 @@ Where the system stands on 31 October 2026, what is left, and what is still uncl
 
 - Scoring engine (`packages/scoring`): the Skating System, checked against the organizer's sheets and three published WDSF finals, including Rule 10 and Rule 11 ties (`packages/scoring/fixtures/`).
 - Server and screens for every role: admin, secretariat, scrutineer, chairperson, MC, adjudicator (phone, with drawn signature) and public.
-- The secretariat registers teams from the entry forms: clubs, coaches, competitors, fees, deadlines and entry warnings.
+- The secretariat registers teams from the entry forms: teams, coaches, competitors, fees, deadlines and entry warnings.
 - Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms it.
 - The program (running order) with minutes from the WDSF rules.
 

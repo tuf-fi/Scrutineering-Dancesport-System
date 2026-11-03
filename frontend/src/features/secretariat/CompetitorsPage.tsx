@@ -17,7 +17,7 @@ import {
 } from '../../components/ui/index.ts'
 import {
   useAssignBackNumbers,
-  useClubs,
+  useTeams,
   useCompetitionEntries,
   useCompetitions,
   useCompetitorRows,
@@ -35,20 +35,20 @@ import { RegistrationDialog } from './RegistrationDialog.tsx'
 
 export function CompetitorsPage() {
   const competitors = useCompetitorRows()
-  const clubs = useClubs()
+  const teams = useTeams()
   const competitions = useCompetitions()
   const assign = useAssignBackNumbers()
   const [competitionId, setCompetitionId] = useState('all')
   const [eventId, setEventId] = useState('all')
   const [query, setQuery] = useState('')
-  // The club filter lives in the address (?club=<id>), so the clubs page can link to one club's competitors
+  // The team filter lives in the address (?team=<id>), so the teams page can link to one team's competitors
   const [params, setParams] = useSearchParams()
-  const clubId = params.get('club') ?? 'all'
-  const setClubId = (id: string) =>
+  const teamId = params.get('team') ?? 'all'
+  const setTeamId = (id: string) =>
     setParams(
       (p) => {
-        if (id === 'all') p.delete('club')
-        else p.set('club', id)
+        if (id === 'all') p.delete('team')
+        else p.set('team', id)
         return p
       },
       { replace: true },
@@ -84,10 +84,10 @@ export function CompetitorsPage() {
     .filter(
       (c) =>
         (!scoped || enteredIn.has(c.id)) &&
-        (clubId === 'all' || c.clubId === clubId) &&
+        (teamId === 'all' || c.teamId === teamId) &&
         (!needle ||
           competitorName(c.names).toLowerCase().includes(needle) ||
-          c.clubName.toLowerCase().includes(needle) ||
+          c.teamName.toLowerCase().includes(needle) ||
           String(c.backNumber) === needle),
     )
     .map((c) => ({ ...c, entryCount: scoped ? (enteredIn.get(c.id)?.length ?? 0) : c.entryCount }))
@@ -139,9 +139,9 @@ export function CompetitorsPage() {
           </div>
         )}
         <div className="w-full sm:w-44">
-          <Select label="Club" value={clubId} onChange={(e) => setClubId(e.target.value)}>
-            <option value="all">All clubs</option>
-            {(clubs.data ?? []).map((c) => (
+          <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+            <option value="all">All teams</option>
+            {(teams.data ?? []).map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -175,14 +175,14 @@ export function CompetitorsPage() {
           { id: 'rankings', label: 'Rankings', icon: Medal, content: <CompetitorRankings competitorId={c.id} /> },
         ]}
         empty={
-          needle || clubId !== 'all' || scoped
-            ? { title: 'No competitors match', description: 'Try a different event, name, number or club.' }
+          needle || teamId !== 'all' || scoped
+            ? { title: 'No competitors match', description: 'Try a different event, name, number or team.' }
             : { title: 'No competitors yet', description: 'Add one, or import a CSV.' }
         }
         columns={[
           { key: 'back', header: 'Back no.', cell: (c) => c.backNumber ?? '–', mono: true, widthClass: 'w-28' },
           { key: 'who', header: 'Competitor', cell: (c) => <span className="font-medium">{competitorName(c.names)}</span>, detail: false },
-          { key: 'club', header: 'Club', cell: (c) => c.clubName, muted: true, hideBelow: 'md' },
+          { key: 'team', header: 'Team', cell: (c) => c.teamName, muted: true, hideBelow: 'md' },
           ...(scoped
             ? [
             {

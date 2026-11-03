@@ -150,9 +150,9 @@ describe('coach and team accounts', () => {
     // Nothing to show until linked; the request is made on its own page
     await userEvent.click(await screen.findByRole('link', { name: 'Link your team' }))
     expect(await screen.findByRole('heading', { name: 'Link your team' })).toBeInTheDocument()
-    const club = await screen.findByRole('combobox', { name: 'Team' })
-    await waitFor(() => expect(within(club).getAllByRole('option').length).toBeGreaterThan(2))
-    await userEvent.selectOptions(club, within(club).getAllByRole('option')[2]!)
+    const team = await screen.findByRole('combobox', { name: 'Team' })
+    await waitFor(() => expect(within(team).getAllByRole('option').length).toBeGreaterThan(2))
+    await userEvent.selectOptions(team, within(team).getAllByRole('option')[2]!)
     await userEvent.click(screen.getByRole('button', { name: 'Send request' }))
     expect(await screen.findByRole('heading', { name: 'Waiting for the secretariat' })).toBeInTheDocument()
     cleanup()

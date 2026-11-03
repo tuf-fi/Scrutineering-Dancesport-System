@@ -32,7 +32,7 @@ describe('database', () => {
     const { sqlite } = fresh()
     expect(tableNames(sqlite)).toEqual(
       [
-        'adjudicator_pins', 'adjudicators', 'athletes', 'audit_log', 'clubs', 'coaches', 'competitions', 'competitors', 'entries', 'entry_requests', 'events', 'final_tie_decisions',
+        'adjudicator_pins', 'adjudicators', 'athletes', 'audit_log', 'teams', 'coaches', 'competitions', 'competitors', 'entries', 'entry_requests', 'events', 'final_tie_decisions',
         'heat_competitors', 'heats', 'marks', 'member_accounts', 'member_notifications', 'notifications', 'panel_members', 'panels', 'payments', 'points_table', 'program_slots', 'program_starts',
         'ranking_points', 'results', 'rounds', 'settings', 'staff_users', 'submissions', 'tie_decisions',
       ].sort(),
@@ -58,17 +58,17 @@ describe('constraints', () => {
     const { db, sqlite } = fresh()
     const competitionId = newId()
     const eventId = newId()
-    const clubId = newId()
+    const teamId = newId()
     const roundId = newId()
     const adjudicatorId = newId()
     const competitorId = newId()
     db.insert(schema.competitions).values({ id: competitionId, name: 'Open', date: '2026-10-10', venue: 'Gym', organizer: 'Org' }).run()
     db.insert(schema.events).values({ id: eventId, competitionId, number: 1, position: 1, ageGroup: 'junior_1', class: 'E1', discipline: 'latin', dances: ['samba'], isSolo: true }).run()
-    db.insert(schema.clubs).values({ id: clubId, name: 'Club', contactName: 'A', contactEmail: 'a@b.c', contactPhone: '1' }).run()
-    db.insert(schema.competitors).values({ id: competitorId, names: ['A'], backNumber: 1, clubId }).run()
+    db.insert(schema.teams).values({ id: teamId, name: 'Team', contactName: 'A', contactEmail: 'a@b.c', contactPhone: '1' }).run()
+    db.insert(schema.competitors).values({ id: competitorId, names: ['A'], backNumber: 1, teamId }).run()
     db.insert(schema.rounds).values({ id: roundId, eventId, type: 'final', position: 1, recallNumber: null, status: 'marking' }).run()
     db.insert(schema.adjudicators).values({ id: adjudicatorId, name: 'Adj', letter: 'A' }).run()
-    return { db, sqlite, competitionId, eventId, clubId, roundId, adjudicatorId, competitorId }
+    return { db, sqlite, competitionId, eventId, teamId, roundId, adjudicatorId, competitorId }
   }
 
   const mark = (s: ReturnType<typeof seed>) => ({
@@ -97,7 +97,7 @@ describe('constraints', () => {
   it('keeps back numbers unique but lets many competitors have none yet', () => {
     const s = seed()
     const add = (backNumber: number | null) =>
-      s.db.insert(schema.competitors).values({ id: newId(), names: ['X'], backNumber, clubId: s.clubId }).run()
+      s.db.insert(schema.competitors).values({ id: newId(), names: ['X'], backNumber, teamId: s.teamId }).run()
     expect(() => add(1)).toThrow(/UNIQUE/)
     add(null)
     expect(() => add(null)).not.toThrow()
@@ -151,8 +151,8 @@ describe('dropping offline sync (migration 0009)', () => {
   })
 })
 
-describe('clubs without a login (migration 0016)', () => {
-  it('upgrades a database that has competitors in a club, keeping them', () => {
+describe('teams without a login (migration 0016)', () => {
+  it('upgrades a database that has competitors in a team, keeping them', () => {
     const dir = mkdtempSync(join(tmpdir(), 'bis-mig-'))
     dirs.push(dir)
     const before = join(dir, 'before')
@@ -172,8 +172,8 @@ describe('clubs without a login (migration 0016)', () => {
 
     runMigrations(db)
 
-    expect(sqlite.prepare('select name from clubs').all()).toEqual([{ name: 'Naga Dancers' }])
-    expect(sqlite.prepare('select club_id from competitors').all()).toEqual([{ club_id: 'k1' }])
+    expect(sqlite.prepare('select name from teams').all()).toEqual([{ name: 'Naga Dancers' }])
+    expect(sqlite.prepare('select team_id from competitors').all()).toEqual([{ team_id: 'k1' }])
     expect(sqlite.pragma('foreign_key_check')).toEqual([])
     // Keys are back on once the migrations are done
     expect(sqlite.pragma('foreign_keys', { simple: true })).toBe(1)

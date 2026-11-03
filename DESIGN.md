@@ -293,7 +293,7 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 - Overlapping initials circles for a solo dancer or a couple (36px; 56px on a profile), tinted Brown Mist and Pale Stone with a white ring. There are no photos yet.
 
 ### Ranking rows
-- Rank in mono (top three at full strength, the rest muted), competitor with their club underneath, then competitions and points right-aligned in mono. Equal points share a rank and the next rank is skipped. Whole rows open the competitor's page.
+- Rank in mono (top three at full strength, the rest muted), competitor with their team underneath, then competitions and points right-aligned in mono. Equal points share a rank and the next rank is skipped. Whole rows open the competitor's page.
 
 ### Page header
 - Display title, optional description, actions on the right. No label above the title.

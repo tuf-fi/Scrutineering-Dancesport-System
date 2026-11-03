@@ -103,7 +103,7 @@ function LateEntryForm({
                   >
                     <span className="w-10 font-mono tabular-nums text-neutral-500">{c.backNumber ?? '–'}</span>
                     <span className="flex-1 truncate font-medium text-neutral-900">{competitorName(c.names)}</span>
-                    <span className="hidden truncate text-neutral-500 sm:block">{c.clubName}</span>
+                    <span className="hidden truncate text-neutral-500 sm:block">{c.teamName}</span>
                   </button>
                 </li>
               ))}

@@ -85,15 +85,15 @@ describe('every role, using the functions the screens call', () => {
   it('lets a guest read published data only', async () => {
     useDevice('guest')
     expect((await client.getCompetitions()).length).toBe(3)
-    expect((await client.getClubs()).every((c) => c.contactEmail === '')).toBe(true)
+    expect((await client.getTeams()).every((c) => c.contactEmail === '')).toBe(true)
     await expect(client.getPaymentDetails()).rejects.toMatchObject({ status: 401 })
   })
 
   it('runs the secretariat\'s screens', async () => {
     useDevice('secretariat')
     await client.signInStaff('secretariat@sample.example', SAMPLE_PASSWORD)
-    const result = await client.importCompetitorsCsv('ignored-actor-id', '"Cruz, Mia",,Unknown Club')
-    expect(result.skipped).toEqual([{ line: 2, reason: 'Unknown club "Unknown Club".' }])
+    const result = await client.importCompetitorsCsv('ignored-actor-id', '"Cruz, Mia",,Unknown Team')
+    expect(result.skipped).toEqual([{ line: 2, reason: 'Unknown team "Unknown Team".' }])
     const rows = await client.getCompetitorRows()
     const [first, second] = rows
     // The server's own message comes through to the screen
@@ -133,13 +133,13 @@ describe('every role, using the functions the screens call', () => {
     await expect(client.approveRound('x', 'comp-sorsogon-2026:e11:round_2')).rejects.toMatchObject({ status: 403 })
   })
 
-  it('runs the secretariat\'s club and registration calls', async () => {
+  it('runs the secretariat\'s team and registration calls', async () => {
     useDevice('secretariat')
     await client.signInStaff('secretariat@sample.example', SAMPLE_PASSWORD)
-    const club = await client.saveClub('ignored-actor-id', { name: 'Client Test Club', contactName: '', contactEmail: '', contactPhone: '' })
-    expect(club.name).toBe('Client Test Club')
-    await expect(client.saveClub('x', { name: '  ', contactName: '', contactEmail: '', contactPhone: '' })).rejects.toMatchObject({ status: 400 })
-    await client.deleteClub('ignored-actor-id', club.id)
+    const team = await client.saveTeam('ignored-actor-id', { name: 'Client Test Team', contactName: '', contactEmail: '', contactPhone: '' })
+    expect(team.name).toBe('Client Test Team')
+    await expect(client.saveTeam('x', { name: '  ', contactName: '', contactEmail: '', contactPhone: '' })).rejects.toMatchObject({ status: 400 })
+    await client.deleteTeam('ignored-actor-id', team.id)
     expect((await client.getCoaches()).length).toBe(0)
   })
 })
