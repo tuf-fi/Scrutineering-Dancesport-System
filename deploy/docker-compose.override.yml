@@ -1,5 +1,8 @@
 # Local only: lets the Vite dev server on this machine reach the app on port 4000
+# COOKIE_SECURE is off because a phone on the Wi-Fi opens the site over plain http, and drops Secure cookies there
 services:
   app:
+    environment:
+      COOKIE_SECURE: "false"
     ports:
       - "127.0.0.1:4000:4000"
