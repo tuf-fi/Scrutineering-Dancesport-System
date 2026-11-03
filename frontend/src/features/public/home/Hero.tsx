@@ -7,13 +7,13 @@ export function Hero() {
 
   return (
     // Runs edge to edge and sits flush under the navbar; the content lines up with the page below
-    <header className="relative isolate -mt-10 flex min-h-[26rem] w-screen max-lg:h-[calc(85svh-var(--nav-h,3.5rem))] ml-[calc(50%-50vw)] overflow-hidden bg-black text-white sm:-mt-14 sm:min-h-[24rem]">
+    <header className="relative isolate -mt-10 flex min-h-[26rem] w-screen h-[calc(78svh-var(--nav-h,3.5rem))] lg:h-[calc(90svh-var(--nav-h,3.5rem))] ml-[calc(50%-50vw)] overflow-hidden bg-black text-white sm:-mt-14 sm:min-h-[24rem]">
       {!photoFailed && (
         <img
           src={HERO_IMAGE}
           alt=""
           onError={() => setPhotoFailed(true)}
-          className="absolute right-0 top-8 -z-10 h-[62%] w-full object-contain object-top sm:object-right-top sm:top-0 opacity-80 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:inset-y-0 sm:h-full sm:w-1/2 sm:[mask-image:linear-gradient(to_right,transparent,black_45%)]"
+          className="absolute right-0 top-8 -z-10 h-[62%] w-full object-cover object-[center_0%] sm:object-[center_50%] sm:top-0 opacity-80 [mask-image:linear-gradient(to_bottom,black_35%,transparent)] sm:inset-y-0 sm:h-full sm:w-1/2 sm:[mask-image:linear-gradient(to_right,transparent,black_45%)]"
         />
       )}
       <div className="mx-auto flex w-full max-w-5xl flex-col justify-end px-4 py-10 sm:justify-center sm:px-8 sm:py-16">
