@@ -2,7 +2,7 @@
 
 ## Project
 
-**BIS (Bicol Information Scrutineering System)** is a dancesport competition scoring web app. It is an online system: one server, hosted with Docker behind Caddy over HTTPS, handles team registration and payments, the public pages and the running of the rounds. Staff use laptops and adjudicators use phones, all over the internet.
+**BIS (Bicol Oragon Scruteneering System)** is a dancesport competition scoring web app. It is an online system: one server, hosted with Docker behind Caddy over HTTPS, handles team registration and payments, the public pages and the running of the rounds. Staff use laptops and adjudicators use phones, all over the internet.
 
 Read these first:
 - [ROLES_README.md](ROLES_README.md): roles, devices and result-sheet terms

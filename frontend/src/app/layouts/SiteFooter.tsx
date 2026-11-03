@@ -66,7 +66,7 @@ export function SiteFooter() {
           )}
         </div>
         <div className="mt-14 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-white/15 py-6 font-mono text-xs uppercase tracking-[0.08em] text-white/50">
-          <span>© {new Date().getFullYear()} Bicol Information Scrutineering System</span>
+          <span>© {new Date().getFullYear()} Bicol Oragon Scruteneering System</span>
           <span>Integrity | Precision | Excellence</span>
         </div>
       </div>

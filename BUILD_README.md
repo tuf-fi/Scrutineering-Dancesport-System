@@ -1,6 +1,6 @@
 # How to Build BIS
 
-**BIS (Bicol Information Scrutineering System)** is one online web app: one server handles registration, payments, public results and the running of the rounds. This guide covers the tech stack, the architecture, and the build order from frontend to backend.
+**BIS (Bicol Oragon Scruteneering System)** is one online web app: one server handles registration, payments, public results and the running of the rounds. This guide covers the tech stack, the architecture, and the build order from frontend to backend.
 
 ## Tech stack
 

@@ -1,6 +1,6 @@
 # BIS Roles and Terms
 
-**BIS (Bicol Information Scrutineering System)** runs the results of dancesport competitions in the Bicol region. This guide explains who does what at a competition, what each person does in BIS, and the terms used on result sheets.
+**BIS (Bicol Oragon Scruteneering System)** runs the results of dancesport competitions in the Bicol region. This guide explains who does what at a competition, what each person does in BIS, and the terms used on result sheets.
 
 ## Who does what
 

@@ -23,7 +23,7 @@ No single role takes priority. Each role is served on its own device, and every 
 
 ## Product Purpose
 
-BIS (Bicol Information Scrutineering System) runs the scoring of dancesport competitions. It replaces paper and spreadsheets: adjudicators submit marks from phones, the scrutineer sees them arrive in real time, the Skating System produces the placings, and approved results go to the venue screen, printouts and the public site. It is an online system: one server handles registration, payments, public results and the running of the rounds, with staff on laptops and adjudicators on phones over the internet. Success is a correct, trusted result published quickly, with no way for a mis-tap or a lost connection to change the outcome unnoticed.
+BIS (Bicol Oragon Scruteneering System) runs the scoring of dancesport competitions. It replaces paper and spreadsheets: adjudicators submit marks from phones, the scrutineer sees them arrive in real time, the Skating System produces the placings, and approved results go to the venue screen, printouts and the public site. It is an online system: one server handles registration, payments, public results and the running of the rounds, with staff on laptops and adjudicators on phones over the internet. Success is a correct, trusted result published quickly, with no way for a mis-tap or a lost connection to change the outcome unnoticed.
 
 ## Positioning
 
@@ -44,7 +44,7 @@ Built for the Bicol competition circuit and the way these events actually run: o
 - Domain terms: back number, recall, heat, X mark, placing, Skating System, majority, scratch. Always "adjudicator", never "judge".
 - Payments are checked manually by the admin; BIS never handles card details or money.
 - Many dancers are minors: collect only the fields needed (Data Privacy Act of 2012).
-- Product name in the UI: Bicol Information Scrutineering System, short form BIS. The supplied logo reads "Bicol Oragon Scrutineering System"; the user chose the docs' wording.
+- Product name in the UI: Bicol Oragon Scruteneering System, short form BIS. The supplied logo reads "Bicol Oragon Scrutineering System"; the user chose the docs' wording.
 
 ## Brand Commitments
 
