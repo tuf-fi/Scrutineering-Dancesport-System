@@ -22,6 +22,7 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
   const [memberYear, setMemberYear] = useState(saved?.memberYear ? String(saved.memberYear) : '')
   const [dancers, setDancers] = useState<DancerDetails[]>([saved?.dancers[0] ?? BLANK, saved?.dancers[1] ?? BLANK])
   const [errors, setErrors] = useState<{ first?: string; team?: string; year?: string }>({})
+  const [dancerErrors, setDancerErrors] = useState<Array<Partial<Record<keyof DancerDetails, string>>>>([{}, {}])
   const [failure, setFailure] = useState<string | null>(null)
 
   const names = second.trim() ? [first, second] : [first]
@@ -37,7 +38,20 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
       year: year && !/^\d{4}$/.test(year) ? 'Four digits, such as 2026.' : undefined,
     }
     setErrors(found)
-    if (found.first || found.team || found.year) return
+    // Every dancer needs a date of birth, a contact number, an email and an address
+    const today = new Date().toISOString().slice(0, 10)
+    const dancerFound = names.map((_, i) => {
+      const d = dancers[i]!
+      return {
+        birthDate: !d.birthDate ? 'Enter the date of birth.' : d.birthDate > today ? 'The date of birth cannot be in the future.' : undefined,
+        phone: d.phone.trim() ? undefined : 'Enter a contact number.',
+        email: !d.email.trim() ? 'Enter an email.' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email.trim()) ? undefined : 'Enter a valid email address.',
+        address: d.address.trim() ? undefined : 'Enter the address.',
+      }
+    })
+    setDancerErrors(dancerFound)
+    const dancerBad = dancerFound.some((d) => d.birthDate || d.phone || d.email || d.address)
+    if (found.first || found.team || found.year || dancerBad) return
     setFailure(null)
     const details: CompetitorDetails = {
       province,
@@ -63,7 +77,7 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
         <section aria-label="Dancers" className="flex flex-col gap-3">
           <h3 className="font-mono text-xs uppercase text-neutral-500">Dancers</h3>
           <div className="flex flex-col gap-5">
-            <Input label="Dancer" value={first} onChange={(e) => setFirst(e.target.value)} error={errors.first} autoFocus />
+            <Input label="Dancer" required value={first} onChange={(e) => setFirst(e.target.value)} error={errors.first} autoFocus />
             <Input label="Partner" value={second} onChange={(e) => setSecond(e.target.value)} />
           </div>
           <p className="text-small text-neutral-500">Leave the partner empty for a solo dancer.</p>
@@ -72,7 +86,7 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
         <section aria-label="Team and coach" className="flex flex-col gap-3">
           <h3 className="font-mono text-xs uppercase text-neutral-500">Team and coach</h3>
           <div className="flex flex-col gap-5">
-            <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)} error={errors.team}>
+            <Select label="Team" required value={teamId} onChange={(e) => setTeamId(e.target.value)} error={errors.team}>
               <option value="">Choose a team</option>
               {(teams.data ?? []).map((c) => (
                 <option key={c.id} value={c.id}>
@@ -110,11 +124,11 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
             <legend className="float-left mb-4 font-mono text-xs uppercase text-neutral-500">Details: {name.trim() || `Dancer ${i + 1}`}</legend>
             <div className="flex w-full flex-col gap-5">
               <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
-                <Input label="Date of birth" type="date" value={dancers[i]!.birthDate} onChange={(e) => setDancer(i, { birthDate: e.target.value })} />
-                <Input label="Contact no." inputMode="tel" value={dancers[i]!.phone} onChange={(e) => setDancer(i, { phone: e.target.value })} />
+                <Input label="Date of birth" required type="date" value={dancers[i]!.birthDate} onChange={(e) => setDancer(i, { birthDate: e.target.value })} error={dancerErrors[i]?.birthDate} />
+                <Input label="Contact no." required inputMode="tel" value={dancers[i]!.phone} onChange={(e) => setDancer(i, { phone: e.target.value })} error={dancerErrors[i]?.phone} />
               </div>
-              <Input label="Email" type="email" value={dancers[i]!.email} onChange={(e) => setDancer(i, { email: e.target.value })} />
-              <Input label="Address" value={dancers[i]!.address} onChange={(e) => setDancer(i, { address: e.target.value })} />
+              <Input label="Email" required type="email" value={dancers[i]!.email} onChange={(e) => setDancer(i, { email: e.target.value })} error={dancerErrors[i]?.email} />
+              <Input label="Address" required value={dancers[i]!.address} onChange={(e) => setDancer(i, { address: e.target.value })} error={dancerErrors[i]?.address} />
             </div>
           </fieldset>
         ))}

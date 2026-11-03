@@ -27,6 +27,8 @@ export interface Competition {
   // YYYY-MM-DD; after these the secretariat is warned that an entry is late or unpaid
   entryDeadline?: string | null
   feeDeadline?: string | null
+  // The photo on its card on the home page: a JPEG, PNG or WebP picture as a data URL
+  image?: string | null
 }
 
 export interface Event {

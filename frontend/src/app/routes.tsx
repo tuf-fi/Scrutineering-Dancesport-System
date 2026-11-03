@@ -30,6 +30,7 @@ import { CompetitorPage } from '../features/public/CompetitorPage.tsx'
 import { AthleteDirectoryPage } from '../features/public/AthleteDirectoryPage.tsx'
 import { RankingsPage } from '../features/public/RankingsPage.tsx'
 import { HeatsPage } from '../features/scrutineer/HeatsPage.tsx'
+import { PaperMarksPage } from '../features/scrutineer/PaperMarksPage.tsx'
 import { LivePage } from '../features/scrutineer/LivePage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
@@ -186,7 +187,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: '/secretariat',
-        element: <RequireRole roles={[Role.Secretariat]} signInPath={STAFF_SIGN_IN} />,
+        element: <RequireRole roles={[Role.Secretariat, Role.Admin]} signInPath={STAFF_SIGN_IN} />,
         children: [
           {
             element: <StaffLayout />,
@@ -220,6 +221,7 @@ export const routes: RouteObject[] = [
                 children: [
                   { index: true, element: <RoundsPage /> },
                   { path: 'heats', element: <HeatsPage /> },
+                  { path: 'paper-marks', element: <PaperMarksPage /> },
                 ],
               },
               { path: 'live', element: <LivePage /> },

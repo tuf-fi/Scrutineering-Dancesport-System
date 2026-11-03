@@ -135,8 +135,8 @@ describe('the cookie secret', () => {
 describe('config', () => {
   it('marks cookies secure by default in production, and lets the environment decide', () => {
     expect(loadConfig({}).cookieSecure).toBe(false)
-    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'a-real-secret' }).cookieSecure).toBe(true)
-    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'a-real-secret', COOKIE_SECURE: 'false' }).cookieSecure).toBe(false)
+    expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'a-real-secret' }).cookieSecure).toBe(true)
+    expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'a-real-secret', COOKIE_SECURE: 'false' }).cookieSecure).toBe(false)
     expect(loadConfig({ COOKIE_SECURE: 'true' }).cookieSecure).toBe(true)
   })
 
@@ -153,8 +153,15 @@ describe('config', () => {
     expect(() => loadConfig({ PORT: '70000' })).toThrow(/PORT/)
   })
 
+  it('needs a real DATA_KEY on a deployed server', () => {
+    expect(() => loadConfig({ BIS_DEPLOYED: 'true' })).toThrow(/DATA_KEY/)
+    expect(loadConfig({ BIS_DEPLOYED: 'true', DATA_KEY: 'k'.repeat(32) }).dataKey).toBe('k'.repeat(32))
+  })
+
   it('refuses the development secret in production', () => {
+    expect(() => loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'long-random-value' })).toThrow(/DATA_KEY/)
+    expect(() => loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'long-random-value', DATA_KEY: 'short' })).toThrow(/DATA_KEY/)
     expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/COOKIE_SECRET/)
-    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'long-random-value' }).cookieSecret).toBe('long-random-value')
+    expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'long-random-value' }).cookieSecret).toBe('long-random-value')
   })
 })

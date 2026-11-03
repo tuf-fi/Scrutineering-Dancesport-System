@@ -143,7 +143,7 @@ export const athletes = {
     ctx.db.update(t.athletes).set(values).where(eq(t.athletes.id, row.id)).run()
     if (asksForChange) {
       record(ctx.db, row.id, 'Asked to change team or coach', row.name, { after: { teamId, coachId } })
-      ctx.defer(() => ctx.hub.alert([Role.Secretariat], { title: 'Team or coach change', detail: `${row.name} asks to change team or coach`, link: '/secretariat/profile-changes' }))
+      ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Team or coach change', detail: `${row.name} asks to change team or coach`, link: '/secretariat/profile-changes' }))
     }
     return toProfile({ ...row, ...values })
   },
@@ -163,7 +163,7 @@ export const athletes = {
     const membershipHistory = withEvent(row, { at: request.requestedAt, kind: 'sent', year, method })
     ctx.db.update(t.athletes).set({ request, membershipHistory }).where(eq(t.athletes.id, row.id)).run()
     record(ctx.db, row.id, 'Sent a membership payment', row.name, { after: { year, method } })
-    ctx.defer(() => ctx.hub.alert([Role.Secretariat], { title: 'Membership payment sent', detail: `${row.name} · ${year} membership by ${method}`, link: '/secretariat/athletes' }))
+    ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Membership payment sent', detail: `${row.name} · ${year} membership by ${method}`, link: '/secretariat/athletes' }))
     return toProfile({ ...row, request, membershipHistory })
   },
 

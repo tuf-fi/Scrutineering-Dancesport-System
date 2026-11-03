@@ -37,6 +37,17 @@ describe('staff sidebar', () => {
     expect(links.map((l) => l.textContent)).toEqual([
       'Competitions',
       'Adjudicators and panels',
+      'Events',
+      'Competitors',
+      'Teams',
+      'Coaches',
+      'Athletes',
+      'Entry requests',
+      'Account links',
+      'Team and coach changes',
+      'Late entries',
+      'Schedule',
+      'Program',
       'Points table',
       'Payments',
       'Fees and payment details',
@@ -136,7 +147,7 @@ describe('staff sidebar', () => {
 
   it.each([
     [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Teams', 'Coaches', 'Athletes', 'Entry requests', 'Account links', 'Team and coach changes', 'Late entries', 'Schedule', 'Program', 'Security']],
-    [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Recall', 'Results', 'Security']],
+    [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Paper marks', 'Recall', 'Results', 'Security']],
     [Role.Chairperson, '/scrutineer/live', ['Live board', 'Recall', 'Results', 'Security']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {
     renderApp(path, role)

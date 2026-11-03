@@ -110,7 +110,7 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
         <div className="flex flex-col gap-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <Select
-              label="Competition"
+              label="Competition" required
               value={activeCompetition}
               onChange={(e) => {
                 setCompetitionId(e.target.value)
@@ -124,7 +124,7 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
               ))}
             </Select>
             <Select
-              label={who === 'team' ? 'Dancer or couple' : 'Entering as'}
+              label={who === 'team' ? 'Dancer or couple' : 'Entering as'} required
               value={dancer?.competitorId ?? ''}
               onChange={(e) => {
                 setCompetitorId(e.target.value)
@@ -207,7 +207,7 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
             )}
 
             <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4">
-              <Select label="Pay with" value={payWith} onChange={(e) => setMethod(e.target.value)}>
+              <Select label="Pay with" required value={payWith} onChange={(e) => setMethod(e.target.value)}>
                 {(methods.data ?? []).map((m) => (
                   <option key={m.name} value={m.name}>
                     {m.name}

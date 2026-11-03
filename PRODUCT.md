@@ -15,8 +15,8 @@ Everyone who touches a dancesport competition in the Bicol region, each on their
 - **Scrutineer** and **Chairperson of Adjudicators** (laptop): run rounds, watch adjudicators submit live, resolve ties at the recall cutoff, approve and publish results.
 - **Adjudicators** (phone, usually 7 and up to 10, lettered A to J): mark X for recalls in early rounds, place finalists 1st to 6th or 7th.
 - **MC / announcer** (laptop or venue screen): reads recalls, finalists and results from last place up.
-- **Athletes** (phone or laptop, online): make an account, keep their details and report their membership payment.
-- **Teams and coaches**: kept as records by the secretariat; they have no login.
+- **Athletes** (phone or laptop, online): make an account, keep their details and report their membership payment, and send an entry with a payment screenshot for the secretariat to approve.
+- **Coaches and teams** (phone or laptop, online): make an account, ask to be linked to their coach or team record, then see their dancers, results, rankings, entries and payments. A team can send entries online with a payment screenshot.
 - **Public** (phone): parents, fans, competitors; browse results, history and rankings.
 
 No single role takes priority. Each role is served on its own device, and every screen must also work at any screen size.

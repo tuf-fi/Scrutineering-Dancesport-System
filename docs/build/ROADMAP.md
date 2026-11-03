@@ -8,11 +8,11 @@ Where the build stands and what is left. [STATUS.md](STATUS.md) has the short, c
 | --- | --- | --- | --- |
 | 1 | Screens with sample data | Done | n/a |
 | 2 | Scoring engine | Done, except real result sheets as fixtures | [PHASE2_README.md](PHASE2_README.md) |
-| 3 | Backend | Built | [deploy/README.md](deploy/README.md) |
+| 3 | Backend | Built | [deploy/README.md](../../deploy/README.md) |
 | 4 | Offline safety | Removed: online only | n/a |
-| 5 | Cloud backend and sync | Removed: online only; the server is built but not yet on a real host | [deploy/README.md](deploy/README.md) |
-| 6 | Registration and payments | Built, then changed: the secretariat registers teams from the entry forms; the team portal and Messenger were removed | n/a |
-| 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](PILOT.md) |
+| 5 | Cloud backend and sync | Removed: online only; the server is built but not yet on a real host | [deploy/README.md](../../deploy/README.md) |
+| 6 | Registration and payments | Built, then changed: the secretariat registers teams from the entry forms. Coach, team and athlete accounts can also send an entry with a payment screenshot, which the secretariat approves. Messenger was removed | n/a |
+| 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](../operations/PILOT.md) |
 
 ## Decisions still needed from the client
 
@@ -54,17 +54,21 @@ Offline mode comes back only if the client asks. It would involve a venue server
 
 ## Phase 5: Cloud backend and sync (removed: online only)
 
-Built, then removed in commit `6d286f2`: a cloud mode of the server, an upload queue (`outbox`), a download of a competition to the venue, a held-competition lock, sync status screens and the take-back screen. One server now does everything, so none of it is needed. What stayed: the Docker and Caddy hosting files, backups after every change and on an interval, and the optional daily offsite copy (`docker compose --profile offsite up -d`). See [deploy/README.md](deploy/README.md).
+Built, then removed in commit `6d286f2`: a cloud mode of the server, an upload queue (`outbox`), a download of a competition to the venue, a held-competition lock, sync status screens and the take-back screen. One server now does everything, so none of it is needed. What stayed: the Docker and Caddy hosting files, backups after every change and on an interval, and the optional daily offsite copy (`docker compose --profile offsite up -d`). See [deploy/README.md](../../deploy/README.md).
 
 - [ ] Put the server on a real host (deploy/README.md)
 
 ## Phase 6: Registration and payments (changed)
 
-Built as a team portal with online proof of payment and Messenger messages, then changed when the client said the secretariat registers every team. Removed: team accounts, proof uploads, payment approval, Messenger. What exists now:
+Built as a team portal with online proof of payment and Messenger messages, then changed when the client said the secretariat registers every team. Removed: Messenger, and the old team portal that paid online with no secretariat check. Team accounts came back later in a smaller form (below). What exists now:
 
 - [x] The secretariat enters teams, coaches and competitors from the entry forms, with the entry form's details, fees, deadlines and entry warnings.
 - [x] Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms or turns it down.
 - [x] Payments are a read-only ledger; the secretariat records how each was paid.
+- [x] Coach and team accounts: they sign up, ask to be linked to their record and the secretariat approves it. Their pages match the athlete's: details, dancers, results, rankings, entries, payments, notifications and password.
+- [x] Online entry: a team or an athlete sends an entry with a payment screenshot; the secretariat approves it into real entries and a payment, or turns it down with a reason. The sender is told, with a pop-up and a saved notification.
+- [x] Real-time pop-up notifications with a chime for every role except the adjudicator and MC.
+- [x] A competition has a required card photo, shown on the home page.
 - [ ] Data Privacy Act of 2012: the privacy notice (`/privacy`) was rewritten for the entry form and athlete accounts. The organizer must confirm it. Retention is settled: details are kept permanently until removed.
 
 ## Program (running order) (built)
@@ -91,7 +95,7 @@ Not built: making two-step sign-in compulsory for admins (today it is each perso
 
 ## Phase 7: Testing and pilot
 
-Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is [PILOT.md](PILOT.md).
+Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is [PILOT.md](../operations/PILOT.md).
 
 - [x] A whole competition run through BIS end to end (the sample one; `backend/src/fullcompetition.test.ts`)
 - [ ] The same with real sheets from a past competition, once the client provides them
@@ -99,7 +103,7 @@ Details in [PHASE7_README.md](PHASE7_README.md); the plan for the real event is 
 - [ ] Rehearse against the real online server, with real phones on mobile data and real laptops: `pnpm loadtest`, `pnpm rehearsal` and the checks by hand
 - [x] Tool to compare BIS with the paper result sheets (`results:compare`)
 - [ ] Pilot at a real competition, with the current method running alongside, and compare every result
-- [x] Training: a one-page guide per role in [guides/](guides/)
+- [x] Training: a one-page guide per role in [guides/](../guides/)
 - [ ] Rehearsal with the actual secretariat, scrutineer, chairperson and adjudicators, using the guides (and fix any step a guide gets wrong)
 - [ ] Fix list from the pilot, then a second, smaller event before the system is relied on alone
 

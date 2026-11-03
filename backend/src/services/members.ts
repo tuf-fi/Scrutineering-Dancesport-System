@@ -67,7 +67,7 @@ export function claimRecord(ctx: Ctx, targetId: string): MemberAccount {
   const values = { claimId: targetId, claimedAt: now() }
   ctx.db.update(t.memberAccounts).set(values).where(eq(t.memberAccounts.id, row.id)).run()
   record(ctx.db, row.id, 'Asked to be linked to a record', row.name, { after: { claimId: targetId } })
-  ctx.defer(() => ctx.hub.alert([Role.Secretariat], { title: 'Account link request', detail: `${row.name} wants to be linked to ${name}`, link: '/secretariat/account-links' }))
+  ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Account link request', detail: `${row.name} wants to be linked to ${name}`, link: '/secretariat/account-links' }))
   return toAccount(ctx, { ...row, ...values })
 }
 

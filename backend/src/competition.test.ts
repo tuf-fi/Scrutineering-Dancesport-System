@@ -53,7 +53,7 @@ const x = (...competitors: string[]): MarkSubmission[] => [{ dance: 'samba', com
 
 describe('before the competition', () => {
   it('admin sets up the competition, event, adjudicators and panel', async () => {
-    competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Test Open', date: today, venue: 'Gym', organizer: 'Org' }], admin)).id
+    competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Test Open', date: today, venue: 'Gym', organizer: 'Org', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
     eventId = (await app.ok<{ id: string }>('saveEvent', [competitionId, solo], admin)).id
     for (const letter of 'ABCDE') {
       adjudicatorIds.push((await app.ok<{ id: string }>('createAdjudicator', [{ name: `Adjudicator ${letter}`, letter }], admin)).id)

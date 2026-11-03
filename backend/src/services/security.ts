@@ -1,6 +1,7 @@
 import type { StaffUser, TotpSetup, TotpStatus } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { checkSecondStep, saveSecondStep } from '../auth/signin.ts'
+import { decryptSecret, encryptSecret } from '../auth/vault.ts'
 import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { hashRecovery, newRecoveryCodes, newSecret, otpauthUri, verifyCode } from '../auth/totp.ts'
 import { record } from '../core/audit.ts'
@@ -46,7 +47,7 @@ export const security = {
     const row = mine(ctx)
     if (row.totpEnabled) return fail('Two-step sign-in is already on.', 409)
     const secret = newSecret()
-    ctx.db.update(t.staffUsers).set({ totpSecret: secret }).where(eq(t.staffUsers.id, row.id)).run()
+    ctx.db.update(t.staffUsers).set({ totpSecret: encryptSecret(secret, ctx.config.dataKey) }).where(eq(t.staffUsers.id, row.id)).run()
     return { secret, uri: otpauthUri(secret, row.username, ISSUER) }
   },
 
@@ -55,7 +56,8 @@ export const security = {
     const row = mine(ctx)
     if (row.totpEnabled) return fail('Two-step sign-in is already on.', 409)
     if (!row.totpSecret) return fail('Start the set-up first.', 409)
-    const step = verifyCode(row.totpSecret, String(code ?? ''), 0)
+    const secret = decryptSecret(row.totpSecret, ctx.config.dataKey)
+    const step = secret ? verifyCode(secret, String(code ?? ''), 0) : null
     if (step === null) return fail('That code is not right. Check the app and try again.')
     const recoveryCodes = newRecoveryCodes()
     ctx.db
@@ -72,7 +74,7 @@ export const security = {
     const row = mine(ctx)
     if (!row.totpEnabled) return fail('Two-step sign-in is not on.', 409)
     if (!verifyPassword(String(password ?? ''), row.passwordHash)) return fail('The password is not right.')
-    const used = checkSecondStep(row, String(code ?? '').trim())
+    const used = checkSecondStep(row, String(code ?? '').trim(), ctx.config.dataKey)
     if (!used.ok) return fail('That code is not right.')
     saveSecondStep(ctx, row, used)
     ctx.db.update(t.staffUsers).set({ totpEnabled: false, totpSecret: null, totpLastStep: 0, totpRecovery: [] }).where(eq(t.staffUsers.id, row.id)).run()

@@ -104,7 +104,7 @@ export function ProfileChangesPage() {
           </>
         }
       >
-        <Textarea label="Reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <Textarea label="Reason" required rows={3} value={reason} onChange={(e) => setReason(e.target.value)} />
       </Dialog>
     </div>
   )

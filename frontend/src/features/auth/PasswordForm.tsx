@@ -38,7 +38,7 @@ export function PasswordForm({ change }: { change: PasswordChange }) {
 
   return (
     <form onSubmit={submit} noValidate className="flex max-w-md flex-col gap-4">
-      <Input label="Current password" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} error={error} />
+      <Input label="Current password" required type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} error={error} />
       <Input label="New password" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
       <Input label="Confirm new password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       <PasswordRules password={next} matches={matches} />

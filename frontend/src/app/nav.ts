@@ -15,6 +15,7 @@ import {
   Link2,
   ShieldCheck,
   LayoutGrid,
+  FileText,
   ListChecks,
   ListOrdered,
   Trophy,
@@ -44,38 +45,45 @@ const scrutineerNav: NavItem[] = [
   { to: '/scrutineer', label: 'Rounds', end: true, icon: Layers },
   { to: '/scrutineer/heats', label: 'Heats', icon: LayoutGrid },
   { to: '/scrutineer/live', label: 'Live board', icon: Activity },
+  { to: '/scrutineer/paper-marks', label: 'Paper marks', icon: FileText },
   { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
   { to: '/scrutineer/results', label: 'Results', icon: Award },
   { to: '/scrutineer/security', label: 'Security', icon: ShieldCheck },
 ]
 
+// The secretariat's work. The admin can do all of it too, so these screens sit in the admin's menu as well.
+const entriesNav: NavItem[] = [
+  { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays, group: 'Entries' },
+  { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound, group: 'Entries' },
+  { to: '/secretariat/teams', label: 'Teams', icon: Building2, group: 'Entries' },
+  { to: '/secretariat/coaches', label: 'Coaches', icon: Users, group: 'Entries' },
+  { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
+  { to: '/secretariat/entry-requests', label: 'Entry requests', icon: Inbox, group: 'Entries' },
+  { to: '/secretariat/account-links', label: 'Account links', icon: Link2, group: 'Entries' },
+  { to: '/secretariat/profile-changes', label: 'Team and coach changes', icon: ArrowLeftRight, group: 'Entries' },
+  { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock, group: 'Entries' },
+]
+const dayNav: NavItem[] = [
+  { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock, group: 'The day' },
+  { to: '/secretariat/program', label: 'Program', icon: ListOrdered, group: 'The day' },
+]
+
 export const staffNav: Record<StaffRole, NavItem[]> = {
   admin: [
-    { to: '/admin/competitions', label: 'Competitions', icon: Trophy, group: 'Events' },
-    { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Events' },
+    { to: '/admin/competitions', label: 'Competitions', icon: Trophy, group: 'Setup' },
+    { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Setup' },
+    ...entriesNav,
+    ...dayNav,
     { to: '/admin/points', label: 'Points table', icon: ListOrdered, group: 'Scoring and fees' },
     { to: '/admin/payments', label: 'Payments', icon: Wallet, group: 'Scoring and fees' },
     { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote, group: 'Scoring and fees' },
     { to: '/admin/staff', label: 'Staff accounts', icon: Users, group: 'System' },
     { to: '/admin/security', label: 'Security', icon: ShieldCheck, group: 'System' },
   ],
-  secretariat: [
-    { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays, group: 'Entries' },
-    { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound, group: 'Entries' },
-    { to: '/secretariat/teams', label: 'Teams', icon: Building2, group: 'Entries' },
-    { to: '/secretariat/coaches', label: 'Coaches', icon: Users, group: 'Entries' },
-    { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
-    { to: '/secretariat/entry-requests', label: 'Entry requests', icon: Inbox, group: 'Entries' },
-    { to: '/secretariat/account-links', label: 'Account links', icon: Link2, group: 'Entries' },
-    { to: '/secretariat/profile-changes', label: 'Team and coach changes', icon: ArrowLeftRight, group: 'Entries' },
-    { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock, group: 'Entries' },
-    { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock, group: 'The day' },
-    { to: '/secretariat/program', label: 'Program', icon: ListOrdered, group: 'The day' },
-    { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' },
-  ],
+  secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
   scrutineer: scrutineerNav,
   // The chairperson watches and confirms ties; starting rounds and setting heats are the scrutineer's
-  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats'].includes(item.to)),
+  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/paper-marks'].includes(item.to)),
 }
 
 export const publicNav: NavItem[] = [

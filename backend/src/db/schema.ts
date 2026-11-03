@@ -19,6 +19,8 @@ export const competitions = sqliteTable('competitions', {
   // YYYY-MM-DD; after these an entry is late or unpaid
   entryDeadline: text('entry_deadline'),
   feeDeadline: text('fee_deadline'),
+  // The photo on its home page card, as a data URL
+  image: text('image'),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
 })

@@ -256,7 +256,7 @@ function EditAccount() {
     <AccountSection title="Edit account" note="Only the secretariat sees these. They use them for your entry form.">
       <PhotoField profile={account} useSave={useSaveMyMemberPhoto} />
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
-        <Input label={team ? 'Team name' : 'Full name'} value={name} onChange={(e) => setName(e.target.value)} error={error} />
+        <Input label={team ? 'Team name' : 'Full name'} required value={name} onChange={(e) => setName(e.target.value)} error={error} />
         <Input label="Email" value={account.email} disabled readOnly />
         {!team && <Input label="Date of birth" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />}
         <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />

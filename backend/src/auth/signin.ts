@@ -6,6 +6,7 @@ import * as t from '../db/schema.ts'
 import { currentCompetition } from '../services/shared.ts'
 import { hashPassword, verifyPassword } from './password.ts'
 import { hashRecovery, verifyCode } from './totp.ts'
+import { decryptSecret } from './vault.ts'
 
 // Checked even when the account does not exist, so a wrong username takes as long as a wrong password
 const DUMMY_HASH = hashPassword('not-a-real-password')
@@ -17,8 +18,9 @@ type StaffRow = typeof t.staffUsers.$inferSelect
 // Whether a typed code is one of the account's one-time codes (an authenticator app's, or an unused recovery code), and
 // what using it changes. Nothing is saved here: the caller saves it only once everything else has passed.
 export type SecondStep = { ok: false } | { ok: true; step?: number; recovery?: string[] }
-export function checkSecondStep(row: StaffRow, typed: string): SecondStep {
-  const step = row.totpSecret ? verifyCode(row.totpSecret, typed, row.totpLastStep) : null
+export function checkSecondStep(row: StaffRow, typed: string, dataKey: string): SecondStep {
+  const secret = row.totpSecret ? decryptSecret(row.totpSecret, dataKey) : null
+  const step = secret ? verifyCode(secret, typed, row.totpLastStep) : null
   if (step !== null) return { ok: true, step }
   const hash = hashRecovery(typed)
   if (row.totpRecovery.includes(hash)) return { ok: true, recovery: row.totpRecovery.filter((h) => h !== hash) }
@@ -45,7 +47,7 @@ export function staffSession(ctx: Ctx, username: string, password: string, code?
     // 428 asks for the code and is not counted as a wrong guess; a wrong code (401) is
     const typed = String(code ?? '').trim()
     if (!typed) return fail(SECOND_STEP_NEEDED, 428)
-    const used = checkSecondStep(row, typed)
+    const used = checkSecondStep(row, typed, ctx.config.dataKey)
     if (!used.ok) return fail('That code is not right.', 401)
     saveSecondStep(ctx, row, used)
   }

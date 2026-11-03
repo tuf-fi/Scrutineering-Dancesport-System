@@ -227,6 +227,23 @@ A warm-black and white base, brown for dark and secondary surfaces, and gold as 
 
 Fluid and mobile-first. Pages are a single column that opens into a wider content area on laptops, with generous padding (16px on phones). Spacing runs on the 4px Tailwind scale, with 16px and 24px as the common steps. Tables scroll inside their own container and never push the page sideways. Roles differ in density, not in structure: adjudicator screens use large targets (at least 56px), staff screens use dense readable tables, the venue screen scales type up for 1920px and distance.
 
+### Phones and tablets
+
+- **Breakpoint.** "Mobile and tablet" means below `lg` (1024px); laptop layouts start at `lg`. Text steps up one notch below 640px (body 15px, small 13px, smallest 12px, titles 17px) by overriding the text tokens in `index.css`; components never set their own mobile sizes.
+- **Staff and admin.** A sticky black header with the logo on the left and a hamburger on the right. The menu is a right drawer with the account link, the grouped sections (a gold left border marks the current one) and Sign out. The connection shows in the header only when the server cannot be reached ("Offline"); a healthy connection is not announced.
+- **Public site.** The same black header with a hamburger on the right. The drawer carries the site links and, for a signed-out visitor, a Sign in button. There is no Sign in button in the bar itself below `lg`.
+- **Athlete, coach and team pages.** The account links become a black strip, fixed under the navbar, scrolling sideways if needed. From `lg` they are the fixed left sidebar. Page content clears the strip with top padding.
+- **Menus and bells.** The account menu and the notification panel open full width under the navbar on phones and as a dropdown from `sm` up.
+- **Filters.** A toolbar lays its filters out in one row: they share the width equally, and a single filter takes the full width. The page's buttons go on their own row below the filters at their natural width, never stretched. On wider screens the buttons sit at the far right of the filter row.
+- **Hero.** Below `lg` the home hero and the navbar together fill 85% of the screen height (small-viewport units, so a phone's address bar does not change it). The photo is anchored to the top and set a little below the navbar so the dancers' heads are clear of it.
+
+### Motion and behaviour
+
+- **Every new page, and every reload, starts at the top.** Changing only a query or filter on the same page does not scroll.
+- **Drawers slide in from the right and slide out; dialogs fade and rise in and fade out; their backdrops fade.** Links, buttons, inputs and tabs ease their colours over 160ms. `prefers-reduced-motion` removes all of it.
+- **Anything that can be clicked shows the pointer cursor** (links, enabled buttons, tabs, selects, menu items, checkboxes); disabled controls show "not allowed".
+- **Loading is a skeleton, never a spinner or a blank.** Tables show skeleton rows; lists and forms use `SkeletonList`; the first paint before the session is known is a static skeleton in `index.html`.
+
 ## Elevation & Depth
 
 Flat by default. Depth comes from hairline borders and tonal fills (Table Bone, Pale Stone), not shadows. The only shadow is the overlay shadow, used on dialogs and toasts.
@@ -278,19 +295,19 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 - Off-canvas panel from the right edge (max 36rem, full width on phones), built on Radix Dialog like Dialog, with the same plain 50% black backdrop. Title and status under it, close button top-right, hidden-scrollbar body, and a footer bar pinned to the bottom for decisions (Payments: Reject and Approve). Opens from a table row click; the table stays the list.
 
 ### Toast
-- Built on Sonner, styled with project tokens: Deep Roast fill with white text, bottom-centred, 4s. `toast.success` turns the fill green and `toast.error` red.
+- Built on Sonner, styled with project tokens: Deep Roast fill with white text, top-centred on every screen size, 4s. `toast.success` turns the fill green and `toast.error` red.
 
 ### Staff sidebar
-- From laptop width, fixed to the viewport (the page never scrolls it): 15rem, collapsible to a 4.5rem icon rail, remembered on the device. The surface is flat Table Bone with hairline rules, no cards. The logo is centred at the top with the collapse button at its top-right (above the logo in the collapsed rail). Between two hairlines under it, the signed-in person: initials avatar on the left, name over role on the right. Each section has a Lucide icon (18px, 1.75 stroke) and a label. The current section is a white row with a hairline border and a gold icon; the rest are Muted Taupe with a soft hover. Collapsed, labels stay in the page for screen readers and a dark tooltip shows beside the icon on hover and focus. Under a hairline at the bottom: the connection status as a plain dot and word (Confirm Green online, Caution Orange offline) and Sign out in Alert Red. On laptops there is no top bar; those controls live in the sidebar. Below laptop width the sidebar is replaced by a top bar (logo, status, sign out) over a scrolling strip of text tabs.
+- From laptop width, fixed to the viewport (the page never scrolls it): 15rem, collapsible to a 4.5rem icon rail, remembered on the device. The surface is flat Table Bone with hairline rules, no cards. The logo is centred at the top with the collapse button at its top-right (above the logo in the collapsed rail). Between two hairlines under it, the signed-in person: initials avatar on the left, name over role on the right. Each section has a Lucide icon (18px, 1.75 stroke) and a label. The current section is a white row with a hairline border and a gold icon; the rest are Muted Taupe with a soft hover. Collapsed, labels stay in the page for screen readers and a dark tooltip shows beside the icon on hover and focus. Under a hairline at the bottom: the connection status as a plain dot and word (Confirm Green online, Caution Orange offline) and Sign out in Alert Red. On laptops there is no top bar; those controls live in the sidebar. Below laptop width the sidebar is replaced by the black mobile header and its right-hand drawer (see Phones and tablets).
 
 ### Filters
-- Filters are selects with a visible label, not button groups, and their options carry no counts. A list's toolbar reads left to right: search, the select filters, then the page's primary action pushed to the far right of the same row, level with the inputs. The two-option view switch on the adjudicators page is the only toggle-button group left (36px, 8px radius, the chosen option fills Charcoal Brown); gold stays reserved for the one primary action.
+- Filters are selects with a visible label, not button groups, and their options carry no counts. A list's toolbar reads left to right: search, the select filters, then the page's primary action pushed to the far right of the same row, level with the inputs. The two-option view switch on the adjudicators page is the only toggle-button group left (36px, 8px radius, the chosen option fills Charcoal Brown); gold stays reserved for the one primary action. On phones the filters share one row and the buttons wrap below them (see Phones and tablets).
 
 ### Pagination
 - A circular pager: a round bordered arrow, the page numbers as round buttons with the current page filled Charcoal Brown, then the next arrow. Long runs collapse with an ellipsis around the current page. On phones it reads "Page 2 of 6" between the two arrows.
 
 ### Avatars
-- Overlapping initials circles for a solo dancer or a couple (36px; 56px on a profile), tinted Brown Mist and Pale Stone with a white ring. There are no photos yet.
+- Overlapping initials circles for a solo dancer or a couple (36px; 56px on a profile), tinted Brown Mist and Pale Stone with a white ring. An athlete, coach or team can add a square picture to their account; it replaces the initials where it is shown.
 
 ### Ranking rows
 - Rank in mono (top three at full strength, the rest muted), competitor with their team underneath, then competitions and points right-aligned in mono. Equal points share a rank and the next rank is skipped. Whole rows open the competitor's page.
@@ -298,12 +315,24 @@ Gently squared. Small elements (badges) use 4px, controls 8px, containers 12px. 
 ### Page header
 - Display title, optional description, actions on the right. No label above the title.
 
+### Dark panel (the screen's status box)
+The black box at the top of the Live board, Rounds, Heats, Recall, the adjudicator mark sheet and the public program's "On the floor" panel. One shared component (`DarkPanel`) so every screen matches.
+- **Surface:** brown-950 (black on the public program), 12px radius, a 1px white-at-10% edge. Behind the content sit soft silver orbs under a sheet of smoked glass (a dark scrim with a heavy blur), kept dim so the panel still reads as dark.
+- **Blocks on it** (the submitted count, the adjudicator list, the heat bars, the Rounds figures) are frosted: white at 6% fill, a 1px white-at-10% border and a light inner edge along the top. Rows inside a block are split by hairlines.
+- **Padding and type shrink on phones** (16px padding, 30px title) and grow from `sm` and `lg`. Status is a dot and a word at the top.
+- This is the one place glass is allowed. Everything else stays flat.
+
+### Pop-up notification
+- A hairline card with a gold left edge, a bold title and a grey detail line; the X sits in the top-right corner. Hovering anywhere on it, X included, turns it a pale solid gold (never transparent). It chimes once as it arrives.
+- Bottom-right on laptops and full width across the top on phones and tablets. After 9 seconds, or on dismiss or click, it fades out while sliding to the right on laptops and upward on phones and tablets.
+- Shown to every role except the adjudicator and MC. Athletes, coaches and teams see what is saved in their notifications; staff see live alerts that are not kept.
+
 ### Public site
 These apply to the public pages only. They reuse the tokens above; nothing here introduces a colour.
 
-- **Hero:** black, edge to edge, flush under the navbar. A plain headline and one short paragraph on the left; the dance photo fades in from the right with a mask. No gradient glow, no marquee, no logo art.
+- **Hero:** black, edge to edge, flush under the navbar (85% of the screen height with the navbar on phones and tablets). A plain headline and one short paragraph on the left; the dance photo fades in from the right with a mask. No gradient glow, no marquee, no logo art.
 - **Section head:** Section title over a 1px Charcoal rule, with the link ("All events →") at the right in small semibold with a 2px gold underline. Sections are separated by generous space, not boxes.
-- **Photo card (upcoming events):** 8px radius, 4:5 on laptop and square on phones, 24px gap. The photo fills the card in black and white and goes to colour with a slow zoom on hover. A dark scrim under the text only. The day is a Figure in white, the month and year small mono (white, gold on hover), a countdown ("In 34 days") top right, the name and venue at the foot. Every card using the same photo uses the same crop. A "Register" bar (full width, Podium Gold, Ink Black text, arrow rotating on hover) slides up from the bottom edge on hover while the name moves up; on touch devices it is always shown. Use photos only where a real one exists.
+- **Photo card (upcoming events):** 8px radius, 4:5 on laptop and square on phones, 24px gap. The photo fills the card in black and white and goes to colour with a slow zoom on hover. A dark scrim under the text only. The day is a Figure in white, the month and year small mono (white, gold on hover), a countdown ("In 34 days") top right, the name and venue at the foot. Each card shows its own competition's photo: the form for a competition requires one (cropped to a 4:5 portrait on upload), and a competition made before that requirement shows the shared dance photo until a photo is added. A "Register" bar (full width, Podium Gold, Ink Black text, arrow rotating on hover) slides up from the bottom edge on hover while the name moves up; below laptop width it is not shown at all, and the photo is in colour from the start. Use photos only where a real one exists.
 - **Joined sheet (How to join):** cells share 1px Hairline borders in one grid, like a result sheet. Each step has a small gold mono number, a title and a grey line; the fourth cell is solid Podium Gold and is the call to action. Titles line up across the row.
 - **Competition panel (On the floor):** a black header band with the competition name (1.25rem), date and venue, the gold action and a "Program" link, over a light body. The live round shows a status dot, event and round in small gold mono, the dance in large type, and three Figures (Dancing, Heats, Recalled) at the right.
 - **Disciplines:** one row per discipline: its name and event counts on the left, the dances as a run of large type with small gold numbers on the right.
@@ -320,6 +349,8 @@ These apply to the public pages only. They reuse the tokens above; nothing here 
 - **Do** keep touch targets at 56px or more for adjudicators.
 - **Do** keep motion short and honour `prefers-reduced-motion`.
 - **Do** hide scrollbars inside dialogs, tables and tab strips while content still scrolls.
+- **Do** check a change at 390px and 1280px, and at tablet width, before calling it done.
+- **Do** keep buttons and pills on one line (no text wrapping inside a button or a badge).
 
 ### Don't:
 - **Don't** use gold as text on white; use `gold-700`.
@@ -331,7 +362,7 @@ These apply to the public pages only. They reuse the tokens above; nothing here 
 - **Don't** use low-contrast text or a beige palette.
 - **Don't** load fonts or assets from a CDN; BIS must work offline.
 - **Don't** say "judge"; say "adjudicator".
-- **Don't** use blur, frosted glass or a gradient as decoration. The one gradient allowed is a scrim behind text on a photo.
+- **Don't** use blur, frosted glass or a gradient as decoration. The exceptions are a scrim behind text on a photo, the dim and blur behind a dialog or drawer, a subtle blur on the navbar once the page scrolls, and the Dark panel above, which is a deliberate glass surface for the live status boxes only.
 - **Don't** fill a card or row solid black on hover.
 - **Don't** set a section title larger than the Section title size, or a day or count larger than a Figure.
 - **Don't** reach for the stock layouts: a numbered timeline with a connecting line, three equal icon-and-text columns, a centred band of steps, pastel-tinted cards, a pin icon on every row.

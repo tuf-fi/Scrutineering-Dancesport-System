@@ -100,7 +100,7 @@ export function MembershipSection({ page }: { page: AthleteData }) {
             <form onSubmit={submit} noValidate className="flex flex-col gap-5 rounded-lg border border-neutral-200 p-6">
               <h3 className="font-mono text-xs uppercase text-neutral-500">Confirm your payment</h3>
               {methods.length > 0 ? (
-                <Select label="Paid with" value={method} onChange={(e) => setMethod(e.target.value)}>
+                <Select label="Paid with" required value={method} onChange={(e) => setMethod(e.target.value)}>
                   {methods.map((m) => (
                     <option key={m.name} value={m.name}>
                       {m.name}
@@ -108,7 +108,7 @@ export function MembershipSection({ page }: { page: AthleteData }) {
                   ))}
                 </Select>
               ) : (
-                <Input label="Paid with" value={method} onChange={(e) => setMethod(e.target.value)} />
+                <Input label="Paid with" required value={method} onChange={(e) => setMethod(e.target.value)} />
               )}
               <div className="flex flex-col gap-2">
                 <span className="text-small font-medium text-neutral-600">Screenshot of your payment</span>

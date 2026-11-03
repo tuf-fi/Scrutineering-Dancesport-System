@@ -29,7 +29,7 @@ beforeAll(async () => {
     { id: 'team-1', name: 'Naga Dancers', contactName: '', contactEmail: '', contactPhone: '' },
     { id: 'team-2', name: 'Legazpi Stars', contactName: '', contactEmail: '', contactPhone: '' },
   ]).run()
-  competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2099-12-06', venue: 'Robinsons Naga', organizer: 'BGDT' }], admin)).id
+  competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2099-12-06', venue: 'Robinsons Naga', organizer: 'BGDT', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
   const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
   await make('solo1', event(1))
   await make('solo2', event(2, { dances: ['rumba'] }))
@@ -82,7 +82,7 @@ describe('entering a competition online', () => {
     // The secretariat's open screens get a pop-up the moment it arrives
     const alerts = app.hub.sent.filter((e) => e.event === 'alert')
     expect(alerts).toHaveLength(before + 1)
-    expect(alerts.at(-1)!.payload).toMatchObject({ roles: ['secretariat'], note: { title: 'New entry request', link: '/secretariat/entry-requests' } })
+    expect(alerts.at(-1)!.payload).toMatchObject({ roles: ['secretariat', 'admin'], note: { title: 'New entry request', link: '/secretariat/entry-requests' } })
     expect(sent).toMatchObject({ status: 'waiting', eventNumbers: [1, 2], requesterRole: 'team', method: 'gcash' })
     expect(sent.receipt).toBeUndefined()
     expect((await app.ok<EntryRequest[]>('getMyEntryRequests', [], team)).map((r) => r.id)).toEqual([sent.id])

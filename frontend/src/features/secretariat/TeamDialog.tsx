@@ -35,7 +35,7 @@ function TeamForm({ team, onDone }: { team: Team | null; onDone: () => void }) {
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Input label="Team" value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
+          <Input label="Team" required value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
         </div>
         <Input label="Contact person" value={contactName} onChange={(e) => setContactName(e.target.value)} />
         <Input label="Contact no." inputMode="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />

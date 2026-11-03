@@ -34,7 +34,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
               <li key={c.id}>
                 <article className="group relative isolate flex aspect-square flex-col justify-between overflow-hidden rounded-lg bg-black p-6 text-white sm:aspect-[4/5]">
                   <img
-                    src={HERO_IMAGE}
+                    src={c.image || HERO_IMAGE}
                     alt=""
                     loading="lazy"
                     className="absolute inset-0 -z-20 size-full object-cover object-[50%_18%] lg:grayscale transition duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"

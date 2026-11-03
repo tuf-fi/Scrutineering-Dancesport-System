@@ -21,9 +21,9 @@ function MethodForm({ initial, onSubmit }: { initial: PaymentMethod; onSubmit: (
 
   return (
     <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4">
-      <Input label="Name" hint="GCash, Maya, a bank" value={values.name} onChange={set('name')} error={errors.name} autoFocus />
-      <Input label="Account name" value={values.accountName} onChange={set('accountName')} error={errors.accountName} />
-      <Input label="Number" className="font-mono tabular-nums" value={values.number} onChange={set('number')} error={errors.number} />
+      <Input label="Name" required hint="GCash, Maya, a bank" value={values.name} onChange={set('name')} error={errors.name} autoFocus />
+      <Input label="Account name" required value={values.accountName} onChange={set('accountName')} error={errors.accountName} />
+      <Input label="Number" required className="font-mono tabular-nums" value={values.number} onChange={set('number')} error={errors.number} />
       <Input label="Note (optional)" value={values.note ?? ''} onChange={set('note')} />
     </form>
   )

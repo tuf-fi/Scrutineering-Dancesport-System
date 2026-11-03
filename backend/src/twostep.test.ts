@@ -1,6 +1,8 @@
 import type { StaffUser, TotpSetup, TotpStatus } from '@bis/shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { codeFor, stepAt } from './auth/totp.ts'
+import { loadConfig } from './config.ts'
+import { decryptSecret, encryptLegacySecrets } from './auth/vault.ts'
 import { startTestApp, type TestApp } from './testing.ts'
 
 // Two-step sign-in: after the password, a code from an authenticator app, or a recovery code
@@ -55,6 +57,30 @@ describe('turning it on', () => {
     // Only hashes are kept
     const stored = app.sqlite.prepare("select totp_recovery as r from staff_users where username = 'admin@sample.example'").get() as { r: string }
     for (const code of recovery) expect(stored.r).not.toContain(code.replace('-', ''))
+  })
+
+  it('keeps the secret encrypted, never as the app shows it', async () => {
+    const { secret } = await turnOn(admin)
+    const stored = app.sqlite.prepare("select totp_secret as s from staff_users where username = 'admin@sample.example'").get() as { s: string }
+    expect(stored.s).toMatch(/^enc1:/)
+    expect(stored.s).not.toContain(secret)
+  })
+
+  it('still accepts a secret saved before encryption, and encrypts it at the next start', async () => {
+    const { secret } = await turnOn(admin)
+    app.sqlite.prepare("update staff_users set totp_secret = ? where username = 'admin@sample.example'").run(secret)
+    expect((await signIn('admin', 'bis2026', nextCode(secret))).statusCode).toBe(200)
+    expect(encryptLegacySecrets(app.db, loadConfig({}).dataKey)).toBe(1)
+    const stored = app.sqlite.prepare("select totp_secret as s from staff_users where username = 'admin@sample.example'").get() as { s: string }
+    expect(stored.s).toMatch(/^enc1:/)
+    expect((await signIn('admin', 'bis2026', nextCode(secret))).statusCode).toBe(200)
+  })
+
+  it('refuses every code when the key is different', async () => {
+    const { secret } = await turnOn(admin)
+    const stored = app.sqlite.prepare("select totp_secret as s from staff_users where username = 'admin@sample.example'").get() as { s: string }
+    expect(decryptSecret(stored.s, 'a-different-key-of-32-characters!!')).toBeNull()
+    expect(decryptSecret(stored.s, loadConfig({}).dataKey)).toBe(secret)
   })
 
   it('cannot be confirmed before it is started', async () => {

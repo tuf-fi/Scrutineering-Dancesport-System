@@ -18,7 +18,7 @@ Sign in at `/staff-access` with email and password.
 
 ## Athlete, coach and team
 
-Sign in from the Sign in button in the navbar (pick Athlete, Coach or Team), or at `/sign-in`.
+Press Sign in in the navbar (on a phone, in the menu), pick Athlete, Coach or Team and press Continue, or go straight to `/login`.
 
 | Role | Name | Email |
 | --- | --- | --- |

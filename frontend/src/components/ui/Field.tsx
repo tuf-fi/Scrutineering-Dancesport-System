@@ -24,15 +24,21 @@ interface CommonProps {
 
 interface FieldShellProps extends CommonProps {
   id: string
+  required?: boolean
   children: ReactNode
 }
 
-function FieldShell({ label, hideLabel, hint, error, id, children }: FieldShellProps) {
+function FieldShell({ label, hideLabel, hint, error, id, required, children }: FieldShellProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={id}
-        className={cn('text-small font-medium text-neutral-700', hideLabel && 'sr-only')}
+        className={cn(
+          'text-small font-medium text-neutral-700',
+          hideLabel && 'sr-only',
+          // The red asterisk is drawn by the label, so the label text itself stays the name of the field
+          required && !hideLabel && "after:ml-0.5 after:text-danger after:content-['*']",
+        )}
       >
         {label}
       </label>
@@ -78,7 +84,7 @@ export function Input({
     />
   )
   return (
-    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
+    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id} required={props.required}>
       {secret ? (
         <div className="relative">
           {input}
@@ -110,7 +116,7 @@ export function Select({
 }: CommonProps & SelectHTMLAttributes<HTMLSelectElement>) {
   const id = useId()
   return (
-    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
+    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id} required={props.required}>
       <select
         id={id}
         className={cn(control, 'h-10', error ? 'border-danger' : 'border-neutral-300', className)}
@@ -134,7 +140,7 @@ export function Textarea({
 }: CommonProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const id = useId()
   return (
-    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id}>
+    <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id} required={props.required}>
       <textarea
         id={id}
         rows={rows}

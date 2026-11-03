@@ -37,7 +37,7 @@ export function EditAccount({ page }: { page: AthleteData }) {
     <AccountSection title="Edit account" note="Only the secretariat sees these. They use them for your entry form.">
       <PhotoField profile={profile} />
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
-        <Input label="Full name" value={name} onChange={(e) => setName(e.target.value)} error={error} />
+        <Input label="Full name" required value={name} onChange={(e) => setName(e.target.value)} error={error} />
         <Input label="Email" value={profile.email} disabled readOnly />
         <Input label="Date of birth" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
         <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />

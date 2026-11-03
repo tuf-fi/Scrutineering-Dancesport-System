@@ -65,17 +65,17 @@ function EventForm({
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <Input
-          label="Event number"
+          label="Event number" required
           inputMode="numeric"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
           className="font-mono tabular-nums"
         />
-        <Select label="Type" value={type} onChange={(e) => setType(e.target.value)}>
+        <Select label="Type" required value={type} onChange={(e) => setType(e.target.value)}>
           <option value="solo">Solo</option>
           <option value="couple">Couple</option>
         </Select>
-        <Select label="Kind" hint="Sets the fee and who may enter." value={kind} onChange={(e) => setKind(e.target.value as EventKind)}>
+        <Select label="Kind" required hint="Sets the fee and who may enter." value={kind} onChange={(e) => setKind(e.target.value as EventKind)}>
           {Object.values(EventKind).map((k) => (
             <option key={k} value={k}>
               {EVENT_KIND_LABEL[k]}
@@ -84,17 +84,17 @@ function EventForm({
         </Select>
         {kind === EventKind.Closed && (
           <div className="sm:col-span-2">
-            <Input label="Open to province" hint="Only teams from this province can be entered." value={province} onChange={(e) => setProvince(e.target.value)} />
+            <Input label="Open to province" required hint="Only teams from this province can be entered." value={province} onChange={(e) => setProvince(e.target.value)} />
           </div>
         )}
-        <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value as AgeGroup)}>
+        <Select label="Age group" required value={ageGroup} onChange={(e) => setAgeGroup(e.target.value as AgeGroup)}>
           {Object.values(AgeGroup).map((a) => (
             <option key={a} value={a}>
               {AGE_GROUP_LABEL[a]}
             </option>
           ))}
         </Select>
-        <Select label="Class" value={cls} onChange={(e) => setCls(e.target.value as Class)}>
+        <Select label="Class" required value={cls} onChange={(e) => setCls(e.target.value as Class)}>
           {Object.values(Class).map((c) => (
             <option key={c} value={c}>
               {c}
@@ -102,7 +102,7 @@ function EventForm({
           ))}
         </Select>
         <div className="sm:col-span-2">
-          <Select label="Discipline" value={discipline} onChange={(e) => pickDiscipline(e.target.value as Discipline)}>
+          <Select label="Discipline" required value={discipline} onChange={(e) => pickDiscipline(e.target.value as Discipline)}>
             {Object.values(Discipline).map((d) => (
               <option key={d} value={d}>
                 {DISCIPLINE_LABEL[d]}

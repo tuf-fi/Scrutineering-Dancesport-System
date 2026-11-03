@@ -28,9 +28,9 @@ function OffForm({ onClose }: { onClose: () => void }) {
   return (
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="flex flex-col gap-4">
-        <Input label="Password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input label="Password" required type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <Input
-          label="Code from your app, or a recovery code"
+          label="Code from your app, or a recovery code" required
           autoComplete="one-time-code"
           value={code}
           onChange={(e) => setCode(e.target.value)}

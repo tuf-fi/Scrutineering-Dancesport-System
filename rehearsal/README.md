@@ -26,4 +26,4 @@ The sample starts E11 on the floor with entries unpaid and a few payments left "
 
 ## `pnpm loadtest`
 
-A separate check: ten phones marking at the same moment with a crowd reading the public pages. See [PHASE7_README.md](../PHASE7_README.md).
+A separate check: ten phones marking at the same moment with a crowd reading the public pages. See [PHASE7_README.md](../docs/build/PHASE7_README.md).

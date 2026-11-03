@@ -42,7 +42,7 @@ beforeAll(async () => {
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   app.db.insert(t.teams).values({ id: 'team-1', name: 'Naga Dancers', contactName: 'Coach', contactEmail: 'c@test.example', contactPhone: '1' }).run()
-  competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT' }], admin)).id
+  competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
   const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
   await make('juv1', event(1))
   await make('juv2', event(2, { dances: ['rumba'] }))

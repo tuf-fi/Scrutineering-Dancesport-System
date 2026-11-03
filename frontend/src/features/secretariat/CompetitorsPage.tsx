@@ -149,17 +149,20 @@ export function CompetitorsPage() {
           </Select>
         </div>
         <ToolbarActions>
-          {missing > 0 && (
-            <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
-              {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
-            </Button>
-          )}
           <Button variant="secondary" onClick={() => setImporting(true)}>
             Import CSV
           </Button>
           <Button onClick={() => setEditing('new')}>Add competitor</Button>
         </ToolbarActions>
       </Toolbar>
+
+      {missing > 0 && (
+        <div className="-mt-3">
+          <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
+            {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
+          </Button>
+        </div>
+      )}
 
       <Table<CompetitorRow>
         loading={competitors.isLoading || (scoped && (entries.isLoading || events.isLoading))}

@@ -35,6 +35,8 @@ interface MarkSheetProps {
   sign?: boolean
   // For the confirmation: the adjudicator's own marks, or ones typed in from a paper sheet
   confirm?: { title: string; description: string; action: string }
+  // The scrutineer's laptop: ordinary button sizes and corners instead of the large touch targets of a phone
+  compact?: boolean
 }
 
 const OWN_MARKS = {
@@ -45,7 +47,7 @@ const OWN_MARKS = {
 
 // The marking screen: X marks for early rounds, placings for a final. Used on the adjudicator's phone and,
 // for a paper sheet, on the scrutineer's laptop.
-export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS }: MarkSheetProps) {
+export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS, compact = false }: MarkSheetProps) {
   const [answers, setAnswers] = useState<Answers>(initial)
   const [dance, setDance] = useState<Dance>(task.dances[0])
   const [confirming, setConfirming] = useState(false)
@@ -145,7 +147,7 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
         )}
       </section>
 
-      <div className="sticky bottom-0 mt-auto border-t border-neutral-100 bg-white">
+      <div className={compact ? 'mt-auto border-t border-neutral-100 bg-white' : 'sticky bottom-0 mt-auto border-t border-neutral-100 bg-white'}>
         <div aria-hidden className="h-0.5 bg-neutral-100">
           <div
             className={`h-full transition-[width] duration-200 ${over ? 'bg-danger' : 'bg-gold-400'}`}
@@ -156,7 +158,7 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
           <p role="status" className={`whitespace-nowrap text-body font-medium tabular-nums ${over ? 'text-danger' : 'text-neutral-900'}`}>
             {counter}
           </p>
-          <Button size="lg" className="h-14 min-w-32" disabled={!ready} onClick={() => setConfirming(true)}>
+          <Button {...(compact ? {} : { size: 'lg' as const })} className={compact ? undefined : 'h-14 min-w-32'} disabled={!ready} onClick={() => setConfirming(true)}>
             Submit
           </Button>
         </div>
@@ -169,15 +171,15 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
           setSignature(null)
           setStep('review')
         }}
-        className="rounded-none"
+        className={compact ? undefined : 'rounded-none'}
         title={sign ? (step === 'review' ? (isFinal ? 'Review your placings' : 'Review your selection') : 'Sign to finalize') : confirm.title}
         description={sign ? (step === 'review' ? 'Check the numbers. You cannot change them once they are sent.' : 'Your signature finalizes your marks for this round.') : confirm.description}
         actions={
           <>
             <Button
               variant="secondary"
-              size="lg"
-              className="flex-1 whitespace-nowrap rounded-none"
+              {...(compact ? {} : { size: 'lg' as const })}
+              className={compact ? 'flex-1 whitespace-nowrap' : 'flex-1 whitespace-nowrap rounded-none'}
               onClick={() => {
                 if (sign && step === 'sign') {
                   setStep('review')
@@ -191,8 +193,8 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
               Back
             </Button>
             <Button
-              size="lg"
-              className="flex-[2] whitespace-nowrap rounded-none"
+              {...(compact ? {} : { size: 'lg' as const })}
+              className={compact ? 'flex-[2] whitespace-nowrap' : 'flex-[2] whitespace-nowrap rounded-none'}
               disabled={busy || (sign && step === 'sign' && !signature)}
               onClick={() => {
                 if (sign && step === 'review') return setStep('sign')

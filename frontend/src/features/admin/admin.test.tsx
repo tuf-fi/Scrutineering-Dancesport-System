@@ -1,9 +1,12 @@
 import { Role } from '@bis/shared'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import * as api from '../../api/index.ts'
 import { renderApp } from '../../test-utils.tsx'
+
+// jsdom cannot decode a picture, so the resize hands back a small stand-in
+vi.mock('../../lib/image.ts', async (importOriginal) => ({ ...(await importOriginal<typeof import('../../lib/image.ts')>()), coverPhoto: async () => 'data:image/png;base64,iVBORw0KGgo=' }))
 
 // The sample data is shared across tests in this file, so each test uses its own records
 
@@ -18,11 +21,14 @@ describe('competitions', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Create competition' }))
     expect(await within(dialog).findByText('Enter the competition name.')).toBeInTheDocument()
     expect(within(dialog).getByText('Pick the date.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Add the photo for its card.')).toBeInTheDocument()
 
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Test Cup')
     fireEvent.change(within(dialog).getByLabelText('Date'), { target: { value: '2020-01-05' } })
     await userEvent.type(within(dialog).getByLabelText('Venue'), 'Test Gym')
     await userEvent.type(within(dialog).getByLabelText('Organizer'), 'Test Org')
+    await userEvent.upload(within(dialog).getByLabelText('Card photo'), new File(['x'], 'card.png', { type: 'image/png' }))
+    expect(await within(dialog).findByRole('button', { name: 'Change photo' })).toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Create competition' }))
 
     expect(await screen.findByText('Competition created')).toBeInTheDocument()
@@ -105,7 +111,7 @@ describe('competitions', () => {
     expect(order(search, year)).toBeTruthy()
     expect(order(year, newButton)).toBeTruthy()
     // All three share one toolbar
-    expect(search.closest('[class*="flex-wrap"]')?.contains(newButton)).toBe(true)
+    expect(search.closest('[class*="justify-between"]')?.contains(newButton)).toBe(true)
   })
 
   it('filters by year with a select and by a search', async () => {
@@ -137,6 +143,7 @@ describe('competitions', () => {
       date: '2019-03-03',
       venue: 'Gym',
       organizer: 'Org',
+      image: 'data:image/png;base64,iVBORw0KGgo=',
     })
     renderApp('/admin/competitions', Role.Admin)
 

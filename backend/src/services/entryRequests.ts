@@ -141,7 +141,7 @@ export const entryRequests = {
       decidedBy: null,
     }
     ctx.db.insert(t.entryRequests).values(row).run()
-    ctx.defer(() => ctx.hub.alert([Role.Secretariat], { title: 'New entry request', detail: `${competitor.names.join(' & ')} · ${who.name}`, link: '/secretariat/entry-requests' }))
+    ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'New entry request', detail: `${competitor.names.join(' & ')} · ${who.name}`, link: '/secretariat/entry-requests' }))
     record(ctx.db, who.id, 'Sent an entry request', competitor.names.join(' & '), { after: { events: eventIds.length, total: priced.total } })
     return toRow(ctx, row as typeof t.entryRequests.$inferSelect, false)
   },

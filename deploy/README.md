@@ -1,5 +1,7 @@
 # Running the online server
 
+Start with [PRODUCTION.md](PRODUCTION.md) (the real server) or [STAGING.md](STAGING.md) (the practice server). This page is the reference for settings and backups.
+
 The BIS server is one program that does everything: it serves the website, takes registration and payments, shows public results, and runs the rounds (staff on laptops, adjudicators on phones with a PIN, all over the internet). There is no venue server and no sync.
 
 ## Set up (once)
@@ -14,6 +16,7 @@ You need a small server with Docker, and a domain name pointing at it. Ports 80 
 4. Create the first admin: `docker compose exec app node_modules/.bin/tsx src/db/create-admin-cli.ts <email> "<Full name>"`. It prints a password; sign in and change it.
 5. Check `https://<DOMAIN>/api/health`. It should say `"status":"ok"`.
 6. Sign in as the admin and open **Fees and payment details**. Until the fees are saved, teams cannot enter events.
+7. On **Staff**, add the secretariat. Other staff (scrutineer, chairperson, MC) are added there only when an event needs them.
 
 ## Settings
 
@@ -28,6 +31,7 @@ The compose file sets these for the server; change them in `.env` or the compose
 | `BACKUP_DIRS` | Folders the database is copied to, separated by commas. Default `/data/backups`. |
 | `BACKUP_INTERVAL_MINUTES` | How often a backup is also taken, besides after every change. Default 5. |
 | `COOKIE_SECRET` | Leave empty and the server makes and keeps its own. |
+| `DATA_KEY` | Required. 32 or more random characters (`openssl rand -hex 32`). Encrypts authenticator secrets. Keep a copy outside the server; if it is lost, staff set up two-step sign-in again. |
 
 The old `MODE`, `CLOUD_URL`, `SYNC_TOKEN`, `SYNC_TOKENS`, `VENUE_ID`, `SYNC_DELAY_MS`, `TLS_CERT` and `TLS_KEY` no longer exist.
 
@@ -64,14 +68,9 @@ Restore: stop the app (`docker compose stop app`), put the chosen backup in the 
 
 `git pull`, then `docker compose up -d --build`. Database changes are applied when the server starts.
 
-## Staging
+## Production and staging
 
-Run staging on its own server, never next to production: the compose file uses ports 80 and 443 and fixed volume names, and each server keeps its own database.
-
-1. Create a second server and point a subdomain at it (for example `staging.<domain>`).
-2. Follow "Set up (once)", but copy `staging.env.example` to `.env` instead of `.env.example`.
-3. Use fake teams and athletes only. Use PayMongo test keys, never live ones.
-4. Update it like production (`git pull`, then `docker compose up -d --build`) and test every change here first.
+Step-by-step setup, the build and the commands are in two guides: [PRODUCTION.md](PRODUCTION.md) for the real server and [STAGING.md](STAGING.md) for the practice server. Run staging on its own server, never next to production.
 
 ## Notes
 

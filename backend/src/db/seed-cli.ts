@@ -5,6 +5,12 @@ import { hashPassword } from '../auth/password.ts'
 import * as t from './schema.ts'
 import { SAMPLE_ATHLETE_EMAIL, SAMPLE_COACH_EMAIL, SAMPLE_PASSWORD, SAMPLE_TEAM_EMAIL, addSampleAthlete, addSampleMembers, addSampleAthleteData, addSampleCompetitorData, addSampleEntryData, addSamplePanels, addSampleUpcoming, hasData, seedSampleData } from './seed.ts'
 
+// The sample accounts share a public password, so they never go on a staging or production server
+if (process.env.BIS_DEPLOYED === 'true') {
+  console.error('Refusing to load sample data on a deployed server. Staging and production start with an admin only: see deploy/README.md.')
+  process.exit(1)
+}
+
 const config = loadConfig()
 const { db, sqlite } = openDatabase(config.databasePath)
 runMigrations(db)

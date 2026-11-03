@@ -39,14 +39,14 @@ function StaffForm({
   return (
     <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4">
       <Input
-        label="Name"
+        label="Name" required
         value={values.name}
         onChange={(e) => setValues({ ...values, name: e.target.value })}
         error={errors.name}
         autoFocus
       />
       <Input
-        label="Email"
+        label="Email" required
         value={values.username}
         onChange={(e) => setValues({ ...values, username: e.target.value })}
         error={errors.username ?? usernameError}
@@ -55,7 +55,7 @@ function StaffForm({
         type="email"
         autoCapitalize="none"
       />
-      <Select label="Role" value={values.role} onChange={(e) => setValues({ ...values, role: e.target.value as Role })}>
+      <Select label="Role" required value={values.role} onChange={(e) => setValues({ ...values, role: e.target.value as Role })}>
         {STAFF_ROLES.map((r) => (
           <option key={r} value={r}>
             {ROLE_LABEL[r]}

@@ -165,7 +165,7 @@ export function EntryRequestsPage() {
           </>
         }
       >
-        <Textarea label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+        <Textarea label="Reason" required value={reason} onChange={(e) => setReason(e.target.value)} />
       </Dialog>
     </div>
   )

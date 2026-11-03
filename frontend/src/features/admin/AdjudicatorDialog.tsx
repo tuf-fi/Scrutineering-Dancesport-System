@@ -30,7 +30,7 @@ function AdjudicatorForm({
 
   return (
     <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4">
-      <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
+      <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
       {adjudicator ? (
         <Input label="Letter" value={adjudicator.letter} disabled hint="A letter can't be changed." readOnly />
       ) : (

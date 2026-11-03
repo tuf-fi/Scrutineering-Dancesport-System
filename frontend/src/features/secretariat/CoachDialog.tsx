@@ -52,7 +52,7 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} autoFocus />
+          <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} error={errors.name} autoFocus />
         </div>
         <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />

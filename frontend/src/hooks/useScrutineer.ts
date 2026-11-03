@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { HeatAssignment, TieDecision } from '@bis/shared'
+import type { HeatAssignment, MarkSubmission, TieDecision } from '@bis/shared'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
 import { usePoll } from './usePoll.ts'
@@ -99,3 +99,14 @@ export const useClearFloor = () =>
 const BACKUP_CHECK_MS = 60_000
 export const useBackupStatus = (enabled: boolean) =>
   useQuery({ queryKey: ['backup-status'], queryFn: api.getBackupStatus, enabled, refetchInterval: BACKUP_CHECK_MS })
+
+// What there is to mark in a round that has started, for typing in a paper sheet
+export const useMarkingTask = (roundId: string, enabled = true) =>
+  useQuery({ queryKey: ['marking-task', roundId], queryFn: () => api.getMarkingTask(roundId), enabled: enabled && roundId !== '' })
+
+// The scrutineer types in an adjudicator's marks from their paper sheet
+export const useEnterAdjudicatorMarks = () =>
+  useWrite(
+    (v: { adjudicatorId: string; roundId: string; submissions: MarkSubmission[] }) => api.enterAdjudicatorMarks(actor(), v.adjudicatorId, v.roundId, v.submissions),
+    ['marks', 'round', 'rounds', 'recall', 'skating'],
+  )

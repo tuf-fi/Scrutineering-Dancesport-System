@@ -20,7 +20,8 @@ WORKDIR /app
 # No COOKIE_SECRET here: the server makes one and keeps it in its database, so it survives restarts and restores
 # TRUST_PROXY=1 trusts only Caddy, the one proxy in front, so a visitor cannot invent the address sign-in limits use.
 # COOKIE_SECURE: sign-in cookies only travel over HTTPS. ADJUDICATOR_PIN_DAYS: a PIN works one day either side of the date.
-ENV HOST=0.0.0.0 PORT=4000 TRUST_PROXY=1 COOKIE_SECURE=true ADJUDICATOR_PIN_DAYS=1 \
+# BIS_DEPLOYED: this is a real server (staging or production). It needs DATA_KEY and refuses to load the sample accounts.
+ENV BIS_DEPLOYED=true HOST=0.0.0.0 PORT=4000 TRUST_PROXY=1 COOKIE_SECURE=true ADJUDICATOR_PIN_DAYS=1 \
     DATABASE_PATH=/data/bis.db BACKUP_DIRS=/data/backups FRONTEND_DIR=/app/frontend/dist
 COPY --from=build /app /app
 VOLUME /data

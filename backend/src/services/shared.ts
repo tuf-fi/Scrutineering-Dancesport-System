@@ -33,6 +33,7 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   organizer: r.organizer,
   ...(r.entryDeadline ? { entryDeadline: r.entryDeadline } : {}),
   ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
+  ...(r.image ? { image: r.image } : {}),
 })
 
 export const toEvent = (r: typeof t.events.$inferSelect): Event => ({

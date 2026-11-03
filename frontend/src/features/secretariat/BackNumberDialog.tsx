@@ -31,7 +31,7 @@ function BackNumberForm({ competitor, onDone }: { competitor: CompetitorRow; onD
   return (
     <form id={FORM_ID} onSubmit={submit} noValidate>
       <Input
-        label="Back number"
+        label="Back number" required
         inputMode="numeric"
         value={value}
         onChange={(e) => setValue(e.target.value)}

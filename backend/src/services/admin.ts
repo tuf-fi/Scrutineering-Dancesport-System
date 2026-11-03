@@ -8,7 +8,7 @@ import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
 import { recomputeAllPoints } from './ranking.ts'
-import { clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { MAX_PHOTO, PHOTO, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 
@@ -30,17 +30,22 @@ export const admin = {
       feeDeadline: clean(input?.feeDeadline) || null,
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) return fail('Fill in every field.')
+    // A missing image keeps the one already there; a competition always has one
+    const image = input?.image === undefined ? undefined : typeof input.image === 'string' && input.image ? input.image : null
+    if (image && (!PHOTO.test(image) || image.length > MAX_PHOTO)) return fail('Send the photo as a JPEG, PNG or WebP picture under 400 KB.')
     for (const day of [values.date, values.entryDeadline, values.feeDeadline]) {
       if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail('Enter dates as year-month-day.')
     }
     const user = actor(ctx)
     if (id) {
       const before = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
-      ctx.db.update(t.competitions).set(values).where(eq(t.competitions.id, id)).run()
+      if (!(image === undefined ? before.image : image)) return fail('Add the photo for its card.')
+      ctx.db.update(t.competitions).set({ ...values, ...(image === undefined ? {} : { image }) }).where(eq(t.competitions.id, id)).run()
       record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: values })
-      return toCompetition({ ...before, ...values })
+      return toCompetition({ ...before, ...values, ...(image === undefined ? {} : { image }) })
     }
-    const created = { id: newId(), floorRoundId: null, ...values }
+    if (!image) return fail('Add the photo for its card.')
+    const created = { id: newId(), floorRoundId: null, ...values, image }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)

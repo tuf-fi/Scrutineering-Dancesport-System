@@ -3,6 +3,8 @@ export interface Config {
   host: string
   databasePath: string
   cookieSecret: string
+  // Encrypts secrets the server must read back, such as authenticator secrets. Kept in the environment, never in the database.
+  dataKey: string
   // Only over HTTPS: on by default in production, where the proxy in front (Caddy) speaks HTTPS
   cookieSecure: boolean
   // Where database backups are copied
@@ -23,6 +25,7 @@ export interface Config {
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
 export const DEV_SECRET = 'change-me-before-the-competition'
+const DEV_DATA_KEY = 'development-data-key-not-secret'
 
 function trustProxy(value: string | undefined): boolean | number | string {
   if (!value || value === 'false') return false
@@ -57,17 +60,22 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (env.NODE_ENV === 'production' && cookieSecret === DEV_SECRET) {
     throw new Error('Set COOKIE_SECRET before running a real competition.')
   }
+  const dataKey = env.DATA_KEY || DEV_DATA_KEY
+  if ((env.NODE_ENV === 'production' || env.BIS_DEPLOYED === 'true') && (dataKey === DEV_DATA_KEY || dataKey.length < 32)) {
+    throw new Error('Set DATA_KEY to a random value of at least 32 characters before running a real competition.')
+  }
   return {
     port,
     host: env.HOST ?? '0.0.0.0',
     databasePath: env.DATABASE_PATH ?? './data/bis.db',
     cookieSecret,
+    dataKey,
     cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production',
     backupDirs: (env.BACKUP_DIRS ?? './data/backups').split(',').map((d) => d.trim()).filter(Boolean),
     backupIntervalMinutes: Number(env.BACKUP_INTERVAL_MINUTES ?? 5),
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),
     trustProxy: trustProxy(env.TRUST_PROXY),
     pinWindowDays: pinWindowDays(env),
-    publicRatePerMinute: publicRate(env),
+    publicRatePerMinute: publicRate(env),
   }
 }

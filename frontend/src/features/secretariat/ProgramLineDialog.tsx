@@ -69,9 +69,9 @@ function LineForm({
             <option value={ProgramKind.Awarding}>Awarding</option>
           </Select>
         )}
-        {!isRound && <Input label="Name" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Lunch" />}
+        {!isRound && <Input label="Name" required value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Lunch" />}
         <Input
-          label="Minutes"
+          label="Minutes" required
           inputMode="numeric"
           value={minutes}
           onChange={(e) => setMinutes(e.target.value)}

@@ -81,7 +81,7 @@ function Setup({ onClose }: { onClose: () => void }) {
       </ol>
       <form id={FORM_ID} onSubmit={submit} noValidate className="mt-4">
         <Input
-          label="Code"
+          label="Code" required
           inputMode="numeric"
           autoComplete="one-time-code"
           value={code}

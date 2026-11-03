@@ -14,6 +14,14 @@ import { renderApp } from '../../test-utils.tsx'
 // Role queries are slow on a big table, and a test that polls them can time out when the machine is busy
 const bodyRows = () => Array.from(document.querySelectorAll<HTMLElement>('tbody tr'))
 
+// A competitor needs each dancer's date of birth, contact number, email and address
+async function fillDetails(form: HTMLElement) {
+  fireEvent.change(within(form).getByLabelText('Date of birth'), { target: { value: '2015-05-05' } })
+  await userEvent.type(within(form).getByLabelText('Contact no.'), '0917 000 0000')
+  await userEvent.type(within(form).getByLabelText('Email'), 'dancer@test.example')
+  await userEvent.type(within(form).getByLabelText('Address'), 'Naga City')
+}
+
 describe('events', () => {
   it('lists events 10 at a time with entry counts, filters, and opens one', async () => {
     renderApp('/secretariat', Role.Secretariat)
@@ -78,10 +86,17 @@ describe('competitors', () => {
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
     expect(await within(dialog).findByText('Choose a team.')).toBeInTheDocument()
+    // The dancer's details are required, and the labels of required fields end in a red asterisk
+    expect(within(dialog).getByText('Enter the date of birth.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Enter a contact number.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Enter an email.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Enter the address.')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Email')).toBeRequired()
 
     await userEvent.type(within(dialog).getByLabelText('Dancer'), 'Zed Testerson')
     const team = within(dialog).getByLabelText('Team')
     await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
+    await fillDetails(dialog)
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
     expect(await screen.findByText('Added Zed Testerson')).toBeInTheDocument()
 
@@ -174,6 +189,7 @@ describe('editing and removing', () => {
     await userEvent.type(within(dialog).getByLabelText('Dancer'), 'Edna Fixable')
     const team = within(dialog).getByLabelText('Team')
     await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
+    await fillDetails(dialog)
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
     await screen.findByText('Added Edna Fixable')
 
@@ -401,6 +417,7 @@ describe('a coach who has not paid', () => {
     const team = within(adding).getByLabelText('Team')
     await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await userEvent.selectOptions(within(adding).getByLabelText('Coach'), 'Ramon Villanueva')
+    await fillDetails(adding)
     await userEvent.click(within(adding).getByRole('button', { name: 'Add competitor' }))
     await screen.findByText('Added Coached Solo')
 

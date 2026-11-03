@@ -51,7 +51,7 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4">
         <Select
-          label="Competition"
+          label="Competition" required
           value={competitionId}
           onChange={(e) => {
             setCompetitionId(e.target.value)
@@ -147,7 +147,7 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Select label="Payment" value={method} onChange={(e) => setMethod(e.target.value as PayMethod)}>
+          <Select label="Payment" required value={method} onChange={(e) => setMethod(e.target.value as PayMethod)}>
             {Object.values(PayMethod).map((m) => (
               <option key={m} value={m}>
                 {PAY_METHOD_LABEL[m]}

@@ -1,6 +1,6 @@
 # BIS Status
 
-Where the system stands on 31 October 2026, what is left, and what is still unclear. [ROADMAP.md](ROADMAP.md) has the phase history; [CLIENT_QUESTIONS.md](CLIENT_QUESTIONS.md) has the questions as sent to the client, and [CLIENT_DOCUMENTS.md](CLIENT_DOCUMENTS.md) has what the client sent back.
+Where the system stands on 3 November 2026, what is left, and what is still unclear. [ROADMAP.md](ROADMAP.md) has the phase history; [CLIENT_QUESTIONS.md](../client/CLIENT_QUESTIONS.md) has the questions as sent to the client, and [CLIENT_DOCUMENTS.md](../client/CLIENT_DOCUMENTS.md) has what the client sent back.
 
 ## What is built
 
@@ -9,18 +9,28 @@ Where the system stands on 31 October 2026, what is left, and what is still uncl
 - The secretariat registers teams from the entry forms: teams, coaches, competitors, fees, deadlines and entry warnings.
 - Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms it.
 - The program (running order) with minutes from the WDSF rules.
+- Coach and team accounts: they sign up, ask to be linked to their record (the secretariat approves), and get pages like the athlete's.
+- Online entry: a team or an athlete sends an entry with a payment screenshot; the secretariat approves it into real entries and a payment, or turns it down with a reason.
+- Pop-up notifications with a chime in real time for every role except the adjudicator and MC.
+- A phone and tablet pass over the whole app: black header with a right-hand menu for staff and the public site, a fixed account strip on the athlete, coach and team pages, filters in one row with buttons below, larger text on phones, skeleton loading everywhere, scroll to the top on every page change, and smooth drawers, dialogs and hovers. See [DESIGN.md](../../DESIGN.md).
+- A required card photo on every competition, shown on the home page.
 
 ## What is left
 
 | Item | Kind |
 | --- | --- |
-| Put the server on a real host ([deploy/README.md](deploy/README.md)) | Deployment |
+| Put the server on a real host ([deploy/PRODUCTION.md](../../deploy/PRODUCTION.md); staging first: [deploy/STAGING.md](../../deploy/STAGING.md)) | Deployment |
 | Rehearse with real phones on mobile data and real laptops (`pnpm loadtest`, `pnpm rehearsal`) | Testing |
-| Rehearse with the actual secretariat, scrutineer, chairperson and adjudicators, using the guides in [guides/](guides/) | Testing |
-| Pilot at a real competition beside the current method; compare every result ([PILOT.md](PILOT.md)) | Testing |
+| Rehearse with the actual secretariat, scrutineer, chairperson and adjudicators, using the guides in [guides/](../guides/) | Testing |
+| Pilot at a real competition beside the current method; compare every result ([PILOT.md](../operations/PILOT.md)) | Testing |
 | Fix list from the pilot, then a second, smaller event | Testing |
-| Open the athlete flow in a real browser (only tests have run it) | Check |
+| Open the athlete, coach and team flows, and every screen at phone and tablet width, in a real browser and on a real iPhone (only tests and the code have been checked) | Check |
+| Give the sample competitions a card photo, or have the admin add one on each; until then they show the shared dance photo and cannot be edited without one | Setup |
 | Organizer reads the privacy notice (`/privacy`) and confirms it. Entry form details are kept permanently until removed; nothing is deleted automatically | Organizer |
+| Add each real result sheet as a fixture in `packages/scoring/fixtures/`, and run a whole competition from real past sheets through BIS | Testing |
+| Confirm the scoring engine's Rules 1 and 5-11 against the current WDSF rulebook and record the version used; confirm the shared-place ranking points rule (`pointsForRange` in `packages/scoring/src/points.ts`) and the age-group limits (`packages/shared/src/ageGroup.ts`) | Client |
+| Store shared place ranges on results, so printouts can show a tie and not only its best place | Optional |
+| Check the `TODO` markers before deploying: `backend/src/db/schema.ts`, `frontend/src/features/print/PrintSheet.tsx`, `packages/scoring/src/points.ts`, `packages/shared/src/ageGroup.ts` | Check |
 | Make two-step sign-in compulsory for admins, and a way to end one session at a time | Optional |
 
 ## What is still unclear
@@ -31,7 +41,7 @@ Where the system stands on 31 October 2026, what is left, and what is still uncl
 
 ## Settled
 
-- No messaging to teams: the secretariat does it.
+- No messaging to teams: the secretariat does it. A team or athlete is told what the secretariat decided on an entry through a notification on their page.
 - The secretariat registers teams; athletes make their own account and pay their own membership, and nothing more: the PDF says the athlete profile is where athletes register their membership fee. The secretariat enters every event from the entry forms.
 - A tie for 1st goes to the chairperson, usually a dance-off; other places are shared (2½). The chairperson has the final say. This is also what the Skating System text says after Rule 11 ("there is no Rule 12").
 - Rules 1, 2, 5-11 were read in the Skating System text and match the engine: majority, equal-majority sums, then the next column for those couples only, averaged shared places announced at the best place; Rule 10 counts a fraction as the next whole place and sums it at face value; Rule 11 places one couple at a time and the rest go back to Rule 10; a tied recall is the chairperson's decision.

@@ -9,6 +9,7 @@ services:
     restart: unless-stopped
     environment:
       COOKIE_SECRET: ${COOKIE_SECRET:-}
+      DATA_KEY: ${DATA_KEY:?Set DATA_KEY in .env}
       ADJUDICATOR_PIN_DAYS: ${ADJUDICATOR_PIN_DAYS:-1}
       PUBLIC_RATE_LIMIT: ${PUBLIC_RATE_LIMIT:-600}
     volumes:

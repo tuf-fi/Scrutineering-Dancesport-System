@@ -253,16 +253,19 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       organizer: input.organizer.trim(),
       entryDeadline: input.entryDeadline || null,
       feeDeadline: input.feeDeadline || null,
+      ...(input.image === undefined ? {} : { image: input.image || null }),
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) {
       throw new Error('Fill in every field.')
     }
     if (id) {
       const competition = found(competitions.find((c) => c.id === id), 'Competition')
+      if (!(input.image === undefined ? competition.image : input.image)) throw new Error('Add the photo for its card.')
       Object.assign(competition, values)
       record(actorId, 'Edited competition', values.name)
       return competition
     }
+    if (!input.image) throw new Error('Add the photo for its card.')
     const created: Competition = {
       id: `comp-${competitions.length + 1}-${Date.now().toString(36)}`,
       ...values,
@@ -1454,7 +1457,7 @@ export const claimRecord = (memberId: string, targetId: string) =>
     if (recordName(member.role, targetId) === null) throw new Error(member.role === 'team' ? 'Choose your team from the list.' : 'Choose your name from the list of coaches.')
     member.claimId = targetId
     member.claimedAt = new Date().toISOString()
-    emitAlert([Role.Secretariat], { title: 'Account link request', detail: `${member.name} wants to be linked to ${recordName(member.role, targetId) ?? ''}`, link: '/secretariat/account-links' })
+    emitAlert([Role.Secretariat, Role.Admin], { title: 'Account link request', detail: `${member.name} wants to be linked to ${recordName(member.role, targetId) ?? ''}`, link: '/secretariat/account-links' })
     return memberAccount(member)
   })
 
@@ -1635,7 +1638,7 @@ export const submitEntryRequest = (requesterId: string, input: EntryRequestInput
       eventIds: [...new Set(input.eventIds)],
     }
     sampleRequests.push(row)
-    emitAlert([Role.Secretariat], { title: 'New entry request', detail: `${competitor.names.join(' & ')} · ${who.name}`, link: '/secretariat/entry-requests' })
+    emitAlert([Role.Secretariat, Role.Admin], { title: 'New entry request', detail: `${competitor.names.join(' & ')} · ${who.name}`, link: '/secretariat/entry-requests' })
     const { receipt: _receipt, eventIds: _eventIds, requesterId: _requesterId, ...shown } = row
     return shown
   })
@@ -1716,7 +1719,7 @@ export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
     Object.assign(athlete, { ...input, name: input.name.trim(), teamId: nextTeam, coachId: nextCoach })
     if (asksForChange) {
       athlete.changeRequest = { teamId, coachId, requestedAt: new Date().toISOString() }
-      emitAlert([Role.Secretariat], { title: 'Team or coach change', detail: `${athlete.name} asks to change team or coach`, link: '/secretariat/profile-changes' })
+      emitAlert([Role.Secretariat, Role.Admin], { title: 'Team or coach change', detail: `${athlete.name} asks to change team or coach`, link: '/secretariat/profile-changes' })
     }
     return publicAthlete(athlete)
   })
@@ -1731,7 +1734,7 @@ export const requestMembership = (athleteId: string, input: { method: string; re
     if (!input.receipt) throw new Error('Send a screenshot of your payment.')
     athlete.request = { year, method: input.method.trim(), receipt: input.receipt, requestedAt: new Date().toISOString() }
     athlete.history.push({ at: athlete.request.requestedAt, kind: 'sent', year, method: athlete.request.method })
-    emitAlert([Role.Secretariat], { title: 'Membership payment sent', detail: `${athlete.name} · ${year} membership by ${athlete.request.method}`, link: '/secretariat/athletes' })
+    emitAlert([Role.Secretariat, Role.Admin], { title: 'Membership payment sent', detail: `${athlete.name} · ${year} membership by ${athlete.request.method}`, link: '/secretariat/athletes' })
     return publicAthlete(athlete)
   })
 

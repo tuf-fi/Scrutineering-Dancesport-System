@@ -3,7 +3,7 @@
 You look after entries and the order of the day, on your laptop.
 
 ## Registering a team
-Teams send the entry form by email. You enter it. Athletes can also make their own account (see **Athletes** below), but they do not enter events themselves.
+Teams send the entry form by email. You enter it. Athletes, coaches and teams can also make their own accounts (see **Athletes**, **Account links** and **Entry requests** below). A team or an athlete can send an entry online, but nothing is entered until you approve it.
 1. **Teams** and **Coaches**: add the team and the coach named on the form, once each. Tick the year their membership and the Coaches Summit were paid.
 2. **Competitors, Add competitor**: the dancer and partner, the team, province, coach, each dancer's date of birth, contact number, email and address. Tick **Beginner** for a Bicol Grassroots Beginners (BGB) athlete. Fill **Membership paid for** if the athlete already paid the year.
 3. Press the **Enter in events** button on the row. Choose the competition and tick the events on the form. The fee shows as you tick: the first entry in full, each extra entry lower, ranking and inter-collegiate events at the fixed price, and membership for an athlete who has not paid it this year.
@@ -17,6 +17,16 @@ Athletes sign up at **Athlete sign-in** with their email and a password, fill in
 - Press the cross to turn a payment down. You must give a reason; the athlete sees it and can send the payment again.
 - The key resets a forgotten password: give the new password to the athlete, who is signed out everywhere.
 - When you price an entry, a dancer whose email on the entry form matches an athlete account with a confirmed membership is not charged membership again.
+
+## Account links
+A coach or a team makes an account and asks to be linked to its record. Open **Account links** to see who is asking and which record they want. Press the tick to link them (they then see their dancers, results and entries) or the cross to turn the request down. Check that the person really is that coach or team before you link.
+
+## Entry requests
+A team, or an athlete for their own name, can send an entry online with a screenshot of the payment. Open **Entry requests**; the newest come first, each with its date, who sent it, the events and the fee. A pop-up tells you the moment one arrives.
+- Press the screenshot to enlarge it and check it against the money you received.
+- **Approve** enters the dancer in the events and records the payment, with the screenshot kept on it. The sender is told.
+- **Turn down** needs a reason, which the sender reads so they can fix it and send again.
+- A request already decided cannot be decided again, and two waiting requests cannot cover the same event.
 
 Memberships are recorded when the money is. If you enter a team as **Not paid yet** and later mark it paid under Late entries, Cash payments, the athlete and coach memberships in that payment are recorded then.
 

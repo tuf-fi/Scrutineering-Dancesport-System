@@ -93,7 +93,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
               <li className="grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-x-3 py-2.5">
                 <span className="text-small text-neutral-900">Solo, per event</span>
                 <Input
-                  label="Solo, per event (₱)"
+                  label="Solo, per event (₱)" required
                   hideLabel
                   inputMode="numeric"
                   className="h-9! bg-white px-2.5 text-right font-mono tabular-nums"
@@ -105,7 +105,7 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
               <li className="grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-x-3 border-t border-neutral-200 py-2.5">
                 <span className="text-small text-neutral-900">Couple, per event</span>
                 <Input
-                  label="Couple, per event (₱)"
+                  label="Couple, per event (₱)" required
                   hideLabel
                   inputMode="numeric"
                   className="h-9! bg-white px-2.5 text-right font-mono tabular-nums"

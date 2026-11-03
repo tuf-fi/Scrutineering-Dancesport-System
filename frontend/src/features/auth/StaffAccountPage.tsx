@@ -65,7 +65,7 @@ export function StaffAccountPage() {
           </div>
         </dl>
         <form onSubmit={submit} noValidate className="flex max-w-md flex-col gap-4">
-          <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} error={error} autoComplete="name" />
+          <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} error={error} autoComplete="name" />
           <div>
             <Button type="submit" disabled={!dirty || saveName.isPending}>
               {saveName.isPending ? 'Saving…' : 'Save name'}

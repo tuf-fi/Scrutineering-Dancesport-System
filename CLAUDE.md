@@ -5,12 +5,12 @@
 **BIS (Bicol Oragon Scruteneering System)** is a dancesport competition scoring web app. It is an online system: one server, hosted with Docker behind Caddy over HTTPS, handles team registration and payments, the public pages and the running of the rounds. Staff use laptops and adjudicators use phones, all over the internet.
 
 Read these first:
-- [ROLES_README.md](ROLES_README.md): roles, devices and result-sheet terms
-- [BUILD_README.md](BUILD_README.md): tech stack, architecture, data model and build phases
+- [ROLES_README.md](docs/product/ROLES_README.md): roles, devices and result-sheet terms
+- [BUILD_README.md](docs/build/BUILD_README.md): tech stack, architecture, data model and build phases
 
 ## Current phase
 
-**Phases 1 to 3 are built, plus registration and payments:** the screens, the scoring engine (`packages/scoring`) and the backend (`backend/`, Fastify + SQLite). There is no offline mode: the venue server and the sync with the cloud were removed. See [ROADMAP.md](ROADMAP.md) for what is next (testing and the pilot) and [deploy/README.md](deploy/README.md) for running the server.
+**Phases 1 to 3 are built, plus registration and payments:** the screens, the scoring engine (`packages/scoring`) and the backend (`backend/`, Fastify + SQLite). There is no offline mode: the venue server and the sync with the cloud were removed. See [ROADMAP.md](docs/build/ROADMAP.md) for what is next (testing and the pilot) and [deploy/README.md](deploy/README.md) for running the server.
 
 Screens and hooks get all data through `frontend/src/api/`, which talks to the server. `frontend/src/mocks/` is sample data only: it runs the frontend tests and `pnpm dev:sample` / `pnpm build:sample` (the client preview). Never import from `mocks/` in a screen or hook, and never import `@bis/scoring` in a screen or hook; scoring runs on the server (only the sample data in `mocks/` uses it).
 
@@ -42,13 +42,20 @@ When a function is added to the server, add it to `API_FUNCTIONS` in `packages/s
   - Avoid the stock layouts: numbered timelines with lines, three equal icon-and-text columns, centred bands, pastel-tinted cards, a pin icon on every row.
   - When the user calls a design AI slop, remove decoration and change the idea, don't add more.
   - Check every public change in a screenshot at 1280px and 390px before calling it done.
+  - Glass is allowed in one place only: the shared `DarkPanel` (the dark status boxes on the scrutineer, adjudicator and public program screens). Use that component; do not write new blur or glass styles.
 - Design for the device each role uses:
   - Adjudicator: phone, one hand, large touch targets (at least 56px)
   - Staff: laptop, dense but readable tables
   - MC/venue screen: projector, very large high-contrast text
   - Public and team: mobile-first
 - Make every screen responsive from the start, across all screen sizes (375px phones, tablets, 1280px laptops, 1920px venue screen). Don't wait to be asked.
-- Every screen needs empty, loading and error states. For loading, use a skeleton that matches the final layout's shape, built with the shared `Skeleton` component. Don't use a plain spinner.
+  - Mobile and tablet means below `lg` (1024px). Staff and public navigation is a black header with a hamburger on the right and a right drawer; the athlete, coach and team links are a fixed strip under the navbar.
+  - Toolbars: filters share one row (a single filter is full width) and the buttons wrap below at their natural width. Use `Toolbar` and `ToolbarActions`; never make a button full width.
+  - Text sizes come from the tokens in `index.css`, which step up below 640px. Don't set a one-off mobile size.
+  - Buttons and badges never wrap their text.
+- Every screen needs empty, loading and error states. For loading, use a skeleton that matches the final layout's shape, built with the shared `Skeleton` or `SkeletonList` component. Don't use a plain spinner.
+- New pages need no scroll handling (every page change scrolls to the top). Drawers and dialogs get their slide and fade from `Drawer`, `Dialog` and the animation tokens; use them, don't hand-roll an overlay.
+- A competition always has a card photo. The form and the server both require one.
 
 ## Code rules
 

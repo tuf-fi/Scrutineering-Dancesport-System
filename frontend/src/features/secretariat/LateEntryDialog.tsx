@@ -62,7 +62,7 @@ function LateEntryForm({
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4">
         <Select
-          label="Event"
+          label="Event" required
           value={eventId}
           error={errors.event}
           onChange={(e) => {
@@ -118,7 +118,7 @@ function LateEntryForm({
         )}
 
         <Select
-          label="Payment"
+          label="Payment" required
           value={paidInCash}
           onChange={(e) => setPaidInCash(e.target.value)}
         >

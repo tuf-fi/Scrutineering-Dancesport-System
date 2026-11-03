@@ -89,8 +89,8 @@ describe('the PIN window', () => {
 
   it('is off by default outside production, and on (one day) in production', () => {
     expect(loadConfig({}).pinWindowDays).toBeNull()
-    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'a-real-secret' }).pinWindowDays).toBe(1)
-    expect(loadConfig({ NODE_ENV: 'production', COOKIE_SECRET: 'a-real-secret', ADJUDICATOR_PIN_DAYS: 'off' }).pinWindowDays).toBeNull()
+    expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'a-real-secret' }).pinWindowDays).toBe(1)
+    expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'a-real-secret', ADJUDICATOR_PIN_DAYS: 'off' }).pinWindowDays).toBeNull()
     expect(loadConfig({ ADJUDICATOR_PIN_DAYS: '3' }).pinWindowDays).toBe(3)
     expect(() => loadConfig({ ADJUDICATOR_PIN_DAYS: 'soon' })).toThrow(/ADJUDICATOR_PIN_DAYS/)
   })

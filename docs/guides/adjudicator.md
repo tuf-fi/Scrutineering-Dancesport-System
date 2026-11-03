@@ -16,7 +16,7 @@ You mark on your own phone. Nothing you do can be lost: your marks are saved on 
 ## If something goes wrong
 - **Connection drops:** carry on. Press Confirm anyway; the phone says it is saved and sends the marks when it can. The scrutineer can see it is waiting.
 - **Page refreshed or browser closed:** open the address again. What you marked comes back.
-- **Phone dies:** use your paper sheet. Give it to the scrutineer, who types it in.
+- **Phone dies:** use your paper sheet. Give it to the scrutineer, who types it in on the **Paper marks** page. Your name then shows as submitted.
 - **You pressed Confirm by mistake:** tell the scrutineer before they approve the round.
 
 Marks cannot be changed from the phone after Confirm.

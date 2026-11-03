@@ -6,10 +6,11 @@ interface SearchFieldProps {
   value: string
   onChange: (value: string) => void
   className?: string
+  placeholder?: string
 }
 
 // A search box with a magnifier; the label stays visible above it
-export function SearchField({ label = 'Search', value, onChange, className }: SearchFieldProps) {
+export function SearchField({ label = 'Search', value, onChange, className, placeholder = 'Type to search…' }: SearchFieldProps) {
   const id = useId()
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
@@ -32,9 +33,10 @@ export function SearchField({ label = 'Search', value, onChange, className }: Se
         <input
           id={id}
           type="search"
+          placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-10 w-full rounded-md border border-neutral-300 bg-neutral-50 pl-9 pr-3 text-body text-neutral-900 transition-colors hover:border-neutral-400 focus-visible:border-neutral-900 focus-visible:bg-white focus-visible:outline-gold-500"
+          className="h-10 w-full rounded-md border border-neutral-300 bg-neutral-50 pl-9 pr-3 text-body text-neutral-900 placeholder:text-neutral-500 transition-colors hover:border-neutral-400 focus-visible:border-neutral-900 focus-visible:bg-white focus-visible:outline-gold-500"
         />
       </div>
     </div>
