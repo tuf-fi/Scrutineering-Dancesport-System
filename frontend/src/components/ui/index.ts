@@ -1,7 +1,6 @@
 export { Badge, type BadgeTone } from './Badge.tsx'
 export { Button, ButtonLink, type ButtonProps } from './Button.tsx'
 export { ErrorState } from './ErrorState.tsx'
-export { Card } from './Card.tsx'
 export { Dialog } from './Dialog.tsx'
 export { Drawer } from './Drawer.tsx'
 export { EmptyState } from './EmptyState.tsx'

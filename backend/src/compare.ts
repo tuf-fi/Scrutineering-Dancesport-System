@@ -2,7 +2,7 @@ import type { Sqlite } from './db/client.ts'
 
 // Checks BIS against the result sheets the current method produced, for the pilot. The sheets are typed into a CSV:
 //   event,place,back_number        (place as announced; a shared 13th to 18th is written 13 for each)
-export interface Difference {
+interface Difference {
   event: number
   backNumber: number
   paper: number | null

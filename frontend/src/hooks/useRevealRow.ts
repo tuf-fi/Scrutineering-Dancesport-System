@@ -34,6 +34,3 @@ export function useRevealRow<T>(items: T[], idOf: (item: T) => string, pageSize:
 
   return revealed
 }
-
-// The classes of a row that was just revealed: a soft gold wash that fades away when the mark ends
-export const REVEALED = 'bg-gold-50'

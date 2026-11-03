@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import type { PaymentStatus } from '@bis/shared'
 import * as api from '../api/index.ts'
 
 export const useCompetitions = () =>
@@ -28,9 +27,6 @@ export const useAdjudicatorPins = (competitionId: string) =>
     queryKey: ['adjudicator-pins', competitionId],
     queryFn: () => api.getAdjudicatorPins(competitionId),
   })
-
-export const usePayments = (status?: PaymentStatus) =>
-  useQuery({ queryKey: ['payments', status ?? 'all'], queryFn: () => api.getPayments(status) })
 
 export const usePointsTable = () =>
   useQuery({ queryKey: ['points-table'], queryFn: api.getPointsTable })

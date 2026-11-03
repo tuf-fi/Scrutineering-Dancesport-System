@@ -13,7 +13,6 @@ import { MAX_PHOTO, MAX_RECEIPT, MIN_PASSWORD, PHOTO, clean, currentCompetition 
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DATE = /^\d{4}-\d{2}-\d{2}$/
-export { MIN_PASSWORD }
 
 type AthleteRowDb = typeof t.athletes.$inferSelect
 

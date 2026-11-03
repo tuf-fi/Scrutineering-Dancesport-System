@@ -6,15 +6,6 @@ import * as api from '../api/index.ts'
 export const useRounds = (eventId: string) =>
   useQuery({ queryKey: ['rounds', eventId], queryFn: () => api.getRounds(eventId) })
 
-export const useRound = (id: string) =>
-  useQuery({ queryKey: ['round', id], queryFn: () => api.getRound(id) })
-
-export const useHeats = (roundId: string) =>
-  useQuery({ queryKey: ['heats', roundId], queryFn: () => api.getHeats(roundId) })
-
-export const useMarks = (roundId: string) =>
-  useQuery({ queryKey: ['marks', roundId], queryFn: () => api.getMarks(roundId) })
-
 // Live board data: each adjudicator's status, updated as submissions arrive
 export function useLiveSubmissions(roundId: string): AdjudicatorSubmission[] {
   const queryClient = useQueryClient()

@@ -8,7 +8,7 @@ import * as t from './schema.ts'
 const migrationsFolder = join(import.meta.dirname, '..', '..', 'drizzle')
 
 // The points table from the organizer's entry form (Bicol Grassroots); the admin can edit it
-export const DEFAULT_POINTS = [
+const DEFAULT_POINTS = [
   { place: 1, round: null, label: '1st', points: 200 },
   { place: 2, round: null, label: '2nd', points: 180 },
   { place: 3, round: null, label: '3rd', points: 160 },

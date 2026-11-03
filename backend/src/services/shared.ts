@@ -1,5 +1,4 @@
 import {
-  PaymentStatus,
   pickCurrentCompetition,
   Role,
   RoundStatus,
@@ -190,8 +189,6 @@ export const getTeamRow = (ctx: Ctx, id: string) =>
 export const getPaymentRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.payments).where(eq(t.payments.id, id)).get(), 'Payment')
 
-export const competitionOfEvent = (ctx: Ctx, eventId: string) => getEventRow(ctx, eventId).competitionId
-
 // The competition happening now (see pickCurrentCompetition): PINs belong to it
 export function currentCompetition(ctx: Ctx) {
   return pickCurrentCompetition(ctx.db.select().from(t.competitions).all())
@@ -366,9 +363,6 @@ export function applySettles(ctx: Ctx, paymentId: string) {
     if (Object.keys(set).length > 0) ctx.db.update(t.coaches).set(set).where(eq(t.coaches.id, settles.coachId)).run()
   }
 }
-
-export const paymentCanBeChanged = (status: PaymentStatus | undefined) =>
-  status === undefined || status === PaymentStatus.Unpaid || status === PaymentStatus.Rejected
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 export const isStaff = (ctx: Ctx) => ctx.user !== null && STAFF_ROLES.includes(ctx.user.role)

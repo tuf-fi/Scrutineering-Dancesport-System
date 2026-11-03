@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 // Every list in BIS shows at most this many rows at a time
-export const PAGE_SIZE = 10
+const PAGE_SIZE = 10
 
 // Splits a list into pages. `resetKey` should change whenever a filter or search changes,
 // so the list goes back to the first page.

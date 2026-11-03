@@ -35,7 +35,7 @@ export function saveSecondStep(ctx: Ctx, row: StaffRow, used: Extract<SecondStep
   }
 }
 
-export const SECOND_STEP_NEEDED = 'Enter the 6-digit code from your authenticator app, or a recovery code.'
+const SECOND_STEP_NEEDED = 'Enter the 6-digit code from your authenticator app, or a recovery code.'
 
 export function staffSession(ctx: Ctx, username: string, password: string, code?: string): SessionUser {
   const row = ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username.trim().toLowerCase())).get()
@@ -83,7 +83,7 @@ export function memberSession(ctx: Ctx, role: 'coach' | 'team', email: string, p
   return { id: row.id, name: row.name, role }
 }
 
-export const accountKind = (role: Role): AccountKind =>
+const accountKind = (role: Role): AccountKind =>
   STAFF_ROLES.includes(role) ? 'staff' : role === Role.Athlete ? 'athlete' : role === Role.Coach || role === Role.Team ? 'member' : 'adjudicator'
 
 // Raises an account's session version, which signs that person out everywhere: tokens carry the version they were made at

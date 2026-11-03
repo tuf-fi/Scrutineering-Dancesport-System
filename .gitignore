@@ -4,3 +4,8 @@ node_modules
 
 # Local settings for the online server
 deploy/.env
+
+# Local test data, build info and scratch files
+phone-test-data
+*.tsbuildinfo
+fix*.py

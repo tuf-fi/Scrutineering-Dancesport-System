@@ -81,7 +81,7 @@ function callbackFor(ctx: Ctx, round: typeof t.rounds.$inferSelect, recall: numb
   return { result, field }
 }
 
-export function recallTable(ctx: Ctx, roundId: string): RecallTable {
+function recallTable(ctx: Ctx, roundId: string): RecallTable {
   const round = getRoundRow(ctx, roundId)
   if (round.recallNumber === null) return fail('A final is placed, not recalled.', 409)
   const recall = round.recallNumber
@@ -133,7 +133,7 @@ export function recallTable(ctx: Ctx, roundId: string): RecallTable {
   }
 }
 
-export function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
+function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
   const round = getRoundRow(ctx, roundId)
   const panel = panelAdjudicatorIds(ctx, round.eventId)
   const roundMarks = marksOf(ctx, roundId)

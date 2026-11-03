@@ -25,7 +25,7 @@ const STATUS_CYCLE = [
 const eventById = new Map(events.map((e) => [e.id, e]))
 
 // TODO: replace with the real uploaded screenshot when the backend stores receipts
-export function sampleReceipt(amount: number, reference: string): string {
+function sampleReceipt(amount: number, reference: string): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="360" height="500" viewBox="0 0 360 500">
 <rect width="360" height="500" fill="#f7f6f5"/>
 <rect x="24" y="48" width="312" height="400" rx="12" fill="#fff" stroke="#e2dfdc"/>

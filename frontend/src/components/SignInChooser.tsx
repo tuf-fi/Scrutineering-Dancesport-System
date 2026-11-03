@@ -11,7 +11,7 @@ const TABS: Array<{ kind: AccountKind; label: string }> = [
 ]
 
 // Who is signing in; shared by the navbar's dialog and the sign-in page
-export function KindTabs({ kind, onKind }: { kind: AccountKind; onKind: (kind: AccountKind) => void }) {
+function KindTabs({ kind, onKind }: { kind: AccountKind; onKind: (kind: AccountKind) => void }) {
   return (
     <div role="tablist" aria-label="Sign in as" className="grid grid-cols-3 border-b border-neutral-200">
       {TABS.map((tab) => (
