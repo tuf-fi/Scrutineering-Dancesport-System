@@ -44,12 +44,12 @@ Only **published** results are public. A round that is still being marked or has
 
 ## Athlete
 
-**Account:** makes their own, with an email and a password (at least 8 characters), at `/login?as=athlete`. **Sees:** only their own data, and only what the secretariat has linked to their name.
+**Account:** makes their own, with a name, a **photo (required)**, an email and a password (at least 8 characters), at `/login?as=athlete`. **Sees:** only their own data, and only what the secretariat has linked to their name.
 
 | Page | Path | What you can do |
 | --- | --- | --- |
 | Account | `/athlete` | See your details, picture, team and coach, membership status, and **Account information** (date of birth, contact number, province, address; only the secretariat sees these) |
-| Edit account | `/athlete/edit` | Change your details and picture. Changing your **team or coach** is a request the secretariat approves; your current ones stay until then |
+| Edit account | `/athlete/edit` | Change your details and picture (a picture can be replaced but never removed). Changing your **team or coach** is a request the secretariat approves; your current ones stay until then |
 | Membership | `/athlete/membership` | See the year's fee and where to pay, then send a payment (how you paid and the reference number). It shows **Waiting for the secretariat**, and if turned down you see why and can send it again |
 | Payments | `/athlete/payments` | Your payment history |
 | Results | `/athlete/results` | Your results, by competition |
@@ -66,7 +66,7 @@ Only **published** results are public. A round that is still being marked or has
 
 ## Coach
 
-**Account:** makes their own at `/login?as=coach`. After signing up the account is **not linked** to anything and shows a notice on every page that needs the link.
+**Account:** makes their own at `/login?as=coach`, with a name, a photo (required), an email and a password. After signing up the account is **not linked** to anything and shows a notice on every page that needs the link.
 
 | Page | Path | What you can do |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ Only **published** results are public. A round that is still being marked or has
 
 ## Team
 
-**Account:** makes their own at `/login?as=team`, then links it to the team record.
+**Account:** makes their own at `/login?as=team`, with the team name, a picture (required), an email and a password, then links it to the team record.
 
 | Page | Path | What you can do |
 | --- | --- | --- |
@@ -203,11 +203,11 @@ Nothing shows until the scrutineer publishes a round. The MC changes nothing abo
 | Screen | Path | What you can do |
 | --- | --- | --- |
 | Competitions | `/admin/competitions` | **Create**, edit and delete competitions: name, date, venue, organizer, **Entries close**, **Fees due**, and the **card photo** (required). Search and filter by year. A competition with events cannot be deleted |
-| Adjudicators and panels | `/admin/adjudicators` | **Add**, edit and delete adjudicators with a letter A to J. **Set or make a new PIN** for a competition, select adjudicators and **Print PIN cards** (PIN plus QR code), **Sign out everywhere** for a phone. Choose each event's **panel** in a grid of events by adjudicator |
+| Adjudicators and panels | `/admin/adjudicators` | **Add**, edit and delete adjudicators with a letter A to J and a photo (required). Adjudicators can be added before any competition exists. **Set or make a new PIN** for a competition, select adjudicators and **Print PIN cards** (PIN plus QR code), **Sign out everywhere** for a phone. Choose each event's **panel** in a grid of events by adjudicator |
 | Points table | `/admin/points` | Edit the ranking points for each place |
 | Payments | `/admin/payments` | See what each team owes and has paid, search and filter by status, open one to see what it covers and who recorded it. A read-only ledger |
 | Fees and payment details | `/admin/fees` | Set the registration fees (first entry, each extra, ranking and inter-collegiate events, athlete and coach membership, Coaches Summit), the late-entry solo and couple fees, and the **payment accounts** (GCash, Maya, bank) people are shown when they pay |
-| Staff accounts | `/admin/staff` | **Create** staff (secretariat, scrutineer, chairperson, MC, admin) with a temporary password shown once; edit, delete, **reset password**, **sign out everywhere**, **reset two-step sign-in**, and read each account's **activity** log |
+| Staff accounts | `/admin/staff` | **Create** staff (secretariat, scrutineer, chairperson, MC, admin) with a photo (required) and a temporary password shown once; edit, delete, **reset password**, **sign out everywhere**, **reset two-step sign-in**, and read each account's **activity** log |
 | Security | `/admin/security` | Turn on two-step sign-in with an authenticator app (and save the recovery codes), change your password |
 | Backups | top of every screen | A warning appears if a backup folder fails |
 
@@ -216,6 +216,9 @@ Nothing shows until the scrutineer publishes a round. The MC changes nothing abo
 ---
 
 ## What every signed-in person has
+
+- **A photo.** Every athlete, coach, team, staff account and adjudicator has one: it is asked for when the account is made, and can be replaced but not removed.
+- **Required fields** have a red asterisk after their label. A button that saves is switched off while the save is under way, so a double tap saves once.
 
 - **Pop-up notifications** with a short sound, live: staff see alerts that are not kept (a new entry request, a new account link); athletes, coaches and teams see what is saved in their **Notifications**. On a laptop they appear bottom right and slide out to the right; on a phone or tablet they come across the top and slide up. Adjudicators and the MC get none.
 - **Account page** for staff at `/account`: change your name and password and set up two-step sign-in.

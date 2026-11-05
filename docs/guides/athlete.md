@@ -4,7 +4,7 @@ You make your own account to keep your details and pay your membership. The secr
 
 ## Making your account
 1. Open **Athlete sign-in** at the top of the public site and press **Create an account**.
-2. Enter your name, your email and a password of at least 8 characters. Use the same email as on your entry form, so the secretariat does not charge your membership twice.
+2. Enter your name, add a photo of yourself (required), enter your email and a password of at least 8 characters. Use the same email as on your entry form, so the secretariat does not charge your membership twice.
 3. Forgot your password? Ask the secretariat; they give you a new one.
 
 ## Your page

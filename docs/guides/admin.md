@@ -5,8 +5,8 @@ Your menu also holds the secretariat's screens (Events, Competitors, Teams, Coac
 ## Set up once (online)
 1. **Fees and payment details**: check the **Registration fees** the secretariat charges from an entry form (first entry, each extra entry, ranking and inter-collegiate events, athlete and coach membership, Coaches Summit). They start as the organizer's 2026 entry form. The late entry fee is the flat solo and couple fee below it. Add where teams send money (GCash, Maya, bank).
 1. **Competitions**: set **Entries close** and **Fees due** if the organizer has deadlines; the secretariat is warned about later entries.
-2. **Staff accounts**: one for each person. A temporary password is shown once; give it to them in person.
-3. **Adjudicators and panels**: create adjudicators with letters, make PINs for the competition, choose each event's panel.
+2. **Staff accounts**: one for each person, with a photo. A temporary password is shown once; give it to them in person.
+3. **Adjudicators and panels**: create adjudicators with a photo and a letter (you can do this before the first competition exists), make PINs for the competition, choose each event's panel.
 4. **Points table**: check the points for each place.
 5. **Competitions**: create the competition.
 

@@ -79,6 +79,14 @@ Then sign in at `https://<staging address>/staff-access`, change the password, a
 
 Do **not** load the sample data. The server refuses to, and the sample accounts share a public password.
 
+For something to look at, load the **test data** instead. It adds fake rows only (nothing it adds can sign in):
+
+```
+docker compose exec app node_modules/.bin/tsx src/db/testdata-cli.ts --yes
+```
+
+It adds 5 teams, 5 coaches, 20 athletes (an account and a dancer each, with photos), up to 10 adjudicators (letters A to J are all there are), 3 finished competitions with results and 5 upcoming ones, 6 events each. Running it again adds nothing. Never run it on production.
+
 ## The build, and checking it without Caddy
 
 `docker compose up -d --build` builds `deploy/Dockerfile`: it installs the packages, builds the website, and runs the server on port 4000 behind Caddy. The details are in "How the build works" in [PRODUCTION.md](PRODUCTION.md). To check the image on its own, from the repository root:
