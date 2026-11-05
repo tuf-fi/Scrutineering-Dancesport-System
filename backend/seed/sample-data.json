@@ -37320,10 +37320,10 @@
    "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm4AWlpuWlpuWlpuWlpuWlpuWlpuWlpuWlpuAFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm4AWlpuWlpuWlpuWlpuWlpuWlpuWlpuWlpuAFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm5PbEiB6ybhqAAAAABJRU5ErkJggg=="
   },
   {
-   "id": "staff-mc",
+   "id": "staff-compere",
    "name": "Dante Ibarra",
-   "username": "mc@sample.example",
-   "role": "mc",
+   "username": "compere@sample.example",
+   "role": "compere",
    "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFAAoHhQoHhQoHhQoHhQoHhQoHhQoHhQoHhQAKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFAAoHhQoHhQoHhQoHhQoHhQoHhQoHhQoHhQAKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFA+1VoBZuFnlgAAAABJRU5ErkJggg=="
   }
  ],

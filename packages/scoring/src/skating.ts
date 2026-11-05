@@ -23,7 +23,7 @@ export interface DancePlace {
   competitorId: Id
   // Average of the shared places, e.g. 3.5; equals announcedPlace when not shared
   place: number
-  // The best place in the shared range, as the MC reads it
+  // The best place in the shared range, as the compere reads it
   announcedPlace: number
   shared: boolean
   // The column ("k and higher") in which this competitor was placed

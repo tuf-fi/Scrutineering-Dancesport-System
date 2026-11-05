@@ -74,7 +74,7 @@ curl https://<staging address>/api/health        # {"status":"ok", ...}
 Then sign in at `https://<staging address>/staff-access`, change the password, and set it up the way production is set up:
 
 1. **Fees and payment details**: enter the fees and where to pay (use the real fees so prices match; use made-up account numbers if you like). Until they are saved, teams cannot enter events.
-2. **Staff accounts**: add the secretariat. Add the scrutineer, chairperson and MC only when you are rehearsing those roles.
+2. **Staff accounts**: add the secretariat. Add the scrutineer, chairperson and compere only when you are rehearsing those roles.
 3. **Competitions**: create a practice competition with a card photo (a photo is required), then events, teams, competitors and adjudicators by hand, as in [../FLOW.md](../docs/product/FLOW.md).
 
 Do **not** load the sample data. The server refuses to, and the sample accounts share a public password.
@@ -104,7 +104,7 @@ It loads the test data first if it is not there, then makes these logins. No pas
 | Secretariat | `/staff-access` | `testsecretariat@testdata.example` |
 | Scrutineer | `/staff-access` | `testscrutineer@testdata.example` |
 | Chairperson | `/staff-access` | `testchairperson@testdata.example` |
-| MC | `/staff-access` | `testmc@testdata.example` |
+| Compere | `/staff-access` | `testcompere@testdata.example` |
 | Athlete (Bianca Alcantara) | `/login?as=athlete` | `bianca.alcantara@testdata.example` |
 | Coach (linked to a record) | `/login?as=coach` | `coach@testdata.example` |
 | Team (Naga Rhythm Studio) | `/login?as=team` | `team@testdata.example` |

@@ -16,7 +16,7 @@ You need a small server with Docker, and a domain name pointing at it. Ports 80 
 4. Create the first admin: `docker compose exec app node_modules/.bin/tsx src/db/create-admin-cli.ts <email> "<Full name>"`. It prints a password; sign in and change it.
 5. Check `https://<DOMAIN>/api/health`. It should say `"status":"ok"`.
 6. Sign in as the admin and open **Fees and payment details**. Until the fees are saved, teams cannot enter events.
-7. On **Staff**, add the secretariat. Other staff (scrutineer, chairperson, MC) are added there only when an event needs them.
+7. On **Staff**, add the secretariat. Other staff (scrutineer, chairperson, compere) are added there only when an event needs them.
 
 ## Settings
 

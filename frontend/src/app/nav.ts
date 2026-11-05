@@ -94,7 +94,7 @@ export const publicNav: NavItem[] = [
 ]
 
 // The announcer has one screen; the account page's sidebar offers it so there is a way back
-export const mcNav: NavItem[] = [{ to: '/mc', label: 'Announcer', icon: Megaphone }]
+export const compereNav: NavItem[] = [{ to: '/compere', label: 'Announcer', icon: Megaphone }]
 
 
 // Staff and adjudicators sign in here; it is not linked from any public page
@@ -110,6 +110,6 @@ export const roleHome: Record<Role, string> = {
   athlete: '/athlete',
   coach: '/coach',
   team: '/team',
-  mc: '/mc',
+  compere: '/compere',
   public: '/',
 }

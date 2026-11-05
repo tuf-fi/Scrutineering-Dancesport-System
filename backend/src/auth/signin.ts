@@ -11,7 +11,7 @@ import { decryptSecret } from './vault.ts'
 // Checked even when the account does not exist, so a wrong username takes as long as a wrong password
 const DUMMY_HASH = hashPassword('not-a-real-password')
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
 
 type StaffRow = typeof t.staffUsers.$inferSelect
 
@@ -117,7 +117,9 @@ export function startVersion(ctx: Ctx, user: SessionUser): number {
 }
 
 // Who a signed token belongs to right now: an account that was deleted or disabled stops working at once
-export function resolveSession(ctx: Ctx, claims: Pick<SessionUser, 'id' | 'role'> & { sv?: number }): SessionUser | null {
+export function resolveSession(ctx: Ctx, given: Pick<SessionUser, 'id' | 'role'> & { sv?: number }): SessionUser | null {
+  // A token made before the compere was renamed still says "mc"
+  const claims = (given.role as string) === 'mc' ? { ...given, role: Role.Compere } : given
   const version = claims.sv ?? 0
   if (STAFF_ROLES.includes(claims.role)) {
     const row = ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, claims.id)).get()

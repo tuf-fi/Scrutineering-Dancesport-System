@@ -450,7 +450,7 @@ function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: type
   recomputeEventPoints(ctx, event.id)
 }
 
-// ---- MC ----
+// ---- Compere ----
 
 function announcements(ctx: Ctx): Announcement[] {
   const competition = currentCompetition(ctx)

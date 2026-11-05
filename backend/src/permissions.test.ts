@@ -12,7 +12,7 @@ beforeAll(async () => {
   cookies.secretariat = await app.signIn.staff('secretariat')
   cookies.scrutineer = await app.signIn.staff('scrutineer')
   cookies.chairperson = await app.signIn.staff('chairperson')
-  cookies.mc = await app.signIn.staff('mc')
+  cookies.compere = await app.signIn.staff('compere')
   cookies.adjudicator = await app.signIn.adjudicator('410000')
 })
 afterAll(() => app.close())
@@ -33,7 +33,7 @@ describe('the permission table', () => {
   })
 })
 
-const ROLES = ['none', Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc, Role.Adjudicator] as const
+const ROLES = ['none', Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Adjudicator] as const
 
 describe('every function against every role', () => {
   // Calls each function with no arguments: it must be refused for the wrong role, and for the right
@@ -85,15 +85,15 @@ describe('what guests may not see', () => {
     const withDetails = async (cookie?: string) =>
       (await app.ok<Array<{ details?: unknown }>>('getCompetitors', [], cookie)).filter((c) => c.details !== undefined).length
     expect(await withDetails()).toBe(0)
-    expect(await withDetails(cookies.mc)).toBe(0)
+    expect(await withDetails(cookies.compere)).toBe(0)
     expect(await withDetails(cookies.scrutineer)).toBe(0)
     expect(await withDetails(cookies.secretariat)).toBeGreaterThan(0)
   })
 
-  it('keeps the MC to announcements, and marks away from the admin', async () => {
-    expect((await app.call('getEntryRows', [], cookies.mc)).status).toBe(403)
-    expect((await app.call('getSubmissions', ['x'], cookies.mc)).status).toBe(403)
-    expect((await app.call('getAnnouncements', [], cookies.mc)).status).toBe(200)
+  it('keeps the compere to announcements, and marks away from the admin', async () => {
+    expect((await app.call('getEntryRows', [], cookies.compere)).status).toBe(403)
+    expect((await app.call('getSubmissions', ['x'], cookies.compere)).status).toBe(403)
+    expect((await app.call('getAnnouncements', [], cookies.compere)).status).toBe(200)
     expect((await app.call('getMarks', ['x'], cookies.admin)).status).toBe(403)
   })
 

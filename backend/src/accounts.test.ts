@@ -82,10 +82,10 @@ describe('a staff member changing their own account', () => {
   })
 
   it('changes only their own name', async () => {
-    const mine = await cloud.signIn.staff('mc')
+    const mine = await cloud.signIn.staff('compere')
     expect((await cloud.call('saveMyStaffName', ['  '], mine)).status).toBe(400)
     const saved = await cloud.ok<{ name: string; username: string }>('saveMyStaffName', ['  Mina   Cruz '], mine)
-    expect(saved).toMatchObject({ name: 'Mina Cruz', username: 'mc@sample.example' })
+    expect(saved).toMatchObject({ name: 'Mina Cruz', username: 'compere@sample.example' })
     expect((await cloud.call('changeMyStaffPassword', ['x', 'y'])).status).toBe(401)
   })
 })

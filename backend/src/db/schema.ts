@@ -206,7 +206,7 @@ export const rounds = sqliteTable(
     // How many each adjudicator marks X; null for the final
     recallNumber: integer('recall_number'),
     status: text('status', { enum: oneOf(RoundStatus) }).notNull(),
-    // When the scrutineer published it; the MC reads announcements in this order
+    // When the scrutineer published it; the compere reads announcements in this order
     publishedAt: text('published_at'),
   },
   (t) => [uniqueIndex('rounds_once_per_event').on(t.eventId, t.type)],
@@ -347,7 +347,7 @@ export const results = sqliteTable(
     competitorId: text('competitor_id')
       .notNull()
       .references(() => competitors.id),
-    // The best place of a shared range, as the MC reads it (the 13 in 13th to 18th)
+    // The best place of a shared range, as the compere reads it (the 13 in 13th to 18th)
     place: integer('place').notNull(),
     // The whole shared range; equal when the place is not shared
     placeFrom: integer('place_from').notNull(),

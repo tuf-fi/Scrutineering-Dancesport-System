@@ -46,7 +46,7 @@ When a function is added to the server, add it to `API_FUNCTIONS` in `packages/s
 - Design for the device each role uses:
   - Adjudicator: phone, one hand, large touch targets (at least 56px)
   - Staff: laptop, dense but readable tables
-  - MC/venue screen: projector, very large high-contrast text
+  - Compere/venue screen: projector, very large high-contrast text
   - Public and team: mobile-first
 - Make every screen responsive from the start, across all screen sizes (375px phones, tablets, 1280px laptops, 1920px venue screen). Don't wait to be asked.
   - Mobile and tablet means below `lg` (1024px). Staff and public navigation is a black header with a hamburger on the right and a right drawer; the athlete, coach and team links are a fixed strip under the navbar.

@@ -7,7 +7,7 @@ export const Role = {
   Athlete: 'athlete',
   Coach: 'coach',
   Team: 'team',
-  Mc: 'mc',
+  Compere: 'compere',
   Public: 'public',
 } as const
 export type Role = (typeof Role)[keyof typeof Role]

@@ -20,7 +20,7 @@ export interface EliminatedPlace {
   // The shared range, e.g. 13 to 18
   from: number
   to: number
-  // The best place in the range, as the MC reads it and as results are stored
+  // The best place in the range, as the compere reads it and as results are stored
   announcedPlace: number
   // Average of the range
   place: number

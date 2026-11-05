@@ -5,13 +5,13 @@ Where the system stands on 3 November 2026, what is left, and what is still uncl
 ## What is built
 
 - Scoring engine (`packages/scoring`): the Skating System, checked against the organizer's sheets and three published WDSF finals, including Rule 10 and Rule 11 ties (`packages/scoring/fixtures/`).
-- Server and screens for every role: admin, secretariat, scrutineer, chairperson, MC, adjudicator (phone, with drawn signature) and public.
+- Server and screens for every role: admin, secretariat, scrutineer, chairperson, compere, adjudicator (phone, with drawn signature) and public.
 - The secretariat registers teams from the entry forms: teams, coaches, competitors, fees, deadlines and entry warnings.
 - Athlete accounts: an athlete signs up with an email and password, keeps their details and reports a membership payment; the secretariat confirms it.
 - The program (running order) with minutes from the WDSF rules.
 - Coach and team accounts: they sign up, ask to be linked to their record (the secretariat approves), and get pages like the athlete's.
 - Online entry: a team or an athlete sends an entry with a payment screenshot; the secretariat approves it into real entries and a payment, or turns it down with a reason.
-- Pop-up notifications with a chime in real time for every role except the adjudicator and MC.
+- Pop-up notifications with a chime in real time for every role except the adjudicator and compere.
 - A phone and tablet pass over the whole app: black header with a right-hand menu for staff and the public site, a fixed account strip on the athlete, coach and team pages, filters in one row with buttons below, larger text on phones, skeleton loading everywhere, scroll to the top on every page change, and smooth drawers, dialogs and hovers. See [DESIGN.md](../../DESIGN.md).
 - A required card photo on every competition, shown on the home page.
 

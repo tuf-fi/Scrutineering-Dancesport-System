@@ -325,7 +325,7 @@ The black box at the top of the Live board, Rounds, Heats, Recall, the adjudicat
 ### Pop-up notification
 - A hairline card with a gold left edge, a bold title and a grey detail line; the X sits in the top-right corner. Hovering anywhere on it, X included, turns it a pale solid gold (never transparent). It chimes once as it arrives.
 - Bottom-right on laptops and full width across the top on phones and tablets. After 9 seconds, or on dismiss or click, it fades out while sliding to the right on laptops and upward on phones and tablets.
-- Shown to every role except the adjudicator and MC. Athletes, coaches and teams see what is saved in their notifications; staff see live alerts that are not kept.
+- Shown to every role except the adjudicator and compere. Athletes, coaches and teams see what is saved in their notifications; staff see live alerts that are not kept.
 
 ### Public site
 These apply to the public pages only. They reuse the tokens above; nothing here introduces a colour.

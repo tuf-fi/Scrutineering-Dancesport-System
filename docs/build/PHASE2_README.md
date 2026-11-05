@@ -36,7 +36,7 @@ The Skating System rules (Rules 1–11) are fixed, so the engine must follow the
 ### 2. Skating System, single-dance final (Rules 5–8)
 - [x] Place each position from 1st down by majority (more than half the adjudicators) at that place or higher; with no majority, move to the next column (Rule 8).
 - [x] If several competitors have a majority, the one with more placings at that level wins. If still equal, the lower sum of those placings wins.
-- [x] Equal count and sum: compare the next column for those competitors only, down to the last column; still equal, they share the average place (the MC reads the best place of the range).
+- [x] Equal count and sum: compare the next column for those competitors only, down to the last column; still equal, they share the average place (the compere reads the best place of the range).
 - [x] Return the working (counts and sums per place) so the screen can show how each place was decided.
 - [x] Validate: each adjudicator uses each place exactly once, and the number of placings equals the number of finalists.
 
@@ -48,7 +48,7 @@ The Skating System rules (Rules 1–11) are fixed, so the engine must follow the
 - [x] Return the working per dance and overall.
 
 ### 4. Places for earlier rounds
-- [x] Everyone cut in the same round shares one range just below those who went further (30 start, 24 / 18 / 12 / 6 recalled: 25th–30th, 19th–24th, 13th–18th, 7th–12th). The MC and results use the best place of the range (25).
+- [x] Everyone cut in the same round shares one range just below those who went further (30 start, 24 / 18 / 12 / 6 recalled: 25th–30th, 19th–24th, 13th–18th, 7th–12th). The compere and results use the best place of the range (25).
 - [x] X counts are kept for the printout but do not reorder the range. This replaces the earlier plan to order cut competitors by X total.
 - [x] Validate that each round's recalled competitors are exactly the next round's competitors.
 

@@ -58,7 +58,7 @@ function Loading() {
 }
 
 // The running order for the announcer: what is on the floor, what is next, and the three lines after that
-export function McProgram({ program, error }: { program: Program | undefined; error: boolean }) {
+export function CompereProgram({ program, error }: { program: Program | undefined; error: boolean }) {
   const rows = program?.rows ?? []
   const now = rows.find((r) => r.status === ProgramStatus.Current)
   const nextIndex = rows.findIndex((r) => r.status === ProgramStatus.Next)

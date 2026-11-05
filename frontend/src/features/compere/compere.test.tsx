@@ -7,9 +7,9 @@ import { renderApp } from '../../test-utils.tsx'
 
 const counter = () => screen.getByRole('status')
 
-describe('MC screen', () => {
+describe('Compere screen', () => {
   it('starts on the next event call and steps with the keyboard', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     expect(await screen.findByText('Next to the floor')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Next to the floor')
     expect(screen.getByText('E11')).toBeInTheDocument()
@@ -25,7 +25,7 @@ describe('MC screen', () => {
   })
 
   it('draws the call as a sheet: the event, the next event, the numbers as tiles, and what to do', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
     // "Next event" is also the name of a control, so look inside the sheet
     const sheet = screen.getByLabelText('Back numbers').parentElement!
@@ -38,7 +38,7 @@ describe('MC screen', () => {
   })
 
   it('jumps to finalists, then reads results from last place up one at a time', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
 
     await userEvent.keyboard('3')
@@ -69,7 +69,7 @@ describe('MC screen', () => {
   })
 
   it('steps with the on-screen buttons too', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
     await userEvent.click(screen.getByRole('button', { name: 'Next announcement' }))
     expect(counter()).toHaveTextContent(/^2 \//)
@@ -78,16 +78,16 @@ describe('MC screen', () => {
   })
 })
 
-describe('MC program view', () => {
+describe('Compere program view', () => {
   beforeAll(async () => {
-    // The MC screen reads the latest competition by date
+    // The compere screen reads the latest competition by date
     const latest = [...(await getCompetitions())].sort((a, b) => b.date.localeCompare(a.date))[0]!
     await generateProgram('test', latest.id)
     await setProgramStart('test', latest.id, '07:00')
   })
 
   it('shows what is on the floor and next with key 5, and goes back to the slides with key 1', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
 
     await userEvent.keyboard('5')
@@ -104,9 +104,9 @@ describe('MC program view', () => {
   })
 })
 
-describe('MC up next', () => {
+describe('Compere up next', () => {
   it('says what the next screen is before it is opened', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
     const hint = screen.getByLabelText('Up next')
     expect(hint).toHaveTextContent(/Up next(Next event|Recalled)/)
@@ -120,9 +120,9 @@ describe('MC up next', () => {
   })
 })
 
-describe('MC account menu', () => {
+describe('Compere account menu', () => {
   it('opens My account and signs out from the navbar menu', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
     await userEvent.click(screen.getByRole('button', { name: /Dante Ibarra/ }))
     await userEvent.click(await screen.findByRole('menuitem', { name: 'My account' }))
@@ -130,7 +130,7 @@ describe('MC account menu', () => {
   })
 
   it('signs out', async () => {
-    renderApp('/mc', Role.Mc, { id: 'staff-mc', name: 'Dante Ibarra' })
+    renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     await screen.findByText('Next to the floor')
     await userEvent.click(screen.getByRole('button', { name: /Dante Ibarra/ }))
     await userEvent.click(await screen.findByRole('menuitem', { name: 'Sign out' }))

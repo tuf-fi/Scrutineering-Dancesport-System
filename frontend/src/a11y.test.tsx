@@ -20,7 +20,7 @@ const screens: Array<{ name: string; path: string; role?: Role; user?: Record<st
   { name: 'adjudicator marking', path: '/adjudicator/waiting', role: Role.Adjudicator, user: { id: 'adj-d', letter: 'D' }, ready: () => screen.findByText(/Mark an X for exactly/) },
   { name: 'secretariat teams', path: '/secretariat/teams', role: Role.Secretariat, ready: () => screen.findByRole('heading', { name: 'Teams' }) },
   { name: 'secretariat coaches', path: '/secretariat/coaches', role: Role.Secretariat, ready: () => screen.findByRole('heading', { name: 'Coaches' }) },
-  { name: 'MC screen', path: '/mc', role: Role.Mc, user: { id: 'staff-mc' }, ready: () => screen.findByText('Next to the floor') },
+  { name: 'Compere screen', path: '/compere', role: Role.Compere, user: { id: 'staff-compere' }, ready: () => screen.findByText('Next to the floor') },
   { name: 'print qualified list', path: `/print/recall/${C}:e12?round=${C}:e12:round_1`, role: Role.Scrutineer, user: { id: 'staff-scrutineer' }, ready: () => screen.findByRole('heading', { name: /Qualified Solos/ }) },
 ]
 

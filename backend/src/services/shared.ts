@@ -373,7 +373,7 @@ export function applySettles(ctx: Ctx, paymentId: string) {
   }
 }
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
 export const isStaff = (ctx: Ctx) => ctx.user !== null && STAFF_ROLES.includes(ctx.user.role)
 
 // Events whose final has not been published yet: only staff may see their results

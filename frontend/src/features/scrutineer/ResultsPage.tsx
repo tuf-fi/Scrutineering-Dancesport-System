@@ -159,7 +159,7 @@ export function ResultsPage() {
         description={
           confirming === 'approve'
             ? 'The marks are locked. You can then publish the round.'
-            : 'Publishing makes the results public on the website and the MC screen.'
+            : 'Publishing makes the results public on the website and the compere screen.'
         }
         actions={
           <>

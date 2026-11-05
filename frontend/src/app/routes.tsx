@@ -21,7 +21,7 @@ import { Waiting } from '../features/adjudicator/Waiting.tsx'
 import { StaffAccountPage } from '../features/auth/StaffAccountPage.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
 import { DesignPreview } from '../features/dev/DesignPreview.tsx'
-import { McHome } from '../features/mc/McHome.tsx'
+import { CompereHome } from '../features/compere/CompereHome.tsx'
 import { CompetitionPage } from '../features/public/CompetitionPage.tsx'
 import { CompetitionsPage as PublicCompetitionsPage } from '../features/public/CompetitionsPage.tsx'
 import { EventResultsPage } from '../features/public/EventResultsPage.tsx'
@@ -53,7 +53,7 @@ import { ProgramPage as ProgramPublicPage } from '../features/public/ProgramPage
 import { ProgramPage } from '../features/secretariat/ProgramPage.tsx'
 import { SchedulePage } from '../features/secretariat/SchedulePage.tsx'
 import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
-import { McLayout } from './layouts/McLayout.tsx'
+import { CompereLayout } from './layouts/CompereLayout.tsx'
 import { PrintLayout } from './layouts/PrintLayout.tsx'
 import { StaffLayout } from './layouts/StaffLayout.tsx'
 import { PublicLayout } from './layouts/TopNavLayout.tsx'
@@ -233,16 +233,17 @@ export const routes: RouteObject[] = [
         ],
       },
 
+      { path: '/mc', element: <Navigate to="/compere" replace /> },
       {
-        path: '/mc',
-        element: <RequireRole roles={[Role.Mc]} signInPath={STAFF_SIGN_IN} />,
-        children: [{ element: <McLayout />, children: [{ index: true, element: <McHome /> }] }],
+        path: '/compere',
+        element: <RequireRole roles={[Role.Compere]} signInPath={STAFF_SIGN_IN} />,
+        children: [{ element: <CompereLayout />, children: [{ index: true, element: <CompereHome /> }] }],
       },
 
       {
         // Every staff member's own account: their name and their password
         path: '/account',
-        element: <RequireRole roles={[...STAFF, Role.Mc]} signInPath={STAFF_SIGN_IN} />,
+        element: <RequireRole roles={[...STAFF, Role.Compere]} signInPath={STAFF_SIGN_IN} />,
         children: [{ element: <StaffLayout />, children: [{ index: true, element: <StaffAccountPage /> }] }],
       },
 

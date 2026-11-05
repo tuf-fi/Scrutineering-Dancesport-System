@@ -12,7 +12,7 @@ import { ROUND_TYPE_LABEL, eventDances, eventGrade, ordinal } from '../../lib/fo
 import { AccountMenu } from '../../app/layouts/AccountMenu.tsx'
 import { useSignOut } from '../../app/useSignOut.ts'
 import { useAuth } from '../../stores/auth.ts'
-import { McProgram } from './McProgram.tsx'
+import { CompereProgram } from './CompereProgram.tsx'
 
 // Built for an LED wall: every size is in vmin so it holds on 16:9 and ultra-wide, a deep brown ground with
 // white type, no grey below brown-100 at half strength, and nothing thinner than a medium weight.
@@ -415,7 +415,7 @@ function Board({ item, results, shown, host }: { item: Announcement; results: An
   )
 }
 
-export function McHome() {
+export function CompereHome() {
   const user = useAuth((s) => s.user)
   const signOut = useSignOut(STAFF_SIGN_IN)
   const announcements = useAnnouncements()
@@ -538,7 +538,7 @@ export function McHome() {
 
       {showProgram || !current ? (
         <div key="program" className="flex flex-1 animate-fade-in flex-col">
-          <McProgram program={program.data} error={program.isError} />
+          <CompereProgram program={program.data} error={program.isError} />
         </div>
       ) : (
         <>

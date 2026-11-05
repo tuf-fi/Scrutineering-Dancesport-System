@@ -10,7 +10,7 @@ import { newId } from '../ids.ts'
 import { recomputeAllPoints } from './ranking.ts'
 import { MAX_PHOTO, PHOTO, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
 
 function staffRole(role: unknown): Role {
   return STAFF_ROLES.includes(role as Role) ? (role as Role) : fail('Choose a staff role.')

@@ -1221,7 +1221,7 @@ export const publishRound = (actorId: string, roundId: string) =>
     record(actorId, 'Published round', roundId)
   })
 
-// ---- MC ----
+// ---- Compere ----
 
 export const getAnnouncements = () => reply(announcements())
 

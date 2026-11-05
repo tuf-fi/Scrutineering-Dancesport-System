@@ -746,7 +746,7 @@ export interface SkatingRow {
   // Single-dance final: how many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
   majority: number[]
   total: number
-  // The place as the MC reads it; a shared place shows its best place, e.g. 2 for a tie for 2nd and 3rd
+  // The place as the compere reads it; a shared place shows its best place, e.g. 2 for a tie for 2nd and 3rd
   place: number
   shared: boolean
   // Multi-dance final: the place in each dance, and the rule that decided the overall place
@@ -764,7 +764,7 @@ export interface SkatingTable {
   rows: SkatingRow[]
 }
 
-// One thing for the MC to read out; the MC steps through them in order
+// One thing for the compere to read out; the compere steps through them in order
 export interface Announcement {
   id: Id
   // results: the slide that says it is time for the results, before the first place is read

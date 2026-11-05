@@ -18,8 +18,8 @@ import { asc } from 'drizzle-orm'
 
 type Handler = (ctx: Ctx, ...args: never[]) => unknown
 
-const STAFF: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
-// Staff who work the competition; the MC only reads announcements
+const STAFF: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
+// Staff who work the competition; the compere only reads announcements
 const OFFICIALS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
 const ADMIN: Role[] = [Role.Admin]
 const ADMIN_OR_SECRETARIAT: Role[] = [Role.Admin, Role.Secretariat]
@@ -101,7 +101,7 @@ const access: Record<string, Access> = {
   getCompetitorRows: OFFICIALS,
   getLateEntries: OFFICIALS,
   getSchedule: OFFICIALS,
-  // The MC's screen reads only this, besides the public program and results
+  // The compere's screen reads only this, besides the public program and results
   getAnnouncements: STAFF,
   getSignatures: OFFICIALS,
   getSubmissions: OFFICIALS,

@@ -23,14 +23,14 @@
 
 ## One online server
 
-BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: team registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, MC) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network.
+BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: team registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, compere) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network.
 
 There is one database, a SQLite file on the server. Adjudicators' phones hold only a temporary copy of their own marks until the server has them; this is not a separate database.
 
 ```mermaid
 flowchart LR
   P["Adjudicator phones<br/>(browser, PIN sign-in)"]
-  L["Staff laptops:<br/>secretariat, scrutineer,<br/>chairperson, MC"]
+  L["Staff laptops:<br/>secretariat, scrutineer,<br/>chairperson, compere"]
   S["Public: phones<br/>(results, rankings, program)"]
   G["Teams:<br/>registration + payments"]
   A["Admin:<br/>payment checking"]
@@ -77,7 +77,7 @@ Build every screen first, using fake data, so the client can click through and a
 3. **Secretariat:** events (E1 to E100+), competitors and back numbers, scratches, schedule, heat and recall printouts.
 4. **Adjudicator (phone):** PIN sign-in, X marking for early rounds, 1st to 6th/7th placing for finals, a clear "Submitted" confirmation. Large buttons, works one-handed.
 5. **Scrutineer:** live submission board (who has marked), recall count with cutoff and ties, heat setup, Skating System table, approve and publish.
-6. **MC / venue screen:** recalls, finalists, results from last place up.
+6. **Compere / venue screen:** recalls, finalists, results from last place up.
 7. **Printouts:** "Qualified for the next round" lists (like the E47 sheet), scores sheets with every adjudicator's marks, final results.
 8. **Public site:** latest results, past competitions, couple/solo profiles, rankings per category.
 9. **Registration:** the secretariat enters each team from the paper entry form (teams, coaches, dancers' details, events, fees, payment). Athletes can make their own account for their details and membership. Coaches and teams can also make an account to sign in (name, email, password); the secretariat still enters their entries. A linked team (or an athlete, for the dancers that carry their name) can also send an entry online: choose the events, see the fee, pay by GCash, Maya or bank and attach the screenshot. The secretariat checks it under Entry requests and approves it, which makes the entries and records the payment. Staff and adjudicators sign in at `/staff-access`, which no public page links to.

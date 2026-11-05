@@ -306,11 +306,11 @@ async function main() {
     }
     expect((await guest.raw('noSuchFunction')).status === 404, 'an unknown function is not a 404')
     const refused = [
-      ['mc', 'getStaffUsers'],
+      ['compere', 'getStaffUsers'],
       ['scrutineer', 'getStaffUsers'],
       ['secretariat', 'getAuditLog'],
       ['chairperson', 'getPayments'],
-      ['mc', 'getAdjudicatorPins'],
+      ['compere', 'getAdjudicatorPins'],
     ]
     for (const [role, n] of refused) expect((await (await staff(role)).raw(n, COMP)).status === 403, `${role} could call ${n}`)
     const admin = await staff('admin')
@@ -319,7 +319,7 @@ async function main() {
     expect(bad.status === 401, 'a wrong password was not refused')
     const wrongPin = await new Api().post('/api/auth/adjudicator', { pin: '000001' })
     expect(wrongPin.status === 401, 'a wrong PIN was not refused')
-    return 'guest, mc, scrutineer, secretariat, chairperson, admin'
+    return 'guest, compere, scrutineer, secretariat, chairperson, admin'
   })
 
   // ---------------------------------------------------------------- 2. Round 2 of E11: the round on the floor
@@ -951,7 +951,7 @@ async function main() {
     }
     await crawl('public', '/', LAPTOP, null, 40)
     await crawl('public phone', '/', PHONE, null, 20)
-    for (const role of ['admin', 'secretariat', 'scrutineer', 'chairperson', 'mc']) {
+    for (const role of ['admin', 'secretariat', 'scrutineer', 'chairperson', 'compere']) {
       await crawl(role, `/${role === 'chairperson' ? 'scrutineer' : role}`, LAPTOP, (p) => staffSignIn(p, role))
     }
     await crawl('athlete', '/athlete', PHONE, form('/athlete/sign-in', 'athlete@sample.example'))
@@ -959,7 +959,7 @@ async function main() {
     await crawl('team', '/team', LAPTOP, form('/team/sign-in', 'team@sample.example'))
     const unique = [...new Set(problems)]
     expect(unique.length === 0, `${unique.length} problems:\n      ${unique.slice(0, 12).join('\n      ')}`)
-    return 'public, phone, admin, secretariat, scrutineer, chairperson, mc, athlete, coach, team'
+    return 'public, phone, admin, secretariat, scrutineer, chairperson, compere, athlete, coach, team'
   }, process.env.E2E_SKIP_CRAWL === '1')
 
   await step('8. Nothing in any browser raised a console error or a failed call during the whole run', async () => {

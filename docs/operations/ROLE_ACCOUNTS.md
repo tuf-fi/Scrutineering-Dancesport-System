@@ -7,7 +7,7 @@ Staging and production start the same way: an Admin and a Secretariat, nothing e
 ## Order
 
 1. **Admin**: made once, by whoever sets up the server.
-2. **Secretariat, Scrutineer, Chairperson, MC**: made by the Admin on the **Staff** screen.
+2. **Secretariat, Scrutineer, Chairperson, compere**: made by the Admin on the **Staff** screen.
 3. **Adjudicators**: no account. The Admin adds each adjudicator and prints a six-digit PIN for each competition.
 4. **Athletes, coaches and teams**: make their own account on the public site. The secretariat links coach and team accounts to their record.
 
@@ -19,7 +19,7 @@ Staging and production start the same way: an Admin and a Secretariat, nothing e
 | Secretariat | Admin | Email and password, plus a code from the authenticator app once it is turned on | Teams, competitors, entries, entry requests, account links, team and coach changes, schedule, program |
 | Scrutineer | Admin | Email and password | Runs the rounds and checks the marks |
 | Chairperson | Admin | Email and password | Reviews and signs off the rounds |
-| MC | Admin | Email and password | Announcing screen |
+| Compere | Admin | Email and password | Announcing screen |
 | Adjudicator | Admin (adds the person and prints the PIN) | Six-digit PIN | Marks on a phone |
 | Athlete, coach, team | Themselves | Email and password | Their own page, entries and payments |
 
@@ -54,7 +54,7 @@ Fill this in and keep it with the Admin. Do not write passwords in it.
 | Secretariat | | | | |
 | Scrutineer | | | | |
 | Chairperson | | | | |
-| MC | | | | |
+| Compere | | | | |
 
 ## 3. Adjudicators
 

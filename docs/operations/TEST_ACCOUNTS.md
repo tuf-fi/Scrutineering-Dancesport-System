@@ -14,7 +14,7 @@ Sign in at `/staff-access` with email and password.
 | Secretariat | Jonas Bellosillo | `secretariat@sample.example` |
 | Scrutineer | Teresita Quimpo | `scrutineer@sample.example` |
 | Chairperson | Gregorio Almazan | `chairperson@sample.example` |
-| MC | Dante Ibarra | `mc@sample.example` |
+| Compere | Dante Ibarra | `compere@sample.example` |
 
 ## Athlete, coach and team
 

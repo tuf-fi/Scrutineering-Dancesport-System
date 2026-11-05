@@ -71,7 +71,7 @@ export function StaffSignIn() {
   return (
     <AuthShell
       title="Sign in"
-      description={pin ? 'The scrutineer gave you a PIN for today.' : 'For the secretariat, scrutineers, the MC and the admin.'}
+      description={pin ? 'The scrutineer gave you a PIN for today.' : 'For the secretariat, scrutineers, the compere and the admin.'}
       footer={<DevHint kind={pin ? 'pin' : 'staff'} />}
     >
       <div role="tablist" aria-label="Sign in as" className="mb-6 grid grid-cols-2 border-b border-neutral-200">

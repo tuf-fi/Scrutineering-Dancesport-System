@@ -37,7 +37,7 @@ Summary:
 - [x] 5. Marks: validation, safe resubmission, paper-sheet entry
 - [x] 6. Scoring in the server: recalls, ties, approve, publish
 - [x] 7. Real-time: Socket.IO, heartbeats, read-only room for public viewers
-- [x] 8. MC announcements from real approvals
+- [x] 8. Compere announcements from real approvals
 - [x] 9. Audit log and backups
 - [x] 10. Frontend switch from mocks to the API
 - [x] 11. Printing with real data
@@ -67,7 +67,7 @@ Built as a team portal with online proof of payment and Messenger messages, then
 - [x] Payments are a read-only ledger; the secretariat records how each was paid.
 - [x] Coach and team accounts: they sign up, ask to be linked to their record and the secretariat approves it. Their pages match the athlete's: details, dancers, results, rankings, entries, payments, notifications and password.
 - [x] Online entry: a team or an athlete sends an entry with a payment screenshot; the secretariat approves it into real entries and a payment, or turns it down with a reason. The sender is told, with a pop-up and a saved notification.
-- [x] Real-time pop-up notifications with a chime for every role except the adjudicator and MC.
+- [x] Real-time pop-up notifications with a chime for every role except the adjudicator and compere.
 - [x] A competition has a required card photo, shown on the home page.
 - [ ] Data Privacy Act of 2012: the privacy notice (`/privacy`) was rewritten for the entry form and athlete accounts. The organizer must confirm it. Retention is settled: details are kept permanently until removed.
 
@@ -77,7 +77,7 @@ Goal: dancers, parents and the announcer can see what is on the floor, what is n
 
 - [x] The secretariat lays out the program: start time, rounds in order, breaks and the awarding; times work out from the start time and each line's minutes.
 - [x] Public page with search and a round filter; Print and PDF carry the filter. PDF is the browser's Save as PDF from the print dialog, so no PDF library.
-- [x] MC screen: key 5 shows on the floor, up next and the three after.
+- [x] Compere screen: key 5 shows on the floor, up next and the three after.
 - [ ] Set the real minutes per round with the client (CLIENT_QUESTIONS.md item 8); the starting guesses are in `backend/src/services/program.ts`.
 
 ## Sign-in security

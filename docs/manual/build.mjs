@@ -73,7 +73,7 @@ out.push(`<div class="cover">
   <img src="../../frontend/src/assets/logo.png" alt="BOSS">
   <div><div class="bar"></div><p class="kicker">Bicol Oragon Scruteneering System</p><h1>User<br>Manual</h1>
   <p>Every screen and every action, role by role, then a step-by-step guide to running a whole competition.</p></div>
-  <p class="roles">Visitors · Athletes · Coaches · Teams · Adjudicators · MC · Scrutineer · Chairperson · Secretariat · Admin</p>
+  <p class="roles">Visitors · Athletes · Coaches · Teams · Adjudicators · Compere · Scrutineer · Chairperson · Secretariat · Admin</p>
 </div>`)
 out.push('@@TOC@@')
 
@@ -88,7 +88,7 @@ out.push(pageNew(`
 <tr><td>Coach</td><td>Follow your athletes' results and entries.</td><td>Email</td><td>Phone</td></tr>
 <tr><td>Team</td><td>Follow your dancers, pay and send their entries.</td><td>Email</td><td>Phone</td></tr>
 <tr><td>Adjudicator</td><td>Mark the dancers.</td><td>6-digit PIN</td><td>Phone</td></tr>
-<tr><td>MC</td><td>Read out who is called and who won.</td><td>Email</td><td>Laptop or screen</td></tr>
+<tr><td>Compere</td><td>Read out who is called and who won.</td><td>Email</td><td>Laptop or screen</td></tr>
 <tr><td>Scrutineer</td><td>Run each round, check marks, publish results.</td><td>Email</td><td>Laptop</td></tr>
 <tr><td>Chairperson</td><td>Watch the marks and confirm tie decisions.</td><td>Email</td><td>Laptop</td></tr>
 <tr><td>Secretariat</td><td>Enter dancers, give back numbers, plan the program.</td><td>Email</td><td>Laptop</td></tr>
@@ -96,7 +96,7 @@ out.push(pageNew(`
 </table>
 <div class="signin"><div><h2 style="margin-top:0">Where to sign in</h2>
 <ul>
-<li><b>Staff</b> (admin, secretariat, scrutineer, chairperson, MC): the website address followed by <b>/staff-access</b>.</li>
+<li><b>Staff</b> (admin, secretariat, scrutineer, chairperson, compere): the website address followed by <b>/staff-access</b>.</li>
 <li><b>Adjudicators:</b> the same page, <b>Adjudicator</b> tab, or the website address followed by <b>/adjudicator</b>.</li>
 <li><b>Athletes, coaches and teams:</b> press <b>Sign in</b> on the website and choose who you are.</li>
 </ul>
@@ -108,7 +108,7 @@ out.push(pageNew(`
 <p class="num">Start here</p><h1>What every signed-in person has</h1>
 <p class="lead">These work the same for everyone.</p>
 <h2>Pop-up messages</h2>
-<p>Short messages with a small sound appear on the screen when something needs you. Staff see them for new entry requests, new account links and membership payments. The admin hears the same ones as the secretariat. Athletes, coaches and teams see what the secretariat decided, and the same message is kept under <b>Notifications</b>. Adjudicators and the MC get none.</p>
+<p>Short messages with a small sound appear on the screen when something needs you. Staff see them for new entry requests, new account links and membership payments. The admin hears the same ones as the secretariat. Athletes, coaches and teams see what the secretariat decided, and the same message is kept under <b>Notifications</b>. Adjudicators and the compere get none.</p>
 <h2>Required fields and saving</h2>
 <p>A field that must be filled in has a red <b>*</b> after its label. Buttons that save are switched off while the save is under way, so pressing twice never saves twice. On a phone the fields do not zoom in when you tap them.</p>
 <h2>Your password</h2>
@@ -281,19 +281,19 @@ out.push(pageCols(
   ]),
 ))
 
-// ================================================================================ MC
-out.push(divider('MC', 'The announcer. Use a laptop or a projector.', 'Announcer · Account'))
+// ================================================================================ Compere
+out.push(divider('Compere', 'The announcer. Use a laptop or a projector.', 'Announcer · Account'))
 out.push(page(
-  feat('Announcer', 'Sign in as MC: you land here', 'Your screen shows what to announce, in very large type.', [
+  feat('Announcer', 'Sign in as compere: you land here', 'Your screen shows what to announce, in very large type.', [
     'Five views along the top: Next event, Recalled, Finalists, Results and Program. A view shows only after its announcement exists.',
     'Move with the arrows at the top right, or press the number keys 1 to 5.',
     'Next event: the numbers to call to the floor, by heat.',
     'Recalled: the numbers that go through to the next round.',
     'Results: places in order, from last place up, for the round just published.',
     'Nothing shows until the scrutineer publishes a round. If the screen is empty, ask the scrutineer.',
-  ], [I('mc/announcer', 'Next event', { h: 720 }), I('mc/recalled', 'Recalled', { h: 720 })]),
-  feat('Program view', 'Press 5', 'The whole program, with start times.', [], [I('mc/program', '', { h: 720 })]),
-  feat('Account', 'Your name at the top right', 'Change your name and password. Turn on two-step sign-in.', ['The MC cannot change anything about the competition.'], [I('mc/account', '', { h: 560 })]),
+  ], [I('compere/announcer', 'Next event', { h: 720 }), I('compere/recalled', 'Recalled', { h: 720 })]),
+  feat('Program view', 'Press 5', 'The whole program, with start times.', [], [I('compere/program', '', { h: 720 })]),
+  feat('Account', 'Your name at the top right', 'Change your name and password. Turn on two-step sign-in.', ['The compere cannot change anything about the competition.'], [I('compere/account', '', { h: 560 })]),
 ))
 
 // ================================================================================ SCRUTINEER
@@ -332,7 +332,7 @@ out.push(page(
     'See every adjudicator\'s marks, the X total and the places. In a final you also see the skating tables.',
     'Tie in a final: propose keeping the shared place, or a tie-break order. The chairperson confirms.',
     'Approve results: locks the marks, saves the result, adds the ranking points and takes a backup.',
-    'Publish results: makes the result public and shows it to the MC.',
+    'Publish results: makes the result public and shows it to the compere.',
     'Print summary prints the round.',
   ], [I('scrutineer/results', '', { h: 640 }), I('scrutineer/approve-confirm', 'Approve'), I('scrutineer/publish-confirm', 'Publish')]),
   feat('Printouts', 'Print summary, or All printouts', 'Paper sheets for any event or round.', [
@@ -460,7 +460,7 @@ out.push(page(
     'Teams cannot enter events until the fees are saved.',
   ], [I('admin/fees', 'Registration fees', { h: 640 }), I('admin/fees-late', 'Late entry fees', { h: 460 }), I('admin/fees-accounts', 'Accounts', { h: 520 }), I('admin/payment-method-add')]),
   feat('Staff accounts', 'Menu: Staff accounts', 'Create and manage the people who run the system.', [
-    'Add account: name, email, photo (required) and role (secretariat, scrutineer, chairperson, MC or admin).',
+    'Add account: name, email, photo (required) and role (secretariat, scrutineer, chairperson, compere or admin).',
     'A temporary password appears once. Give it to the person in person.',
     'Row icons: edit, reset password, reset two-step sign-in (if on), sign out everywhere, delete.',
     'Open an account to read its activity log.',
@@ -488,7 +488,7 @@ out.push(pageNew(`
   <div><b>Adjudicators</b><span>Mark on their phones</span></div>
   <div><b>Scrutineer</b><span>Checks the marks and settles ties with the chairperson</span></div>
   <div><b>Scrutineer</b><span>Approves and publishes the result</span></div>
-  <div><b>MC and visitors</b><span>The MC announces it. Everyone sees it on the website</span></div>
+  <div><b>Compere and visitors</b><span>The compere announces it. Everyone sees it on the website</span></div>
 </div>
 <h2>How marks become results</h2>
 <p><b>Early rounds (round 1, round 2, quarter-final, semi-final).</b> Each adjudicator marks an X for the number of couples to go on (the recall number). BOSS counts the X marks for each couple. The couples with the most X marks go through. If couples are tied right at the cut-off, the scrutineer proposes whether to take all those tied or only those above, and the chairperson confirms.</p>
@@ -513,7 +513,7 @@ out.push(pageNew(`
 <p class="lead">From the first setup to published results. Each step names who does it and where.</p>
 <h2>Part 1 · Set up</h2>
 ${step(1, 'Admin', 'Set the fees and where to pay', 'Open <b>Fees and payment details</b>. Check the registration fees and the late entry fees, then add GCash, Maya or bank accounts under <b>Accounts</b>.')}
-${step(2, 'Admin', 'Create the staff accounts', 'Open <b>Staff accounts</b> and add the secretariat, scrutineer, chairperson and MC. Give each person their temporary password in person. Ask the secretariat and admin to turn on two-step sign-in.')}
+${step(2, 'Admin', 'Create the staff accounts', 'Open <b>Staff accounts</b> and add the secretariat, scrutineer, chairperson and compere. Give each person their temporary password in person. Ask the secretariat and admin to turn on two-step sign-in.')}
 ${step(3, 'Admin', 'Add the adjudicators', 'Open <b>Adjudicators and panels</b> and add each adjudicator with a letter (A, B, C and so on).')}
 ${step(4, 'Admin', 'Check the points table', 'Open <b>Points table</b> and check the points for each place.')}
 ${step(5, 'Admin', 'Create the competition', 'Open <b>Competitions</b> and press <b>New competition</b>. Add the name, date, venue, organizer and a card photo. Set the entries and fees deadlines if you have them.', [I('admin/competition-new', '', { mm: 62 })])}
@@ -535,12 +535,12 @@ ${step(18, 'Everyone', 'Sign in and test', 'Staff sign in on their laptops. Each
 <h2>Part 4 · On the day, round by round</h2>
 ${step(19, 'Scrutineer', 'Plan the rounds (once)', 'Open <b>Rounds</b> and press <b>Plan rounds</b>. Every event with entries gets its rounds.')}
 ${step(20, 'Scrutineer', 'Split into heats if needed', 'If a round is too big for the floor, open <b>Heats</b>, press <b>Split evenly</b> and <b>Save heats</b>.')}
-${step(21, 'Scrutineer', 'Start the round', 'On <b>Rounds</b>, press <b>Start</b> on the round. It appears on the adjudicators\' phones and the MC\'s screen shows the numbers to call. If it will not start, some entries are unpaid: the secretariat records the payment or scratches the dancer.', [I('scrutineer/rounds', '', { h: 560 })])}
+${step(21, 'Scrutineer', 'Start the round', 'On <b>Rounds</b>, press <b>Start</b> on the round. It appears on the adjudicators\' phones and the compere\'s screen shows the numbers to call. If it will not start, some entries are unpaid: the secretariat records the payment or scratches the dancer.', [I('scrutineer/rounds', '', { h: 560 })])}
 ${step(22, 'Adjudicators', 'Mark and sign', 'Early rounds: tap the numbers of the dancers to go through, exactly the number shown. Final: place every finalist 1st to last. Press <b>Submit</b>, check, then <b>Final and submit</b>, sign and press <b>Finalize</b>.', [I('adjudicator/mark-chosen', '', { mm: 34 }), I('adjudicator/review', '', { mm: 40 }), I('adjudicator/sign', '', { mm: 40 })])}
 ${step(23, 'Scrutineer', 'Watch the live board', 'Watch each phone go from <b>Waiting</b> to <b>Submitted</b>. If a phone cannot send, take the paper sheet and type it in on <b>Paper marks</b>.', [I('scrutineer/live-complete', '', { h: 640, mm: 120 })])}
 ${step(24, 'Scrutineer and chairperson', 'Settle any tie', 'Open <b>Recall</b>. If couples are tied at the cut-off, the scrutineer chooses an option and presses <b>Propose decision</b>. The chairperson opens <b>Recall</b> and presses <b>Confirm tie decision</b>.', [I('scrutineer/recall-proposed', '', { h: 640, mm: 120 })])}
-${step(25, 'Scrutineer', 'Approve and publish', 'Open <b>Results</b>. Check the table, press <b>Approve results</b>, then <b>Publish results</b>. The result is now on the website and on the MC\'s screen, and the ranking points are added.', [I('scrutineer/publish-confirm', '', { mm: 60 })])}
-${step(26, 'MC', 'Announce', 'The MC reads the numbers that go through (<b>Recalled</b>), or the places from last to first (<b>Results</b>). Press the arrows or number keys for the next announcement.', [I('mc/recalled', '', { h: 720, mm: 110 })])}
+${step(25, 'Scrutineer', 'Approve and publish', 'Open <b>Results</b>. Check the table, press <b>Approve results</b>, then <b>Publish results</b>. The result is now on the website and on the compere\'s screen, and the ranking points are added.', [I('scrutineer/publish-confirm', '', { mm: 60 })])}
+${step(26, 'Compere', 'Announce', 'The compere reads the numbers that go through (<b>Recalled</b>), or the places from last to first (<b>Results</b>). Press the arrows or number keys for the next announcement.', [I('compere/recalled', '', { h: 720, mm: 110 })])}
 ${step(27, 'Scrutineer', 'Next round', 'Go back to step 21 for the next round: round 1, round 2, quarter-final, semi-final and finally the final. In the final the adjudicators place every finalist, and a tie in the final is settled the same way as step 24.')}
 ${step(28, 'Secretariat', 'Late changes', 'A dancer withdraws: open the event and press <b>Scratch</b>. A dancer arrives late: add them under <b>Late entries</b>. They cannot dance until they have paid.')}
 <h2>Part 5 · After the competition</h2>

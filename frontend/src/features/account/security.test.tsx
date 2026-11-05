@@ -79,10 +79,10 @@ describe('signing in with two-step on', () => {
   })
 
   it('goes back to the password step', async () => {
-    await api.startTotpSetup('staff-mc')
-    await api.confirmTotpSetup('staff-mc', CODE)
+    await api.startTotpSetup('staff-compere')
+    await api.confirmTotpSetup('staff-compere', CODE)
     renderApp('/staff-access')
-    await userEvent.type(await screen.findByLabelText('Email'), 'mc@sample.example')
+    await userEvent.type(await screen.findByLabelText('Email'), 'compere@sample.example')
     await userEvent.type(screen.getByLabelText('Password'), 'bis2026')
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }))
     await screen.findByLabelText(/^Code from your app/)

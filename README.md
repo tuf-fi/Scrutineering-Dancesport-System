@@ -29,7 +29,7 @@ A dancesport competition system: registration and payments, adjudicators marking
 
 ## Guides for each role
 
-[Admin](docs/guides/admin.md), [Secretariat](docs/guides/secretariat.md), [Scrutineer](docs/guides/scrutineer.md), [Chairperson](docs/guides/chairperson.md), [MC](docs/guides/mc.md), [Adjudicator](docs/guides/adjudicator.md), [Athlete](docs/guides/athlete.md), [Team and coach](docs/guides/team-coach.md).
+[Admin](docs/guides/admin.md), [Secretariat](docs/guides/secretariat.md), [Scrutineer](docs/guides/scrutineer.md), [Chairperson](docs/guides/chairperson.md), [Compere](docs/guides/compere.md), [Adjudicator](docs/guides/adjudicator.md), [Athlete](docs/guides/athlete.md), [Team and coach](docs/guides/team-coach.md).
 
 ## The client
 

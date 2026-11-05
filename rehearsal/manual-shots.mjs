@@ -61,7 +61,7 @@ const SIGN_IN = {
   secretariat: ['staff', { username: 'secretariat@sample.example', password: 'bis2026' }],
   scrutineer: ['staff', { username: 'scrutineer@sample.example', password: 'bis2026' }],
   chairperson: ['staff', { username: 'chairperson@sample.example', password: 'bis2026' }],
-  mc: ['staff', { username: 'mc@sample.example', password: 'bis2026' }],
+  compere: ['staff', { username: 'compere@sample.example', password: 'bis2026' }],
   adjudicator: ['adjudicator', { pin: '443300' }],
   adjudicatorI: ['adjudicator', { pin: '498800' }],
   athlete: ['athlete', { email: 'athlete@sample.example', password: 'bis2026' }],
@@ -433,11 +433,11 @@ const JOBS = {
   },
 
   // One round of E11 from the floor to published results, then a final to place. It makes the images of the
-  // scrutineer, chairperson, adjudicator and MC.
+  // scrutineer, chairperson, adjudicator and compere.
   async floor() {
     const scr = await session('scrutineer')
     const chair = await session('chairperson')
-    const mc = await session('mc', { viewport: { width: 1280, height: 720 } })
+    const compere = await session('compere', { viewport: { width: 1280, height: 720 } })
     const phone = await session('adjudicator', PHONE)
     const S = scr.page
     const P = phone.page
@@ -554,15 +554,15 @@ const JOBS = {
     await visit(S, 'scrutineer', 'security', '/scrutineer/security')
     await visit(chair.page, 'chairperson', 'security', '/scrutineer/security')
 
-    // ---- MC
-    await visit(mc.page, 'mc', 'announcer', '/mc')
+    // ---- Compere
+    await visit(compere.page, 'compere', 'announcer', '/compere')
     for (const [label, name] of [['Recalled', 'recalled'], ['Finalists', 'finalists'], ['Results', 'results'], ['Program', 'program']]) {
-      await tryShot(mc.page, 'mc', name, async () => {
-        await mc.page.keyboard.press({ Recalled: '2', Finalists: '3', Results: '4', Program: '5' }[label])
+      await tryShot(compere.page, 'compere', name, async () => {
+        await compere.page.keyboard.press({ Recalled: '2', Finalists: '3', Results: '4', Program: '5' }[label])
         await sleep(1000)
       })
     }
-    await visit(mc.page, 'mc', 'account', '/account')
+    await visit(compere.page, 'compere', 'account', '/account')
 
     // ---- A final to place: pay what is unpaid, then start it from Rounds
     await S.goto(BASE + '/scrutineer')
@@ -599,15 +599,15 @@ const JOBS = {
       for (const n of nums) await P.getByRole('button', { name: `Place ${n}`, exact: true }).click()
       await sleep(400)
     })
-    await tryShot(mc.page, 'mc', 'finalists', async () => {
-      await mc.page.goto(BASE + '/mc')
-      await settle(mc.page)
-      await mc.page.keyboard.press('3')
+    await tryShot(compere.page, 'compere', 'finalists', async () => {
+      await compere.page.goto(BASE + '/compere')
+      await settle(compere.page)
+      await compere.page.keyboard.press('3')
       await sleep(1000)
     })
     await scr.ctx.close()
     await chair.ctx.close()
-    await mc.ctx.close()
+    await compere.ctx.close()
     await phone.ctx.close()
   },
 }

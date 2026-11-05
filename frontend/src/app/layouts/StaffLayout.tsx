@@ -5,7 +5,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import { cn } from '../../lib/cn.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useUi } from '../../stores/ui.ts'
-import { mcNav, staffNav, type StaffRole } from '../nav.ts'
+import { compereNav, staffNav, type StaffRole } from '../nav.ts'
 import { MobileNav } from './MobileNav.tsx'
 import { Sidebar } from './Sidebar.tsx'
 
@@ -19,7 +19,7 @@ export function StaffLayout() {
   const { pathname } = useLocation()
   const wide = ['/admin/fees', '/admin/points', '/account'].some((p) => pathname.startsWith(p))
   if (!user) return null
-  const items = staffNav[user.role as StaffRole] ?? (user.role === Role.Mc ? mcNav : [])
+  const items = staffNav[user.role as StaffRole] ?? (user.role === Role.Compere ? compereNav : [])
 
   return (
     <div

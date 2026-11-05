@@ -33,6 +33,6 @@ if (hasData(db)) {
   addSampleEntryData(db)
   addSamplePanels(db)
   console.log(`Sample competition loaded into ${config.databasePath}`)
-  console.log(`Staff emails: admin@sample.example, secretariat@sample.example, scrutineer@sample.example, chairperson@sample.example, mc@sample.example. Password for all: ${SAMPLE_PASSWORD}`)
+  console.log(`Staff emails: admin@sample.example, secretariat@sample.example, scrutineer@sample.example, chairperson@sample.example, compere@sample.example. Password for all: ${SAMPLE_PASSWORD}`)
 }
 sqlite.close()

@@ -75,11 +75,18 @@ describe('signing a person out everywhere', () => {
 })
 
 describe('tokens made before session versions existed', () => {
-  it('still work until the account is signed out', async () => {
-    const id = (await app.me(await app.signIn.staff('mc')))!.id
+  it('still work for the compere, whose old tokens call the role "mc"', async () => {
+    const id = (await app.me(await app.signIn.staff('compere')))!.id
     const old = app.app.jwt.sign({ id, name: 'Old token', role: 'mc' }, { expiresIn: '1h' })
+    expect(await app.me(`bis_session=${old}`)).toMatchObject({ id, role: 'compere' })
+  })
+
+  it('still work until the account is signed out', async () => {
+    const id = (await app.me(await app.signIn.staff('compere')))!.id
+    const old = app.app.jwt.sign({ id, name: 'Old token', role: 'compere' }, { expiresIn: '1h' })
     expect(await me(`bis_session=${old}`)).not.toBeNull()
     await app.ok('revokeSessions', ['staff', id], admin)
     expect(await me(`bis_session=${old}`)).toBeNull()
   })
+
 })

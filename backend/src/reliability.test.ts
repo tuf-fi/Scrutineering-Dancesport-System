@@ -140,7 +140,7 @@ describe('backups', () => {
     // The scrutineer and admin can see this; others cannot
     const seen = await app.ok<{ targets: Array<{ ok: boolean }> }>('getBackupStatus', [], await app.signIn.staff('scrutineer'))
     expect(seen.targets.map((t) => t.ok)).toEqual([false, true])
-    expect((await app.call('getBackupStatus', [], await app.signIn.staff('mc'))).status).toBe(403)
+    expect((await app.call('getBackupStatus', [], await app.signIn.staff('compere'))).status).toBe(403)
   })
 
   it('tells the screens when a backup folder stops working, and again when it works', async () => {

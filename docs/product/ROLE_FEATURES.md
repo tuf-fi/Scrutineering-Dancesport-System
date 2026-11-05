@@ -4,11 +4,11 @@ Every role in BIS, the screens it has, and everything it can do on them. Written
 
 ## At a glance
 
-| | Public | Athlete | Coach | Team | Adjudicator | MC | Scrutineer | Chairperson | Secretariat | Admin |
+| | Public | Athlete | Coach | Team | Adjudicator | Compere | Scrutineer | Chairperson | Secretariat | Admin |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Signs in with | nothing | email | email | email | PIN | email | email | email | email | email |
 | Device | phone | phone or laptop | phone or laptop | phone or laptop | phone | laptop or projector | laptop | laptop | laptop | laptop |
-| Starts at | `/` | `/athlete` | `/coach` | `/team` | `/adjudicator` | `/mc` | `/scrutineer` | `/scrutineer` | `/secretariat` | `/admin` |
+| Starts at | `/` | `/athlete` | `/coach` | `/team` | `/adjudicator` | `/compere` | `/scrutineer` | `/scrutineer` | `/secretariat` | `/admin` |
 | Sees published results and rankings | yes | yes | yes | yes | no | yes | yes | yes | yes | yes |
 | Sends an entry online | no | own name | no | own dancers | no | no | no | no | no | no |
 | Enters dancers into events | no | no | no | no | no | no | no | no | yes | yes (same screens) |
@@ -122,16 +122,16 @@ Only **published** results are public. A round that is still being marked or has
 
 ---
 
-## MC
+## Compere
 
 **Device:** a laptop or projector. **Account:** email and password, made by the admin.
 
 | Screen | Path | What you can do |
 | --- | --- | --- |
-| Announcer | `/mc` | Read the announcements of the round just **published**: places in order, last place first, in very large type. **Next announcement** and **Previous announcement** move through them; the program is shown too |
+| Announcer | `/compere` | Read the announcements of the round just **published**: places in order, last place first, in very large type. **Next announcement** and **Previous announcement** move through them; the program is shown too |
 | Account | `/account` | Change your name and password; turn on two-step sign-in |
 
-Nothing shows until the scrutineer publishes a round. The MC changes nothing about the competition and gets no pop-ups.
+Nothing shows until the scrutineer publishes a round. The compere changes nothing about the competition and gets no pop-ups.
 
 ---
 
@@ -145,7 +145,7 @@ Nothing shows until the scrutineer publishes a round. The MC changes nothing abo
 | Heats | `/scrutineer/heats` | **Split evenly** into heats, move any competitor to another heat, **save** the heats |
 | Live board | `/scrutineer/live` | Watch each adjudicator's phone go from waiting to marking to submitted. A phone silent for 20 seconds, or "marks on the phone, not sent", is flagged. **Review the recall** (or **results**) when all are in |
 | Recall | `/scrutineer/recall` | See the X marks per competitor and the cut-off for the next round. For a tie at the cut-off: choose how to settle it and **Propose decision** |
-| Results | `/scrutineer/results` | See each adjudicator's marks and the skating table. For a tie in a final: propose keeping the shared place or a tie-break order. **Approve results** (saves the result, adds ranking points, takes a backup), then **Publish results** (makes it public and shows it to the MC). **Print summary** |
+| Results | `/scrutineer/results` | See each adjudicator's marks and the skating table. For a tie in a final: propose keeping the shared place or a tie-break order. **Approve results** (saves the result, adds ranking points, takes a backup), then **Publish results** (makes it public and shows it to the compere). **Print summary** |
 | Paper marks | `/scrutineer/paper-marks` | When an adjudicator's phone could not send their marks, choose the round and the adjudicator who handed in a sheet (only those who have not submitted are listed), type in exactly what is on it (X marks, or placings in a final) and press **Enter marks**. They count the same as marks sent from the phone and the adjudicator shows as submitted on the Live board. Only while a round is being marked or reviewed; not after it is approved |
 | Printouts | `/print` | Heat list, qualified list, scores sheet, final results and blank mark sheets for any event or round |
 | Security | `/scrutineer/security` | Turn on two-step sign-in, change your password |
@@ -207,7 +207,7 @@ Nothing shows until the scrutineer publishes a round. The MC changes nothing abo
 | Points table | `/admin/points` | Edit the ranking points for each place |
 | Payments | `/admin/payments` | See what each team owes and has paid, search and filter by status, open one to see what it covers and who recorded it. A read-only ledger |
 | Fees and payment details | `/admin/fees` | Set the registration fees (first entry, each extra, ranking and inter-collegiate events, athlete and coach membership, Coaches Summit), the late-entry solo and couple fees, and the **payment accounts** (GCash, Maya, bank) people are shown when they pay |
-| Staff accounts | `/admin/staff` | **Create** staff (secretariat, scrutineer, chairperson, MC, admin) with a photo (required) and a temporary password shown once; edit, delete, **reset password**, **sign out everywhere**, **reset two-step sign-in**, and read each account's **activity** log |
+| Staff accounts | `/admin/staff` | **Create** staff (secretariat, scrutineer, chairperson, compere, admin) with a photo (required) and a temporary password shown once; edit, delete, **reset password**, **sign out everywhere**, **reset two-step sign-in**, and read each account's **activity** log |
 | Security | `/admin/security` | Turn on two-step sign-in with an authenticator app (and save the recovery codes), change your password |
 | Backups | top of every screen | A warning appears if a backup folder fails |
 
@@ -220,7 +220,7 @@ Nothing shows until the scrutineer publishes a round. The MC changes nothing abo
 - **A photo.** Every athlete, coach, team, staff account and adjudicator has one: it is asked for when the account is made, and can be replaced but not removed.
 - **Required fields** have a red asterisk after their label. A button that saves is switched off while the save is under way, so a double tap saves once.
 
-- **Pop-up notifications** with a short sound, live: staff see alerts that are not kept (a new entry request, a new account link); athletes, coaches and teams see what is saved in their **Notifications**. On a laptop they appear bottom right and slide out to the right; on a phone or tablet they come across the top and slide up. Adjudicators and the MC get none.
+- **Pop-up notifications** with a short sound, live: staff see alerts that are not kept (a new entry request, a new account link); athletes, coaches and teams see what is saved in their **Notifications**. On a laptop they appear bottom right and slide out to the right; on a phone or tablet they come across the top and slide up. Adjudicators and the compere get none.
 - **Account page** for staff at `/account`: change your name and password and set up two-step sign-in.
 - **Phone and tablet layout:** the same pages with a black header and a right-hand menu; the athlete, coach and team links become a strip under the navbar.
 - **The server decides.** Every action is checked on the server against the role, so a hidden screen is not the only thing stopping someone: a role that is not on a function's list gets "Your account cannot do this."

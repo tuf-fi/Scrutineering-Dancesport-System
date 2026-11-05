@@ -239,7 +239,7 @@ describe('staff accounts', () => {
     await screen.findByRole('button', { name: 'Edit Amelia Rosales' })
     // The signed-in name also shows in the phone top bar, so look inside the table
     const table = () => within(screen.getByRole('table'))
-    await userEvent.selectOptions(screen.getByLabelText('Role'), 'mc')
+    await userEvent.selectOptions(screen.getByLabelText('Role'), 'compere')
     expect(await table().findByText('Dante Ibarra')).toBeInTheDocument()
     expect(table().queryByText('Amelia Rosales')).not.toBeInTheDocument()
 
@@ -258,8 +258,8 @@ describe('staff accounts', () => {
 
     const shown = await dialogFor('Password reset')
     const password = within(shown).getByText(/^[a-z0-9]{4,12}$/).textContent ?? ''
-    await expect(api.signInStaff('mc@sample.example', password)).resolves.toMatchObject({ role: Role.Mc })
-    await expect(api.signInStaff('mc@sample.example', 'bis2026')).rejects.toThrow('Wrong email or password.')
+    await expect(api.signInStaff('compere@sample.example', password)).resolves.toMatchObject({ role: Role.Compere })
+    await expect(api.signInStaff('compere@sample.example', 'bis2026')).rejects.toThrow('Wrong email or password.')
   })
 
   it('signs a person out everywhere after confirming', async () => {
@@ -271,7 +271,7 @@ describe('staff accounts', () => {
   })
 
   it('deletes an account after confirming, but not your own or the last admin', async () => {
-    await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme@sample.example', role: Role.Mc, photo: 'data:image/png;base64,iVBORw0KGgo=' })
+    await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme@sample.example', role: Role.Compere, photo: 'data:image/png;base64,iVBORw0KGgo=' })
     renderApp('/admin/staff', Role.Admin)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Delete Me' }))

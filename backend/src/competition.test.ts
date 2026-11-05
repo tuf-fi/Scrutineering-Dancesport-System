@@ -277,7 +277,7 @@ describe('the final', () => {
     expect(byNumber.slice(4).every((id) => earned[id] === 70)).toBe(true)
   })
 
-  it('shows guests nothing until it is published, then the results and an MC list', async () => {
+  it('shows guests nothing until it is published, then the results and a compere list', async () => {
     expect(await app.ok<unknown[]>('getResults', [eventId])).toEqual([])
     expect((await app.call('getSkatingTable', [finalId])).status).toBe(403)
     expect(await app.ok<string[]>('getResultEventIds', [competitionId])).toEqual([])
@@ -292,7 +292,7 @@ describe('the final', () => {
     const history = await app.ok<Array<{ place: number; points: number }>>('getCompetitorHistory', [byNumber[0]!])
     expect(history).toEqual([expect.objectContaining({ place: 1, points: 200 })])
 
-    // The MC reads the recall, then the finalists, then a slide that says it is time for the results, then them from last place up
+    // The compere reads the recall, then the finalists, then a slide that says it is time for the results, then them from last place up
     const list = await app.ok<Announcement[]>('getAnnouncements', [], scrutineer)
     expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'results', 'result', 'result', 'result', 'result'])
     expect(list.filter((a) => a.kind === 'result').map((a) => a.result!.place)).toEqual([4, 3, 2, 1])

@@ -3,7 +3,7 @@ import { useAuth } from '../../stores/auth.ts'
 
 // LED wall layout: the deep brown ground with one warm glow. The announcer's navbar is fixed on top (it fades when idle), and the
 // sign-out lives in its account menu.
-export function McLayout() {
+export function CompereLayout() {
   const user = useAuth((s) => s.user)
   if (!user) return null
 

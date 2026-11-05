@@ -73,7 +73,7 @@ describe('signing in through the client', () => {
   it('tells the app the session ended when the server stops recognising it', async () => {
     const ended = vi.fn()
     useDevice('expiring')
-    await client.signInStaff('mc@sample.example', SAMPLE_PASSWORD)
+    await client.signInStaff('compere@sample.example', SAMPLE_PASSWORD)
     onSessionEnded(ended)
     jars.set('expiring', 'bis_session=not-a-real-token')
     await expect(client.getAnnouncements()).rejects.toBeInstanceOf(ApiError)

@@ -14,7 +14,7 @@ flowchart LR
 | Admin | `/staff-access` | `/admin/...` (competitions, staff, adjudicators, fees, payments, security) |
 | Secretariat | `/staff-access` | `/secretariat/...` (events, entries, requests, schedule, program) |
 | Scrutineer, Chairperson | `/staff-access` | `/scrutineer/...` (rounds, heats, live board, recall, results) |
-| MC | `/staff-access` | `/mc` (announcements) |
+| Compere | `/staff-access` | `/compere` (announcements) |
 | Adjudicator | `/adjudicator` (PIN or QR) | `/adjudicator/mark` on a phone |
 | Athlete, coach, team | Sign in on the public site, then `/login?as=athlete`, `coach` or `team` | `/athlete`, `/coach` or `/team` |
 | Public | none | `/`, `/competitions`, `/rankings`, `/athletes` |
@@ -111,7 +111,7 @@ Until an event's entries are paid, the scrutineer cannot start its round.
 | Adjudicators | `/adjudicator`: type the PIN or scan the QR code | Signs in on one phone at a time (signing in on another phone signs the first out). The phone shows `/adjudicator/waiting` ("Waiting for the next round") |
 | Secretariat | `/secretariat/late-entries` | Add a late entry (cash at the venue or not yet paid; an unpaid late entry cannot dance). Use **Scratch** on an event page for a withdrawal (**Restore** undoes it before the event starts) |
 | Secretariat | `/print` → Heat list, Recall list, Blank mark sheets | Paper for the floor and the paper fallback: `/print/heats/:eventId`, `/print/recall/:eventId`, `/print/blank-sheets/:eventId` |
-| MC | `/mc` | Waits for the first published round |
+| Compere | `/compere` | Waits for the first published round |
 
 ### 2.2 Each round, from first to last
 
@@ -126,7 +126,7 @@ Until an event's entries are paid, the scrutineer cannot start its round.
 | 7 | Scrutineer | `/scrutineer` → next round | Start the next round; heats follow the recall |
 | 8 | Scrutineer | `/scrutineer/results` (Results) | For a final: the skating table. A tie in the final blocks approval until the scrutineer proposes (keep the shared place, or a tie-break order) and the chairperson confirms |
 | 9 | Scrutineer | `/scrutineer/results` → **Approve results** | Saves the result, adds the ranking points and takes a backup |
-| 10 | Scrutineer | `/scrutineer/results` → **Publish results** | Makes it public and shows it to the MC |
+| 10 | Scrutineer | `/scrutineer/results` → **Publish results** | Makes it public and shows it to the compere |
 
 The chairperson sees the same screens but cannot start, approve or publish; every decision is stored with their name and the time.
 
@@ -134,12 +134,12 @@ The chairperson sees the same screens but cannot start, approve or publish; ever
 
 | Who | Where | What |
 | --- | --- | --- |
-| MC | `/mc` | The announcements for the round just published, places in large type, last place first. **Next announcement** and **Previous announcement** move through them. Nothing shows until publication |
+| Compere | `/compere` | The announcements for the round just published, places in large type, last place first. **Next announcement** and **Previous announcement** move through them. Nothing shows until publication |
 | Public | `/competitions/:id/program` | What is on the floor now and what is next |
 | Public | `/competitions/:id/events/:eventId` | Published results of an event |
 | Public | `/rankings`, `/competitors/:id` | Updated the moment a result is approved |
 | Athlete, coach, team | `/athlete/results`, `/coach/results`, `/team/results` | Their dancers' results |
-| Staff | pop-ups on any page | Live alerts (a new entry request, an account link) with a chime. Adjudicators and the MC get none |
+| Staff | pop-ups on any page | Live alerts (a new entry request, an account link) with a chime. Adjudicators and the compere get none |
 
 ### 2.4 When something goes wrong
 

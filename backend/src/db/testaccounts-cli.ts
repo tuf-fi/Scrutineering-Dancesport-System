@@ -11,7 +11,7 @@ import * as t from './schema.ts'
 import { addTestData } from './testdata.ts'
 
 // pnpm --filter @bis/backend db:testaccounts [--yes] [--site https://staging.example.com] [--pdf path]
-// Makes one test login for each role that has one (admin, secretariat, scrutineer, chairperson, MC, athlete, coach, team) and a PIN for every adjudicator, then prints them
+// Makes one test login for each role that has one (admin, secretariat, scrutineer, chairperson, compere, athlete, coach, team) and a PIN for every adjudicator, then prints them
 // and writes them to a PDF. No password or PIN is kept in the repository: pass --password to choose one password for every login,
 // or leave it out and each login gets its own random password. PINs are random and kept once made. Every run writes the sheet again.
 if (process.env.BIS_DEPLOYED === 'true' && !process.argv.includes('--yes')) {
@@ -51,7 +51,7 @@ const STAFF = [
   { id: 'td-secretariat', role: 'Secretariat', key: 'secretariat', email: 'testsecretariat@testdata.example', name: 'Test Secretariat', password: passwordFor() },
   { id: 'td-scrutineer', role: 'Scrutineer', key: 'scrutineer', email: 'testscrutineer@testdata.example', name: 'Test Scrutineer', password: passwordFor() },
   { id: 'td-chairperson', role: 'Chairperson', key: 'chairperson', email: 'testchairperson@testdata.example', name: 'Test Chairperson', password: passwordFor() },
-  { id: 'td-mc', role: 'MC', key: 'mc', email: 'testmc@testdata.example', name: 'Test MC', password: passwordFor() },
+  { id: 'td-compere', role: 'Compere', key: 'compere', email: 'testcompere@testdata.example', name: 'Test Compere', password: passwordFor() },
 ] as const
 const staff: Login[] = STAFF.map((u) => ({ role: u.role, email: u.email, name: u.name, password: u.password, path: '/staff-access' }))
 const admin = staff[0]!

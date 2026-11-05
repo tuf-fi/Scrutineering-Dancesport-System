@@ -228,7 +228,7 @@ export const approveRound = (_actorId: string, roundId: string) => call<void>('a
 export const publishRound = (_actorId: string, roundId: string) => call<void>('publishRound', roundId)
 export const getBackupStatus = () => call<BackupStatus>('getBackupStatus')
 
-// ---- MC ----
+// ---- Compere ----
 
 export const getAnnouncements = () => call<Announcement[]>('getAnnouncements')
 

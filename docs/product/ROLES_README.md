@@ -11,7 +11,7 @@
 | **Scrutineer** | The person responsible for results (the "Executor" on result sheets) | Runs every round, checks marks, calculates results | Starts rounds and heats, sets recall numbers, watches adjudicators submit in real time, resolves ties, approves and publishes results | Laptop |
 | **Chairperson of Adjudicators** | The senior adjudicator who supervises the panel | Oversees fairness, decides ties at the recall cutoff with the scrutineer, signs results | Views live submissions and the calculation, confirms tie decisions | Laptop |
 | **Adjudicators** | The adjudicators on the panel, usually 7 and up to 10, each with a letter (A, B, C…) | Watch the dancing and mark it | Sign in with a PIN, mark an X for each competitor to recall in early rounds, place finalists 1st to 6th or 7th in the final | Phone, one each |
-| **MC / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop or venue screen |
+| **Compere / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop or venue screen |
 | **Competitors** | Couples or solo dancers, each with a back number | Dance in their events | No login; see results, history and rankings on the public website | Their own phone |
 | **Athletes** | Dancers who make an account | Keep their details and pay their membership | Fill in their details, report a membership payment (how it was paid and the reference number) for the secretariat to confirm | Phone or laptop (online) |
 | **Teams / Coaches** | Dance teams, studios or teams (the "Country" column on sheets) | Are entered by the secretariat from the entry form | Make an account and ask the secretariat to link it to their record; the secretariat approves the link. A team sends entries online with a payment screenshot, and the secretariat approves them | Phone or laptop (online) |
@@ -25,7 +25,7 @@ BIS is online only: every device needs a browser and an internet connection. The
 | --- | --- | --- |
 | Laptop | Secretariat | Entries, schedule, program, printing heat and recall lists |
 | Laptop | Scrutineer (and chairperson) | Runs rounds and results |
-| Laptop or venue screen | MC | Announcements and live results display |
+| Laptop or venue screen | Compere | Announcements and live results display |
 | Phones | Adjudicators | Marking each round; sign in with a PIN over mobile data or any Wi-Fi with internet |
 
 ## Terms on result sheets
