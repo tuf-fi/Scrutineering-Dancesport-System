@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Skeleton } from '../../../components/ui/index.ts'
 import { useCompetitions } from '../../../hooks/index.ts'
 import { dateParts, todayIso } from '../../../lib/format.ts'
+import { EmptyNote } from './EmptyNote.tsx'
 import { SectionHead } from './SectionHead.tsx'
 
 // The three most recent competitions that have started; each row opens that competition's standings
@@ -17,7 +18,9 @@ export function LatestCompetitions() {
       {isLoading ? (
         <Skeleton className="mt-6 h-48 w-full" />
       ) : latest.length === 0 ? (
-        <p className="border-b border-neutral-200 py-10 text-body text-neutral-600">No competition has been held yet.</p>
+        <div className="mt-4">
+          <EmptyNote title="No competition has been held yet" description="Results appear here once a competition has taken place." />
+        </div>
       ) : (
         <ul>
           {latest.map((c) => {

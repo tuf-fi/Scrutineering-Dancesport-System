@@ -1,9 +1,10 @@
 import type { Competition } from '@bis/shared'
-import { ArrowUpRight, CalendarDays } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { Skeleton } from '../../../components/ui/index.ts'
 import { dateParts, todayIso } from '../../../lib/format.ts'
 import { HERO_IMAGE } from '../../../lib/hero.ts'
+import { EmptyNote } from './EmptyNote.tsx'
 import { SectionHead } from './SectionHead.tsx'
 
 const daysUntil = (iso: string) => Math.round((Date.parse(iso) - Date.parse(todayIso())) / 86_400_000)
@@ -18,13 +19,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
       {!list ? (
         <Skeleton className="h-48 w-full" />
       ) : shown.length === 0 ? (
-        <div className="flex items-start gap-4 rounded-lg border border-dashed border-neutral-300 p-6">
-          <CalendarDays aria-hidden className="mt-0.5 size-5 shrink-0 text-neutral-400" strokeWidth={1.75} />
-          <div className="flex flex-col gap-1">
-            <p className="text-body font-semibold text-neutral-900">No competitions added yet</p>
-            <p className="text-small text-neutral-600">New events appear here as soon as they are announced.</p>
-          </div>
-        </div>
+        <EmptyNote title="No competitions added yet" description="New events appear here as soon as they are announced." />
       ) : (
         <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((c) => {
