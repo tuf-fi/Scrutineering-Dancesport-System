@@ -200,10 +200,10 @@ describe('the session', () => {
 
   it('signs an athlete up and in with their email', async () => {
     answerNext(() => reply(200, { data: { id: 'a', name: 'Ana', role: 'athlete' } }))
-    await client.signUpAthlete('Ana', 'ana@test.example', 'a-long-password')
+    await client.signUpAthlete('Ana', 'ana@test.example', 'a-long-password', 'data:image/png;base64,iVBORw0KGgo=')
     await client.signInAthlete('ana@test.example', 'a-long-password')
     expect(sent.map((s) => s.url)).toEqual(['/api/auth/athlete/sign-up', '/api/auth/athlete'])
-    expect(sent[0]!.body).toEqual({ name: 'Ana', email: 'ana@test.example', password: 'a-long-password' })
+    expect(sent[0]!.body).toEqual({ name: 'Ana', email: 'ana@test.example', password: 'a-long-password', photo: 'data:image/png;base64,iVBORw0KGgo=' })
   })
 
   it('asks the server who the cookie belongs to', async () => {

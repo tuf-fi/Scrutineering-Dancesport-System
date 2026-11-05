@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react'
+import { CalendarDays, Clock, Eye, EyeOff } from 'lucide-react'
 import {
   useId,
   useState,
@@ -13,6 +13,12 @@ const control =
   'w-full rounded-md border bg-neutral-50 px-3.5 text-body text-neutral-900 transition-colors ' +
   'hover:border-neutral-400 focus-visible:border-neutral-900 focus-visible:bg-white ' +
   'focus-visible:outline-gold-500 disabled:bg-neutral-100 disabled:text-neutral-500'
+
+// The whole field opens the picker; the browser's own icon is invisible and covers it
+const DATE_FIELD =
+  'appearance-none pr-10 text-left [&::-webkit-date-and-time-value]:text-left [&::-webkit-calendar-picker-indicator]:absolute ' +
+  '[&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:cursor-pointer ' +
+  '[&::-webkit-calendar-picker-indicator]:opacity-0'
 
 interface CommonProps {
   label: string
@@ -30,7 +36,7 @@ interface FieldShellProps extends CommonProps {
 
 function FieldShell({ label, hideLabel, hint, error, id, required, children }: FieldShellProps) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex min-w-0 flex-col gap-1.5">
       <label
         htmlFor={id}
         className={cn(
@@ -74,10 +80,19 @@ export function Input({
   const id = useId()
   const [shown, setShown] = useState(false)
   const secret = props.type === 'password'
+  // Dates and times get their own icon: a phone's browser draws none, and the native one is hidden so it is not drawn twice
+  const PickerIcon = props.type === 'time' ? Clock : props.type === 'date' || props.type === 'month' || props.type === 'datetime-local' ? CalendarDays : null
   const input = (
     <input
       id={id}
-      className={cn(control, 'h-10', secret && 'pr-11', error ? 'border-danger' : 'border-neutral-300', className)}
+      className={cn(
+        control,
+        'h-10 min-w-0 max-w-full',
+        secret && 'pr-11',
+        PickerIcon && DATE_FIELD,
+        error ? 'border-danger' : 'border-neutral-300',
+        className,
+      )}
       {...describe(id, hint, error)}
       {...props}
       type={secret && shown ? 'text' : props.type}
@@ -97,6 +112,11 @@ export function Input({
           >
             {shown ? <EyeOff aria-hidden className="size-[18px]" strokeWidth={1.75} /> : <Eye aria-hidden className="size-[18px]" strokeWidth={1.75} />}
           </button>
+        </div>
+      ) : PickerIcon ? (
+        <div className="relative">
+          {input}
+          <PickerIcon aria-hidden className="pointer-events-none absolute right-3 top-1/2 size-[18px] -translate-y-1/2 text-neutral-500" strokeWidth={1.75} />
         </div>
       ) : (
         input
@@ -119,7 +139,7 @@ export function Select({
     <FieldShell label={label} hideLabel={hideLabel} hint={hint} error={error} id={id} required={props.required}>
       <select
         id={id}
-        className={cn(control, 'h-10', error ? 'border-danger' : 'border-neutral-300', className)}
+        className={cn(control, 'h-10 min-w-0 max-w-full', error ? 'border-danger' : 'border-neutral-300', className)}
         {...describe(id, hint, error)}
         {...props}
       >

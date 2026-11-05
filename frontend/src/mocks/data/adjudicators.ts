@@ -1,4 +1,4 @@
-import type { Adjudicator, AdjudicatorPin, Panel } from '@bis/shared'
+import { samplePhoto, type Adjudicator, type AdjudicatorPin, type Panel } from '@bis/shared'
 import { currentCompetitionId } from './competitions.ts'
 import { currentEvents } from './events.ts'
 
@@ -12,6 +12,7 @@ export const adjudicators: Adjudicator[] = NAMES.map((name, i) => ({
   id: `adj-${String.fromCharCode(97 + i)}`,
   name,
   letter: String.fromCharCode(65 + i),
+  photo: samplePhoto(name),
 }))
 
 // Sample PINs: six digits, fixed so a tester can sign in

@@ -40,7 +40,7 @@ export function Dialog({ open, onClose, title, description, children, actions, c
               </RadixDialog.Close>
             </div>
 
-            {children && <div className="no-scrollbar flex-1 overflow-y-auto px-6 pb-6">{children}</div>}
+            {children && <div className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-6 pb-6">{children}</div>}
 
             {actions && (
               <div className="flex justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-6 py-3.5">

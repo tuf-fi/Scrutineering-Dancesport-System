@@ -114,9 +114,9 @@ export const getResultEventIds = (competitionId: string) => call<string[]>('getR
 export const saveCompetition = (_actorId: string, input: CompetitionInput, id?: string) =>
   call<Competition>('saveCompetition', input, id)
 export const deleteCompetition = (_actorId: string, id: string) => call<{ id: string }>('deleteCompetition', id)
-export const createStaffUser = (_actorId: string, input: { name: string; username: string; role: Role }) =>
+export const createStaffUser = (_actorId: string, input: { name: string; username: string; role: Role; photo: string }) =>
   call<{ user: StaffUser; tempPassword: string }>('createStaffUser', input)
-export const updateStaffUser = (_actorId: string, id: string, input: { name: string; role: Role }) =>
+export const updateStaffUser = (_actorId: string, id: string, input: { name: string; role: Role; photo?: string }) =>
   call<StaffUser>('updateStaffUser', id, input)
 export const deleteStaffUser = (_actorId: string, id: string) => call<{ id: string }>('deleteStaffUser', id)
 export const resetStaffPassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetStaffPassword', id)
@@ -126,9 +126,9 @@ export const confirmTotpSetup = (_actorId: string, code: string) => call<{ recov
 export const disableTotp = (_actorId: string, password: string, code: string) => call<void>('disableTotp', password, code)
 export const resetTotp = (_actorId: string, id: string) => call<void>('resetTotp', id)
 export const revokeSessions = (_actorId: string, kind: AccountKind, id: string) => call<void>('revokeSessions', kind, id)
-export const createAdjudicator = (_actorId: string, input: { name: string; letter: string }) =>
+export const createAdjudicator = (_actorId: string, input: { name: string; letter: string; photo: string }) =>
   call<Adjudicator>('createAdjudicator', input)
-export const updateAdjudicator = (_actorId: string, id: string, input: { name: string }) =>
+export const updateAdjudicator = (_actorId: string, id: string, input: { name: string; photo?: string }) =>
   call<Adjudicator>('updateAdjudicator', id, input)
 export const deleteAdjudicator = (_actorId: string, id: string) => call<{ id: string }>('deleteAdjudicator', id)
 export const generatePins = (_actorId: string, competitionId: string, adjudicatorId?: string) =>
@@ -238,9 +238,9 @@ export const signInStaff = (username: string, password: string, code?: string) =
   auth<SessionUser>('staff', { username, password, ...(code ? { code } : {}) })
 export const signInAdjudicator = (pin: string) => auth<SessionUser>('adjudicator', { pin })
 export const signInAthlete = (email: string, password: string) => auth<SessionUser>('athlete', { email, password })
-export const signUpAthlete = (name: string, email: string, password: string) => auth<SessionUser>('athlete/sign-up', { name, email, password })
+export const signUpAthlete = (name: string, email: string, password: string, photo: string) => auth<SessionUser>('athlete/sign-up', { name, email, password, photo })
 export const signInMember = (role: 'coach' | 'team', email: string, password: string) => auth<SessionUser>(role, { email, password })
-export const signUpMember = (role: 'coach' | 'team', name: string, email: string, password: string) => auth<SessionUser>(`${role}/sign-up`, { name, email, password })
+export const signUpMember = (role: 'coach' | 'team', name: string, email: string, password: string, photo: string) => auth<SessionUser>(`${role}/sign-up`, { name, email, password, photo })
 export const getMyMember = (_memberId: string) => call<MemberAccount>('getMyMember')
 export const saveMyMember = (_memberId: string, input: MemberInput) => call<MemberAccount>('saveMyMember', input)
 export const saveMyMemberPhoto = (_memberId: string, photo: string | null) => call<MemberAccount>('saveMyMemberPhoto', photo)

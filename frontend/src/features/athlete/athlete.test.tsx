@@ -26,6 +26,9 @@ describe('athlete account', () => {
     await userEvent.type(screen.getByLabelText('Password'), 'A-long-password1')
     await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
+    expect(await screen.findByText('Add a photo.')).toBeInTheDocument()
+    await userEvent.upload(screen.getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     expect(await screen.findByRole('heading', { name: 'Ana Lim' })).toBeInTheDocument()
     expect(await screen.findByText('Not paid')).toBeInTheDocument()
 
@@ -57,6 +60,7 @@ describe('athlete account', () => {
     await userEvent.type(screen.getByLabelText('Email'), 'ben@test.example')
     await userEvent.type(screen.getByLabelText('Password'), 'A-long-password1')
     await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
+    await userEvent.upload(screen.getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     await userEvent.click(within(await screen.findByRole('navigation', { name: 'Account' })).getByRole('link', { name: 'Membership' }))
     await userEvent.upload(await screen.findByLabelText('Payment screenshot'), screenshot())
@@ -101,7 +105,7 @@ describe('athlete account', () => {
       }
     }
     expect(name).not.toBe('')
-    const session = await signUpAthlete(name, 'match@test.example', 'A-long-password1')
+    const session = await signUpAthlete(name, 'match@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
     renderApp('/athlete/results', Role.Athlete, { id: session.id, name })
     const list = await screen.findByRole('list', { name: 'My results' })
     expect(within(list).getAllByRole('listitem').length).toBeGreaterThan(0)
@@ -131,13 +135,13 @@ describe('athlete account', () => {
   })
 
   it('says so when nothing carries the athlete name', async () => {
-    const session = await signUpAthlete('Nobody Atall', 'nobody@test.example', 'A-long-password1')
+    const session = await signUpAthlete('Nobody Atall', 'nobody@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
     renderApp('/athlete/results', Role.Athlete, { id: session.id, name: 'Nobody Atall' })
     expect(await screen.findByText('No results yet')).toBeInTheDocument()
   })
 
   it('keeps a history of payments and a notice for a team change that waits for the secretariat', async () => {
-    const session = await signUpAthlete('Eve Dela Cruz', 'eve@test.example', 'A-long-password1')
+    const session = await signUpAthlete('Eve Dela Cruz', 'eve@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
     const teamId = (await (await import('../../mocks/api.ts')).getTeams())[0]!.id
     const otherTeam = (await (await import('../../mocks/api.ts')).getTeams())[1]!.id
     await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', teamId, coachId: null })
@@ -156,7 +160,7 @@ describe('athlete account', () => {
   })
 
   it('shows a new notification as it happens, with a count on the bell', async () => {
-    const session = await signUpAthlete('Gia Reyes', 'gia@test.example', 'A-long-password1')
+    const session = await signUpAthlete('Gia Reyes', 'gia@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
     await requestMembership(session.id, { method: 'GCash', receipt: SHOT })
     renderApp('/athlete/notifications', Role.Athlete, { id: session.id, name: 'Gia Reyes' })
     expect(await screen.findByText('Nothing yet')).toBeInTheDocument()
@@ -173,7 +177,7 @@ describe('athlete account', () => {
   })
 
   it('opens the bell with the latest notifications', async () => {
-    const session = await signUpAthlete('Hal Torres', 'hal@test.example', 'A-long-password1')
+    const session = await signUpAthlete('Hal Torres', 'hal@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
     await requestMembership(session.id, { method: 'Maya', receipt: SHOT })
     await rejectMembership('staff-admin', session.id, 'Screenshot is blurry')
     renderApp('/athlete', Role.Athlete, { id: session.id, name: 'Hal Torres' })
@@ -186,7 +190,7 @@ describe('athlete account', () => {
   })
 
   it('lets the secretariat approve a team change', async () => {
-    const session = await signUpAthlete('Fay Ocampo', 'fay@test.example', 'A-long-password1')
+    const session = await signUpAthlete('Fay Ocampo', 'fay@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
     const { getTeams } = await import('../../mocks/api.ts')
     const [first, second] = await getTeams()
     const input = { name: 'Fay Ocampo', birthDate: '2015-01-01', phone: '0917', address: '', province: '', coachId: null }

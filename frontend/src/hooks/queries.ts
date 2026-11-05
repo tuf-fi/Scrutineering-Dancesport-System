@@ -26,6 +26,8 @@ export const useAdjudicatorPins = (competitionId: string) =>
   useQuery({
     queryKey: ['adjudicator-pins', competitionId],
     queryFn: () => api.getAdjudicatorPins(competitionId),
+    // Adjudicators exist before any competition does; their PINs come with a competition
+    enabled: competitionId !== '',
   })
 
 export const usePointsTable = () =>

@@ -65,8 +65,20 @@ async function send<T>(method: 'GET' | 'POST', url: string, body?: unknown, sign
   return payload.data as T
 }
 
+// The same write sent again while the first is still on its way is the same request: a double tap shares one call
+const writing = new Map<string, Promise<unknown>>()
+
 // Calls one server function by name
-export const call = <T>(name: ApiFunction, ...args: unknown[]): Promise<T> => send<T>('POST', `/api/call/${name}`, { args })
+export const call = <T>(name: ApiFunction, ...args: unknown[]): Promise<T> => {
+  const request = () => send<T>('POST', `/api/call/${name}`, { args })
+  if (name.startsWith('get')) return request()
+  const key = `${name}:${JSON.stringify(args)}`
+  const running = writing.get(key)
+  if (running) return running as Promise<T>
+  const started = request().finally(() => writing.delete(key))
+  writing.set(key, started)
+  return started
+}
 
 export const auth = <T>(path: string, body: unknown): Promise<T> => send<T>('POST', `/api/auth/${path}`, body, true)
 

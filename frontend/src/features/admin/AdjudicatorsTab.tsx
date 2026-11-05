@@ -51,7 +51,9 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
 
   const all = adjudicators.data ?? []
   const pinOf = (id: string) => pins.data?.find((p) => p.adjudicatorId === id)?.pin
-  const missing = all.filter((a) => !pinOf(a.id)).length
+  // The PINs come after the competition is known: until then nothing is missing and nothing is marked "Not set"
+  const pinsKnown = competitionId !== "" && pins.data !== undefined
+  const missing = pinsKnown ? all.filter((a) => !pinOf(a.id)).length : 0
   const needle = query.trim().toLowerCase()
   const visible = all.filter((a) => !needle || a.name.toLowerCase().includes(needle) || a.letter.toLowerCase() === needle)
   const withPin = visible.filter((a) => pinOf(a.id))
@@ -104,7 +106,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
     <div className="flex flex-col gap-6">
       <Toolbar>
         <SearchField className="w-full sm:w-72" label="Search adjudicators" value={query} onChange={setQuery} />
-        <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />
+        {competitions.length > 0 && <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />}
         <ToolbarActions>
           {competitionId && pins.data && pins.data.length > 0 && (
             chosen.length > 0 ? (
@@ -117,7 +119,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
               </Button>
             )
           )}
-          {missing > 0 && (
+          {competitionId && missing > 0 && (
             <Button variant="secondary" disabled={generate.isPending} onClick={() => run()}>
               Generate {missing} missing
             </Button>
@@ -133,7 +135,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
       </Toolbar>
 
       <Table<Adjudicator>
-        loading={adjudicators.isLoading || pins.isLoading}
+        loading={adjudicators.isLoading}
         rows={visible}
         rowKey={(a) => a.id}
         minWidthClass="min-w-0"
@@ -143,7 +145,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
         empty={
           needle
             ? { title: `No adjudicators match "${query.trim()}"`, description: 'Try a name or a letter.' }
-            : { title: 'No adjudicators yet', description: 'Add the first adjudicator.' }
+            : { title: 'No adjudicators yet', description: competitionId ? 'Add the first adjudicator.' : 'Add the first adjudicator. PINs are made once there is a competition.' }
         }
         columns={[
           {
@@ -178,7 +180,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
             header: 'Adjudicator',
             cell: (a) => (
               <div className="flex items-center gap-3">
-                <Avatars names={[a.name]} />
+                <Avatars names={[a.name]} photo={a.photo} />
                 <span className="font-medium text-neutral-900">{a.name}</span>
               </div>
             ),
@@ -193,7 +195,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
             key: 'pin',
             header: 'PIN',
             mono: true,
-            cell: (a) => pinOf(a.id) ?? <span className="font-sans text-neutral-500">Not set</span>,
+            cell: (a) => pinOf(a.id) ?? (pinsKnown || competitionId === "" ? <span className="font-sans text-neutral-500">Not set</span> : null),
           },
           {
             key: 'actions',

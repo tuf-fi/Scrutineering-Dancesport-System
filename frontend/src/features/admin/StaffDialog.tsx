@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
 import { useCreateStaff, useUpdateStaff } from '../../hooks/index.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
+import { PhotoInput } from '../../components/PhotoInput.tsx'
 import { STAFF_ROLES } from './constants.ts'
 
 const FORM_ID = 'staff-form'
@@ -11,6 +12,7 @@ interface Values {
   name: string
   username: string
   role: Role
+  photo: string
 }
 
 function StaffForm({
@@ -25,13 +27,14 @@ function StaffForm({
   onSubmit: (values: Values) => void
 }) {
   const [values, setValues] = useState(initial)
-  const [errors, setErrors] = useState<{ name?: string; username?: string }>({})
+  const [errors, setErrors] = useState<{ name?: string; username?: string; photo?: string }>({})
 
   function submit(event: FormEvent) {
     event.preventDefault()
     const found: typeof errors = {}
     if (!values.name.trim()) found.name = 'Enter a name.'
     if (!editing && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.username.trim())) found.username = 'Enter a valid email address.'
+    if (!values.photo) found.photo = 'Add a photo.'
     setErrors(found)
     if (Object.keys(found).length === 0) onSubmit(values)
   }
@@ -55,6 +58,7 @@ function StaffForm({
         type="email"
         autoCapitalize="none"
       />
+      <PhotoInput name={values.name} value={values.photo} onChange={(photo) => setValues((v) => ({ ...v, photo }))} error={errors.photo} />
       <Select label="Role" required value={values.role} onChange={(e) => setValues({ ...values, role: e.target.value as Role })}>
         {STAFF_ROLES.map((r) => (
           <option key={r} value={r}>
@@ -93,7 +97,7 @@ export function StaffDialog({
     setFailure(null)
     if (user) {
       update.mutate(
-        { id: user.id, name: values.name, role: values.role },
+        { id: user.id, name: values.name, role: values.role, photo: values.photo },
         {
           onSuccess: () => {
             toast.success(`${values.name} updated`)
@@ -134,7 +138,7 @@ export function StaffDialog({
       <StaffForm
         key={user?.id ?? 'new'}
         editing={editing}
-        initial={{ name: user?.name ?? '', username: user?.username ?? '', role: user?.role ?? Role.Secretariat }}
+        initial={{ name: user?.name ?? '', username: user?.username ?? '', role: user?.role ?? Role.Secretariat, photo: user?.photo ?? '' }}
         usernameError={failure?.field === 'username' ? failure.message : undefined}
         onSubmit={submit}
       />

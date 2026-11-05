@@ -30,11 +30,6 @@ export function PhotoField({ profile, useSave = useSaveMyPhoto }: { profile: { n
           <Button type="button" variant="secondary" size="sm" disabled={save.isPending} onClick={() => input.current?.click()}>
             {profile.photo ? 'Change picture' : 'Add a picture'}
           </Button>
-          {profile.photo && (
-            <Button type="button" variant="ghost" size="sm" disabled={save.isPending} onClick={() => save.mutate(null, { onError: (e) => toast.error(e.message) })}>
-              Remove
-            </Button>
-          )}
         </div>
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" aria-label="Profile picture" className="sr-only" onChange={(e) => void choose(e.target.files?.[0])} />
       </div>

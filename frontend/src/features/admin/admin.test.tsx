@@ -1,12 +1,10 @@
 import { Role } from '@bis/shared'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import * as api from '../../api/index.ts'
 import { renderApp } from '../../test-utils.tsx'
 
-// jsdom cannot decode a picture, so the resize hands back a small stand-in
-vi.mock('../../lib/image.ts', async (importOriginal) => ({ ...(await importOriginal<typeof import('../../lib/image.ts')>()), coverPhoto: async () => 'data:image/png;base64,iVBORw0KGgo=' }))
 
 // The sample data is shared across tests in this file, so each test uses its own records
 
@@ -180,9 +178,12 @@ describe('staff accounts', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add account' }))
     expect(await within(dialog).findByText('Enter a name.')).toBeInTheDocument()
     expect(within(dialog).getByText('Enter a valid email address.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Add a photo.')).toBeInTheDocument()
 
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Mark Dela Rosa')
     await userEvent.type(within(dialog).getByLabelText('Email'), 'markd@sample.example')
+    await userEvent.upload(within(dialog).getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
+    expect(await within(dialog).findByRole('button', { name: 'Change photo' })).toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add account' }))
 
     const shown = await dialogFor('Account created')
@@ -194,6 +195,8 @@ describe('staff accounts', () => {
     dialog = await dialogFor('Add an account')
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Someone Else')
     await userEvent.type(within(dialog).getByLabelText('Email'), 'markd@sample.example')
+    await userEvent.upload(within(dialog).getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
+    expect(await within(dialog).findByRole('button', { name: 'Change photo' })).toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add account' }))
     expect(await within(dialog).findByText('That email is already used by another account.')).toBeInTheDocument()
   })
@@ -268,7 +271,7 @@ describe('staff accounts', () => {
   })
 
   it('deletes an account after confirming, but not your own or the last admin', async () => {
-    await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme@sample.example', role: Role.Mc })
+    await api.createStaffUser('staff-admin', { name: 'Delete Me', username: 'deleteme@sample.example', role: Role.Mc, photo: 'data:image/png;base64,iVBORw0KGgo=' })
     renderApp('/admin/staff', Role.Admin)
 
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Delete Me' }))
@@ -324,6 +327,8 @@ describe('adjudicators and panels', () => {
     expect(await within(dialog).findByText('Enter a name.')).toBeInTheDocument()
 
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Cecilia R. Ventura')
+    await userEvent.upload(within(dialog).getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
+    expect(await within(dialog).findByRole('button', { name: 'Change photo' })).toBeInTheDocument()
     const letter = within(dialog).getByLabelText('Letter')
     expect(within(letter).getAllByRole('option').map((o) => o.textContent)).toEqual(['J'])
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add adjudicator' }))
@@ -361,7 +366,7 @@ describe('adjudicators and panels', () => {
   })
 
   it('deletes an adjudicator who is on no panel, but not one who is', async () => {
-    await api.createAdjudicator('staff-admin', { name: 'Spare Adjudicator', letter: 'J' }).catch(() => {})
+    await api.createAdjudicator('staff-admin', { name: 'Spare Adjudicator', letter: 'J', photo: 'data:image/png;base64,iVBORw0KGgo=' }).catch(() => {})
     renderApp('/admin/adjudicators', Role.Admin)
 
     // Adjudicator A marks on every panel
@@ -379,7 +384,7 @@ describe('adjudicators and panels', () => {
   it('changes an adjudicator PIN', async () => {
     renderApp('/admin/adjudicators', Role.Admin)
     const row = await screen.findByRole('row', { name: /Patricia M. Dizon/ })
-    const before = within(row).getByText(/^\d{6}$/).textContent
+    const before = (await within(row).findByText(/^\d{6}$/)).textContent
     await userEvent.click(within(row).getByRole('button', { name: 'New PIN for Patricia M. Dizon' }))
     expect(await screen.findByText('New PIN set')).toBeInTheDocument()
     const after = within(await screen.findByRole('row', { name: /Patricia M. Dizon/ })).getByText(/^\d{6}$/).textContent

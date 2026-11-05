@@ -131,6 +131,7 @@ describe('where people sign in', () => {
     await userEvent.type(screen.getByLabelText('Email'), 'naga@test.example')
     await userEvent.type(screen.getByLabelText('Password'), 'A-long-password1')
     await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
+    await userEvent.upload(screen.getByLabelText('Team picture'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     expect(await screen.findByRole('heading', { name: 'Naga Dancers' })).toBeInTheDocument()
     expect(useAuth.getState().user?.role).toBe(Role.Team)
@@ -151,6 +152,7 @@ describe('coach and team accounts', () => {
     await userEvent.type(screen.getByLabelText('Email'), 'linktest@test.example')
     await userEvent.type(screen.getByLabelText('Password'), 'A-long-password1')
     await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
+    await userEvent.upload(screen.getByLabelText('Team picture'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
 
     // Nothing to show until linked; the request is made on its own page
@@ -178,6 +180,7 @@ describe('coach and team accounts', () => {
     await userEvent.type(screen.getByLabelText('Email'), `unlinked-${page}@test.example`)
     await userEvent.type(screen.getByLabelText('Password'), 'A-long-password1')
     await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
+    await userEvent.upload(screen.getByLabelText('Team picture'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     const sidebar = within(await screen.findByRole('navigation', { name: 'Account' }))
     await userEvent.click(sidebar.getByRole('link', { name: page[0]!.toUpperCase() + page.slice(1) }))

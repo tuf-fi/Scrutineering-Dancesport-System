@@ -117,7 +117,7 @@ export function StaffPage() {
             header: 'Account',
             cell: (s) => (
               <div className="flex items-center gap-3">
-                <Avatars names={[s.name]} />
+                <Avatars names={[s.name]} photo={s.photo} />
                 <div className="flex min-w-0 flex-col">
                   <span className="font-medium text-neutral-900">
                     {s.name}

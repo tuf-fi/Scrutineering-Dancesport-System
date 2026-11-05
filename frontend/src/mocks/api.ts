@@ -290,15 +290,16 @@ export const deleteCompetition = (actorId: string, id: string) =>
 
 export const createStaffUser = (
   actorId: string,
-  input: { name: string; username: string; role: Role },
+  input: { name: string; username: string; role: Role; photo: string },
 ) =>
   settle(() => {
     const username = input.username.trim().toLowerCase()
     const name = input.name.trim()
     if (!name || !username) throw new Error('Enter a name and an email.')
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) throw new Error('Enter a valid email address.')
+    if (!input.photo) throw new Error('Add a photo.')
     if (staffUsers.some((s) => s.username === username)) throw new Error('That email is already used by another account.')
-    const user: StaffUser = { id: `staff-${username}`, name, username, role: input.role }
+    const user: StaffUser = { id: `staff-${username}`, name, username, role: input.role, photo: input.photo }
     const password = tempPassword()
     passwords.set(username, password)
     staffUsers.push(user)
@@ -308,7 +309,7 @@ export const createStaffUser = (
 
 const adminCount = () => staffUsers.filter((s) => s.role === Role.Admin).length
 
-export const updateStaffUser = (actorId: string, id: string, input: { name: string; role: Role }) =>
+export const updateStaffUser = (actorId: string, id: string, input: { name: string; role: Role; photo?: string }) =>
   settle<StaffUser>(() => {
     const user = found(staffUsers.find((s) => s.id === id), 'Staff account')
     const name = input.name.trim()
@@ -316,8 +317,11 @@ export const updateStaffUser = (actorId: string, id: string, input: { name: stri
     if (user.role === Role.Admin && input.role !== Role.Admin && adminCount() === 1) {
       throw new Error('There must be at least one admin.')
     }
+    const photo = input.photo === undefined ? user.photo : input.photo
+    if (!photo) throw new Error('Add a photo.')
     user.name = name
     user.role = input.role
+    user.photo = photo
     record(actorId, 'Edited staff account', name)
     return user
   })
@@ -334,12 +338,15 @@ export const deleteStaffUser = (actorId: string, id: string) =>
     return { id }
   })
 
-export const updateAdjudicator = (actorId: string, id: string, input: { name: string }) =>
+export const updateAdjudicator = (actorId: string, id: string, input: { name: string; photo?: string }) =>
   settle<Adjudicator>(() => {
     const adjudicator = found(adjudicators.find((a) => a.id === id), 'Adjudicator')
     const name = input.name.trim()
     if (!name) throw new Error('Enter a name.')
+    const photo = input.photo === undefined ? adjudicator.photo : input.photo
+    if (!photo) throw new Error('Add a photo.')
     adjudicator.name = name
+    adjudicator.photo = photo
     record(actorId, 'Edited adjudicator', `${adjudicator.letter} ${name}`)
     return adjudicator
   })
@@ -374,14 +381,15 @@ export const revokeSessions = (actorId: string, kind: AccountKind, id: string) =
     record(actorId, 'Signed out everywhere', `${kind} ${id}`)
   })
 
-export const createAdjudicator = (actorId: string, input: { name: string; letter: string }) =>
+export const createAdjudicator = (actorId: string, input: { name: string; letter: string; photo: string }) =>
   settle<Adjudicator>(() => {
     const letter = input.letter.toUpperCase()
     const name = input.name.trim()
     if (!name) throw new Error('Enter a name.')
     if (!/^[A-J]$/.test(letter)) throw new Error('Pick a letter from A to J.')
+    if (!input.photo) throw new Error('Add a photo.')
     if (adjudicators.some((a) => a.letter === letter)) throw new Error(`Letter ${letter} is already taken.`)
-    const adjudicator: Adjudicator = { id: `adj-${letter.toLowerCase()}`, name, letter }
+    const adjudicator: Adjudicator = { id: `adj-${letter.toLowerCase()}`, name, letter, photo: input.photo }
     adjudicators.push(adjudicator)
     adjudicators.sort((a, b) => a.letter.localeCompare(b.letter))
     record(actorId, 'Added adjudicator', `${letter} ${name}`)
@@ -1311,8 +1319,9 @@ const membershipYear = () => Number(competitions.find((c) => c.id === currentCom
 const athleteOf = (id: string) => found(sampleAthletes.find((a) => a.id === id), 'Athlete')
 const publicAthlete = ({ password: _password, ...profile }: SampleAthlete): AthleteProfile => profile
 
-export const signUpAthlete = (name: string, email: string, password: string) =>
+export const signUpAthlete = (name: string, email: string, password: string, photo: string) =>
   settle<SessionUser>(() => {
+    if (!photo) throw new Error('Add a photo.')
     const address = email.trim().toLowerCase()
     if (!name.trim()) throw new Error('Enter your name.')
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) throw new Error('Enter a valid email address.')
@@ -1401,14 +1410,15 @@ const claimRow = (m: SampleMember): MemberClaimRow => ({
   requestedAt: m.claimedAt ?? '',
 })
 
-export const signUpMember = (role: 'coach' | 'team', name: string, email: string, password: string) =>
+export const signUpMember = (role: 'coach' | 'team', name: string, email: string, password: string, photo: string) =>
   settle<SessionUser>(() => {
+    if (!photo) throw new Error('Add a photo.')
     const address = email.trim().toLowerCase()
     if (!name.trim()) throw new Error(role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) throw new Error('Enter a valid email address.')
     if (password.length < 8) throw new Error('Use a password of at least 8 characters.')
     if (sampleMembers.some((m) => m.email === address)) throw new Error('An account with this email already exists. Sign in instead.')
-    const member: SampleMember = { id: `member-${sampleMembers.length + 1}`, role, name: name.trim(), email: address, password, phone: '', birthDate: '', province: '', address: '', photo: null, linkedId: null, claimId: null, claimedAt: null }
+    const member: SampleMember = { id: `member-${sampleMembers.length + 1}`, role, name: name.trim(), email: address, password, phone: '', birthDate: '', province: '', address: '', photo, linkedId: null, claimId: null, claimedAt: null }
     sampleMembers.push(member)
     return { id: member.id, name: member.name, role: role === 'team' ? Role.Team : Role.Coach }
   })

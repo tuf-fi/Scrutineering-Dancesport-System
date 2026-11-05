@@ -16,7 +16,7 @@ function useWrite<TVars, TData>(mutationFn: (vars: TVars) => Promise<TData>, inv
 }
 
 export const useSignUpAthlete = () =>
-  useMutation({ mutationFn: (v: { name: string; email: string; password: string }) => api.signUpAthlete(v.name, v.email, v.password) })
+  useMutation({ mutationFn: (v: { name: string; email: string; password: string; photo: string }) => api.signUpAthlete(v.name, v.email, v.password, v.photo) })
 
 export const useSignInAthlete = () =>
   useMutation({ mutationFn: (v: { email: string; password: string }) => api.signInAthlete(v.email, v.password) })
@@ -84,7 +84,7 @@ export const useDeleteAthlete = () => useWrite((id: string) => api.deleteAthlete
 
 // Coaches and teams sign in the same way as athletes, each to their own page
 export const useSignUpMember = (role: 'coach' | 'team') =>
-  useMutation({ mutationFn: (v: { name: string; email: string; password: string }) => api.signUpMember(role, v.name, v.email, v.password) })
+  useMutation({ mutationFn: (v: { name: string; email: string; password: string; photo: string }) => api.signUpMember(role, v.name, v.email, v.password, v.photo) })
 
 export const useSignInMember = (role: 'coach' | 'team') =>
   useMutation({ mutationFn: (v: { email: string; password: string }) => api.signInMember(role, v.email, v.password) })

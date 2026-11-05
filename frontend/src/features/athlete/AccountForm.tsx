@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { roleHome } from '../../app/nav.ts'
+import { PhotoInput } from '../../components/PhotoInput.tsx'
 import { Button, Input } from '../../components/ui/index.ts'
 import { useSignInAthlete, useSignInMember, useSignUpAthlete, useSignUpMember } from '../../hooks/index.ts'
 import { passwordMeetsRules } from '../../lib/passwordRules.ts'
@@ -33,6 +34,8 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [photo, setPhoto] = useState('')
+  const [photoError, setPhotoError] = useState<string | undefined>()
   const [error, setError] = useState<string | null>(null)
 
   const creating = mode === 'sign-up'
@@ -44,9 +47,10 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
     event.preventDefault()
     setError(null)
     if (!ready) return
+    if (creating && !photo) return setPhotoError('Add a photo.')
     try {
       const session = creating
-        ? await signUpMutation.mutateAsync({ name, email, password })
+        ? await signUpMutation.mutateAsync({ name, email, password, photo })
         : await signInMutation.mutateAsync({ email, password })
       signIn(session)
       onDone?.()
@@ -58,6 +62,7 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
 
   function switchMode() {
     setError(null)
+    setPhotoError(undefined)
     setConfirm('')
     onMode(creating ? 'sign-in' : 'sign-up')
   }
@@ -66,6 +71,7 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
     <div className="flex flex-col gap-8">
       <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
         {creating && <Input label={copy.name} autoComplete={kind === 'team' ? 'organization' : 'name'} value={name} onChange={(e) => setName(e.target.value)} required autoFocus />}
+        {creating && <PhotoInput name={name} value={photo} onChange={(p) => { setPhoto(p); setPhotoError(undefined) }} error={photoError} label={kind === 'team' ? 'Team picture' : 'Photo'} />}
         <Input label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus={!creating} />
         <Input
           label="Password"

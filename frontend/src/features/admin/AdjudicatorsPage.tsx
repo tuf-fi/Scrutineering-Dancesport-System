@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PageHeader, Tabs } from '../../components/ui/index.ts'
+import { EmptyState, PageHeader, Tabs } from '../../components/ui/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import { AdjudicatorsTab } from './AdjudicatorsTab.tsx'
 import { PanelsTab } from './PanelsTab.tsx'
@@ -21,12 +21,14 @@ export function AdjudicatorsPage() {
         description="Who adjudicates, their PINs for a competition, and which panel marks each event."
       />
       <Tabs label="View" items={TABS} value={tab} onChange={setTab} />
-      {competitionId &&
-        (tab === 'adjudicators' ? (
-          <AdjudicatorsTab competitionId={competitionId} competitions={list} onCompetitionChange={setChosen} />
-        ) : (
-          <PanelsTab competitionId={competitionId} competitions={list} onCompetitionChange={setChosen} />
-        ))}
+      {tab === 'adjudicators' ? (
+        // Adjudicators can be added before there is a competition; only their PINs need one
+        <AdjudicatorsTab competitionId={competitionId ?? ''} competitions={list} onCompetitionChange={setChosen} />
+      ) : competitionId ? (
+        <PanelsTab competitionId={competitionId} competitions={list} onCompetitionChange={setChosen} />
+      ) : (
+        <EmptyState title="No competition yet" description="Create a competition first, then choose each event's panel here." />
+      )}
     </div>
   )
 }

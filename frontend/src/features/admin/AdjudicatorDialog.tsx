@@ -2,6 +2,7 @@ import type { Adjudicator } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
 import { useCreateAdjudicator, useUpdateAdjudicator } from '../../hooks/index.ts'
+import { PhotoInput } from '../../components/PhotoInput.tsx'
 import { LETTERS } from './constants.ts'
 
 const FORM_ID = 'adjudicator-form'
@@ -13,9 +14,11 @@ function AdjudicatorForm({
 }: {
   adjudicator: Adjudicator | null
   freeLetters: string[]
-  onSubmit: (values: { name: string; letter: string }) => void
+  onSubmit: (values: { name: string; letter: string; photo: string }) => void
 }) {
   const [name, setName] = useState(adjudicator?.name ?? '')
+  const [photo, setPhoto] = useState(adjudicator?.photo ?? '')
+  const [photoError, setPhotoError] = useState<string | undefined>()
   const [picked, setPicked] = useState('')
   const [error, setError] = useState<string | undefined>()
   // The letter shown is always one that is free right now, even if the list changed while the form was open
@@ -25,12 +28,15 @@ function AdjudicatorForm({
     event.preventDefault()
     if (!name.trim()) return setError('Enter a name.')
     setError(undefined)
-    onSubmit({ name, letter: adjudicator?.letter ?? letter })
+    if (!photo) return setPhotoError('Add a photo.')
+    setPhotoError(undefined)
+    onSubmit({ name, letter: adjudicator?.letter ?? letter, photo })
   }
 
   return (
     <form id={FORM_ID} onSubmit={submit} noValidate className="grid gap-4">
       <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} error={error} autoFocus />
+      <PhotoInput name={name} value={photo} onChange={(p) => { setPhoto(p); setPhotoError(undefined) }} error={photoError} />
       {adjudicator ? (
         <Input label="Letter" value={adjudicator.letter} disabled hint="A letter can't be changed." readOnly />
       ) : (
@@ -69,11 +75,11 @@ export function AdjudicatorDialog({
     onClose()
   }
 
-  function submit(values: { name: string; letter: string }) {
+  function submit(values: { name: string; letter: string; photo: string }) {
     setFailure(null)
     if (adjudicator) {
       update.mutate(
-        { id: adjudicator.id, name: values.name },
+        { id: adjudicator.id, name: values.name, photo: values.photo },
         {
           onSuccess: () => {
             toast.success(`${adjudicator.letter} updated`)

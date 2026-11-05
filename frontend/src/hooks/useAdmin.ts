@@ -35,13 +35,13 @@ export const useDeleteCompetition = () =>
 
 export const useCreateStaff = () =>
   useWrite(
-    (v: { name: string; username: string; role: Role }) => api.createStaffUser(actor(), v),
+    (v: { name: string; username: string; role: Role; photo: string }) => api.createStaffUser(actor(), v),
     () => [['staff-users']],
   )
 
 export const useUpdateStaff = () =>
   useWrite(
-    (v: { id: string; name: string; role: Role }) => api.updateStaffUser(actor(), v.id, { name: v.name, role: v.role }),
+    (v: { id: string; name: string; role: Role; photo?: string }) => api.updateStaffUser(actor(), v.id, { name: v.name, role: v.role, photo: v.photo }),
     () => [['staff-users']],
   )
 
@@ -50,7 +50,7 @@ export const useDeleteStaff = () =>
 
 export const useUpdateAdjudicator = () =>
   useWrite(
-    (v: { id: string; name: string }) => api.updateAdjudicator(actor(), v.id, { name: v.name }),
+    (v: { id: string; name: string; photo?: string }) => api.updateAdjudicator(actor(), v.id, { name: v.name, photo: v.photo }),
     () => [['adjudicators']],
   )
 
@@ -65,7 +65,7 @@ export const useResetStaffPassword = () =>
 
 export const useCreateAdjudicator = () =>
   useWrite(
-    (v: { name: string; letter: string }) => api.createAdjudicator(actor(), v),
+    (v: { name: string; letter: string; photo: string }) => api.createAdjudicator(actor(), v),
     () => [['adjudicators']],
   )
 

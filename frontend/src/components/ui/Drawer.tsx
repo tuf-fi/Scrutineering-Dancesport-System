@@ -39,7 +39,7 @@ export function Drawer({ open, onClose, title, meta, children, footer, flush, cl
             </RadixDialog.Close>
           </div>
 
-          <div className={cn('no-scrollbar flex-1', flush ? 'min-h-0 overflow-hidden' : 'overflow-y-auto px-6 py-5')}>{children}</div>
+          <div className={cn('no-scrollbar flex-1', flush ? 'min-h-0 overflow-hidden' : 'overflow-y-auto overflow-x-hidden px-6 py-5')}>{children}</div>
 
           {footer && (
             <div className="flex flex-col gap-3 border-t border-neutral-200 bg-neutral-50 px-6 py-4">{footer}</div>
