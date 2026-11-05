@@ -8,7 +8,7 @@ import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
 import { recomputeAllPoints } from './ranking.ts'
-import { MAX_PHOTO, PHOTO, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { MAX_PHOTO, PHOTO, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Mc]
 
@@ -45,6 +45,9 @@ export const admin = {
       return toCompetition({ ...before, ...values, ...(image === undefined ? {} : { image }) })
     }
     if (!image) return fail('Add the photo for its card.')
+    if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
+      return fail('A competition with this name and date already exists.', 409)
+    }
     const created = { id: newId(), floorRoundId: null, ...values, image }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
@@ -60,29 +63,33 @@ export const admin = {
     return { id }
   },
 
-  createStaffUser(ctx: Ctx, input: { name: string; username: string; role: Role }): { user: StaffUser; tempPassword: string } {
+  createStaffUser(ctx: Ctx, input: { name: string; username: string; role: Role; photo: string }): { user: StaffUser; tempPassword: string } {
     const username = clean(input?.username).toLowerCase()
     const name = clean(input?.name)
     if (!name || !username) return fail('Enter a name and an email.')
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) return fail('Enter a valid email address.')
     const role = staffRole(input.role)
+    const photo = checkPhoto(input?.photo)
     if (ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) return fail('That email is already used by another account.', 409)
     const tempPassword = temporaryPassword()
-    const row = { id: newId(), name, username, role, passwordHash: hashPassword(tempPassword), disabled: false }
+    const row = { id: newId(), name, username, role, photo, passwordHash: hashPassword(tempPassword), disabled: false }
     ctx.db.insert(t.staffUsers).values(row).run()
     record(ctx.db, actor(ctx).id, 'Added staff account', name, { after: { username, role } })
     return { user: toStaff(row), tempPassword }
   },
 
-  updateStaffUser(ctx: Ctx, id: string, input: { name: string; role: Role }): StaffUser {
+  updateStaffUser(ctx: Ctx, id: string, input: { name: string; role: Role; photo?: string }): StaffUser {
     const user = found(ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, id)).get(), 'Staff account')
     const name = clean(input?.name)
     if (!name) return fail('Enter a name.')
     const role = staffRole(input.role)
     if (user.role === Role.Admin && role !== Role.Admin && adminCount(ctx) === 1) return fail('There must be at least one admin.', 409)
-    ctx.db.update(t.staffUsers).set({ name, role }).where(eq(t.staffUsers.id, id)).run()
+    // A missing photo keeps the one already there; an account is never left without one
+    const photo = input?.photo === undefined ? user.photo : checkPhoto(input.photo)
+    if (!photo) return fail('Add a photo.')
+    ctx.db.update(t.staffUsers).set({ name, role, photo }).where(eq(t.staffUsers.id, id)).run()
     record(ctx.db, actor(ctx).id, 'Edited staff account', name, { before: { name: user.name, role: user.role }, after: { name, role } })
-    return toStaff({ ...user, name, role })
+    return toStaff({ ...user, name, role, photo })
   },
 
   deleteStaffUser(ctx: Ctx, id: string): { id: string } {
@@ -114,27 +121,31 @@ export const admin = {
     return { tempPassword }
   },
 
-  createAdjudicator(ctx: Ctx, input: { name: string; letter: string }): Adjudicator {
+  createAdjudicator(ctx: Ctx, input: { name: string; letter: string; photo: string }): Adjudicator {
     const letter = clean(input?.letter).toUpperCase()
     const name = clean(input?.name)
     if (!name) return fail('Enter a name.')
     if (!/^[A-J]$/.test(letter)) return fail('Pick a letter from A to J.')
+    const photo = checkPhoto(input?.photo)
     if (ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.letter, letter)).get()) {
       return fail(`Letter ${letter} is already taken.`, 409)
     }
-    const row = { id: newId(), name, letter }
+    const row = { id: newId(), name, letter, photo }
     ctx.db.insert(t.adjudicators).values(row).run()
     record(ctx.db, actor(ctx).id, 'Added adjudicator', `${letter} ${name}`)
     return row
   },
 
-  updateAdjudicator(ctx: Ctx, id: string, input: { name: string }): Adjudicator {
+  updateAdjudicator(ctx: Ctx, id: string, input: { name: string; photo?: string }): Adjudicator {
     const adjudicator = found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, id)).get(), 'Adjudicator')
     const name = clean(input?.name)
     if (!name) return fail('Enter a name.')
-    ctx.db.update(t.adjudicators).set({ name }).where(eq(t.adjudicators.id, id)).run()
+    // A missing photo keeps the one already there; an adjudicator is never left without one
+    const photo = input?.photo === undefined ? adjudicator.photo : checkPhoto(input.photo)
+    if (!photo) return fail('Add a photo.')
+    ctx.db.update(t.adjudicators).set({ name, photo }).where(eq(t.adjudicators.id, id)).run()
     record(ctx.db, actor(ctx).id, 'Edited adjudicator', `${adjudicator.letter} ${name}`, { before: { name: adjudicator.name }, after: { name } })
-    return { id, name, letter: adjudicator.letter }
+    return { id, name, letter: adjudicator.letter, photo }
   },
 
   deleteAdjudicator(ctx: Ctx, id: string): { id: string } {

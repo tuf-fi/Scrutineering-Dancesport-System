@@ -116,13 +116,21 @@ export const toRankingPoint = (r: typeof t.rankingPoints.$inferSelect): RankingP
   points: r.points,
 })
 
-export const toStaff = (r: Pick<typeof t.staffUsers.$inferSelect, 'id' | 'name' | 'username' | 'role'> & { totpEnabled?: boolean }): StaffUser => ({
+export const toStaff = (r: Pick<typeof t.staffUsers.$inferSelect, 'id' | 'name' | 'username' | 'role'> & { totpEnabled?: boolean; photo?: string | null }): StaffUser => ({
   id: r.id,
   name: r.name,
   username: r.username,
   role: r.role,
   twoStep: r.totpEnabled ?? false,
+  photo: r.photo ?? null,
 })
+
+// Every account has a picture. It must be a JPEG, PNG or WebP that is small enough to keep
+export function checkPhoto(photo: unknown): string {
+  if (typeof photo !== 'string' || !photo) return fail('Add a photo.')
+  if (!PHOTO.test(photo) || photo.length > MAX_PHOTO) return fail('Send the photo as a JPEG, PNG or WebP picture.')
+  return photo
+}
 
 export const toPin = (r: typeof t.adjudicatorPins.$inferSelect): AdjudicatorPin => ({
   competitionId: r.competitionId,

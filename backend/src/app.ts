@@ -163,7 +163,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
     try {
       const input = body(request)
-      const user = sqlite.transaction(() => createAthlete(baseContext(null), { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? '') }))()
+      const user = sqlite.transaction(() => createAthlete(baseContext(null), { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? ''), photo: String(input.photo ?? '') }))()
       return startSession(reply, user, 0)
     } catch (error) {
       return sendError(reply, error)
@@ -177,7 +177,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
       if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
       try {
         const input = body(request)
-        const user = sqlite.transaction(() => createMember(baseContext(null), role, { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? '') }))()
+        const user = sqlite.transaction(() => createMember(baseContext(null), role, { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? ''), photo: String(input.photo ?? '') }))()
         return startSession(reply, user, 0)
       } catch (error) {
         return sendError(reply, error)

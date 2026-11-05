@@ -62,7 +62,7 @@ export const reads = {
       .from(t.adjudicators)
       .orderBy(asc(t.adjudicators.letter))
       .all()
-      .map((a) => ({ id: a.id, name: a.name, letter: a.letter })),
+      .map((a) => ({ id: a.id, name: a.name, letter: a.letter, photo: a.photo ?? null })),
 
   getAdjudicatorPins: (ctx: Ctx, competitionId: string) =>
     ctx.db.select().from(t.adjudicatorPins).where(eq(t.adjudicatorPins.competitionId, competitionId)).all().map(toPin),

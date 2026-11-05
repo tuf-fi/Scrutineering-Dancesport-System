@@ -6,7 +6,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
-import { MAX_PHOTO, MIN_PASSWORD, PHOTO, clean } from './shared.ts'
+import { MIN_PASSWORD, checkPhoto, clean } from './shared.ts'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -18,11 +18,12 @@ export function createMember(ctx: Ctx, role: 'coach' | 'team', input: AthleteSig
   if (!name || name.length > 100) return fail(role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
   if (!EMAIL.test(email) || email.length > 200) return fail('Enter a valid email address.')
   if (password.length < MIN_PASSWORD || password.length > 128) return fail(`Use a password of at least ${MIN_PASSWORD} characters.`)
+  const photo = checkPhoto(input?.photo)
   if (ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.email, email)).get()) {
     return fail('An account with this email already exists. Sign in instead.', 409)
   }
   const id = newId()
-  ctx.db.insert(t.memberAccounts).values({ id, role, name, email, passwordHash: hashPassword(password) }).run()
+  ctx.db.insert(t.memberAccounts).values({ id, role, name, email, photo, passwordHash: hashPassword(password) }).run()
   record(ctx.db, id, role === 'team' ? 'Team signed up' : 'Coach signed up', name)
   return { id, name, role: role === 'team' ? Role.Team : Role.Coach }
 }
@@ -190,8 +191,8 @@ export function saveMyMember(ctx: Ctx, input: MemberInput): MemberAccount {
 
 export function saveMyMemberPhoto(ctx: Ctx, photo: string | null): MemberAccount {
   const row = mine(ctx)
-  const value = photo === null ? null : String(photo)
-  if (value !== null && (!PHOTO.test(value) || value.length > MAX_PHOTO)) return fail('Choose a JPEG, PNG or WebP picture.')
+  // A picture can be replaced but not taken away
+  const value = checkPhoto(photo)
   ctx.db.update(t.memberAccounts).set({ photo: value }).where(eq(t.memberAccounts.id, row.id)).run()
   return toAccount(ctx, { ...row, photo: value })
 }

@@ -179,6 +179,10 @@ export const secretariat = {
   createCompetitor(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
     const names = cleanNames(input?.names)
     getTeamRow(ctx, input.teamId)
+    // A double tap, or the same form sent twice, must not add the same dancers twice
+    const key = (list: string[]) => list.map((n) => n.toLowerCase().replace(/\s+/g, ' ').trim()).sort().join('|')
+    const twin = ctx.db.select().from(t.competitors).where(eq(t.competitors.teamId, input.teamId)).all().find((c) => key(c.names) === key(names))
+    if (twin) return fail(`${names.join(' & ')} is already on this team.`, 409)
     const row = addCompetitor(ctx, names, input.teamId, cleanDetails(ctx, names, input.details))
     record(ctx.db, actor(ctx).id, 'Added competitor', names.join(' & '))
     return competitorRow(ctx, row)

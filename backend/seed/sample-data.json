@@ -16039,47 +16039,56 @@
   {
    "id": "adj-a",
    "name": "Lorenzo V. Aguilar",
-   "letter": "A"
+   "letter": "A",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm4AWlpuWlpuWlpuWlpuWlpuWlpuWlpuWlpuAFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm4AWlpuWlpuWlpuWlpuWlpuWlpuWlpuWlpuAFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm5PbEiB6ybhqAAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-b",
    "name": "Patricia M. Dizon",
-   "letter": "B"
+   "letter": "B",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AEZuWkZuWkZuWkZuWkZuWkZuWkZuWkZuWgBGblpGblpGblpGblpGblpGblpGblpGbloARm5aRm5aRm5aRm5aRm5aRm5aRm5aRm5aAEZuWkZuWkZuWkZuWkZuWkZuWkZuWkZuWgBGblpGblpGblpGblpGblpGblpGblpGbloARm5aRm5aRm5aRm5aRm5aRm5aRm5aRm5aAEZuWkZuWkZuWkZuWkZuWkZuWkZuWkZuWgBGblpGblpGblpGblpGblpGblpGblpGblpbTkOBi3ov7AAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-c",
    "name": "Ramon T. Hernandez",
-   "letter": "C"
+   "letter": "C",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmhsAyZobyZobyZobyZobyZobyZobyZobyZobAMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmhsAyZobyZobyZobyZobyZobyZobyZobyZobAMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmht8c1+B6oeiegAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-d",
    "name": "Celeste B. Ilagan",
-   "letter": "D"
+   "letter": "D",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AHhGWnhGWnhGWnhGWnhGWnhGWnhGWnhGWgB4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4RloAeEZaeEZaeEZaeEZaeEZaeEZaeEZaeEZaAHhGWnhGWnhGWnhGWnhGWnhGWnhGWnhGWgB4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4RloAeEZaeEZaeEZaeEZaeEZaeEZaeEZaeEZaAHhGWnhGWnhGWnhGWnhGWnhGWnhGWnhGWgB4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlph3UYBLKCXQwAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-e",
    "name": "Victor L. Manalo",
-   "letter": "E"
+   "letter": "E",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFAAoHhQoHhQoHhQoHhQoHhQoHhQoHhQoHhQAKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFAAoHhQoHhQoHhQoHhQoHhQoHhQoHhQoHhQAKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFA+1VoBZuFnlgAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-f",
    "name": "Rowena S. Panganiban",
-   "letter": "F"
+   "letter": "F",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmhsAyZobyZobyZobyZobyZobyZobyZobyZobAMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmhsAyZobyZobyZobyZobyZobyZobyZobyZobAMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmht8c1+B6oeiegAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-g",
    "name": "Dionisio C. Quizon",
-   "letter": "G"
+   "letter": "G",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AJZaMpZaMpZaMpZaMpZaMpZaMpZaMpZaMgCWWjKWWjKWWjKWWjKWWjKWWjKWWjKWWjIAlloylloylloylloylloylloylloylloyAJZaMpZaMpZaMpZaMpZaMpZaMpZaMpZaMgCWWjKWWjKWWjKWWjKWWjKWWjKWWjKWWjIAlloylloylloylloylloylloylloylloyAJZaMpZaMpZaMpZaMpZaMpZaMpZaMpZaMgCWWjKWWjKWWjKWWjKWWjKWWjKWWjKWWjJtbEiBEJYVDAAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-h",
    "name": "Helena P. Sarmiento",
-   "letter": "H"
+   "letter": "H",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AG5QNG5QNG5QNG5QNG5QNG5QNG5QNG5QNABuUDRuUDRuUDRuUDRuUDRuUDRuUDRuUDQAblA0blA0blA0blA0blA0blA0blA0blA0AG5QNG5QNG5QNG5QNG5QNG5QNG5QNG5QNABuUDRuUDRuUDRuUDRuUDRuUDRuUDRuUDQAblA0blA0blA0blA0blA0blA0blA0blA0AG5QNG5QNG5QNG5QNG5QNG5QNG5QNG5QNABuUDRuUDRuUDRuUDRuUDRuUDRuUDRuUDSyoTyBfbs75gAAAABJRU5ErkJggg=="
   },
   {
    "id": "adj-i",
    "name": "Alfredo G. Tabora",
-   "letter": "I"
+   "letter": "I",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AHhGWnhGWnhGWnhGWnhGWnhGWnhGWnhGWgB4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4RloAeEZaeEZaeEZaeEZaeEZaeEZaeEZaeEZaAHhGWnhGWnhGWnhGWnhGWnhGWnhGWnhGWgB4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4RloAeEZaeEZaeEZaeEZaeEZaeEZaeEZaeEZaAHhGWnhGWnhGWnhGWnhGWnhGWnhGWnhGWgB4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlp4Rlph3UYBLKCXQwAAAABJRU5ErkJggg=="
   }
  ],
  "adjudicatorPins": [
@@ -16978,6 +16987,13 @@
    "status": "pending"
   },
   {
+   "id": "comp-sorsogon-2026:e8:semi_final",
+   "eventId": "comp-sorsogon-2026:e8",
+   "type": "semi_final",
+   "recallNumber": 6,
+   "status": "pending"
+  },
+  {
    "id": "comp-sorsogon-2026:e8:final",
    "eventId": "comp-sorsogon-2026:e8",
    "type": "final",
@@ -17181,6 +17197,13 @@
    "status": "pending"
   },
   {
+   "id": "comp-sorsogon-2026:e26:semi_final",
+   "eventId": "comp-sorsogon-2026:e26",
+   "type": "semi_final",
+   "recallNumber": 6,
+   "status": "pending"
+  },
+  {
    "id": "comp-sorsogon-2026:e26:final",
    "eventId": "comp-sorsogon-2026:e26",
    "type": "final",
@@ -17293,6 +17316,13 @@
    "status": "pending"
   },
   {
+   "id": "comp-sorsogon-2026:e37:semi_final",
+   "eventId": "comp-sorsogon-2026:e37",
+   "type": "semi_final",
+   "recallNumber": 6,
+   "status": "pending"
+  },
+  {
    "id": "comp-sorsogon-2026:e37:final",
    "eventId": "comp-sorsogon-2026:e37",
    "type": "final",
@@ -17311,6 +17341,13 @@
    "eventId": "comp-sorsogon-2026:e38",
    "type": "final",
    "recallNumber": null,
+   "status": "pending"
+  },
+  {
+   "id": "comp-sorsogon-2026:e39:semi_final",
+   "eventId": "comp-sorsogon-2026:e39",
+   "type": "semi_final",
+   "recallNumber": 6,
    "status": "pending"
   },
   {
@@ -37258,31 +37295,36 @@
    "id": "staff-admin",
    "name": "Amelia Rosales",
    "username": "admin@sample.example",
-   "role": "admin"
+   "role": "admin",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/ADxaeDxaeDxaeDxaeDxaeDxaeDxaeDxaeAA8Wng8Wng8Wng8Wng8Wng8Wng8Wng8WngAPFp4PFp4PFp4PFp4PFp4PFp4PFp4PFp4ADxaeDxaeDxaeDxaeDxaeDxaeDxaeDxaeAA8Wng8Wng8Wng8Wng8Wng8Wng8Wng8WngAPFp4PFp4PFp4PFp4PFp4PFp4PFp4PFp4ADxaeDxaeDxaeDxaeDxaeDxaeDxaeDxaeAA8Wng8Wng8Wng8Wng8Wng8Wng8Wng8WnhRTkOBavVXeAAAAABJRU5ErkJggg=="
   },
   {
    "id": "staff-secretariat",
    "name": "Jonas Bellosillo",
    "username": "secretariat@sample.example",
-   "role": "secretariat"
+   "role": "secretariat",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/ADxaeDxaeDxaeDxaeDxaeDxaeDxaeDxaeAA8Wng8Wng8Wng8Wng8Wng8Wng8Wng8WngAPFp4PFp4PFp4PFp4PFp4PFp4PFp4PFp4ADxaeDxaeDxaeDxaeDxaeDxaeDxaeDxaeAA8Wng8Wng8Wng8Wng8Wng8Wng8Wng8WngAPFp4PFp4PFp4PFp4PFp4PFp4PFp4PFp4ADxaeDxaeDxaeDxaeDxaeDxaeDxaeDxaeAA8Wng8Wng8Wng8Wng8Wng8Wng8Wng8WnhRTkOBavVXeAAAAABJRU5ErkJggg=="
   },
   {
    "id": "staff-scrutineer",
    "name": "Teresita Quimpo",
    "username": "scrutineer@sample.example",
-   "role": "scrutineer"
+   "role": "scrutineer",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmhsAyZobyZobyZobyZobyZobyZobyZobyZobAMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmhsAyZobyZobyZobyZobyZobyZobyZobyZobAMmaG8maG8maG8maG8maG8maG8maG8maGwDJmhvJmhvJmhvJmhvJmhvJmhvJmhvJmht8c1+B6oeiegAAAABJRU5ErkJggg=="
   },
   {
    "id": "staff-chairperson",
    "name": "Gregorio Almazan",
    "username": "chairperson@sample.example",
-   "role": "chairperson"
+   "role": "chairperson",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm4AWlpuWlpuWlpuWlpuWlpuWlpuWlpuWlpuAFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm4AWlpuWlpuWlpuWlpuWlpuWlpuWlpuWlpuAFpablpablpablpablpablpablpablpabgBaWm5aWm5aWm5aWm5aWm5aWm5aWm5aWm5PbEiB6ybhqAAAAABJRU5ErkJggg=="
   },
   {
    "id": "staff-mc",
    "name": "Dante Ibarra",
    "username": "mc@sample.example",
-   "role": "mc"
+   "role": "mc",
+   "photo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAA00lEQVR4AQHIADf/AKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFAAoHhQoHhQoHhQoHhQoHhQoHhQoHhQoHhQAKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFAAoHhQoHhQoHhQoHhQoHhQoHhQoHhQoHhQAKB4UKB4UKB4UKB4UKB4UKB4UKB4UKB4UACgeFCgeFCgeFCgeFCgeFCgeFCgeFCgeFA+1VoBZuFnlgAAAABJRU5ErkJggg=="
   }
  ],
  "auditLog": [

@@ -22,9 +22,9 @@ import type {
   RoundType,
   StaffUser,
 } from '@bis/shared'
-import { DEFAULT_FEE_SCHEDULE, registrationFee } from '@bis/shared'
+import { DEFAULT_FEE_SCHEDULE, registrationFee, samplePhoto } from '@bis/shared'
 import { eq } from 'drizzle-orm'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { hashPassword } from '../auth/password.ts'
 import { newId } from '../ids.ts'
@@ -52,6 +52,11 @@ interface SampleData {
   staffUsers: StaffUser[]
   auditLog: AuditEntry[]
 }
+
+// Every competition has a card photo. The sample ones use the website's dance photo, or a plain picture if it is not there.
+const DANCE_PHOTO = join(import.meta.dirname, '..', '..', '..', 'frontend', 'public', 'auth-dance.jpg')
+export const sampleCompetitionImage = () =>
+  existsSync(DANCE_PHOTO) ? `data:image/jpeg;base64,${readFileSync(DANCE_PHOTO).toString('base64')}` : samplePhoto('competition')
 
 // Everyone who signs in to the sample data uses this password. For demos and development only.
 export const SAMPLE_PASSWORD = 'bis2026'
@@ -87,8 +92,8 @@ export const SAMPLE_TEAM_EMAIL = 'team@sample.example'
 export function addSampleMembers(db: Pick<Db, 'insert'>, passwordHash: string) {
   db.insert(t.memberAccounts)
     .values([
-      { id: 'member-sample-coach', role: 'coach', name: 'Rico Bautista', email: SAMPLE_COACH_EMAIL, passwordHash },
-      { id: 'member-sample-team', role: 'team', name: 'Sample Dance Team', email: SAMPLE_TEAM_EMAIL, passwordHash },
+      { id: 'member-sample-coach', role: 'coach', name: 'Rico Bautista', email: SAMPLE_COACH_EMAIL, photo: samplePhoto('Rico Bautista'), passwordHash },
+      { id: 'member-sample-team', role: 'team', name: 'Sample Dance Team', email: SAMPLE_TEAM_EMAIL, photo: samplePhoto('Sample Dance Team'), passwordHash },
     ])
     .onConflictDoNothing()
     .run()
@@ -97,7 +102,7 @@ export function addSampleMembers(db: Pick<Db, 'insert'>, passwordHash: string) {
 // Also used on a database that was seeded before the sample athlete existed
 export function addSampleAthlete(db: Pick<Db, 'insert'>, passwordHash: string, teamId: string | null) {
   db.insert(t.athletes)
-    .values({ id: 'athlete-sample', name: 'Ana Cruz', email: SAMPLE_ATHLETE_EMAIL, passwordHash, teamId })
+    .values({ id: 'athlete-sample', name: 'Ana Cruz', email: SAMPLE_ATHLETE_EMAIL, photo: samplePhoto('Ana Cruz'), passwordHash, teamId })
     .onConflictDoNothing()
     .run()
 }
@@ -122,7 +127,7 @@ const SAMPLE_UPCOMING_EVENTS: Array<{ ageGroup: AgeGroup; class: Class; discipli
 ]
 
 export function addSampleUpcoming(db: Pick<Db, 'insert'>) {
-  db.insert(t.competitions).values(SAMPLE_UPCOMING).onConflictDoNothing().run()
+  db.insert(t.competitions).values(SAMPLE_UPCOMING.map((c) => ({ ...c, image: sampleCompetitionImage() }))).onConflictDoNothing().run()
 
   for (const c of SAMPLE_UPCOMING) {
     const events = SAMPLE_UPCOMING_EVENTS.map((e, i) => ({
@@ -160,7 +165,7 @@ export function seedSampleData(db: Db) {
 
   db.transaction((tx) => {
     insertAll(data.competitions, (batch) =>
-      tx.insert(t.competitions).values(batch.map((c) => ({ ...c, floorRoundId: c.id === data.currentCompetitionId ? data.liveRoundId : null }))).run(),
+      tx.insert(t.competitions).values(batch.map((c) => ({ ...c, image: sampleCompetitionImage(), floorRoundId: c.id === data.currentCompetitionId ? data.liveRoundId : null }))).run(),
     )
     insertAll(data.teams, (batch) => tx.insert(t.teams).values(batch).run())
     insertAll(data.competitors, (batch) => tx.insert(t.competitors).values(batch).run())

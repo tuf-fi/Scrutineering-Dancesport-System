@@ -188,6 +188,8 @@ export interface Adjudicator {
   name: string
   // A to J
   letter: string
+  // A picture of the adjudicator; a new adjudicator always has one
+  photo?: string | null
 }
 
 export interface AdjudicatorPin {
@@ -303,6 +305,8 @@ export interface StaffUser {
   role: Role
   // Whether two-step sign-in is on for this account
   twoStep?: boolean
+  // A picture of the person; a new account always has one
+  photo?: string | null
 }
 
 // Who is signed in on this device
@@ -615,6 +619,8 @@ export interface AthleteSignUp {
   name: string
   email: string
   password: string
+  // Every account has a picture: a JPEG, PNG or WebP as a data URL
+  photo: string
 }
 
 export interface ImportResult {

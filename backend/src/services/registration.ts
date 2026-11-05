@@ -224,6 +224,7 @@ export const registration = {
       record(ctx.db, actor(ctx).id, 'Edited coach', name)
       return toCoach({ id, ...values })
     }
+    if (ctx.db.select().from(t.coaches).all().some((c) => c.name.toLowerCase() === name.toLowerCase())) return fail('A coach with this name already exists.', 409)
     const row = { id: newId(), ...values }
     ctx.db.insert(t.coaches).values(row).run()
     record(ctx.db, actor(ctx).id, 'Added coach', name)

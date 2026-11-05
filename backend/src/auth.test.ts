@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { SAMPLE_PASSWORD } from './db/seed.ts'
-import { startTestApp, type TestApp } from './testing.ts'
+import { TEST_PHOTO, startTestApp, type TestApp } from './testing.ts'
 
 let app: TestApp
 beforeEach(async () => {
@@ -73,7 +73,7 @@ describe('staff sign-in', () => {
 describe('accounts changing', () => {
   it('stops a deleted account at once', async () => {
     const admin = await app.signIn.staff('admin')
-    const created = await app.ok<{ user: { id: string }; tempPassword: string }>('createStaffUser', [{ name: 'Temp Person', username: 'temp@sample.example', role: 'mc' }], admin)
+    const created = await app.ok<{ user: { id: string }; tempPassword: string }>('createStaffUser', [{ name: 'Temp Person', username: 'temp@sample.example', role: 'mc', photo: TEST_PHOTO }], admin)
     const temp = await app.signIn.staff('temp', created.tempPassword)
     expect((await app.call('getAnnouncements', [], temp)).status).toBe(200)
     await app.ok('deleteStaffUser', [created.user.id], admin)
@@ -101,7 +101,7 @@ describe('accounts changing', () => {
 
   it('refuses to make a staff account with a team or adjudicator role', async () => {
     const admin = await app.signIn.staff('admin')
-    const reply = await app.call('createStaffUser', [{ name: 'X Y', username: 'xy@sample.example', role: 'team' }], admin)
+    const reply = await app.call('createStaffUser', [{ name: 'X Y', username: 'xy@sample.example', role: 'team', photo: TEST_PHOTO }], admin)
     expect(reply.status).toBe(400)
   })
 })

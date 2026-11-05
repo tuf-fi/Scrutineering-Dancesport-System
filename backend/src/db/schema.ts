@@ -146,6 +146,8 @@ export const adjudicators = sqliteTable(
     name: text('name').notNull(),
     // A to J
     letter: text('letter').notNull(),
+    // A picture of the adjudicator, as a data URL
+    photo: text('photo'),
     // See staff_users: a new PIN sign-in raises it, so an adjudicator is signed in on one phone at a time
     sessionVersion: integer('session_version').notNull().default(0),
   },
@@ -398,6 +400,8 @@ export const staffUsers = sqliteTable('staff_users', {
   name: text('name').notNull(),
   username: text('username').notNull().unique(),
   role: text('role', { enum: oneOf(Role) }).notNull(),
+  // A picture of the person, as a data URL
+  photo: text('photo'),
   passwordHash: text('password_hash').notNull(),
   disabled: integer('disabled', { mode: 'boolean' }).notNull().default(false),
   // A signed token carries the version it was made at; raising it signs the person out everywhere

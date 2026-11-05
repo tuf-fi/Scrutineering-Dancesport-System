@@ -7,6 +7,9 @@ import { runMigrations } from './db/migrate.ts'
 import { SAMPLE_PASSWORD, seedSampleData } from './db/seed.ts'
 import { silentHub } from './realtime/hub.ts'
 
+// Every account has a picture, so the tests that make one send this
+export const TEST_PHOTO = 'data:image/png;base64,iVBORw0KGgo='
+
 export interface Reply<T = unknown> {
   status: number
   data: T
@@ -52,9 +55,9 @@ export async function startTestApp(options: TestOptions = {}) {
       cookieFrom('/api/auth/staff', { username: username.includes('@') ? username : `${username}@sample.example`, password }),
     adjudicator: (pin: string) => cookieFrom('/api/auth/adjudicator', { pin }),
     athlete: (email: string, password: string) => cookieFrom('/api/auth/athlete', { email, password }),
-    athleteSignUp: (name: string, email: string, password: string) => cookieFrom('/api/auth/athlete/sign-up', { name, email, password }),
+    athleteSignUp: (name: string, email: string, password: string) => cookieFrom('/api/auth/athlete/sign-up', { name, email, password, photo: TEST_PHOTO }),
     member: (role: 'coach' | 'team', email: string, password: string) => cookieFrom(`/api/auth/${role}`, { email, password }),
-    memberSignUp: (role: 'coach' | 'team', name: string, email: string, password: string) => cookieFrom(`/api/auth/${role}/sign-up`, { name, email, password }),
+    memberSignUp: (role: 'coach' | 'team', name: string, email: string, password: string) => cookieFrom(`/api/auth/${role}/sign-up`, { name, email, password, photo: TEST_PHOTO }),
   }
 
   async function call<T = unknown>(name: string, args: unknown[] = [], cookie?: string): Promise<Reply<T>> {

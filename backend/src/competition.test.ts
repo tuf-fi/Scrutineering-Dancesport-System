@@ -3,7 +3,7 @@ import { writePaymentSettings } from './paymentSettings.ts'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
-import { startTestApp, type TestApp } from './testing.ts'
+import { TEST_PHOTO, startTestApp, type TestApp } from './testing.ts'
 
 // A whole competition through the API, from an empty database: one solo event of ten dancers,
 // five adjudicators, a semi-final with a tie at the cutoff, then a final.
@@ -56,7 +56,7 @@ describe('before the competition', () => {
     competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Test Open', date: today, venue: 'Gym', organizer: 'Org', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
     eventId = (await app.ok<{ id: string }>('saveEvent', [competitionId, solo], admin)).id
     for (const letter of 'ABCDE') {
-      adjudicatorIds.push((await app.ok<{ id: string }>('createAdjudicator', [{ name: `Adjudicator ${letter}`, letter }], admin)).id)
+      adjudicatorIds.push((await app.ok<{ id: string }>('createAdjudicator', [{ name: `Adjudicator ${letter}`, letter, photo: TEST_PHOTO }], admin)).id)
     }
     await app.ok('generatePins', [competitionId], admin)
     const issued = await app.ok<Array<{ adjudicatorId: string; pin: string }>>('getAdjudicatorPins', [competitionId], admin)

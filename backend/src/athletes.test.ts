@@ -149,7 +149,8 @@ describe('the athlete account beyond the basics', () => {
     const png = 'data:image/png;base64,iVBORw0KGgo='
     expect((await app.call('saveMyPhoto', ['data:text/html;base64,PGI+'], dana)).status).toBe(400)
     expect((await app.ok<AthleteProfile>('saveMyPhoto', [png], dana)).photo).toBe(png)
-    expect((await app.ok<AthleteProfile>('saveMyPhoto', [null], dana)).photo).toBeNull()
+    // A picture can be replaced but not taken away
+    expect((await app.call('saveMyPhoto', [null], dana)).status).toBe(400)
   })
 
   it('finds the results and entries of the competitors carrying their name, with no approval', async () => {
