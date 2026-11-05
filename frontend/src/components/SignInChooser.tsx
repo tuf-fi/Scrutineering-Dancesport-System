@@ -35,8 +35,8 @@ function KindTabs({ kind, onKind }: { kind: AccountKind; onKind: (kind: AccountK
 
 const ABOUT: Record<AccountKind, string> = {
   athlete: 'Register, pay your membership and follow your results.',
-  coach: 'Your coach page.',
-  team: 'Your team page.',
+  coach: 'Follow your dancers, their results and rankings, and keep your details up to date.',
+  team: 'Send entries online, pay for them and follow your dancers’ results.',
 }
 
 // Only asks who is signing in, then opens the sign-in page for them
