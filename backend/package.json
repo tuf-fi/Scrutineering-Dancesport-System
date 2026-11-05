@@ -13,6 +13,7 @@
     "db:snapshot": "tsx scripts/export-sample-data.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/db/seed-cli.ts",
     "db:testdata": "tsx --env-file-if-exists=.env src/db/testdata-cli.ts",
+    "db:testaccounts": "tsx --env-file-if-exists=.env src/db/testaccounts-cli.ts",
     "admin:create": "tsx --env-file-if-exists=.env src/db/create-admin-cli.ts",
     "results:compare": "tsx --env-file-if-exists=.env src/db/compare-results-cli.ts"
   },

@@ -87,6 +87,30 @@ docker compose exec app node_modules/.bin/tsx src/db/testdata-cli.ts --yes
 
 It adds 5 teams, 5 coaches, 20 athletes (an account and a dancer each, with photos), up to 10 adjudicators (letters A to J are all there are), 3 finished competitions with results and 5 upcoming ones, 6 events each. Running it again adds nothing. Never run it on production.
 
+### Test logins
+
+The test athletes cannot sign in (nobody knows their password). To get one login for each role, and a PIN for every adjudicator:
+
+```
+docker compose exec app node_modules/.bin/tsx src/db/testaccounts-cli.ts --yes --site https://<staging address> --password '<a password you choose>'
+docker compose cp app:/data/staging-logins.pdf .
+```
+
+It loads the test data first if it is not there, then makes these logins. No password or PIN is kept in the repository: `--password` (at least 8 characters) sets one password for every login, and without it each login gets its own random one. The PINs are random. The command prints everything and writes the same sheet as a PDF on the server, which the second command copies out. Keep that sheet private, use these logins on staging only, and never on production. Running the command again makes a new sheet.
+
+| Role | Sign in at | Email |
+| --- | --- | --- |
+| Admin | `/staff-access` | `testadmin@testdata.example` |
+| Secretariat | `/staff-access` | `testsecretariat@testdata.example` |
+| Scrutineer | `/staff-access` | `testscrutineer@testdata.example` |
+| Chairperson | `/staff-access` | `testchairperson@testdata.example` |
+| MC | `/staff-access` | `testmc@testdata.example` |
+| Athlete (Bianca Alcantara) | `/login?as=athlete` | `bianca.alcantara@testdata.example` |
+| Coach (linked to a record) | `/login?as=coach` | `coach@testdata.example` |
+| Team (Naga Rhythm Studio) | `/login?as=team` | `team@testdata.example` |
+
+Adjudicators sign in at `/adjudicator` with a PIN from the sheet; the same PIN works for every test competition.
+
 ## The build, and checking it without Caddy
 
 `docker compose up -d --build` builds `deploy/Dockerfile`: it installs the packages, builds the website, and runs the server on port 4000 behind Caddy. The details are in "How the build works" in [PRODUCTION.md](PRODUCTION.md). To check the image on its own, from the repository root:
