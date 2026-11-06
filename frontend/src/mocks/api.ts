@@ -32,6 +32,8 @@ import {
   type EntryRequestInput,
   type MemberAccount,
   type MemberRosterRow,
+  type MemberChangeRequest,
+  type MemberChangeRow,
   type MemberClaimRow,
   type MemberInput,
   type MemberRoster,
