@@ -10,7 +10,7 @@ import { textPdf, type PdfLine } from './minipdf.ts'
 import * as t from './schema.ts'
 import { addTestData } from './testdata.ts'
 
-// pnpm --filter @bis/backend db:testaccounts [--yes] [--site https://staging.example.com] [--pdf path]
+// pnpm --filter @bis/backend db:testaccounts [--yes] [--site https://staging.example.com] [--password x] [--pin-start 100001] [--pdf path]
 // Makes one test login for each role that has one (admin, secretariat, scrutineer, chairperson, compere, athlete, coach, team) and a PIN for every adjudicator, then prints them
 // and writes them to a PDF. No password or PIN is kept in the repository: pass --password to choose one password for every login,
 // or leave it out and each login gets its own random password. PINs are random and kept once made. Every run writes the sheet again.
@@ -28,6 +28,13 @@ if (chosen !== undefined && chosen.length < 8) {
   process.exit(1)
 }
 const passwordFor = () => chosen ?? temporaryPassword()
+// --pin-start 100001 gives the adjudicators the PINs 100001, 100002 and so on in letter order, so a sheet can be made ahead of the run
+const pinStartArg = arg('--pin-start')
+const pinStart = pinStartArg === undefined ? undefined : Number(pinStartArg)
+if (pinStart !== undefined && (!Number.isInteger(pinStart) || String(pinStart).length !== PIN_LENGTH || String(pinStart + 9).length !== PIN_LENGTH)) {
+  console.error(`--pin-start must be a ${PIN_LENGTH}-digit number.`)
+  process.exit(1)
+}
 const site = (arg('--site') ?? 'your site address').replace(/\/$/, '')
 const pdfPath = arg('--pdf') ?? (existsSync('/data') ? '/data/staging-logins.pdf' : 'staging-logins.pdf')
 
@@ -66,7 +73,10 @@ for (const u of STAFF) {
     db.insert(t.staffUsers).values({ id: u.id, name: u.name, username: u.email, role: u.key, photo: samplePhoto(u.name), passwordHash: hashPassword(u.password), disabled: false }).run()
   }
 }
-db.update(t.athletes).set({ passwordHash: hashPassword(athlete.password) }).where(eq(t.athletes.email, athlete.email)).run()
+// Every test athlete can sign in: Bianca has the login above, the others get the chosen password or a random one each
+const testAthletes = db.select().from(t.athletes).all().filter((a) => a.id.startsWith('td-athlete-')).sort((a, b) => a.name.localeCompare(b.name))
+const athleteRows = testAthletes.map((a) => ({ name: a.name, email: a.email, password: a.email === athlete.email ? athlete.password : passwordFor() }))
+for (const a of athleteRows) db.update(t.athletes).set({ passwordHash: hashPassword(a.password) }).where(eq(t.athletes.email, a.email)).run()
 for (const [who, id, role, linkedId] of [
   [coach, 'td-member-coach', 'coach', 'td-coach-1'],
   [team, 'td-member-team', 'team', 'td-team-1'],
@@ -83,7 +93,7 @@ const adjudicators = db.select().from(t.adjudicators).all().sort((a, b) => a.let
 // A PIN works for the competition the server's clock calls current, so every test competition gets the same PINs
 const testCompetitions = db.select().from(t.competitions).all().filter((c) => c.id.startsWith('td-'))
 // One random PIN for each adjudicator, the same in every test competition; a PIN already made is kept
-function pinOf(adjudicatorId: string): string {
+function pinOf(adjudicatorId: string, index: number): string {
   const held = db
     .select()
     .from(t.adjudicatorPins)
@@ -91,7 +101,7 @@ function pinOf(adjudicatorId: string): string {
     .all()
     .find((p) => testCompetitions.some((c) => c.id === p.competitionId))
   const inUse = new Set(db.select().from(t.adjudicatorPins).all().map((p) => p.pin))
-  let pin = held?.pin ?? ''
+  let pin = pinStart !== undefined ? String(pinStart + index) : (held?.pin ?? '')
   while (!pin) {
     const next = String(randomInt(10 ** (PIN_LENGTH - 1), 10 ** PIN_LENGTH))
     if (!inUse.has(next)) pin = next
@@ -103,7 +113,7 @@ function pinOf(adjudicatorId: string): string {
   }
   return pin
 }
-const pinRows = adjudicators.map((a) => ({ letter: a.letter, name: a.name, pin: pinOf(a.id) }))
+const pinRows = adjudicators.map((a, i) => ({ letter: a.letter, name: a.name, pin: pinOf(a.id, i) }))
 sqlite.close()
 
 // ---- The sheet
@@ -122,6 +132,11 @@ const lines: PdfLine[] = [
   { text: 'The admin is a second admin account, as well as the one you made. Staff roles sign in at the staff page. The coach and team are already linked to a record,', style: 'muted' },
   { text: 'so their dancers, results and entries show. The athlete is Bianca Alcantara, a dancer on Naga Rhythm Studio.', style: 'muted' },
   { text: '', style: 'muted' },
+  { text: `Athletes: all ${athleteRows.length}`, style: 'heading' },
+  { text: `Sign in at /login?as=athlete. Each athlete is also a solo dancer on a test team.`, style: 'muted' },
+  { text: `${pad('Athlete', 22)}${pad('Email', 40)}Password`, style: 'code' },
+  ...athleteRows.map((a) => ({ text: `${pad(a.name, 22)}${pad(a.email, 40)}${a.password}`, style: 'code' as const })),
+  { text: '', style: 'muted' },
   { text: `Adjudicators: all ${pinRows.length}`, style: 'heading' },
   { text: `Open ${site}/adjudicator on a phone and type the PIN. The same PINs work for every test competition.`, style: 'muted' },
   { text: `${pad('Letter', 8)}${pad('Adjudicator', 36)}PIN`, style: 'code' },
@@ -133,6 +148,7 @@ writeFileSync(pdfPath, textPdf(lines))
 
 console.log('Test logins:')
 for (const l of logins) console.log(`  ${pad(l.role, 12)} ${site}${l.path}  ${l.email}  ${l.password}`)
+console.log(`All ${athleteRows.length} test athletes can sign in; see the PDF for their emails.`)
 console.log('Adjudicator PINs (the same for every test competition):')
 for (const r of pinRows) console.log(`  ${r.letter}  ${pad(r.name, 28)} ${r.pin}`)
 console.log(`PDF written to ${pdfPath}`)
