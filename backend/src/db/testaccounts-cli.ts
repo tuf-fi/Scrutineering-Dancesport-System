@@ -11,10 +11,10 @@ import { textPdf } from './minipdf.ts'
 import * as t from './schema.ts'
 import { addTestData } from './testdata.ts'
 
-// pnpm --filter @bis/backend db:testaccounts [--yes] [--site https://staging.example.com] [--password x] [--pin-start 100001] [--pdf path]
+// pnpm --filter @bis/backend db:testaccounts [--yes] [--staff-only] [--site https://staging.example.com] [--password x] [--pin-start 100001] [--pdf path]
 // Makes one test login for each role that has one (admin, secretariat, scrutineer, chairperson, compere, barker, athlete, coach, team) and a PIN for every adjudicator, then prints them
 // and writes them to a PDF. No password or PIN is kept in the repository: pass --password to choose one password for every login,
-// or leave it out and each login gets its own random password. PINs are random and kept once made. Every run writes the sheet again.
+// or leave it out and each login gets its own random password. --staff-only makes only the staff logins: no test data, no athlete, coach or team logins, no PINs. PINs are random and kept once made. Every run writes the sheet again.
 if (process.env.BIS_DEPLOYED === 'true' && !process.argv.includes('--yes')) {
   console.error('This makes test logins. Run it on staging only, and add --yes to confirm.')
   process.exit(1)
@@ -36,6 +36,7 @@ if (pinStart !== undefined && (!Number.isInteger(pinStart) || String(pinStart).l
   console.error(`--pin-start must be a ${PIN_LENGTH}-digit number.`)
   process.exit(1)
 }
+const staffOnly = process.argv.includes('--staff-only')
 const site = (arg('--site') ?? 'your site address').replace(/\/$/, '')
 const pdfPath = arg('--pdf') ?? (existsSync('/data') ? '/data/staging-logins.pdf' : 'staging-logins.pdf')
 
@@ -43,7 +44,7 @@ const config = loadConfig()
 const { db, sqlite } = openDatabase(config.databasePath)
 runMigrations(db)
 // The athletes, team, coach, adjudicators and competitions these logins belong to
-addTestData(db)
+if (!staffOnly) addTestData(db)
 
 // ---- The four logins
 interface Login {
@@ -75,13 +76,15 @@ for (const u of STAFF) {
   }
 }
 // Every test athlete can sign in: Bianca has the login above, the others get the chosen password or a random one each
-const testAthletes = db.select().from(t.athletes).all().filter((a) => a.id.startsWith('td-athlete-')).sort((a, b) => a.name.localeCompare(b.name))
+const testAthletes = staffOnly ? [] : db.select().from(t.athletes).all().filter((a) => a.id.startsWith('td-athlete-')).sort((a, b) => a.name.localeCompare(b.name))
 const athleteRows = testAthletes.map((a) => ({ name: a.name, email: a.email, password: a.email === athlete.email ? athlete.password : passwordFor() }))
 for (const a of athleteRows) db.update(t.athletes).set({ passwordHash: hashPassword(a.password) }).where(eq(t.athletes.email, a.email)).run()
-for (const [who, id, role, linkedId] of [
-  [coach, 'td-member-coach', 'coach', 'td-coach-1'],
-  [team, 'td-member-team', 'team', 'td-team-1'],
-] as const) {
+for (const [who, id, role, linkedId] of staffOnly
+  ? []
+  : ([
+      [coach, 'td-member-coach', 'coach', 'td-coach-1'],
+      [team, 'td-member-team', 'team', 'td-team-1'],
+    ] as const)) {
   if (db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, id)).get()) {
     db.update(t.memberAccounts).set({ passwordHash: hashPassword(who.password) }).where(eq(t.memberAccounts.id, id)).run()
   } else {
@@ -90,7 +93,7 @@ for (const [who, id, role, linkedId] of [
 }
 
 // ---- A PIN for every adjudicator, for the first upcoming competition
-const adjudicators = db.select().from(t.adjudicators).all().sort((a, b) => a.letter.localeCompare(b.letter))
+const adjudicators = staffOnly ? [] : db.select().from(t.adjudicators).all().sort((a, b) => a.letter.localeCompare(b.letter))
 // A PIN works for the competition the server's clock calls current, so every test competition gets the same PINs
 const testCompetitions = db.select().from(t.competitions).all().filter((c) => c.id.startsWith('td-'))
 // One random PIN for each adjudicator, the same in every test competition; a PIN already made is kept
@@ -119,13 +122,13 @@ sqlite.close()
 
 // ---- The sheet
 const pad = (s: string, n: number) => s.padEnd(n)
-const logins = [...staff, athlete, coach, team]
+const logins = staffOnly ? staff : [...staff, athlete, coach, team]
 const lines = loginSheetLines({ made: new Date().toISOString().slice(0, 16).replace('T', ' '), site, logins, athleteRows, pinRows })
 writeFileSync(pdfPath, textPdf(lines))
 
 console.log('Test logins:')
 for (const l of logins) console.log(`  ${pad(l.role, 12)} ${site}${l.path}  ${l.email}  ${l.password}`)
-console.log(`All ${athleteRows.length} test athletes can sign in; see the PDF for their emails.`)
-console.log('Adjudicator PINs (the same for every test competition):')
+if (!staffOnly) console.log(`All ${athleteRows.length} test athletes can sign in; see the PDF for their emails.`)
+if (!staffOnly) console.log('Adjudicator PINs (the same for every test competition):')
 for (const r of pinRows) console.log(`  ${r.letter}  ${pad(r.name, 28)} ${r.pin}`)
 console.log(`PDF written to ${pdfPath}`)
