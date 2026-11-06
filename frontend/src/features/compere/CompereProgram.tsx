@@ -1,5 +1,6 @@
-import { ProgramKind, ProgramStatus, type Program, type ProgramRow } from '@bis/shared'
-import { ROUND_TYPE_LABEL, eventDances, eventGrade, formatClock, programAction } from '../../lib/format.ts'
+import { ProgramKind, ProgramStatus, type Class, type Discipline, type Program, type ProgramRow } from '@bis/shared'
+import { useCatalog } from '../../hooks/index.ts'
+import { ROUND_TYPE_LABEL, eventDances, formatClock, programAction } from '../../lib/format.ts'
 
 // What a line is, in the wall's two sizes: a round names its event, a break or the awarding names itself
 function Name({ row }: { row: ProgramRow }) {
@@ -13,7 +14,7 @@ function Name({ row }: { row: ProgramRow }) {
 }
 
 // The round, the grade and what the announcer says aloud: how many are called back, or how many are placed
-const detail = (row: ProgramRow) =>
+const detail = (row: ProgramRow, eventGrade: (event: { ageGroup: string; class: Class; discipline: Discipline }) => string) =>
   row.kind === ProgramKind.Round && row.roundType && row.ageGroup && row.class && row.discipline
     ? [
         ROUND_TYPE_LABEL[row.roundType],
@@ -23,6 +24,7 @@ const detail = (row: ProgramRow) =>
     : ''
 
 function Block({ title, row, empty, large }: { title: string; row: ProgramRow | undefined; empty: string; large: boolean }) {
+  const { eventGrade } = useCatalog()
   return (
     <section aria-label={title} className="flex flex-col gap-[1vmin]">
       <h2 className="text-[2.8vmin] font-semibold text-brown-100">{title}</h2>
@@ -33,7 +35,7 @@ function Block({ title, row, empty, large }: { title: string; row: ProgramRow | 
           </p>
           <p className={`flex flex-wrap gap-x-[2vmin] font-medium text-brown-100 ${large ? 'text-[3vmin]' : 'text-[2.6vmin]'}`}>
             <span className="font-mono tabular-nums text-white">{formatClock(row.startTime)}</span>
-            {detail(row) && <span>{detail(row)}</span>}
+            {detail(row, eventGrade) && <span>{detail(row, eventGrade)}</span>}
           </p>
         </>
       ) : (

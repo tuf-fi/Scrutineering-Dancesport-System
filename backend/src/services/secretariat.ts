@@ -1,6 +1,9 @@
 import {
   DISCIPLINE_DANCES,
-  EventKind,
+  Role,
+  ageGroupForBirthYears,
+  ageGroupName,
+  kindOf,
   PaymentStatus,
   parseCompetitorCsv,
   sameProvince,
@@ -15,12 +18,13 @@ import {
   type PaymentDetail,
   type ScheduleItem,
 } from '@bis/shared'
-import { and, asc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import {
+  catalogOf,
   clean,
   cleanDetails,
   cleanNames,
@@ -70,11 +74,22 @@ function checkBackNumber(ctx: Ctx, competitorId: string, backNumber: number | nu
   if (owner && owner.id !== competitorId) return fail(`Back number ${backNumber} is already taken by ${owner.names.join(' & ')}.`, 409)
 }
 
-export function checkEligible(ctx: Ctx, competitorId: string, event: { number: number; isSolo: boolean; ageGroup: string; kind: string; province: string }) {
+export function checkEligible(ctx: Ctx, competitorId: string, event: { competitionId: string; number: number; isSolo: boolean; ageGroup: string; kind: string; province: string }) {
   const competitor = getCompetitorRow(ctx, competitorId)
   if ((competitor.names.length === 1) !== event.isSolo) return fail(event.isSolo ? 'This is a solo event.' : 'This is a couple event.')
   if (competitor.ageGroup && competitor.ageGroup !== event.ageGroup) return fail('This competitor is in a different age group.')
-  if (event.kind === EventKind.Closed && !sameProvince(competitor.details?.province, event.province)) {
+  // The age that counts is the older partner's, in the competition's year
+  const catalog = catalogOf(ctx)
+  const date = ctx.db.select({ date: t.competitions.date }).from(t.competitions).where(eq(t.competitions.id, event.competitionId)).get()?.date
+  const birthYears = (competitor.details?.dancers ?? []).map((d) => Number(d.birthDate?.slice(0, 4))).filter((y) => y > 0)
+  const bornIn = date && birthYears.length === competitor.names.length ? ageGroupForBirthYears(birthYears, Number(date.slice(0, 4)), catalog.ageGroups) : null
+  if (bornIn && bornIn !== event.ageGroup) {
+    return fail(
+      `E${event.number} is ${ageGroupName(catalog.ageGroups, event.ageGroup)}. The age of this entry doesn't match the event's age requirement (the birth dates make it ${ageGroupName(catalog.ageGroups, bornIn)}).`,
+      409,
+    )
+  }
+  if (kindOf(catalogOf(ctx).kinds, event.kind)?.closedToProvince && !sameProvince(competitor.details?.province, event.province)) {
     return fail(`E${event.number} is closed to ${event.province}. This entry is from ${competitor.details?.province?.trim() || 'no province'}.`, 409)
   }
 }
@@ -130,7 +145,11 @@ function checkEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: str
   const allowed = DISCIPLINE_DANCES[input.discipline]
   if (!allowed) return fail('Choose Latin or Standard.')
   if (input.dances.some((d) => !allowed.includes(d))) return fail(`These dances do not belong to ${input.discipline}.`)
-  if (input.kind === EventKind.Closed && !clean(input.province)) return fail('Enter the province this event is closed to.')
+  const catalog = catalogOf(ctx)
+  const kind = kindOf(catalog.kinds, input.kind)
+  if (!kind) return fail('Choose a kind.')
+  if (!catalog.ageGroups.some((g) => g.id === input.ageGroup && !g.retired)) return fail('Choose an age group.')
+  if (kind.closedToProvince && !clean(input.province)) return fail('Enter the province this event is closed to.')
 }
 
 function addCompetitor(ctx: Ctx, names: string[], teamId: string, details: CompetitorDetails | null = null) {
@@ -174,7 +193,7 @@ export const secretariat = {
   },
 
   getCompetitorRows: (ctx: Ctx): CompetitorRow[] =>
-    ctx.db.select().from(t.competitors).all().map((c) => competitorRow(ctx, c)),
+    ctx.db.select().from(t.competitors).orderBy(desc(sql`rowid`)).all().map((c) => competitorRow(ctx, c)),
 
   createCompetitor(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
     const names = cleanNames(input?.names)
@@ -260,6 +279,7 @@ export const secretariat = {
       .select()
       .from(t.entries)
       .where(and(eq(t.entries.late, true), inArray(t.entries.eventId, events.map((e) => e.id))))
+      .orderBy(desc(sql`rowid`))
       .all()
       .map((e) => lateRow(ctx, e))
   },
@@ -338,6 +358,11 @@ export const secretariat = {
       return fail('Remove their entries before changing between a solo dancer and a couple.', 409)
     }
     const details = input.details === undefined ? (competitor.details ?? null) : cleanDetails(ctx, names, input.details)
+    // Names and birth dates already on file are only corrected by an admin; a missing birth date can still be filled in
+    if (ctx.user?.role !== Role.Admin) {
+      const changed = competitor.names.some((n, i) => names[i] !== n || (competitor.details?.dancers[i]?.birthDate && details?.dancers[i]?.birthDate !== competitor.details.dancers[i]!.birthDate))
+      if (changed) return fail('Only an admin can change a name or date of birth that is already on file.', 403)
+    }
     ctx.db.update(t.competitors).set({ names, teamId: input.teamId, details }).where(eq(t.competitors.id, id)).run()
     record(ctx.db, actor(ctx).id, 'Edited competitor', names.join(' & '), { before: { names: competitor.names, teamId: competitor.teamId }, after: { names, teamId: input.teamId } })
     return competitorRow(ctx, { ...competitor, names, teamId: input.teamId, details })
@@ -408,7 +433,7 @@ export const secretariat = {
       dances: input.dances,
       isSolo: Boolean(input.isSolo),
       kind: input.kind ?? 'standard',
-      province: input.kind === EventKind.Closed ? clean(input.province) : '',
+      province: kindOf(catalogOf(ctx).kinds, input.kind)?.closedToProvince ? clean(input.province) : '',
     }
     if (id) {
       const event = getEventRow(ctx, id)

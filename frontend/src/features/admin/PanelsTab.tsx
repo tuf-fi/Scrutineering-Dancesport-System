@@ -3,8 +3,8 @@ import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { EmptyState, ErrorState, SearchField, Table, Toolbar, toast } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { useAdjudicators, useEvents, usePanels, useSetPanel } from '../../hooks/index.ts'
-import { eventCode, eventDances, eventGrade, letterRanges } from '../../lib/format.ts'
+import { useAdjudicators, useEvents, usePanels, useSetPanel, useCatalog } from '../../hooks/index.ts'
+import { eventCode, eventDances, letterRanges } from '../../lib/format.ts'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 
 interface PanelsTabProps {
@@ -16,6 +16,7 @@ interface PanelsTabProps {
 // Who marks each event, as one grid: an event on every row, an adjudicator on every column. A tap on a cell puts that
 // adjudicator on, or takes them off, that event's panel; it is saved at once.
 export function PanelsTab({ competitionId, competitions, onCompetitionChange }: PanelsTabProps) {
+  const { eventGrade } = useCatalog()
   const events = useEvents(competitionId)
   const panels = usePanels(competitionId)
   const adjudicators = useAdjudicators()

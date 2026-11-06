@@ -115,9 +115,29 @@ describe('coach and team accounts', () => {
 
   it('lets an account change its details and its password, and sign out everywhere', async () => {
     const own = await extra('coach', 'fourth')
-    expect(await app.ok<MemberAccount>('saveMyMember', [{ name: 'Fourth Coach', phone: '0917 111 2222' }], own)).toMatchObject({ name: 'Fourth Coach', phone: '0917 111 2222' })
+    expect(await app.ok<MemberAccount>('saveMyMember', [{ name: 'fourth', phone: '0917 111 2222' }], own)).toMatchObject({ name: 'fourth', phone: '0917 111 2222' })
     expect((await app.call('saveMyMember', [{ name: '  ', phone: '' }], own)).error).toMatch(/Enter your name/)
-    expect((await app.call('saveMyMember', [{ name: 'Nope', phone: '' }], secretariat)).status).toBe(403)
+
+    // A coach's new name goes to the secretariat; nothing changes until it is approved
+    const asked = await app.ok<MemberAccount>('saveMyMember', [{ name: 'Fourth Coach', phone: '' }], own)
+    expect(asked).toMatchObject({ name: 'fourth', changeRequest: { name: 'Fourth Coach' } })
+    expect(await app.ok<Array<{ memberId: string; requestedName: string }>>('getMemberChanges', [], secretariat)).toMatchObject([{ memberId: 'm-fourth', requestedName: 'Fourth Coach' }])
+    expect((await app.call('getMemberChanges', [], own)).status).toBe(403)
+    expect((await app.call('rejectMemberChange', ['m-fourth', ' '], secretariat)).error).toMatch(/why/)
+    await app.ok('rejectMemberChange', ['m-fourth', 'Use the name on your ID'], secretariat)
+    expect((await app.ok<MemberAccount>('getMyMember', [], own)).changeRequest).toMatchObject({ rejectedReason: 'Use the name on your ID' })
+    expect(await app.ok('getMemberChanges', [], secretariat)).toEqual([])
+
+    await app.ok('saveMyMember', [{ name: 'Fourth Coach', birthDate: '1990-05-01', phone: '' }], own)
+    await app.ok('approveMemberChange', ['m-fourth'], secretariat)
+    expect(await app.ok<MemberAccount>('getMyMember', [], own)).toMatchObject({ name: 'Fourth Coach', birthDate: '1990-05-01', changeRequest: null })
+    // A birth date on file is a request too, and only an admin corrects it directly
+    expect((await app.ok<MemberAccount>('saveMyMember', [{ name: 'Fourth Coach', birthDate: '1991-01-01', phone: '' }], own)).changeRequest).toMatchObject({ birthDate: '1991-01-01' })
+    expect((await app.call('correctMember', ['m-fourth', { name: 'Fourth Coach', birthDate: '1990-05-01' }], secretariat)).status).toBe(403)
+    app.db.insert(t.staffUsers).values({ id: 's1', name: 'admin', username: 'admin@sample.example', role: 'admin', passwordHash: hashPassword('pw-admin'), disabled: false }).run()
+    const admin = await app.signIn.staff('admin', 'pw-admin')
+    await app.ok('correctMember', ['m-fourth', { name: 'Fourth Coach', birthDate: '1989-01-01' }], admin)
+    expect((await app.ok<MemberAccount>('getMyMember', [], own)).birthDate).toBe('1989-01-01')
 
     expect((await app.call('changeMyPassword', ['wrong-password', 'a-new-password'], own)).error).toMatch(/not right/)
     expect((await app.call('changeMyPassword', ['a-long-password', 'short'], own)).error).toMatch(/at least 8/)

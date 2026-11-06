@@ -5,7 +5,8 @@ import { Link } from 'react-router'
 import { EmptyState, Pagination, Skeleton } from './ui/index.ts'
 import { usePagination } from '../hooks/usePagination.ts'
 import { cn } from '../lib/cn.ts'
-import { DANCE_LABEL, eventCode, eventGrade, formatDate, todayIso } from '../lib/format.ts'
+import { DANCE_LABEL, eventCode, formatDate, todayIso } from '../lib/format.ts'
+import { useCatalog } from '../hooks/index.ts'
 
 interface Group {
   id: string
@@ -30,6 +31,7 @@ function groupByCompetition(entries: MyEntry[], today: string): Group[] {
 
 // One competition as a card: its name opens the events the athlete is entered in
 function CompetitionGroup({ group, compact }: { group: Group; compact?: boolean }) {
+  const { eventGrade } = useCatalog()
   const [open, setOpen] = useState(false)
   const panel = useId()
   const active = group.entries.filter((e) => !e.scratched).length

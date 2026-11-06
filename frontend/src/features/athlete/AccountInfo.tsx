@@ -1,4 +1,4 @@
-import type { AthletePage as AthleteData } from '@bis/shared'
+import { membershipLabel, type AthletePage as AthleteData } from '@bis/shared'
 import { ButtonLink } from '../../components/ui/index.ts'
 import { useTeams, useCoaches } from '../../hooks/index.ts'
 import { formatDate } from '../../lib/format.ts'
@@ -19,9 +19,9 @@ export function AccountInfo({ page }: { page: AthleteData }) {
     { label: 'Address', value: profile.address },
     { label: 'Team', value: teams.data?.find((c) => c.id === profile.teamId)?.name },
     { label: 'Coach', value: coaches.data?.find((c) => c.id === profile.coachId)?.name },
-    { label: 'Member until', value: profile.memberYear === year ? `December ${year}` : undefined },
+    { label: 'Membership', value: profile.memberYear === null ? undefined : membershipLabel(profile.memberYear, year) },
   ]
-  const missing = rows.some((r) => !r.value && r.label !== 'Member until' && r.label !== 'Coach')
+  const missing = rows.some((r) => !r.value && r.label !== 'Membership' && r.label !== 'Coach')
 
   return (
     <AccountSection title="Account information" note="Only the secretariat sees these. They use them for your entry form.">

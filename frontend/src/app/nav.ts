@@ -60,7 +60,7 @@ const entriesNav: NavItem[] = [
   { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
   { to: '/secretariat/entry-requests', label: 'Entry requests', icon: Inbox, group: 'Entries' },
   { to: '/secretariat/account-links', label: 'Account links', icon: Link2, group: 'Entries' },
-  { to: '/secretariat/profile-changes', label: 'Team and coach changes', icon: ArrowLeftRight, group: 'Entries' },
+  { to: '/secretariat/profile-changes', label: 'Profile changes', icon: ArrowLeftRight, group: 'Entries' },
   { to: '/secretariat/late-entries', label: 'Late entries', icon: Clock, group: 'Entries' },
 ]
 const dayNav: NavItem[] = [
@@ -71,6 +71,7 @@ const dayNav: NavItem[] = [
 export const staffNav: Record<StaffRole, NavItem[]> = {
   admin: [
     { to: '/admin/competitions', label: 'Competitions', icon: Trophy, group: 'Setup' },
+    { to: '/admin/categories', label: 'Kinds and age groups', icon: Layers, group: 'Setup' },
     { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Setup' },
     ...entriesNav,
     ...dayNav,

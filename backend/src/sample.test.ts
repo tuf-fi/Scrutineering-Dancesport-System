@@ -28,11 +28,11 @@ describe('the seeded sample', () => {
   })
 
   it('uses only age groups the app knows', async () => {
-    const known = new Set(Object.values(AgeGroup))
+    const known = new Set<string>(Object.values(AgeGroup))
     const events = await app.ok<Array<{ id: string; ageGroup: string }>>('getEvents', [])
-    expect(events.filter((e) => !known.has(e.ageGroup as AgeGroup)).map((e) => e.id)).toEqual([])
+    expect(events.filter((e) => !known.has(e.ageGroup)).map((e) => e.id)).toEqual([])
     const competitors = await app.ok<Array<{ id: string; ageGroup?: string }>>('getCompetitors', [])
-    expect(competitors.filter((c) => c.ageGroup && !known.has(c.ageGroup as AgeGroup)).map((c) => c.id)).toEqual([])
+    expect(competitors.filter((c) => c.ageGroup && !known.has(c.ageGroup)).map((c) => c.id)).toEqual([])
   })
 
   it('shows the finished event\'s finals and shared places', async () => {

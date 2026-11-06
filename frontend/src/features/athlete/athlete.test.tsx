@@ -198,9 +198,9 @@ describe('athlete account', () => {
     await saveMyAthlete(session.id, { ...input, teamId: second!.id })
 
     renderApp('/secretariat/profile-changes', Role.Secretariat)
-    await userEvent.click(await screen.findByRole('button', { name: 'Approve change of team or coach of Fay Ocampo' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Approve change for Fay Ocampo' }))
     expect(await screen.findByText('Approved the change for Fay Ocampo')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Approve change of team or coach of Fay Ocampo' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Approve change for Fay Ocampo' })).not.toBeInTheDocument()
   })
 
   it('signs out on every device from the security page', async () => {

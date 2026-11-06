@@ -1,8 +1,8 @@
 import { RoundStatus } from '@bis/shared'
 import { useParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEvent, useRecallTable, useRounds } from '../../hooks/index.ts'
-import { ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, formatDate } from '../../lib/format.ts'
+import { useCompetition, useEvent, useRecallTable, useRounds, useCatalog } from '../../hooks/index.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDances, formatDate } from '../../lib/format.ts'
 import { PublicHeader } from './PublicHeader.tsx'
 import { ResultsTable } from './ResultsTable.tsx'
 
@@ -24,6 +24,7 @@ function Qualified({ roundId, label }: { roundId: string; label: string }) {
 }
 
 export function EventResultsPage() {
+  const { eventGrade } = useCatalog()
   const { competitionId = '', eventId = '' } = useParams()
   const event = useEvent(eventId)
   const competition = useCompetition(competitionId)

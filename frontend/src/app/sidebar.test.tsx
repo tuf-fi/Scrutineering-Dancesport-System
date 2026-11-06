@@ -36,6 +36,7 @@ describe('staff sidebar', () => {
     expect(nav.getByRole('link', { name: /Amelia Rosales/ })).toHaveAttribute('href', '/account')
     expect(links.map((l) => l.textContent)).toEqual([
       'Competitions',
+      'Kinds and age groups',
       'Adjudicators and panels',
       'Events',
       'Competitors',
@@ -44,7 +45,7 @@ describe('staff sidebar', () => {
       'Athletes',
       'Entry requests',
       'Account links',
-      'Team and coach changes',
+      'Profile changes',
       'Late entries',
       'Schedule',
       'Program',
@@ -146,7 +147,7 @@ describe('staff sidebar', () => {
   })
 
   it.each([
-    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Teams', 'Coaches', 'Athletes', 'Entry requests', 'Account links', 'Team and coach changes', 'Late entries', 'Schedule', 'Program', 'Security']],
+    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Teams', 'Coaches', 'Athletes', 'Entry requests', 'Account links', 'Profile changes', 'Late entries', 'Schedule', 'Program', 'Security']],
     [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Live board', 'Paper marks', 'Recall', 'Results', 'Security']],
     [Role.Chairperson, '/scrutineer/live', ['Live board', 'Recall', 'Results', 'Security']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {

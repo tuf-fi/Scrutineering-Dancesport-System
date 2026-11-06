@@ -45,14 +45,14 @@ export function MembershipSection({ page }: { page: AthleteData }) {
   }
 
   return (
-    <AccountSection title={`${year} membership`} note="Paid once a year. The secretariat confirms it when the money arrives.">
+    <AccountSection title={`${year} membership`} note={`Paid once a year. It ends on December 31, ${year}, whenever you pay. The secretariat confirms it when the money arrives.`}>
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-4 border-b border-neutral-200 pb-6">
         <div className="flex flex-col gap-2">
           <span className="font-mono text-xs uppercase text-neutral-500">Fee</span>
           <p className="font-mono text-display font-semibold leading-none tabular-nums text-neutral-900">{formatPeso(fee)}</p>
         </div>
         <div className="flex items-center gap-4">
-          {paid && <span className="font-mono text-xs uppercase text-neutral-500">Valid until December {year}</span>}
+          {paid && <span className="font-mono text-xs uppercase text-neutral-500">Valid until December 31, {year}</span>}
           {paid ? (
             <Badge pill tone="success">Paid</Badge>
           ) : waiting ? (
@@ -66,7 +66,7 @@ export function MembershipSection({ page }: { page: AthleteData }) {
       </div>
 
       {paid ? (
-        <p className="text-body text-neutral-700">Your membership is paid and lasts until December {year}.</p>
+        <p className="text-body text-neutral-700">Your membership is paid and lasts until December 31, {year}.</p>
       ) : waiting ? (
         <p className="text-body text-neutral-700">
           You sent a screenshot of your {request.method} payment{request.reference && <>, reference <span className="font-mono">{request.reference}</span></>}. The secretariat will confirm it once the money arrives.

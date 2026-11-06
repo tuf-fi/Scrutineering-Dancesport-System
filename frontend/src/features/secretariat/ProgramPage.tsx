@@ -22,6 +22,7 @@ import {
   useProgram,
   useRemoveProgramSlot,
   useSetProgramStart,
+  useCatalog,
 } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import {
@@ -29,7 +30,6 @@ import {
   ROUND_TYPE_LABEL,
   eventCode,
   eventDances,
-  eventGrade,
   formatClock,
   programLineName,
 } from '../../lib/format.ts'
@@ -57,6 +57,7 @@ function StartField({ saved, disabled, onSave }: { saved: string; disabled: bool
 }
 
 export function ProgramPage() {
+  const { eventGrade } = useCatalog()
   const [chosen, setChosen] = useState<string | null>(null)
   const { list, competitionId } = useCompetitionChoice(chosen)
   const program = useProgram(competitionId ?? '')

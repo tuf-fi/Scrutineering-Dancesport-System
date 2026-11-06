@@ -4,9 +4,9 @@ import { Avatars } from '../../components/Avatars.tsx'
 import { ResultsByCompetition } from '../../components/ResultsByCompetition.tsx'
 import { Link, useLocation, useParams } from 'react-router'
 import { ButtonLink, EmptyState, ErrorState, Pagination, Skeleton } from '../../components/ui/index.ts'
-import { useTeams, useCompetitorHistory, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
+import { useTeams, useCompetitorHistory, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
-import { competitorName, eventGrade } from '../../lib/format.ts'
+import { competitorName } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
 import { categoriesOf, rankCategory, type CategoryFilter } from '../../lib/rankings.ts'
 
@@ -17,6 +17,7 @@ interface CategoryStanding extends CategoryFilter {
 }
 
 export function CompetitorPage() {
+  const { eventGrade } = useCatalog()
   const { id = '' } = useParams()
   const cameFromRankings = (useLocation().state as { from?: string } | null)?.from === 'rankings'
   const competitors = useCompetitors()

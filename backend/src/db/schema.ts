@@ -1,5 +1,5 @@
-import { AgeGroup, Class, Dance, Discipline, EventKind, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
-import type { AthleteNotification, CompetitorDetails, MembershipEvent, MembershipRequest, ProfileChangeRequest } from '@bis/shared'
+import { Class, Dance, Discipline, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
+import type { AthleteNotification, CompetitorDetails, FeeMode, KindField, MembershipEvent, MemberChangeRequest, MembershipRequest, ProfileChangeRequest } from '@bis/shared'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Drizzle wants a non-empty tuple of the allowed strings
@@ -47,12 +47,12 @@ export const events = sqliteTable(
     number: integer('number').notNull(),
     // 1 is first on the floor
     position: integer('position').notNull(),
-    ageGroup: text('age_group', { enum: oneOf(AgeGroup) }).notNull(),
+    ageGroup: text('age_group').notNull(),
     class: text('class', { enum: oneOf(Class) }).notNull(),
     discipline: text('discipline', { enum: oneOf(Discipline) }).notNull(),
     dances: text('dances', { mode: 'json' }).$type<Dance[]>().notNull(),
     isSolo: integer('is_solo', { mode: 'boolean' }).notNull(),
-    kind: text('kind', { enum: oneOf(EventKind) }).notNull().default('standard'),
+    kind: text('kind').notNull().default('standard'),
     // The province a closed event is open to
     province: text('province').notNull().default(''),
   },
@@ -66,7 +66,7 @@ export const competitors = sqliteTable(
     // A couple has two names; a solo dancer has one
     names: text('names', { mode: 'json' }).$type<string[]>().notNull(),
     // Worked out in the team's form from the dancers' birth years, which are not kept
-    ageGroup: text('age_group', { enum: oneOf(AgeGroup) }),
+    ageGroup: text('age_group'),
     birthDate: text('birth_date'),
     // The rest of the entry form: province, coach, each dancer's details, beginner and membership
     details: text('details', { mode: 'json' }).$type<CompetitorDetails>(),
@@ -362,6 +362,31 @@ export const results = sqliteTable(
   (t) => [uniqueIndex('results_once_per_event').on(t.eventId, t.competitorId)],
 )
 
+// The kinds of event and the age groups the admin keeps. Events point at them by id, so renaming one changes its
+// name everywhere; one an event uses cannot be deleted.
+export const eventKinds = sqliteTable('event_kinds', {
+  id: id(),
+  name: text('name').notNull(),
+  feeMode: text('fee_mode').$type<FeeMode>().notNull().default('standard'),
+  beginnersOnly: integer('beginners_only', { mode: 'boolean' }).notNull().default(false),
+  closedToProvince: integer('closed_to_province', { mode: 'boolean' }).notNull().default(false),
+  requires: text('requires', { mode: 'json' }).$type<KindField[]>().notNull().default([]),
+  sortOrder: integer('sort_order').notNull(),
+})
+
+export const ageGroups = sqliteTable('age_groups', {
+  id: id(),
+  name: text('name').notNull(),
+  short: text('short').notNull(),
+  // The oldest age in the group; null for the oldest group
+  oldestAge: integer('oldest_age'),
+  juvenileFee: integer('juvenile_fee', { mode: 'boolean' }).notNull().default(false),
+  // Changing a group that events have already run in makes a new version and retires this one, so those events keep
+  // what it meant on the day. Versions share a family (null is the group's own id); rankings add a family together.
+  family: text('family'),
+  retired: integer('retired', { mode: 'boolean' }).notNull().default(false),
+})
+
 export const pointsTable = sqliteTable('points_table', {
   id: id(),
   // 1 to 7; null is a row for everyone cut in a round
@@ -380,7 +405,7 @@ export const rankingPoints = sqliteTable(
     competitorId: text('competitor_id')
       .notNull()
       .references(() => competitors.id),
-    ageGroup: text('age_group', { enum: oneOf(AgeGroup) }).notNull(),
+    ageGroup: text('age_group').notNull(),
     class: text('class', { enum: oneOf(Class) }).notNull(),
     discipline: text('discipline', { enum: oneOf(Discipline) }).notNull(),
     competitionId: text('competition_id')
@@ -462,6 +487,8 @@ export const memberAccounts = sqliteTable('member_accounts', {
   // A coach or team the account asked to be linked to, waiting for the secretariat
   claimId: text('claim_id'),
   claimedAt: text('claimed_at'),
+  // A new name or birth date a coach asked for, waiting for the secretariat
+  changeRequest: text('change_request', { mode: 'json' }).$type<MemberChangeRequest>(),
 })
 
 // A team's (or an athlete's) request to enter a dancer or couple in events, with the payment already made. The secretariat

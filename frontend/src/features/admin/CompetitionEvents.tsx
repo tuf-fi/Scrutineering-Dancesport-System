@@ -1,9 +1,10 @@
 import { EmptyState, SkeletonList } from '../../components/ui/index.ts'
-import { useEvents } from '../../hooks/index.ts'
-import { DANCE_LABEL, eventCode, eventGrade } from '../../lib/format.ts'
+import { useEvents, useCatalog } from '../../hooks/index.ts'
+import { DANCE_LABEL, eventCode } from '../../lib/format.ts'
 
 // The events of one competition, in running order
 export function CompetitionEvents({ competitionId }: { competitionId: string }) {
+  const { eventGrade } = useCatalog()
   const events = useEvents(competitionId)
   const list = [...(events.data ?? [])].sort((a, b) => a.number - b.number)
 

@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
+import { CategoriesPage } from '../features/admin/CategoriesPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
@@ -175,6 +176,7 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <Navigate to="/admin/competitions" replace /> },
               { path: 'competitions', element: <CompetitionsPage /> },
+              { path: 'categories', element: <CategoriesPage /> },
               { path: 'staff', element: <StaffPage /> },
               { path: 'adjudicators', element: <AdjudicatorsPage /> },
               { path: 'points', element: <PointsPage /> },

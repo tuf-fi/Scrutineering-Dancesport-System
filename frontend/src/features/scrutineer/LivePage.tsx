@@ -4,8 +4,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import { ErrorState, DarkPanel, PageHeader, Skeleton, glass } from '../../components/ui/index.ts'
-import { useAdjudicators, useLiveSubmissions } from '../../hooks/index.ts'
-import { AGE_GROUP_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { useAdjudicators, useLiveSubmissions, useCatalog } from '../../hooks/index.ts'
+import { eventCode, eventDances } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
@@ -47,6 +47,7 @@ function useSince(submissions: AdjudicatorSubmission[]) {
 }
 
 function Board({ row, final, select }: { row: RoundRow; final: boolean; select: ReactNode }) {
+  const { ageGroupLabel } = useCatalog()
   const roundId = row.roundId
   const submissions = useLiveSubmissions(roundId)
   const adjudicators = useAdjudicators()
@@ -75,7 +76,7 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
         <p className="flex items-center gap-2 text-body text-brown-100">
           <span className="font-mono tabular-nums text-gold-400">{eventCode({ number: row.eventNumber })}</span>
           <span aria-hidden>·</span>
-          {AGE_GROUP_LABEL[row.ageGroup]} · {row.class}
+          {ageGroupLabel(row.ageGroup)} · {row.class}
         </p>
       </div>
 

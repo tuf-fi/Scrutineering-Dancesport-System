@@ -57,6 +57,7 @@ export const API_FUNCTIONS = [
   'getPaymentDetails',
   'getPayments',
   'getPointsTable',
+  'getCatalog',
   'getRankingPoints',
   'getRecallTable',
   'getResultEventIds',
@@ -96,6 +97,10 @@ export const API_FUNCTIONS = [
   'saveEvent',
   'saveHeats',
   'savePointsTable',
+  'saveEventKind',
+  'deleteEventKind',
+  'saveAgeGroup',
+  'deleteAgeGroup',
   'setBackNumber',
   'setEntryScratched',
   'setPanel',
@@ -142,6 +147,11 @@ export const API_FUNCTIONS = [
   'rejectMembership',
   'resetAthletePassword',
   'deleteAthlete',
+  'correctAthlete',
+  'correctMember',
+  'getMemberChanges',
+  'approveMemberChange',
+  'rejectMemberChange',
 ] as const
 
 export type ApiFunction = (typeof API_FUNCTIONS)[number]

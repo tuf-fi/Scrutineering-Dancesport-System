@@ -1,5 +1,5 @@
 import { DEFAULT_FEE_SCHEDULE, Role, type AthleteInput, type AthletePage, type AthleteProfile, type AthleteRow, type AthleteSignUp, type AthleteNotification, type MembershipEvent, type MyActivity, type SessionUser } from '@bis/shared'
-import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { hashPassword, temporaryPassword, verifyPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
 import { record } from '../core/audit.ts'
@@ -9,7 +9,7 @@ import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { reads } from './reads.ts'
 import { changeMemberPassword, isMember, markMemberNotificationsRead, memberCompetitors, memberNotifications, signOutMember } from './members.ts'
-import { MAX_RECEIPT, MIN_PASSWORD, PHOTO, checkPhoto, clean, currentCompetition } from './shared.ts'
+import { MAX_RECEIPT, MIN_PASSWORD, PHOTO, checkPhoto, clean } from './shared.ts'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -45,10 +45,9 @@ function notifyAthlete(ctx: Ctx, athleteId: string, note: Pick<AthleteNotificati
 
 const withEvent = (row: AthleteRowDb, event: MembershipEvent): MembershipEvent[] => [...(row.membershipHistory ?? []), event]
 
-// The year a membership paid now covers: the year of the competition coming up or on now
-function membershipYear(ctx: Ctx): number {
-  const competition = currentCompetition(ctx)
-  return Number((competition?.date ?? new Date(Date.now() + 8 * 3_600_000).toISOString()).slice(0, 4))
+// The year a membership paid now covers: this calendar year in the Philippines, ending December 31
+function membershipYear(): number {
+  return Number(new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 4))
 }
 
 const mine = (ctx: Ctx): AthleteRowDb => found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, actor(ctx).id)).get(), 'Athlete')
@@ -108,7 +107,7 @@ export const athletes = {
     const settings = readPaymentSettings(ctx.sqlite)
     return {
       profile: toProfile(mine(ctx)),
-      year: membershipYear(ctx),
+      year: membershipYear(),
       fee: (settings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
       methods: settings.methods,
     }
@@ -129,11 +128,28 @@ export const athletes = {
     // A first team or coach is set straight away; changing one that is already there goes to the secretariat
     const nextTeam = row.teamId === null ? teamId : row.teamId
     const nextCoach = row.coachId === null ? coachId : row.coachId
-    const asksForChange = teamId !== nextTeam || coachId !== nextCoach
-    const changeRequest = asksForChange ? { teamId, coachId, requestedAt: now() } : (row.changeRequest ?? null)
+    // Results and ranking points follow the name, and the birth date decides the age group, so changing either on file
+    // goes to the secretariat too; a first birth date is set straight away
+    const teamAsk = teamId !== nextTeam || coachId !== nextCoach
+    const nameAsk = name !== row.name
+    const birthAsk = Boolean(row.birthDate) && Boolean(birthDate) && birthDate !== row.birthDate
+    const asksForChange = teamAsk || nameAsk || birthAsk
+    const pending = row.changeRequest && !row.changeRequest.rejectedReason ? row.changeRequest : null
+    const asked = {
+      ...(nameAsk ? { name } : pending?.name ? { name: pending.name } : {}),
+      ...(birthAsk ? { birthDate } : pending?.birthDate ? { birthDate: pending.birthDate } : {}),
+    }
+    const changeRequest = asksForChange
+      ? {
+          teamId: teamAsk ? teamId : (pending?.teamId ?? nextTeam),
+          coachId: teamAsk ? coachId : (pending?.coachId ?? nextCoach),
+          ...asked,
+          requestedAt: now(),
+        }
+      : (row.changeRequest ?? null)
     const values = {
-      name,
-      birthDate,
+      name: row.name,
+      birthDate: row.birthDate || birthDate,
       phone: clean(input.phone).slice(0, 40),
       address: clean(input.address).slice(0, 300),
       province: clean(input.province).slice(0, 100),
@@ -143,8 +159,9 @@ export const athletes = {
     }
     ctx.db.update(t.athletes).set(values).where(eq(t.athletes.id, row.id)).run()
     if (asksForChange) {
-      record(ctx.db, row.id, 'Asked to change team or coach', row.name, { after: { teamId, coachId } })
-      ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Team or coach change', detail: `${row.name} asks to change team or coach`, link: '/secretariat/profile-changes' }))
+      const what = [teamAsk && 'team or coach', nameAsk && 'name', birthAsk && 'date of birth'].filter(Boolean).join(', ')
+      record(ctx.db, row.id, `Asked to change ${what}`, row.name, { after: { teamId, coachId, ...asked } })
+      ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Profile change', detail: `${row.name} asks to change ${what}`, link: '/secretariat/profile-changes' }))
     }
     return toProfile({ ...row, ...values })
   },
@@ -152,7 +169,7 @@ export const athletes = {
   // The athlete says they paid; the secretariat checks it against the money received
   requestMembership(ctx: Ctx, input: { method: string; receipt: string }): AthleteProfile {
     const row = mine(ctx)
-    const year = membershipYear(ctx)
+    const year = membershipYear()
     if (row.memberYear === year) return fail(`Your ${year} membership is already paid.`, 409)
     if (row.request && !row.request.rejectedReason) return fail('You already sent a payment. Wait for the secretariat to confirm it.', 409)
     const method = clean(input?.method)
@@ -232,11 +249,12 @@ export const athletes = {
     return ctx.db
       .select()
       .from(t.athletes)
-      .orderBy(asc(t.athletes.name))
+      .orderBy(desc(sql`rowid`))
       .all()
       .map((r) => ({
         id: r.id,
         name: r.name,
+        birthDate: r.birthDate,
         email: r.email,
         phone: r.phone,
         teamName: (r.teamId && teams.get(r.teamId)) || '',
@@ -244,6 +262,8 @@ export const athletes = {
         memberYear: r.memberYear,
         request: r.request ?? null,
         changeRequest: r.changeRequest ?? null,
+        requestedName: r.changeRequest?.name ?? '',
+        requestedBirthDate: r.changeRequest?.birthDate ?? '',
         requestedTeamName: (r.changeRequest?.teamId && teams.get(r.changeRequest.teamId)) || '',
         requestedCoachName: (r.changeRequest?.coachId && coaches.get(r.changeRequest.coachId)) || '',
       }))
@@ -253,9 +273,13 @@ export const athletes = {
     const row = found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, id)).get(), 'Athlete')
     const change = row.changeRequest
     if (!change || change.rejectedReason) return fail('This athlete has no change waiting.', 409)
-    ctx.db.update(t.athletes).set({ teamId: change.teamId, coachId: change.coachId, changeRequest: null }).where(eq(t.athletes.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Approved a team or coach change', row.name, { after: { teamId: change.teamId, coachId: change.coachId } })
-    notifyAthlete(ctx, id, { kind: 'change_approved', title: 'Your team or coach change was approved', detail: '', link: '/athlete' })
+    ctx.db
+      .update(t.athletes)
+      .set({ teamId: change.teamId, coachId: change.coachId, ...(change.name ? { name: change.name } : {}), ...(change.birthDate ? { birthDate: change.birthDate } : {}), changeRequest: null })
+      .where(eq(t.athletes.id, id))
+      .run()
+    record(ctx.db, actor(ctx).id, 'Approved a profile change', row.name, { before: { name: row.name, birthDate: row.birthDate }, after: { teamId: change.teamId, coachId: change.coachId, name: change.name, birthDate: change.birthDate } })
+    notifyAthlete(ctx, id, { kind: 'change_approved', title: 'Your change was approved', detail: '', link: '/athlete' })
   },
 
   rejectProfileChange(ctx: Ctx, id: string, reason: string): void {
@@ -264,8 +288,8 @@ export const athletes = {
     const rejectedReason = clean(reason)
     if (!rejectedReason) return fail('Say why it was turned down.')
     ctx.db.update(t.athletes).set({ changeRequest: { ...row.changeRequest, rejectedReason: rejectedReason.slice(0, 200) } }).where(eq(t.athletes.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Turned down a team or coach change', row.name, { after: { reason: rejectedReason } })
-    notifyAthlete(ctx, id, { kind: 'change_rejected', title: 'Your team or coach change was turned down', detail: rejectedReason.slice(0, 200), link: '/athlete/edit' })
+    record(ctx.db, actor(ctx).id, 'Turned down a profile change', row.name, { after: { reason: rejectedReason } })
+    notifyAthlete(ctx, id, { kind: 'change_rejected', title: 'Your change was turned down', detail: rejectedReason.slice(0, 200), link: '/athlete/edit' })
   },
 
   confirmMembership(ctx: Ctx, id: string): void {
@@ -287,6 +311,18 @@ export const athletes = {
     ctx.db.update(t.athletes).set({ request: { ...row.request, rejectedReason: rejectedReason.slice(0, 200) }, membershipHistory }).where(eq(t.athletes.id, id)).run()
     record(ctx.db, actor(ctx).id, 'Turned down a membership payment', row.name, { after: { reason: rejectedReason } })
     notifyAthlete(ctx, id, { kind: 'membership_rejected', title: 'Your membership payment was not confirmed', detail: rejectedReason.slice(0, 200), link: '/athlete/membership' })
+  },
+
+  // The one way to fix a wrong name or birth date
+  correctAthlete(ctx: Ctx, id: string, input: { name: string; birthDate: string }): AthleteRow {
+    const row = found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, id)).get(), 'Athlete')
+    const name = clean(input?.name)
+    if (!name || name.length > 100) return fail('Enter the name.')
+    const birthDate = clean(input?.birthDate)
+    if (birthDate && (!DATE.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || birthDate > now().slice(0, 10) || birthDate < '1900-01-01')) return fail('Enter a valid date of birth.')
+    ctx.db.update(t.athletes).set({ name, birthDate }).where(eq(t.athletes.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Corrected an athlete', name, { before: { name: row.name, birthDate: row.birthDate }, after: { name, birthDate } })
+    return athletes.getAthletes(ctx).find((a) => a.id === id)!
   },
 
   resetAthletePassword(ctx: Ctx, id: string): { tempPassword: string } {

@@ -3,11 +3,12 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import { useState } from 'react'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { ErrorState, IconButton, PageHeader, Table, Toolbar, toast } from '../../components/ui/index.ts'
-import { useMoveScheduledEvent, useSchedule } from '../../hooks/index.ts'
+import { useMoveScheduledEvent, useSchedule, useCatalog } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
-import { AGE_GROUP_LABEL, DISCIPLINE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 
 export function SchedulePage() {
+  const { ageGroupLabel } = useCatalog()
   const [chosen, setChosen] = useState<string | null>(null)
   const { list, competitionId } = useCompetitionChoice(chosen)
   const schedule = useSchedule(competitionId ?? '')
@@ -56,7 +57,7 @@ export function SchedulePage() {
                   <span className="font-mono tabular-nums">{eventCode({ number: i.eventNumber })}</span> {eventDances(i)}
                 </span>
                 <span className="text-xs text-neutral-500">
-                  {AGE_GROUP_LABEL[i.ageGroup]} · {i.class} · {DISCIPLINE_LABEL[i.discipline]}
+                  {ageGroupLabel(i.ageGroup)} · {i.class} · {DISCIPLINE_LABEL[i.discipline]}
                 </span>
               </div>
             ),

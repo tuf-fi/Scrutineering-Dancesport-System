@@ -3,6 +3,9 @@ import {
   Role,
   RoundStatus,
   type AdjudicatorPin,
+  type AgeGroupDef,
+  type Catalog,
+  type EventKindDef,
   type Team,
   type Competition,
   type Competitor,
@@ -346,6 +349,36 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
     })),
   }
 }
+
+const toKind = (r: typeof t.eventKinds.$inferSelect): EventKindDef => ({
+  id: r.id,
+  name: r.name,
+  feeMode: r.feeMode,
+  beginnersOnly: r.beginnersOnly,
+  closedToProvince: r.closedToProvince,
+  requires: r.requires,
+})
+
+const toAgeGroup = (r: typeof t.ageGroups.$inferSelect): AgeGroupDef => ({
+  id: r.id,
+  name: r.name,
+  short: r.short,
+  oldestAge: r.oldestAge,
+  juvenileFee: r.juvenileFee,
+  ...(r.retired ? { retired: true } : {}),
+  family: r.family ?? r.id,
+})
+
+// The kinds in the order the admin keeps them, and the age groups from the youngest to the oldest
+export const catalogOf = (ctx: Ctx): Catalog => ({
+  kinds: ctx.db.select().from(t.eventKinds).orderBy(asc(t.eventKinds.sortOrder)).all().map(toKind),
+  ageGroups: ctx.db
+    .select()
+    .from(t.ageGroups)
+    .all()
+    .map(toAgeGroup)
+    .sort((a, b) => (a.oldestAge ?? Infinity) - (b.oldestAge ?? Infinity)),
+})
 
 export const pointsRows = (ctx: Ctx): PointsRow[] =>
   ctx.db

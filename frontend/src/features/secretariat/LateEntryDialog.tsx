@@ -1,9 +1,9 @@
 import { PaymentStatus, type LateEntryRow } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, SearchField, Select, toast } from '../../components/ui/index.ts'
-import { useCompetitorRows, useCreateLateEntry, useEvents, useUpdateLateEntry } from '../../hooks/index.ts'
+import { useCompetitorRows, useCreateLateEntry, useEvents, useUpdateLateEntry, useCatalog } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { competitorName, eventCode, eventDances, eventGrade } from '../../lib/format.ts'
+import { competitorName, eventCode, eventDances } from '../../lib/format.ts'
 
 const FORM_ID = 'late-entry-form'
 const MAX_RESULTS = 6
@@ -17,6 +17,7 @@ function LateEntryForm({
   entry: LateEntryRow | null
   onDone: () => void
 }) {
+  const { eventGrade } = useCatalog()
   const events = useEvents(competitionId)
   const competitors = useCompetitorRows()
   const create = useCreateLateEntry()

@@ -1,8 +1,10 @@
-import type { AthleteRow } from '@bis/shared'
-import { Check, KeyRound, Trash2, X } from 'lucide-react'
+import { membershipLabel, type AthleteRow } from '@bis/shared'
+import { Check, KeyRound, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
-import { Badge, Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Select, Table, Textarea, Toolbar, toast } from '../../components/ui/index.ts'
-import { useAthletes, useConfirmMembership, useDeleteAthlete, useRejectMembership, useResetAthletePassword } from '../../hooks/index.ts'
+import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, toast } from '../../components/ui/index.ts'
+import { useAthletes, useConfirmMembership, useCorrectAthlete, useDeleteAthlete, useRejectMembership, useResetAthletePassword } from '../../hooks/index.ts'
+
+import { useAuth } from '../../stores/auth.ts'
 
 type Filter = 'all' | 'waiting'
 
@@ -33,6 +35,11 @@ export function AthletesPage() {
   const reject = useRejectMembership()
   const reset = useResetAthletePassword()
   const remove = useDeleteAthlete()
+  const correct = useCorrectAthlete()
+  const isAdmin = useAuth((s) => s.user?.role === 'admin')
+  const [toCorrect, setToCorrect] = useState<AthleteRow | null>(null)
+  const [fixName, setFixName] = useState('')
+  const [fixBirth, setFixBirth] = useState('')
   const [viewing, setViewing] = useState<AthleteRow | null>(null)
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
@@ -82,7 +89,7 @@ export function AthletesPage() {
           { key: 'name', header: 'Athlete', cell: (a) => <span className="font-medium">{a.name}</span> },
           { key: 'email', header: 'Email', cell: (a) => a.email, muted: true, hideBelow: 'md' },
           { key: 'team', header: 'Team', cell: (a) => a.teamName || '–', muted: true, hideBelow: 'md' },
-          { key: 'member', header: 'Membership', cell: (a) => a.memberYear ?? 'Not paid', mono: true, muted: true, hideBelow: 'sm' },
+          { key: 'member', header: 'Membership', cell: (a) => membershipLabel(a.memberYear, new Date().getFullYear()), mono: true, muted: true, hideBelow: 'sm' },
           { key: 'payment', header: 'Payment', cell: (a) => <PaymentCell athlete={a} onView={setViewing} /> },
           {
             key: 'actions',
@@ -109,6 +116,17 @@ export function AthletesPage() {
                     {isWaiting(a) && <IconButton icon={X} tone="danger" label={`Turn down payment of ${a.name}`} onClick={() => setRejecting(a)} />}
                   </>
                 )}
+                {isAdmin && (
+                  <IconButton
+                    icon={Pencil}
+                    label={`Correct name or date of birth of ${a.name}`}
+                    onClick={() => {
+                      setToCorrect(a)
+                      setFixName(a.name)
+                      setFixBirth(a.birthDate)
+                    }}
+                  />
+                )}
                 <IconButton icon={KeyRound} label={`Reset password of ${a.name}`} onClick={() => setToReset(a)} />
                 <IconButton icon={Trash2} tone="danger" label={`Delete ${a.name}`} onClick={() => setToDelete(a)} />
               </div>
@@ -116,6 +134,43 @@ export function AthletesPage() {
           },
         ]}
       />
+
+      <Dialog
+        open={toCorrect !== null}
+        onClose={() => setToCorrect(null)}
+        title={`Correct ${toCorrect?.name ?? ''}`}
+        description="Athletes cannot change these themselves. Results and rankings follow the name, and the birth date decides the age group."
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setToCorrect(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={correct.isPending || !fixName.trim()}
+              onClick={() =>
+                toCorrect &&
+                correct.mutate(
+                  { id: toCorrect.id, name: fixName, birthDate: fixBirth },
+                  {
+                    onSuccess: () => {
+                      toast.success(`Corrected ${fixName.trim()}`)
+                      setToCorrect(null)
+                    },
+                    onError: (e) => toast.error(e.message),
+                  },
+                )
+              }
+            >
+              {correct.isPending ? 'Saving…' : 'Save'}
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <Input label="Full name" required value={fixName} onChange={(e) => setFixName(e.target.value)} />
+          <Input label="Date of birth" type="date" value={fixBirth} onChange={(e) => setFixBirth(e.target.value)} />
+        </div>
+      </Dialog>
 
       <Dialog
         open={rejecting !== null}

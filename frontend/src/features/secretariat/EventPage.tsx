@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge.tsx'
 import { Button, ButtonLink, Dialog, ErrorState, PageHeader, Skeleton, Table, toast } from '../../components/ui/index.ts'
-import { useEntryRows, useEvent, useScratchEntry } from '../../hooks/index.ts'
-import { competitorName, eventCode, eventDances, eventGrade } from '../../lib/format.ts'
+import { useEntryRows, useEvent, useScratchEntry, useCatalog } from '../../hooks/index.ts'
+import { competitorName, eventCode, eventDances } from '../../lib/format.ts'
 
 export function EventPage() {
+  const { eventGrade } = useCatalog()
   const { eventId = '' } = useParams()
   const event = useEvent(eventId)
   const entries = useEntryRows(eventId)

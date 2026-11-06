@@ -1,10 +1,13 @@
 import {
   DEFAULT_FEE_SCHEDULE,
-  EventKind,
+  isFixedFee,
+  kindOf,
   PayMethod,
   PaymentStatus,
   registrationFee,
   registrationWarnings,
+  Role,
+  type Catalog,
   type Team,
   type TeamInput,
   type Coach,
@@ -13,14 +16,14 @@ import {
   type RegistrationQuote,
   type RegistrationResult,
 } from '@bis/shared'
-import { and, asc, desc, eq, lt } from 'drizzle-orm'
+import { and, desc, eq, lt, sql } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { checkEligible, checkNotStarted } from './secretariat.ts'
-import { applySettles, clean, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
+import { applySettles, catalogOf, clean, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
 
 const toCoach = (r: typeof t.coaches.$inferSelect): Coach => ({
   id: r.id,
@@ -40,7 +43,8 @@ const SUFFIX = ['th', 'st', 'nd', 'rd']
 const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : (SUFFIX[n % 10] ?? 'th')}`
 
 // Beginners who placed in the top 3 of an event may not enter the same event at the next tournament
-function medalWarnings(ctx: Ctx, competitorId: string, competition: typeof t.competitions.$inferSelect, events: Array<typeof t.events.$inferSelect>): string[] {
+function medalWarnings(ctx: Ctx, competitorId: string, competition: typeof t.competitions.$inferSelect, events: Array<typeof t.events.$inferSelect>, catalog: Catalog): string[] {
+  const beginners = (kind: string) => kindOf(catalog.kinds, kind)?.beginnersOnly === true
   const previous = ctx.db
     .select()
     .from(t.competitions)
@@ -51,10 +55,10 @@ function medalWarnings(ctx: Ctx, competitorId: string, competition: typeof t.com
   if (!previous) return []
   const earlier = ctx.db.select().from(t.events).where(eq(t.events.competitionId, previous.id)).all()
   const warnings: string[] = []
-  for (const event of events.filter((e) => e.kind === EventKind.Beginners)) {
+  for (const event of events.filter((e) => beginners(e.kind))) {
     const same = earlier.filter(
       (e) =>
-        e.kind === EventKind.Beginners &&
+        beginners(e.kind) &&
         e.ageGroup === event.ageGroup &&
         e.class === event.class &&
         e.discipline === event.discipline &&
@@ -88,6 +92,7 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   const newMembers =
     details?.memberYear === competitionYear ? 0 : competitor.names.filter((_, i) => !paidOnAccount(details?.dancers[i]?.email)).length
   const schedule = readPaymentSettings(ctx.sqlite).schedule ?? DEFAULT_FEE_SCHEDULE
+  const catalog = catalogOf(ctx)
   // Entries already made in this competition, not counting the fixed-price events
   const prior = ctx.db
     .select({ kind: t.events.kind })
@@ -95,7 +100,7 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
     .innerJoin(t.events, eq(t.events.id, t.entries.eventId))
     .where(and(eq(t.entries.competitorId, competitor.id), eq(t.entries.scratched, false), eq(t.events.competitionId, competition.id)))
     .all()
-    .filter((e) => e.kind !== EventKind.Ranking && e.kind !== EventKind.InterCollegiate).length
+    .filter((e) => !isFixedFee(catalog, e.kind)).length
 
   // The coach's own fees, offered while they have not paid this year
   const coachRow = details?.coachId ? ctx.db.select().from(t.coaches).where(eq(t.coaches.id, details.coachId)).get() : undefined
@@ -106,11 +111,11 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
     membership: Boolean(coach?.membershipDue && coachFees.membership),
     summit: Boolean(coach?.summitDue && coachFees.summit),
   }
-  const { lines, total } = registrationFee(schedule, events.map(toEvent), newMembers, prior, collect)
+  const { lines, total } = registrationFee(schedule, events.map(toEvent), newMembers, prior, collect, catalog)
 
   const warnings = [
-    ...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), competitionYear),
-    ...medalWarnings(ctx, competitor.id, competition, events),
+    ...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), competitionYear, catalog, newMembers),
+    ...medalWarnings(ctx, competitor.id, competition, events, catalog),
   ]
   const day = today()
   if (competition.entryDeadline && day > competition.entryDeadline) {
@@ -210,7 +215,7 @@ export const registration = {
     ctx.db
       .select()
       .from(t.coaches)
-      .orderBy(asc(t.coaches.name))
+      .orderBy(desc(sql`rowid`))
       .all()
       .map((c) => (isStaff(ctx) ? toCoach(c) : { id: c.id, name: c.name, email: '', phone: '', memberYear: null, summitYear: null })),
 
@@ -219,7 +224,8 @@ export const registration = {
     if (!name) return fail('Enter the coach’s name.')
     const values = { name, email: clean(input.email), phone: clean(input.phone), memberYear: year(input.memberYear), summitYear: year(input.summitYear) }
     if (id) {
-      found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
+      const before = found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
+      if (name !== before.name && ctx.user?.role !== Role.Admin) return fail('Only an admin can change a coach’s name.', 403)
       ctx.db.update(t.coaches).set(values).where(eq(t.coaches.id, id)).run()
       record(ctx.db, actor(ctx).id, 'Edited coach', name)
       return toCoach({ id, ...values })

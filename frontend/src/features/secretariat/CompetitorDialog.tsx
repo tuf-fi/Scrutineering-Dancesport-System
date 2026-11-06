@@ -7,7 +7,7 @@ const FORM_ID = 'competitor-form'
 
 const BLANK: DancerDetails = { birthDate: '', address: '', email: '', phone: '' }
 
-function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | null; onDone: () => void }) {
+function CompetitorForm({ competitor, onDone, onAdded }: { competitor: CompetitorRow | null; onDone: () => void; onAdded?: () => void }) {
   const teams = useTeams()
   const coaches = useCoaches()
   const create = useCreateCompetitor()
@@ -63,6 +63,7 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
     const handlers = {
       onSuccess: (c: CompetitorRow) => {
         toast.success(`${competitor ? 'Saved' : 'Added'} ${c.names.join(' & ')}`)
+        if (!competitor) onAdded?.()
         onDone()
       },
       onError: (e: Error) => setFailure(e.message),
@@ -112,7 +113,7 @@ function CompetitorForm({ competitor, onDone }: { competitor: CompetitorRow | nu
               className="font-mono tabular-nums"
             />
           </div>
-          <p className="text-small text-neutral-500">Membership is the year it was paid for. Leave it empty if not paid.</p>
+          <p className="text-small text-neutral-500">Membership is the year it was paid in. It ends December 31 of that year, whenever it was paid. Leave it empty if not paid.</p>
           <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
             <input type="checkbox" checked={beginner} onChange={(e) => setBeginner(e.target.checked)} className="size-5 accent-neutral-900" />
             Beginner (BGB): no regional or national experience
@@ -147,10 +148,12 @@ export function CompetitorDialog({
   open,
   competitor,
   onClose,
+  onAdded,
 }: {
   open: boolean
   competitor: CompetitorRow | null
   onClose: () => void
+  onAdded?: () => void
 }) {
   const editing = competitor !== null
   return (
@@ -171,7 +174,7 @@ export function CompetitorDialog({
         </>
       }
     >
-      {open && <CompetitorForm key={competitor?.id ?? 'new'} competitor={competitor} onDone={onClose} />}
+      {open && <CompetitorForm key={competitor?.id ?? 'new'} competitor={competitor} onDone={onClose} onAdded={onAdded} />}
     </Dialog>
   )
 }

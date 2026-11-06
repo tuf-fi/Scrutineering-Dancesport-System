@@ -1,5 +1,5 @@
-import { PIN_LENGTH, Role, type AccountKind, type Adjudicator, type AdjudicatorPin, type Competition, type CompetitionInput, type PointsRow, type StaffUser } from '@bis/shared'
-import { and, eq, inArray } from 'drizzle-orm'
+import { PIN_LENGTH, Role, checkAgeGroup, checkEventKind, freshId, plural, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
+import { and, eq, inArray, ne } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
@@ -8,7 +8,7 @@ import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
 import { recomputeAllPoints, recomputeCompetitionPoints } from './ranking.ts'
-import { MAX_PHOTO, PHOTO, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { MAX_PHOTO, PHOTO, catalogOf, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
 
@@ -18,6 +18,14 @@ function staffRole(role: unknown): Role {
 
 const adminCount = (ctx: Ctx) =>
   ctx.db.select().from(t.staffUsers).where(and(eq(t.staffUsers.role, Role.Admin), eq(t.staffUsers.disabled, false))).all().length
+
+// The events in an age group whose first round has started, so what the group meant is part of their record
+function startedEventIds(ctx: Ctx, ageGroup: string): Set<string> {
+  const ids = ctx.db.select({ id: t.events.id }).from(t.events).where(eq(t.events.ageGroup, ageGroup)).all().map((e) => e.id)
+  if (ids.length === 0) return new Set()
+  const rounds = ctx.db.select({ eventId: t.rounds.eventId }).from(t.rounds).where(and(inArray(t.rounds.eventId, ids), ne(t.rounds.status, 'pending'))).all()
+  return new Set(rounds.map((r) => r.eventId))
+}
 
 export const admin = {
   saveCompetition(ctx: Ctx, input: CompetitionInput, id?: string): Competition {
@@ -56,6 +64,87 @@ export const admin = {
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)
+  },
+
+  saveEventKind(ctx: Ctx, input: EventKindInput, id?: string): EventKindDef {
+    const kinds = catalogOf(ctx).kinds
+    const checked = checkEventKind(input, kinds.filter((k) => k.id !== id))
+    if ('error' in checked) return fail(checked.error, checked.status)
+    const values = checked.values
+    const user = actor(ctx)
+    if (id) {
+      const before = found(kinds.find((k) => k.id === id), 'Kind')
+      ctx.db.update(t.eventKinds).set(values).where(eq(t.eventKinds.id, id)).run()
+      record(ctx.db, user.id, 'Edited event kind', values.name, { before: { ...before, id: undefined }, after: values })
+      return { id, ...values }
+    }
+    const created = { id: freshId(values.name, kinds.map((k) => k.id)), ...values, sortOrder: kinds.length }
+    ctx.db.insert(t.eventKinds).values(created).run()
+    record(ctx.db, user.id, 'Created event kind', values.name, { after: values })
+    return { id: created.id, ...values }
+  },
+
+  deleteEventKind(ctx: Ctx, id: string): { id: string } {
+    const kinds = ctx.db.select().from(t.eventKinds).all()
+    const kind = found(kinds.find((k) => k.id === id), 'Kind')
+    if (kinds.length === 1) return fail('There must be at least one kind.', 409)
+    const used = ctx.db.select().from(t.events).where(eq(t.events.kind, id)).all().length
+    if (used > 0) return fail(`${kind.name} is used by ${plural(used, 'event')}, so it can't be deleted.`, 409)
+    ctx.db.delete(t.eventKinds).where(eq(t.eventKinds.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Deleted event kind', kind.name, { before: { id, name: kind.name } })
+    return { id }
+  },
+
+  saveAgeGroup(ctx: Ctx, input: AgeGroupInput, id?: string): AgeGroupDef {
+    const groups = catalogOf(ctx).ageGroups
+    const checked = checkAgeGroup(input, groups.filter((g) => g.id !== id && !g.retired))
+    if ('error' in checked) return fail(checked.error, checked.status)
+    const values = checked.values
+    const user = actor(ctx)
+    if (id) {
+      const before = found(groups.find((g) => g.id === id), 'Age group')
+      if (before.retired) return fail(`${before.name} was replaced by a newer version. Edit that one.`, 409)
+      const unchanged = before.name === values.name && before.short === values.short && before.oldestAge === values.oldestAge && before.juvenileFee === values.juvenileFee
+      if (unchanged) return { id, ...values }
+      const started = startedEventIds(ctx, id)
+      if (started.size === 0) {
+        ctx.db.update(t.ageGroups).set(values).where(eq(t.ageGroups.id, id)).run()
+        record(ctx.db, user.id, 'Edited age group', values.name, { before: { ...before, id: undefined }, after: values })
+        return { id, ...values }
+      }
+      // Events have run in it: they keep this version, and the events still to run move to the new one
+      const family = before.family ?? id
+      const next = { id: freshId(values.name, groups.map((g) => g.id)), family, retired: false, ...values }
+      ctx.db.transaction((tx) => {
+        tx.insert(t.ageGroups).values(next).run()
+        tx.update(t.ageGroups).set({ retired: true }).where(eq(t.ageGroups.id, id)).run()
+        const upcoming = tx.select({ id: t.events.id }).from(t.events).where(eq(t.events.ageGroup, id)).all().filter((e) => !started.has(e.id))
+        if (upcoming.length > 0) tx.update(t.events).set({ ageGroup: next.id }).where(inArray(t.events.id, upcoming.map((e) => e.id))).run()
+        tx.update(t.competitors).set({ ageGroup: next.id }).where(eq(t.competitors.ageGroup, id)).run()
+      })
+      record(ctx.db, user.id, 'Edited age group', values.name, { before: { ...before, id: undefined }, after: { ...values, newVersion: next.id, retired: id } })
+      return { id: next.id, family, ...values }
+    }
+    const created = { id: freshId(values.name, groups.map((g) => g.id)), ...values }
+    ctx.db.insert(t.ageGroups).values(created).run()
+    record(ctx.db, user.id, 'Created age group', values.name, { after: values })
+    return created
+  },
+
+  deleteAgeGroup(ctx: Ctx, id: string): { id: string } {
+    const groups = ctx.db.select().from(t.ageGroups).all()
+    const group = found(groups.find((g) => g.id === id), 'Age group')
+    if (groups.filter((g) => !g.retired).length === 1 && !group.retired) return fail('There must be at least one age group.', 409)
+    const events = ctx.db.select().from(t.events).where(eq(t.events.ageGroup, id)).all().length
+    const competitors = ctx.db.select().from(t.competitors).where(eq(t.competitors.ageGroup, id)).all().length
+    const ranked = ctx.db.select().from(t.rankingPoints).where(eq(t.rankingPoints.ageGroup, id)).all().length
+    if (events + competitors + ranked > 0) {
+      const used = [events && plural(events, 'event'), competitors && plural(competitors, 'competitor'), ranked && `${ranked} ranking ${ranked === 1 ? 'entry' : 'entries'}`].filter(Boolean).join(', ')
+      return fail(`${group.name} is used by ${used}, so it can't be deleted.`, 409)
+    }
+    ctx.db.delete(t.ageGroups).where(eq(t.ageGroups.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Deleted age group', group.name, { before: { id, name: group.name } })
+    return { id }
   },
 
   deleteCompetition(ctx: Ctx, id: string): { id: string } {

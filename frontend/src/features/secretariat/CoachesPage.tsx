@@ -1,4 +1,4 @@
-import type { Coach } from '@bis/shared'
+import { membershipLabel, type Coach } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
@@ -46,7 +46,7 @@ export function CoachesPage() {
           { key: 'name', header: 'Coach', cell: (c) => <span className="font-medium">{c.name}</span> },
           { key: 'phone', header: 'Contact no.', cell: (c) => c.phone || '–', mono: true, muted: true, hideBelow: 'md' },
           { key: 'teams', header: 'Competitors', cell: (c) => teams.get(c.id) ?? 0, mono: true, align: 'right', hideBelow: 'sm' },
-          { key: 'member', header: 'Membership', cell: (c) => c.memberYear ?? 'Not paid', mono: true, muted: true },
+          { key: 'member', header: 'Membership', cell: (c) => membershipLabel(c.memberYear, new Date().getFullYear()), mono: true, muted: true },
           { key: 'summit', header: 'Summit', cell: (c) => c.summitYear ?? 'Not paid', mono: true, muted: true, hideBelow: 'md' },
           {
             key: 'actions',

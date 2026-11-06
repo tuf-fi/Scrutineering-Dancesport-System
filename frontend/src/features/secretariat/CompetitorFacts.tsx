@@ -1,4 +1,4 @@
-import type { CompetitorRow } from '@bis/shared'
+import { membershipLabel, type CompetitorRow } from '@bis/shared'
 import type { ReactNode } from 'react'
 import { useCoaches } from '../../hooks/index.ts'
 import { formatDate } from '../../lib/format.ts'
@@ -34,7 +34,7 @@ export function CompetitorFacts({ competitor }: { competitor: CompetitorRow }) {
         rows={[
           ['Province', details.province],
           ['Coach', coaches.data?.find((c) => c.id === details.coachId)?.name],
-          ['Membership', details.memberYear ? `Paid for ${details.memberYear}` : null],
+          ['Membership', details.memberYear ? membershipLabel(details.memberYear, new Date().getFullYear()) : null],
           ['Beginner (BGB)', details.beginner ? 'Yes' : 'No'],
         ]}
       />

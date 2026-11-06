@@ -3,14 +3,13 @@ import { useState } from 'react'
 import { useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
 import { Button, ButtonLink, DarkPanel, EmptyState, ErrorState, Input, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEntriesByBackNumber, useProgram } from '../../hooks/index.ts'
+import { useCompetition, useEntriesByBackNumber, useProgram, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import {
   ROUND_TYPE_LABEL,
   eventCode,
   eventDances,
-  eventGrade,
   formatClock,
   formatDate,
   letterRanges,
@@ -54,6 +53,7 @@ function Line({ label, row, empty }: { label: string; row: ProgramRow | undefine
 
 // The running order of one competition, live: what is on the floor, what is next, and when everything else starts
 export function ProgramPage() {
+  const { eventGrade, ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
   const competition = useCompetition(competitionId)
   const program = useProgram(competitionId)
@@ -67,7 +67,7 @@ export function ProgramPage() {
   // A competition held on an earlier day is finished: every line reads Completed, whatever the round states say
   const past = competition.data ? competition.data.date < todayIso() : false
   const all = (program.data?.rows ?? []).map((r) => (past && r.kind === ProgramKind.Round ? { ...r, status: ProgramStatus.Completed } : r))
-  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data ?? []))
+  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data ?? []), ageGroupLabel)
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, `${query}|${round}|${back}`)
 
   if (competition.isError || program.isError) {

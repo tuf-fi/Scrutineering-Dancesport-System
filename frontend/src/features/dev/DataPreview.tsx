@@ -7,8 +7,9 @@ import {
   useEvents,
   useLiveSubmissions,
   useRounds,
+  useCatalog,
 } from '../../hooks/index.ts'
-import { ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 
 // Development-only check of the sample data layer; removed once real screens use these hooks
 
@@ -65,6 +66,7 @@ function Round({ event }: { event: Event }) {
 }
 
 export function DataPreview() {
+  const { eventGrade } = useCatalog()
   const { data: competitions } = useCompetitions()
   const current = competitions?.[0]
   const { data: events, isLoading } = useEvents(current?.id)

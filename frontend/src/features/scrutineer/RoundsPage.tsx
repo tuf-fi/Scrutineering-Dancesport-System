@@ -4,8 +4,8 @@ import { Link } from 'react-router'
 import { ArrowUpRight } from 'lucide-react'
 import { RoundStatusBadge, ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import { Button, ErrorState, DarkPanel, PageHeader, SearchField, Select, Table, Toolbar, ToolbarActions, glass, toast } from '../../components/ui/index.ts'
-import { useClearFloor, useLiveSubmissions, usePlanRounds, useStartRound } from '../../hooks/index.ts'
-import { AGE_GROUP_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { useClearFloor, useLiveSubmissions, usePlanRounds, useStartRound, useCatalog } from '../../hooks/index.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 import { useRoundChoice } from './useRoundChoice.ts'
 
 const ROUND_ORDER: RoundType[] = ['round_1', 'round_2', 'quarter_final', 'semi_final', 'final']
@@ -20,6 +20,7 @@ function canStart(row: RoundRow, all: RoundRow[]): boolean {
 }
 
 function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competitionId: string; readOnly: boolean }) {
+  const { ageGroupLabel } = useCatalog()
   const clear = useClearFloor()
   const submissions = useLiveSubmissions(row.roundId)
   const submitted = submissions.filter((s) => s.status === SubmissionStatus.Submitted).length
@@ -48,7 +49,7 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
         <p className="flex items-center gap-3 text-body text-brown-100">
           <span className="font-mono tabular-nums text-gold-400">{eventCode({ number: row.eventNumber })}</span>
           <span aria-hidden className="h-3 w-px bg-white/25" />
-          {AGE_GROUP_LABEL[row.ageGroup]} · {row.class}
+          {ageGroupLabel(row.ageGroup)} · {row.class}
         </p>
       </div>
       <dl className={`grid grid-cols-2 gap-y-6 p-4 sm:grid-cols-4 sm:divide-x sm:divide-white/10 ${glass}`}>

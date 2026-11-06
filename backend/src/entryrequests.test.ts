@@ -15,7 +15,7 @@ let competitionId = ''
 const events: Record<string, string> = {}
 
 const SHOT = 'data:image/png;base64,iVBORw0KGgo='
-const details = { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: '', email: '', phone: '' }], beginner: false, memberYear: null }
+const details = { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2090-03-02', address: '', email: '', phone: '' }], beginner: false, memberYear: null }
 const event = (number: number, over: Record<string, unknown> = {}) => ({ number, ageGroup: 'juvenile_1', class: 'C', discipline: 'latin', dances: ['samba'], isSolo: true, ...over })
 
 beforeAll(async () => {

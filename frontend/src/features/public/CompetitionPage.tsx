@@ -1,19 +1,19 @@
-import { AgeGroup } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ButtonLink, EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEvents, useResultEventIds } from '../../hooks/index.ts'
+import { useCompetition, useEvents, useResultEventIds, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { useRevealRow } from '../../hooks/useRevealRow.ts'
 import { cn } from '../../lib/cn.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
-import { AGE_GROUP_LABEL, DISCIPLINE_LABEL, eventCode, eventDances, formatDate } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventCode, eventDances, formatDate } from '../../lib/format.ts'
 
 const COLS = 'lg:grid-cols-[5rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_1.5rem]'
 
 // One competition's events; the ones with results link to them
 export function CompetitionPage() {
+  const { ageGroups, ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
   const competition = useCompetition(competitionId)
   const events = useEvents(competitionId)
@@ -74,9 +74,9 @@ export function CompetitionPage() {
         <SearchField className="col-span-2 sm:col-span-1" label="Search events" value={query} onChange={setQuery} />
         <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="col-span-2 sm:col-span-1">
           <option value="all">All age groups</option>
-          {Object.values(AgeGroup).map((a) => (
-            <option key={a} value={a}>
-              {AGE_GROUP_LABEL[a]}
+          {ageGroups.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
             </option>
           ))}
         </Select>
@@ -133,7 +133,7 @@ export function CompetitionPage() {
                       )}
                     </h3>
                     <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
-                      {AGE_GROUP_LABEL[e.ageGroup]} <span aria-hidden>/</span> {e.class} <span aria-hidden>/</span> {DISCIPLINE_LABEL[e.discipline]}
+                      {ageGroupLabel(e.ageGroup)} <span aria-hidden>/</span> {e.class} <span aria-hidden>/</span> {DISCIPLINE_LABEL[e.discipline]}
                     </p>
                     <span className="col-start-2 row-start-2 flex items-center gap-2 self-start whitespace-nowrap text-small font-medium text-neutral-700 lg:col-start-auto lg:row-start-auto">
                       <span aria-hidden className={cn('size-1.5 rounded-full', published ? 'bg-gold-400' : 'bg-neutral-300')} />

@@ -11,10 +11,11 @@ import {
   useMyEntryRequests,
   useQuoteMyEntries,
   useSubmitEntryRequest,
+  useCatalog,
 } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
-import { competitorName, eventCode, eventDances, eventGrade, formatDate, formatDateTime, formatPeso, todayIso } from '../../lib/format.ts'
+import { competitorName, eventCode, eventDances, formatDate, formatDateTime, formatPeso, todayIso } from '../../lib/format.ts'
 import { screenshotImage } from '../../lib/image.ts'
 import { AccountSection } from './AccountSection.tsx'
 
@@ -27,6 +28,7 @@ const payMethodOf = (name: string): PayMethod => (/gcash/i.test(name) ? PayMetho
 
 // Choose a competition, a dancer or couple and the events, see the fee, pay, and send it for the secretariat to approve
 export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
+  const { eventGrade } = useCatalog()
   const entrants = useMyEntrants()
   const competitions = useCompetitions()
   const methods = useEntryPaymentMethods()

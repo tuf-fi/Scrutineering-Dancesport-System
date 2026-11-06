@@ -1,4 +1,4 @@
-import type { MemberAccount, MemberPaymentRow, MemberRoster, MemberRosterRow } from '@bis/shared'
+import { membershipLabel, type MemberAccount, MemberPaymentRow, MemberRoster, MemberRosterRow } from '@bis/shared'
 import { Bell, ClipboardList, FilePlus2, KeyRound, Link2, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, Users } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, Outlet, useLocation, useOutletContext } from 'react-router'
@@ -115,7 +115,7 @@ function LinkRecord() {
 }
 
 const THIS_YEAR = new Date().getFullYear()
-const paidFor = (year: number | null) => (year !== null && year >= THIS_YEAR ? `Paid for ${year}` : 'Not paid for this year')
+const paidFor = (year: number | null) => membershipLabel(year, THIS_YEAR)
 
 // What is on file, read-only, and the link to the coach or team record
 function AccountInfo() {
@@ -249,19 +249,26 @@ function EditAccount() {
     event.preventDefault()
     if (!name.trim()) return setError(team ? 'Enter the name of your team.' : 'Enter your name.')
     setError(undefined)
-    save.mutate({ name, birthDate: team ? '' : birthDate, phone, province, address }, { onSuccess: () => toast.success('Saved'), onError: (e) => toast.error(e.message) })
+    save.mutate({ name, birthDate: team ? '' : birthDate, phone, province, address }, { onSuccess: (saved) => toast.success(saved.changeRequest && !saved.changeRequest.rejectedReason ? 'Saved. Your change is waiting for the secretariat.' : 'Saved'), onError: (e) => toast.error(e.message) })
   }
 
   return (
     <AccountSection title="Edit account" note="Only the secretariat sees these. They use them for your entry form.">
       <PhotoField profile={account} useSave={useSaveMyMemberPhoto} />
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
-        <Input label={team ? 'Team name' : 'Full name'} required value={name} onChange={(e) => setName(e.target.value)} error={error} />
+        <Input label={team ? 'Team name' : 'Full name'} required value={name} onChange={(e) => setName(e.target.value)} error={error} hint={team ? undefined : 'A new name is sent to the secretariat to approve.'} />
         <Input label="Email" value={account.email} disabled readOnly />
-        {!team && <Input label="Date of birth" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />}
+        {!team && <Input label="Date of birth" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} hint={account.birthDate ? 'A new date is sent to the secretariat to approve.' : undefined} />}
         <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input label="Province" value={province} onChange={(e) => setProvince(e.target.value)} />
         <Input label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
+        {account.changeRequest && (
+          <p className="text-small text-neutral-600 sm:col-span-2">
+            {account.changeRequest.rejectedReason
+              ? `Your last change was turned down: ${account.changeRequest.rejectedReason}`
+              : 'A change is waiting for the secretariat. Until they approve it, your current details stay.'}
+          </p>
+        )}
         <div className="sm:col-span-2">
           <Button type="submit" disabled={save.isPending}>
             {save.isPending ? 'Saving…' : 'Save changes'}

@@ -1,13 +1,14 @@
 import { PayMethod, type CompetitorRow } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, Skeleton, SkeletonList, toast } from '../../components/ui/index.ts'
-import { useCompetitionEntries, useCompetitions, useEvents, useRegisterCompetitor, useRegistrationQuote } from '../../hooks/index.ts'
-import { competitorName, eventCode, eventDances, eventGrade, EVENT_KIND_LABEL, PAY_METHOD_LABEL } from '../../lib/format.ts'
+import { useCompetitionEntries, useCompetitions, useEvents, useRegisterCompetitor, useRegistrationQuote, useCatalog } from '../../hooks/index.ts'
+import { competitorName, eventCode, eventDances, PAY_METHOD_LABEL } from '../../lib/format.ts'
 
 const FORM_ID = 'registration-form'
 const peso = (n: number) => `₱${n.toLocaleString('en-PH')}`
 
 function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; onDone: () => void }) {
+  const { eventGrade, kindLabel } = useCatalog()
   const competitions = useCompetitions()
   const register = useRegisterCompetitor()
   const [competitionId, setCompetitionId] = useState('')
@@ -91,7 +92,7 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
                       <span className="flex-1 truncate font-medium">{eventDances(ev)}</span>
                       <span className="hidden text-neutral-500 sm:block">
                         {eventGrade(ev)}
-                        {ev.kind && ev.kind !== 'standard' ? ` · ${EVENT_KIND_LABEL[ev.kind]}` : ''}
+                        {ev.kind && ev.kind !== 'standard' ? ` · ${kindLabel(ev.kind)}` : ''}
                       </span>
                     </label>
                   </li>

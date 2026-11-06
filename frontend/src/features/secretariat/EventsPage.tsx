@@ -1,4 +1,4 @@
-import { AgeGroup, type Event } from '@bis/shared'
+import type { Event } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
@@ -16,12 +16,13 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
-import { useCompetitionEntries, useDeleteEvent, useEvents } from '../../hooks/index.ts'
+import { useCompetitionEntries, useDeleteEvent, useEvents, useCatalog } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import { EventDialog } from './EventDialog.tsx'
-import { AGE_GROUP_LABEL, DISCIPLINE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 
 export function EventsPage() {
+  const { ageGroups, ageGroupLabel } = useCatalog()
   const [chosen, setChosen] = useState<string | null>(null)
   const { list, competitionId } = useCompetitionChoice(chosen)
   const events = useEvents(competitionId)
@@ -60,9 +61,9 @@ export function EventsPage() {
         <div className="w-full sm:w-52">
           <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)}>
             <option value="all">All age groups</option>
-            {Object.values(AgeGroup).map((a) => (
-              <option key={a} value={a}>
-                {AGE_GROUP_LABEL[a]}
+            {ageGroups.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
               </option>
             ))}
           </Select>
@@ -93,7 +94,7 @@ export function EventsPage() {
             mono: true,
           },
           { key: 'dances', header: 'Dances', cell: (e) => eventDances(e) },
-          { key: 'age', header: 'Age group', cell: (e) => AGE_GROUP_LABEL[e.ageGroup], muted: true, hideBelow: 'sm' },
+          { key: 'age', header: 'Age group', cell: (e) => ageGroupLabel(e.ageGroup), muted: true, hideBelow: 'sm' },
           { key: 'class', header: 'Class', cell: (e) => e.class, muted: true, hideBelow: 'md' },
           { key: 'discipline', header: 'Discipline', cell: (e) => DISCIPLINE_LABEL[e.discipline], muted: true, hideBelow: 'md' },
           { key: 'type', header: 'Type', cell: (e) => (e.isSolo ? 'Solo' : 'Couple'), muted: true, hideBelow: 'sm' },

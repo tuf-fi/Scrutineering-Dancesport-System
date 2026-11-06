@@ -1,19 +1,20 @@
-import { AgeGroup } from '@bis/shared'
+import type { AgeGroup } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useTeams, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
-import { AGE_GROUP_LABEL, competitorName } from '../../lib/format.ts'
+import { competitorName } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
 
 const COLS = 'lg:grid-cols-[minmax(0,1.6fr)_8rem_minmax(0,1fr)_5rem_1.5rem]'
 
 // Everyone who has danced here, with the age group they have scored the most points in
 export function AthleteDirectoryPage() {
+  const { ageGroups, ageGroupLabel } = useCatalog()
   const competitors = useCompetitors()
   const teams = useTeams()
   const points = useRankingPoints()
@@ -70,9 +71,9 @@ export function AthleteDirectoryPage() {
         <SearchField className="col-span-2 sm:col-span-1" label="Search athletes" value={query} onChange={setQuery} />
         <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="col-span-2 sm:col-span-1">
           <option value="all">All age groups</option>
-          {Object.values(AgeGroup).map((a) => (
-            <option key={a} value={a}>
-              {AGE_GROUP_LABEL[a]}
+          {ageGroups.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
             </option>
           ))}
         </Select>
@@ -126,11 +127,11 @@ export function AthleteDirectoryPage() {
                         {competitorName(r.competitor.names)}
                       </Link>
                       <span className="truncate text-small text-neutral-600 lg:hidden">
-                        {[r.team, r.age && AGE_GROUP_LABEL[r.age]].filter(Boolean).join(' / ')}
+                        {[r.team, r.age && ageGroupLabel(r.age)].filter(Boolean).join(' / ')}
                       </span>
                     </div>
                   </div>
-                  <span className="hidden text-small text-neutral-700 lg:block">{r.age ? AGE_GROUP_LABEL[r.age] : '–'}</span>
+                  <span className="hidden text-small text-neutral-700 lg:block">{r.age ? ageGroupLabel(r.age) : '–'}</span>
                   <span className="hidden truncate text-small text-neutral-600 lg:block">{r.team}</span>
                   <span className="flex items-baseline justify-self-end">
                     <span className="text-[1.25rem] font-semibold leading-none tracking-[-0.03em] tabular-nums text-neutral-900">{r.total}</span>

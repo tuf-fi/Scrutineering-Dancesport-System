@@ -1,4 +1,4 @@
-import type { AthleteNotification, AthletePage, AthleteProfile, AthleteRow, RegistrationQuote } from '@bis/shared'
+import { isMember, membershipLabel, type AthleteNotification, type AthletePage, type AthleteProfile, type AthleteRow, type RegistrationQuote } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -52,6 +52,31 @@ describe('athlete accounts', () => {
     expect(page).toMatchObject({ year: 2026, fee: 500 })
   })
 
+  it('sends a new name or birth date on file to the secretariat, and an admin can correct it directly', async () => {
+    const asked = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Anna Cruz', birthDate: '2016-01-01' }], athlete)
+    // Nothing changes until it is approved
+    expect(asked).toMatchObject({ name: 'Ana Cruz', birthDate: '2017-03-02' })
+    const waiting = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ana Cruz')!
+    expect(waiting).toMatchObject({ requestedName: 'Anna Cruz', requestedBirthDate: '2016-01-01' })
+    await app.ok('approveProfileChange', [waiting.id], secretariat)
+    expect((await app.ok<AthletePage>('getMyAthlete', [], athlete)).profile).toMatchObject({ name: 'Anna Cruz', birthDate: '2016-01-01', changeRequest: null })
+
+    app.db.insert(t.staffUsers).values({ id: 's1', name: 'admin', username: 'admin@sample.example', role: 'admin', passwordHash: hashPassword('pw-admin'), disabled: false }).run()
+    const admin = await app.signIn.staff('admin', 'pw-admin')
+    expect((await app.call('correctAthlete', [waiting.id, { name: 'Ana Cruz', birthDate: '2017-03-02' }], secretariat)).status).toBe(403)
+    await app.ok('correctAthlete', [waiting.id, { name: 'Ana Cruz', birthDate: '2017-03-02' }], admin)
+    expect((await app.ok<AthletePage>('getMyAthlete', [], athlete)).profile).toMatchObject({ name: 'Ana Cruz', birthDate: '2017-03-02' })
+  })
+
+  it('covers the calendar year it is paid in and ends on December 31, whatever the competition dates', async () => {
+    const year = new Date().getFullYear()
+    expect((await app.ok<AthletePage>('getMyAthlete', [], athlete)).year).toBe(year)
+    expect(membershipLabel(year, year)).toBe(`Until December 31, ${year}`)
+    expect(membershipLabel(year - 1, year)).toBe(`Expired December 31, ${year - 1}`)
+    expect(membershipLabel(null, year)).toBe('Not paid')
+    expect(isMember(year, year + 1)).toBe(false)
+  })
+
   it('takes a membership payment report, and the secretariat confirms it', async () => {
     expect((await app.call('requestMembership', [{ method: 'GCash', receipt: '' }], athlete)).error).toMatch(/screenshot/)
     expect((await app.call('requestMembership', [{ method: 'GCash', receipt: 'data:text/html;base64,PGI+' }], athlete)).status).toBe(400)
@@ -81,7 +106,7 @@ describe('athlete accounts', () => {
   })
 
   it('signs the athlete out everywhere when the password is reset', async () => {
-    const [ana] = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
+    const ana = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ana Cruz')
     const { tempPassword } = await app.ok<{ tempPassword: string }>('resetAthletePassword', [ana!.id], secretariat)
     expect(await app.me(athlete)).toBeNull()
     expect(await app.signIn.athlete('ana@test.example', tempPassword)).toContain('=')

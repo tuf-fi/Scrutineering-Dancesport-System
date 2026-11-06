@@ -70,7 +70,8 @@ export const AgeGroup = {
   Adult: 'adult',
   Senior: 'senior',
 } as const
-export type AgeGroup = (typeof AgeGroup)[keyof typeof AgeGroup]
+// The ids the database starts with; the admin can add, rename and delete age groups, so an id is any string
+export type AgeGroup = string
 
 export const Class = {
   E1: 'E1',
@@ -118,7 +119,8 @@ export const EventKind = {
   // Open only to teams from one province
   Closed: 'closed',
 } as const
-export type EventKind = (typeof EventKind)[keyof typeof EventKind]
+// The ids the database starts with; the admin can add, rename and delete kinds, so an id is any string
+export type EventKind = string
 
 // How a team paid the secretariat
 export const PayMethod = {

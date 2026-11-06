@@ -4,11 +4,11 @@ import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useTeams, useCompetitors, useRankingPoints } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { useRevealRow } from '../../hooks/useRevealRow.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
-import { AGE_GROUP_LABEL, DISCIPLINE_LABEL, competitorName, eventGrade } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, competitorName } from '../../lib/format.ts'
 import { availableClasses, rankCategory, type RankingRow } from '../../lib/rankings.ts'
 import { cn } from '../../lib/cn.ts'
 
@@ -21,16 +21,13 @@ const DISCIPLINES = Object.values(Discipline).map((id) => ({
   id,
   label: DISCIPLINE_LABEL[id],
 }))
-const AGE_GROUPS = Object.values(AgeGroup).map((id) => ({
-  id,
-  label: AGE_GROUP_LABEL[id],
-}))
 
 function parse<T extends string>(value: string | null, allowed: readonly T[], fallback: T): T {
   return allowed.find((a) => a === value) ?? fallback
 }
 
 export function RankingsPage() {
+  const { ageGroups, eventGrade } = useCatalog()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const points = useRankingPoints()
@@ -39,7 +36,7 @@ export function RankingsPage() {
 
   const classes = useMemo(() => availableClasses(points.data ?? []), [points.data])
   const discipline = parse(params.get('discipline'), Object.values(Discipline), Discipline.Latin)
-  const ageGroup = parse(params.get('age'), Object.values(AgeGroup), AgeGroup.Junior1)
+  const ageGroup = parse(params.get('age'), ageGroups.map((g) => g.id), ageGroups.find((g) => g.id === AgeGroup.Junior1)?.id ?? ageGroups[0]?.id ?? '')
   const cls = parse(params.get('class'), classes.length ? classes : [Class.E1], Class.E1)
 
   const set = (key: string) => (value: string) =>
@@ -108,9 +105,9 @@ export function RankingsPage() {
           ))}
         </Select>
         <Select label="Age group" value={ageGroup} onChange={(e) => set('age')(e.target.value)}>
-          {AGE_GROUPS.map((a) => (
+          {ageGroups.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.label}
+              {a.name}
             </option>
           ))}
         </Select>

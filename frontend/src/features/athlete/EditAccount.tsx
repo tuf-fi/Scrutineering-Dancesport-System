@@ -27,7 +27,7 @@ export function EditAccount({ page }: { page: AthleteData }) {
       { name, birthDate, phone, province, address, teamId: teamId || null, coachId: coachId || null },
       {
         onSuccess: (saved) =>
-          toast.success(saved.changeRequest && !saved.changeRequest.rejectedReason ? 'Saved. Your team or coach change is waiting for the secretariat.' : 'Saved'),
+          toast.success(saved.changeRequest && !saved.changeRequest.rejectedReason ? 'Saved. Your change is waiting for the secretariat.' : 'Saved'),
         onError: (e) => toast.error(e.message),
       },
     )
@@ -37,9 +37,9 @@ export function EditAccount({ page }: { page: AthleteData }) {
     <AccountSection title="Edit account" note="Only the secretariat sees these. They use them for your entry form.">
       <PhotoField profile={profile} />
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
-        <Input label="Full name" required value={name} onChange={(e) => setName(e.target.value)} error={error} />
+        <Input label="Full name" required value={name} onChange={(e) => setName(e.target.value)} error={error} hint="A new name is sent to the secretariat to approve." />
         <Input label="Email" value={profile.email} disabled readOnly />
-        <Input label="Date of birth" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+        <Input label="Date of birth" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} hint={profile.birthDate ? 'A new date is sent to the secretariat to approve.' : undefined} />
         <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input label="Province" value={province} onChange={(e) => setProvince(e.target.value)} />
         <Input label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
@@ -61,7 +61,7 @@ export function EditAccount({ page }: { page: AthleteData }) {
         </Select>
         <p className="text-small text-neutral-600 sm:col-span-2">
           {profile.changeRequest && !profile.changeRequest.rejectedReason
-            ? 'A change of team or coach is waiting for the secretariat. Until they approve it, your current team and coach stay.'
+            ? 'A change is waiting for the secretariat. Until they approve it, your current details stay.'
             : profile.teamId || profile.coachId
               ? 'Changing your team or coach is sent to the secretariat to approve.'
               : 'Choose your team and coach. After that, changes are sent to the secretariat to approve.'}

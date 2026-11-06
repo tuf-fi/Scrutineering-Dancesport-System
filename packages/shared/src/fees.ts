@@ -1,5 +1,5 @@
 import { ageGroupForBirthYears } from './ageGroup.ts'
-import { AgeGroup, EventKind } from './enums.ts'
+import { DEFAULT_CATALOG, FeeMode, KIND_FIELD_LABEL, KindField, ageGroupName, eventKindName, kindOf, type Catalog } from './catalog.ts'
 import type { CompetitorDetails, Event, FeeLine, FeeSchedule, FeeTier } from './types.ts'
 
 // The organizer's 2026 entry form (Bicol Grassroots). Used until the organizer saves a schedule of their own.
@@ -14,25 +14,26 @@ export const DEFAULT_FEE_SCHEDULE: FeeSchedule = {
   coachesSummit: 1000,
 }
 
-const JUVENILE: string[] = [AgeGroup.Juvenile1, AgeGroup.Juvenile2]
-
 type FeeEvent = Pick<Event, 'number' | 'isSolo' | 'ageGroup' | 'kind'>
 
-// Inter-collegiate and ranking events have one price; the school events follow the couple tiers by level
-function tierOf(schedule: FeeSchedule, event: FeeEvent): FeeTier | null {
-  switch (event.kind) {
-    case EventKind.Ranking:
-    case EventKind.InterCollegiate:
+// A kind's fee mode decides: fixed events have one price, the school events follow a couple tier by level, and the
+// rest follow the age group's tier. A kind that is not in the catalog is priced as a standard event.
+function tierOf(schedule: FeeSchedule, event: FeeEvent, catalog: Catalog): FeeTier | null {
+  switch (kindOf(catalog.kinds, event.kind)?.feeMode ?? FeeMode.Standard) {
+    case FeeMode.Fixed:
       return null
-    case EventKind.InterElementary:
+    case FeeMode.CoupleJuvenile:
       return schedule.coupleJuvenile
-    case EventKind.InterHighSchool:
+    case FeeMode.CoupleOlder:
       return schedule.coupleOlder
     default:
-      if (JUVENILE.includes(event.ageGroup)) return event.isSolo ? schedule.soloJuvenile : schedule.coupleJuvenile
+      if (catalog.ageGroups.find((g) => g.id === event.ageGroup)?.juvenileFee) return event.isSolo ? schedule.soloJuvenile : schedule.coupleJuvenile
       return event.isSolo ? schedule.soloOlder : schedule.coupleOlder
   }
 }
+
+// Whether an event is charged the one fixed price, so it does not count as a dancer's first or additional entry
+export const isFixedFee = (catalog: Catalog, kind: string | undefined) => kindOf(catalog.kinds, kind)?.feeMode === FeeMode.Fixed
 
 // What one dancer or couple pays for a set of events: the first entry at a tier's full price, every other
 // entry at its additional price, ranking and inter-collegiate events at the fixed price, and membership for
@@ -44,11 +45,12 @@ export function registrationFee(
   newMembers: number,
   priorEntries = 0,
   coach: { membership: boolean; summit: boolean } = { membership: false, summit: false },
+  catalog: Catalog = DEFAULT_CATALOG,
 ): { lines: FeeLine[]; total: number } {
   const lines: FeeLine[] = []
   let first = priorEntries === 0
   for (const event of [...events].sort((a, b) => a.number - b.number)) {
-    const tier = tierOf(schedule, event)
+    const tier = tierOf(schedule, event, catalog)
     const code = `E${event.number}`
     if (!tier) {
       lines.push({ label: `${code} entry`, amount: schedule.fixed })
@@ -71,32 +73,41 @@ export function registrationFee(
 // A closed event is for one province; compared without caring about case or spaces
 export const sameProvince = (a: string | undefined, b: string | undefined) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase()
 
-const words = (group: string) => group.replace('_', ' ')
-
-// What the secretariat should look at before entering a dancer or couple: beginner rules and age. They warn and
-// never stop an entry.
+// What the secretariat should look at before entering a dancer or couple: the kind's rules and age. They warn and
+// never stop an entry. newMembers is how many of the dancers still owe this year's membership.
 export function registrationWarnings(
   details: CompetitorDetails | undefined,
   names: number,
   events: Array<Pick<Event, 'number' | 'ageGroup' | 'kind' | 'province'>>,
   competitionYear: number,
+  catalog: Catalog = DEFAULT_CATALOG,
+  newMembers = 0,
 ): string[] {
   const warnings: string[] = []
   const birthYears = (details?.dancers ?? []).map((d) => Number(d.birthDate.slice(0, 4))).filter((y) => y > 0)
-  const bornIn = birthYears.length === names ? ageGroupForBirthYears(birthYears, competitionYear) : null
+  const bornIn = birthYears.length === names ? ageGroupForBirthYears(birthYears, competitionYear, catalog.ageGroups) : null
+  const missing = (field: KindField) => {
+    if (field === KindField.Membership) return details !== undefined && newMembers > 0
+    const key = { [KindField.BirthDate]: 'birthDate', [KindField.Address]: 'address', [KindField.Email]: 'email', [KindField.Phone]: 'phone' }[field]
+    return Array.from({ length: names }, (_, i) => details?.dancers[i]?.[key as 'birthDate']?.trim()).some((v) => !v)
+  }
   for (const event of events) {
     const code = `E${event.number}`
-    if (details && details.beginner && event.kind !== EventKind.Beginners) {
+    const kind = kindOf(catalog.kinds, event.kind)
+    if (details && details.beginner && !kind?.beginnersOnly) {
       warnings.push(`${code}: a beginner (BGB) athlete may not enter solo, couples or ranking events.`)
     }
-    if (details && !details.beginner && event.kind === EventKind.Beginners) {
+    if (details && !details.beginner && kind?.beginnersOnly) {
       warnings.push(`${code} is for beginners. This entry is not marked as a beginner.`)
     }
-    if (event.kind === EventKind.Closed && !sameProvince(details?.province, event.province)) {
+    if (kind?.closedToProvince && !sameProvince(details?.province, event.province)) {
       warnings.push(`${code} is closed to ${event.province}. This entry is from ${details?.province?.trim() || 'no province'}, so it cannot be entered.`)
     }
+    for (const field of kind?.requires ?? []) {
+      if (missing(field)) warnings.push(`${code} (${eventKindName(catalog.kinds, event.kind ?? '')}) needs the ${KIND_FIELD_LABEL[field]} of every dancer.`)
+    }
     if (bornIn && bornIn !== event.ageGroup) {
-      warnings.push(`${code} is ${words(event.ageGroup)}, but the birth dates make this ${words(bornIn)}.`)
+      warnings.push(`${code} is ${ageGroupName(catalog.ageGroups, event.ageGroup)}, but the birth dates make this ${ageGroupName(catalog.ageGroups, bornIn)}.`)
     }
   }
   return warnings

@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "manrope",
+        "createdAt": "2026-11-05T05:24:20.646Z",
+        "reason": "Manrope is the documented brand font in DESIGN.md (as Manrope Variable); the manual loads the same file"
+      }
+    ]
+  }
+}

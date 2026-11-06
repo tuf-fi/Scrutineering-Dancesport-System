@@ -2,9 +2,8 @@ import { ProgramKind } from '@bis/shared'
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEntriesByBackNumber, useProgram } from '../../hooks/index.ts'
+import { useCompetition, useEntriesByBackNumber, useProgram, useCatalog } from '../../hooks/index.ts'
 import {
-  AGE_GROUP_LABEL,
   ROUND_TYPE_LABEL,
   eventCode,
   eventDances,
@@ -29,6 +28,7 @@ function stamp(at: Date) {
 // The whole running order on A4, however many lines it has. Print and PDF both open this page; PDF asks for the
 // print dialog at once, where "Save as PDF" is the destination.
 export function ProgramPrintPage() {
+  const { ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
   const [params] = useSearchParams()
   const competition = useCompetition(competitionId)
@@ -52,7 +52,7 @@ export function ProgramPrintPage() {
   if (!competition.data || !program.data || (number !== null && !mine.data)) return <Skeleton className="h-96 w-full" />
 
   const all = program.data.rows
-  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data))
+  const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data), ageGroupLabel)
   const filtered = rows.length !== all.length
   const filter = [
     query.trim() && `“${query.trim()}”`,
@@ -108,7 +108,7 @@ export function ProgramPrintPage() {
                     <td className={`${td} ${num} ${keep}`}>{formatClock(r.startTime)}</td>
                     <td className={`${td} ${num} ${keep}`}>{eventCode({ number: r.eventNumber })}</td>
                     <td className={td}>
-                      {eventDances(r)} <span className="text-neutral-600">· {AGE_GROUP_LABEL[r.ageGroup]} {r.class}</span>
+                      {eventDances(r)} <span className="text-neutral-600">· {ageGroupLabel(r.ageGroup)} {r.class}</span>
                     </td>
                     <td className={`${td} ${keep}`}>{ROUND_TYPE_LABEL[r.roundType]}</td>
                     <td className={`${td} ${num} ${keep} text-right`}>{r.entryCount}</td>

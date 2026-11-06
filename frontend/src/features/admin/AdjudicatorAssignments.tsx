@@ -1,9 +1,9 @@
 import type { AdjudicatorAssignment } from '@bis/shared'
 import { CompetitionCard } from '../../components/CompetitionCard.tsx'
 import { EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
-import { useAdjudicatorAssignments } from '../../hooks/index.ts'
+import { useAdjudicatorAssignments, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
-import { DANCE_LABEL, eventCode, eventGrade, formatDate } from '../../lib/format.ts'
+import { DANCE_LABEL, eventCode, formatDate } from '../../lib/format.ts'
 
 // The competitions the adjudicator worked, newest first, each with the events on their panel
 function groupByCompetition(lines: AdjudicatorAssignment[]) {
@@ -17,6 +17,7 @@ function groupByCompetition(lines: AdjudicatorAssignment[]) {
 }
 
 export function AdjudicatorAssignments({ adjudicatorId }: { adjudicatorId: string }) {
+  const { eventGrade } = useCatalog()
   const assignments = useAdjudicatorAssignments(adjudicatorId)
   const lines = assignments.data ?? []
   const groups = groupByCompetition(lines)

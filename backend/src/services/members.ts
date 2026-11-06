@@ -1,4 +1,4 @@
-import { Role, type AthleteNotification, type AthleteSignUp, type MemberAccount, type MemberInput, type MemberClaimRow, type MemberRoster, type SessionUser } from '@bis/shared'
+import { Role, type AthleteNotification, type AthleteSignUp, type MemberAccount, type MemberInput, type MemberChangeRow, type MemberClaimRow, type MemberRoster, type SessionUser } from '@bis/shared'
 import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { record } from '../core/audit.ts'
@@ -54,6 +54,7 @@ function toAccount(ctx: Ctx, row: typeof t.memberAccounts.$inferSelect): MemberA
     photo: row.photo,
     linked: row.linkedId && linked !== null ? { id: row.linkedId, name: linked } : null,
     claim: row.claimId && claim !== null ? { id: row.claimId, name: claim, requestedAt: row.claimedAt ?? '' } : null,
+    changeRequest: row.changeRequest ?? null,
   }
 }
 
@@ -183,10 +184,88 @@ export function saveMyMember(ctx: Ctx, input: MemberInput): MemberAccount {
   if (!name || name.length > 100) return fail(row.role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
   const birthDate = clean(input?.birthDate)
   if (birthDate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || birthDate > new Date().toISOString().slice(0, 10))) return fail('Enter a valid date of birth.')
-  const values = { name, phone: clean(input?.phone).slice(0, 40), birthDate, province: clean(input?.province).slice(0, 100), address: clean(input?.address).slice(0, 300) }
+  // A team renames itself. A coach's name, and a birth date already on file, go to the secretariat to approve
+  const coach = row.role === 'coach'
+  const nameAsk = coach && name !== row.name
+  const birthAsk = coach && Boolean(row.birthDate) && Boolean(birthDate) && birthDate !== row.birthDate
+  const pending = row.changeRequest && !row.changeRequest.rejectedReason ? row.changeRequest : null
+  const asked = {
+    ...(nameAsk ? { name } : pending?.name ? { name: pending.name } : {}),
+    ...(birthAsk ? { birthDate } : pending?.birthDate ? { birthDate: pending.birthDate } : {}),
+  }
+  const changeRequest = nameAsk || birthAsk ? { ...asked, requestedAt: now() } : (row.changeRequest ?? null)
+  const values = {
+    name: coach ? row.name : name,
+    phone: clean(input?.phone).slice(0, 40),
+    birthDate: coach ? row.birthDate || birthDate : birthDate,
+    province: clean(input?.province).slice(0, 100),
+    address: clean(input?.address).slice(0, 300),
+    changeRequest,
+  }
   ctx.db.update(t.memberAccounts).set(values).where(eq(t.memberAccounts.id, row.id)).run()
-  record(ctx.db, row.id, 'Changed their account details', name)
+  record(ctx.db, row.id, 'Changed their account details', row.name)
+  if (nameAsk || birthAsk) {
+    const what = [nameAsk && 'name', birthAsk && 'date of birth'].filter(Boolean).join(' and ')
+    record(ctx.db, row.id, `Asked to change ${what}`, row.name, { after: asked })
+    ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Profile change', detail: `${row.name} asks to change ${what}`, link: '/secretariat/profile-changes' }))
+  }
   return toAccount(ctx, { ...row, ...values })
+}
+
+const waitingChange = (r: typeof t.memberAccounts.$inferSelect) => r.changeRequest !== null && !r.changeRequest.rejectedReason
+
+export function getMemberChanges(ctx: Ctx): MemberChangeRow[] {
+  return ctx.db
+    .select()
+    .from(t.memberAccounts)
+    .where(isNotNull(t.memberAccounts.changeRequest))
+    .all()
+    .filter(waitingChange)
+    .map((r) => ({
+      memberId: r.id,
+      role: r.role,
+      name: r.name,
+      birthDate: r.birthDate,
+      requestedName: r.changeRequest?.name ?? '',
+      requestedBirthDate: r.changeRequest?.birthDate ?? '',
+      requestedAt: r.changeRequest?.requestedAt ?? '',
+    }))
+}
+
+export function approveMemberChange(ctx: Ctx, memberId: string): MemberChangeRow[] {
+  const row = found(ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, memberId)).get(), 'Account')
+  const change = row.changeRequest
+  if (!change || change.rejectedReason) return fail('This account has no change waiting.', 409)
+  ctx.db
+    .update(t.memberAccounts)
+    .set({ ...(change.name ? { name: change.name } : {}), ...(change.birthDate ? { birthDate: change.birthDate } : {}), changeRequest: null })
+    .where(eq(t.memberAccounts.id, memberId))
+    .run()
+  record(ctx.db, actor(ctx).id, 'Approved a profile change', row.name, { before: { name: row.name, birthDate: row.birthDate }, after: { name: change.name, birthDate: change.birthDate } })
+  notifyMember(ctx, memberId, { kind: 'change_approved', title: 'Your change was approved', detail: '', link: `/${row.role}` })
+  return getMemberChanges(ctx)
+}
+
+export function rejectMemberChange(ctx: Ctx, memberId: string, reason: string): MemberChangeRow[] {
+  const row = found(ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, memberId)).get(), 'Account')
+  if (!row.changeRequest || row.changeRequest.rejectedReason) return fail('This account has no change waiting.', 409)
+  const rejectedReason = clean(reason).slice(0, 200)
+  if (!rejectedReason) return fail('Say why it was turned down.')
+  ctx.db.update(t.memberAccounts).set({ changeRequest: { ...row.changeRequest, rejectedReason } }).where(eq(t.memberAccounts.id, memberId)).run()
+  record(ctx.db, actor(ctx).id, 'Turned down a profile change', row.name, { after: { reason: rejectedReason } })
+  notifyMember(ctx, memberId, { kind: 'change_rejected', title: 'Your change was turned down', detail: rejectedReason, link: `/${row.role}/edit` })
+  return getMemberChanges(ctx)
+}
+
+// The one way to fix a wrong name or birth date on a coach or team account
+export function correctMember(ctx: Ctx, id: string, input: { name: string; birthDate: string }): void {
+  const row = found(ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.id, id)).get(), 'Account')
+  const name = clean(input?.name)
+  if (!name || name.length > 100) return fail('Enter the name.')
+  const birthDate = clean(input?.birthDate)
+  if (birthDate && (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || birthDate > new Date().toISOString().slice(0, 10))) return fail('Enter a valid date of birth.')
+  ctx.db.update(t.memberAccounts).set({ name, birthDate }).where(eq(t.memberAccounts.id, id)).run()
+  record(ctx.db, actor(ctx).id, 'Corrected an account', name, { before: { name: row.name, birthDate: row.birthDate }, after: { name, birthDate } })
 }
 
 export function saveMyMemberPhoto(ctx: Ctx, photo: string | null): MemberAccount {

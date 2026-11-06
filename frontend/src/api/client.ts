@@ -9,11 +9,17 @@ import type {
   AdjudicatorPin,
   AdjudicatorState,
   AdjudicatorSubmission,
+  AgeGroupDef,
+  AgeGroupInput,
   AthleteInput,
+  Catalog,
+  EventKindDef,
+  EventKindInput,
   AthletePage,
   EntryRequest,
   EntryRequestInput,
   MemberAccount,
+  MemberChangeRow,
   MemberClaimRow,
   MemberInput,
   MemberRoster,
@@ -79,7 +85,7 @@ import type {
 } from '@bis/shared'
 import { auth, call, getSessionFromServer } from './http.ts'
 
-export type { CompetitionInput, EventInput, RankingFilter } from '@bis/shared'
+export type { AgeGroupInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
 export { subscribeSubmissions, getSubmissionSnapshot, subscribeNotifications, subscribeAlerts } from './realtime.ts'
 
 // ---- Reading ----
@@ -103,6 +109,7 @@ export const getResults = (eventId: string) => call<Result[]>('getResults', even
 export const getPayments = (status?: PaymentStatus) => call<Payment[]>('getPayments', status)
 export const getPaymentDetails = () => call<PaymentDetail[]>('getPaymentDetails')
 export const getPointsTable = () => call<PointsRow[]>('getPointsTable')
+export const getCatalog = () => call<Catalog>('getCatalog')
 export const getRankingPoints = (filter: RankingFilter = {}) => call<RankingPoint[]>('getRankingPoints', filter)
 export const getCompetitorHistory = (competitorId: string) => call<CompetitorHistoryLine[]>('getCompetitorHistory', competitorId)
 export const getStaffUsers = () => call<StaffUser[]>('getStaffUsers')
@@ -114,6 +121,10 @@ export const getResultEventIds = (competitionId: string) => call<string[]>('getR
 export const saveCompetition = (_actorId: string, input: CompetitionInput, id?: string) =>
   call<Competition>('saveCompetition', input, id)
 export const deleteCompetition = (_actorId: string, id: string) => call<{ id: string }>('deleteCompetition', id)
+export const saveEventKind = (_actorId: string, input: EventKindInput, id?: string) => call<EventKindDef>('saveEventKind', input, id)
+export const deleteEventKind = (_actorId: string, id: string) => call<{ id: string }>('deleteEventKind', id)
+export const saveAgeGroup = (_actorId: string, input: AgeGroupInput, id?: string) => call<AgeGroupDef>('saveAgeGroup', input, id)
+export const deleteAgeGroup = (_actorId: string, id: string) => call<{ id: string }>('deleteAgeGroup', id)
 export const createStaffUser = (_actorId: string, input: { name: string; username: string; role: Role; photo: string }) =>
   call<{ user: StaffUser; tempPassword: string }>('createStaffUser', input)
 export const updateStaffUser = (_actorId: string, id: string, input: { name: string; role: Role; photo?: string }) =>
@@ -258,6 +269,9 @@ export const cancelClaim = (_memberId: string) => call<MemberAccount>('cancelCla
 export const getMyRoster = (_memberId: string) => call<MemberRoster>('getMyRoster')
 export const getMemberClaims = () => call<MemberClaimRow[]>('getMemberClaims')
 export const approveMemberClaim = (_actorId: string, memberId: string) => call<MemberClaimRow[]>('approveMemberClaim', memberId)
+export const getMemberChanges = () => call<MemberChangeRow[]>('getMemberChanges')
+export const approveMemberChange = (_actorId: string, memberId: string) => call<MemberChangeRow[]>('approveMemberChange', memberId)
+export const rejectMemberChange = (_actorId: string, memberId: string, reason: string) => call<MemberChangeRow[]>('rejectMemberChange', memberId, reason)
 export const rejectMemberClaim = (_actorId: string, memberId: string) => call<MemberClaimRow[]>('rejectMemberClaim', memberId)
 
 // ---- Athletes ----
@@ -281,6 +295,8 @@ export const getAthletes = () => call<AthleteRow[]>('getAthletes')
 export const confirmMembership = (_actorId: string, id: string) => call<void>('confirmMembership', id)
 export const rejectMembership = (_actorId: string, id: string, reason: string) => call<void>('rejectMembership', id, reason)
 export const resetAthletePassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetAthletePassword', id)
+export const correctAthlete = (_actorId: string, id: string, input: { name: string; birthDate: string }) => call<void>('correctAthlete', id, input)
+export const correctMember = (_actorId: string, id: string, input: { name: string; birthDate: string }) => call<void>('correctMember', id, input)
 export const deleteAthlete = (_actorId: string, id: string) => call<void>('deleteAthlete', id)
 export const signOut = () => auth<null>('sign-out', {})
 // Who the cookie belongs to, or null: used when the page loads

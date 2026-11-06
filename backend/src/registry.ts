@@ -11,7 +11,7 @@ import { security } from './services/security.ts'
 import { accountFunctions } from './services/accounts.ts'
 import { athletes } from './services/athletes.ts'
 import { entryRequests } from './services/entryRequests.ts'
-import { approveMemberClaim, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
+import { approveMemberChange, approveMemberClaim, correctMember, getMemberChanges, rejectMemberChange, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
 import { isStaff, toTeam } from './services/shared.ts'
 import * as t from './db/schema.ts'
 import { asc } from 'drizzle-orm'
@@ -53,6 +53,10 @@ const handlers: Record<string, Handler> = {
   ...athletes,
   ...entryRequests,
   getMyMember,
+  correctMember,
+  getMemberChanges,
+  approveMemberChange,
+  rejectMemberChange,
   saveMyMember,
   saveMyMemberPhoto,
   claimRecord,
@@ -75,6 +79,7 @@ const access: Record<string, Access> = {
   getRound: 'public',
   getResults: 'public',
   getPointsTable: 'public',
+  getCatalog: 'public',
   getRankingPoints: 'public',
   getCompetitorHistory: 'public',
   getCompetitors: 'public',
@@ -133,6 +138,10 @@ const access: Record<string, Access> = {
   generatePins: ADMIN,
   setPanel: ADMIN,
   savePointsTable: ADMIN,
+  saveEventKind: ADMIN,
+  deleteEventKind: ADMIN,
+  saveAgeGroup: ADMIN,
+  deleteAgeGroup: ADMIN,
   getBackupStatus: [Role.Admin, Role.Scrutineer],
 
   // Secretariat (the admin can do all of it too)
@@ -224,6 +233,11 @@ const access: Record<string, Access> = {
   rejectMembership: ADMIN_OR_SECRETARIAT,
   resetAthletePassword: ADMIN_OR_SECRETARIAT,
   deleteAthlete: ADMIN_OR_SECRETARIAT,
+  correctAthlete: ADMIN,
+  correctMember: ADMIN,
+  getMemberChanges: ADMIN_OR_SECRETARIAT,
+  approveMemberChange: ADMIN_OR_SECRETARIAT,
+  rejectMemberChange: ADMIN_OR_SECRETARIAT,
 }
 
 // Anything that changes data runs in one transaction and tells the other screens afterwards

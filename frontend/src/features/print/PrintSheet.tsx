@@ -1,6 +1,7 @@
 import type { Competition, Event } from '@bis/shared'
 import type { ReactNode } from 'react'
-import { AGE_GROUP_LABEL, AGE_GROUP_SHORT, DISCIPLINE_LABEL, eventDances, sheetDate } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventDances, sheetDate } from '../../lib/format.ts'
+import { useCatalog } from '../../hooks/index.ts'
 
 function Fields({ rows }: { rows: Array<[string, string]> }) {
   return (
@@ -28,6 +29,7 @@ interface PrintSheetProps {
 // The frame every printed sheet shares: a heavy title band, the event details with its number
 // as a grey watermark, the panel, then the body. Modelled on the paper "Qualified Solos" sheet.
 export function PrintSheet({ title, event, competition, adjudicators = [], children, footer }: PrintSheetProps) {
+  const { ageGroupLabel, ageGroupShort } = useCatalog()
   return (
     <article className="relative border-2 border-neutral-900 text-[10pt] leading-snug text-neutral-900">
       <h1 className="print-exact border-b-2 border-neutral-900 bg-neutral-200 px-3 py-1.5 text-[15pt] font-bold">{title}</h1>
@@ -50,8 +52,8 @@ export function PrintSheet({ title, event, competition, adjudicators = [], child
         />
         <Fields
           rows={[
-            ['Grade', `${AGE_GROUP_SHORT[event.ageGroup]} - ${event.class} [${eventDances(event)}]`],
-            ['Age group', AGE_GROUP_LABEL[event.ageGroup]],
+            ['Grade', `${ageGroupShort(event.ageGroup)} - ${event.class} [${eventDances(event)}]`],
+            ['Age group', ageGroupLabel(event.ageGroup)],
             ['Class', event.class],
             ['Discipline', DISCIPLINE_LABEL[event.discipline]],
           ]}

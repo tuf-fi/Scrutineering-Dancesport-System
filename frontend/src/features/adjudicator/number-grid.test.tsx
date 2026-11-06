@@ -1,6 +1,8 @@
 import type { MarkingTask } from '@bis/shared'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { MarkSheet } from './MarkSheet.tsx'
 
@@ -18,19 +20,22 @@ const task = {
   ],
 } as unknown as MarkingTask
 
+// The mark sheet reads the age group names, so it needs a query client like the app has
+const renderSheet = (sheet: ReactElement) => render(<QueryClientProvider client={new QueryClient()}>{sheet}</QueryClientProvider>)
+
 const number = (n: number) => screen.getByRole('button', { name: `Select ${n}` })
 const tab = (name: RegExp) => screen.getByRole('tab', { name })
 
 describe('number grid', () => {
   it('shows the back numbers as cells with three digits, grouped by heat, with a tab for each dance', () => {
-    render(<MarkSheet task={task} onSubmit={() => {}} />)
+    renderSheet(<MarkSheet task={task} onSubmit={() => {}} />)
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Samba0', 'Cha Cha Cha0', 'Rumba0'])
     expect(screen.getAllByRole('button', { name: /^Select / }).map((b) => b.textContent)).toEqual(['011', '012', '013', '014'])
     expect(screen.getAllByRole('heading', { name: /^Heat \d$/ }).map((h) => h.textContent)).toEqual(['Heat 1', 'Heat 2'])
   })
 
   it('chooses a number on a tap, takes it out on a second tap, and counts per dance', async () => {
-    render(<MarkSheet task={task} onSubmit={() => {}} />)
+    renderSheet(<MarkSheet task={task} onSubmit={() => {}} />)
     expect(screen.getByRole('status')).toHaveTextContent('0 of 3 dances done')
     await userEvent.click(number(11))
     expect(number(11)).toHaveAttribute('aria-pressed', 'true')
@@ -45,7 +50,7 @@ describe('number grid', () => {
 
   it('submits only when every dance has exactly the recall number, and sends the marks per dance', async () => {
     const onSubmit = vi.fn()
-    render(<MarkSheet task={task} onSubmit={onSubmit} />)
+    renderSheet(<MarkSheet task={task} onSubmit={onSubmit} />)
     const submit = screen.getByRole('button', { name: 'Submit' })
     expect(submit).toBeDisabled()
 

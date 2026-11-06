@@ -1,4 +1,5 @@
 export * from './queries.ts'
+export * from './useCatalog.ts'
 export * from './useAdmin.ts'
 export * from './useSecurity.ts'
 export * from './useAuth.ts'

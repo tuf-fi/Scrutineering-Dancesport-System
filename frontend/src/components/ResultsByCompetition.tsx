@@ -4,8 +4,9 @@ import { useId, useState } from 'react'
 import { Link } from 'react-router'
 import { usePagination } from '../hooks/usePagination.ts'
 import { cn } from '../lib/cn.ts'
-import { DANCE_LABEL, eventCode, eventGrade, formatDate, placeLabel, placeRange } from '../lib/format.ts'
+import { DANCE_LABEL, eventCode, formatDate, placeLabel, placeRange } from '../lib/format.ts'
 import { EmptyState, Pagination, Skeleton } from './ui/index.ts'
+import { useCatalog } from '../hooks/index.ts'
 
 interface Group {
   id: string
@@ -31,6 +32,7 @@ function groupByCompetition(lines: CompetitorHistoryLine[]): Group[] {
 
 // One competition as a card: its name opens the events the person placed in
 function CompetitionGroup({ group, compact }: { group: Group; compact?: boolean }) {
+  const { eventGrade } = useCatalog()
   const [open, setOpen] = useState(false)
   const panel = useId()
 

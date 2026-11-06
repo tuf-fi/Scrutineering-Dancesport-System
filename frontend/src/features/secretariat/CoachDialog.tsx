@@ -58,7 +58,7 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
         <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input
           label="Membership paid for"
-          hint="The year. Leave empty if not paid."
+          hint="The year it was paid in. It ends December 31 of that year, whenever it was paid. Leave empty if not paid."
           inputMode="numeric"
           value={memberYear}
           onChange={(e) => setMemberYear(e.target.value)}

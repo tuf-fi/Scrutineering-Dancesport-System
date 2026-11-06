@@ -2,10 +2,10 @@ import { ArrowUpRight } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
-import { useMyActivity, useRankingPoints } from '../../hooks/index.ts'
+import { useMyActivity, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
-import { AGE_GROUP_LABEL, DISCIPLINE_LABEL } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL } from '../../lib/format.ts'
 import { categoriesOf, rankCategory, type CategoryFilter } from '../../lib/rankings.ts'
 import { AccountSection } from './AccountSection.tsx'
 
@@ -18,6 +18,7 @@ interface Standing extends CategoryFilter {
 
 // Where the athlete stands in each category they have points in
 export function MyRankings({ title = 'My rankings', note = 'Where you stand in each category, by points.' }: { title?: string; note?: string } = {}) {
+  const { ageGroupLabel } = useCatalog()
   const activity = useMyActivity()
   const points = useRankingPoints()
 
@@ -77,7 +78,7 @@ export function MyRankings({ title = 'My rankings', note = 'Where you stand in e
                           to={`/rankings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${s.competitorId}`}
                           className="font-semibold text-neutral-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500"
                         >
-                          {AGE_GROUP_LABEL[s.ageGroup]} <span aria-hidden>/</span> {s.class}
+                          {ageGroupLabel(s.ageGroup)} <span aria-hidden>/</span> {s.class}
                         </Link>
                         <span className="text-small text-neutral-600">of {s.of} ranked</span>
                       </div>

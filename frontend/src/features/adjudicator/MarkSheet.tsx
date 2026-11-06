@@ -1,10 +1,11 @@
 import type { AgeGroup, Class, Dance, Discipline, MarkingTask, MarkSubmission, RoundType } from '@bis/shared'
 import { useState } from 'react'
 import { Button, Dialog, DarkPanel, Tabs } from '../../components/ui/index.ts'
-import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
+import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, ordinal } from '../../lib/format.ts'
 import { PlacingBoard } from './PlacingBoard.tsx'
 import { SignaturePad } from './SignaturePad.tsx'
 import { NumberGrid } from './NumberGrid.tsx'
+import { useCatalog } from '../../hooks/index.ts'
 
 export type Answers = Partial<Record<Dance, string[]>>
 
@@ -48,6 +49,7 @@ const OWN_MARKS = {
 // The marking screen: X marks for early rounds, placings for a final. Used on the adjudicator's phone and,
 // for a paper sheet, on the scrutineer's laptop.
 export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS, compact = false }: MarkSheetProps) {
+  const { eventGrade } = useCatalog()
   const [answers, setAnswers] = useState<Answers>(initial)
   const [dance, setDance] = useState<Dance>(task.dances[0])
   const [confirming, setConfirming] = useState(false)

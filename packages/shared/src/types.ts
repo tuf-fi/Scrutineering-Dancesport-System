@@ -426,6 +426,24 @@ export interface TotpSetup {
 export type AccountKind = 'staff' | 'adjudicator' | 'athlete' | 'member'
 
 // A coach's or a team's own account: a name and an email to sign in with, and the coach or team record it stands for
+// A coach's request to change the name or birth date on file; the secretariat decides
+export interface MemberChangeRequest {
+  name?: string
+  birthDate?: string
+  requestedAt: string
+  rejectedReason?: string
+}
+
+export interface MemberChangeRow {
+  memberId: string
+  role: 'coach' | 'team'
+  name: string
+  birthDate: string
+  requestedName: string
+  requestedBirthDate: string
+  requestedAt: string
+}
+
 export interface MemberAccount {
   id: string
   role: 'coach' | 'team'
@@ -439,6 +457,7 @@ export interface MemberAccount {
   // Set once the secretariat approves the claim
   linked: { id: string; name: string } | null
   claim: { id: string; name: string; requestedAt: string } | null
+  changeRequest: MemberChangeRequest | null
 }
 
 // What a coach or team can change about their own account
@@ -516,6 +535,9 @@ export interface MembershipEvent {
 export interface ProfileChangeRequest {
   teamId: Id | null
   coachId: Id | null
+  // A new name or birth date they ask for
+  name?: string
+  birthDate?: string
   requestedAt: Timestamp
   rejectedReason?: string
 }
@@ -554,6 +576,7 @@ export interface AthletePage {
 export interface AthleteRow {
   id: Id
   name: string
+  birthDate: string
   email: string
   phone: string
   teamName: string
@@ -561,7 +584,9 @@ export interface AthleteRow {
   memberYear: number | null
   request: MembershipRequest | null
   changeRequest: ProfileChangeRequest | null
-  // The team and coach they asked for, in words
+  // What they asked for: a new name or birth date, and the team and coach in words
+  requestedName: string
+  requestedBirthDate: string
   requestedTeamName: string
   requestedCoachName: string
 }

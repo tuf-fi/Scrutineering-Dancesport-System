@@ -104,8 +104,8 @@ export function CompetitorsPage() {
       <PageHeader title="Competitors" description="Everyone who can be entered, with their back numbers." />
 
       <Toolbar>
-        <SearchField className="w-full sm:w-64" label="Search competitors" value={query} onChange={setQuery} />
-        <div className="w-full sm:w-56">
+        <SearchField className="w-full sm:w-52" label="Search competitors" value={query} onChange={setQuery} />
+        <div className="w-full sm:w-72">
           <Select
             label="Competition"
             value={competitionId}
@@ -125,7 +125,7 @@ export function CompetitorsPage() {
           </Select>
         </div>
         {scoped && (
-          <div className="w-full sm:w-56">
+          <div className="w-full sm:w-52">
             <Select label="Event" value={eventId} onChange={(e) => setEventId(e.target.value)}>
               <option value="all">All events</option>
               {[...(events.data ?? [])]
@@ -138,7 +138,7 @@ export function CompetitorsPage() {
             </Select>
           </div>
         )}
-        <div className="w-full sm:w-44">
+        <div className="w-full sm:w-40">
           <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
             <option value="all">All teams</option>
             {(teams.data ?? []).map((c) => (
@@ -149,20 +149,17 @@ export function CompetitorsPage() {
           </Select>
         </div>
         <ToolbarActions>
+          {missing > 0 && (
+            <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
+              {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => setImporting(true)}>
             Import CSV
           </Button>
           <Button onClick={() => setEditing('new')}>Add competitor</Button>
         </ToolbarActions>
       </Toolbar>
-
-      {missing > 0 && (
-        <div className="-mt-3">
-          <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
-            {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
-          </Button>
-        </div>
-      )}
 
       <Table<CompetitorRow>
         loading={competitors.isLoading || (scoped && (entries.isLoading || events.isLoading))}
@@ -224,6 +221,13 @@ export function CompetitorsPage() {
         open={editing !== null}
         competitor={editing === 'new' ? null : editing}
         onClose={() => setEditing(null)}
+        onAdded={() => {
+          // A new competitor has no entries yet, so any filter would hide them
+          setCompetitionId('all')
+          setEventId('all')
+          setQuery('')
+          setTeamId('all')
+        }}
       />
       <Dialog
         open={toDelete !== null}

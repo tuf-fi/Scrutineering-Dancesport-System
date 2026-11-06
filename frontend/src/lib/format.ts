@@ -1,9 +1,9 @@
+import { DEFAULT_AGE_GROUPS, ageGroupName } from '@bis/shared'
 import type {
-  AgeGroup,
   Dance,
   Discipline,
   Event,
-  EventKind,
+  FeeMode,
   PayMethod,
   PaymentStatus,
   ProgramRow,
@@ -12,14 +12,12 @@ import type {
   RoundType,
 } from '@bis/shared'
 
-export const EVENT_KIND_LABEL: Record<EventKind, string> = {
-  standard: 'Standard',
-  bgb: 'Beginners (BGB)',
-  ranking: 'Ranking',
-  inter_elementary: 'Inter-elementary',
-  inter_high_school: 'Inter-high school',
-  inter_collegiate: 'Inter-collegiate',
-  closed: 'Closed to a province',
+// How an event kind is priced, in the admin's words
+export const FEE_MODE_LABEL: Record<FeeMode, string> = {
+  standard: 'By age group, solo or couple',
+  couple_juvenile: 'Couple, juvenile price',
+  couple_older: 'Couple, older price',
+  fixed: 'One fixed price',
 }
 
 export const PAY_METHOD_LABEL: Record<PayMethod, string> = {
@@ -28,27 +26,6 @@ export const PAY_METHOD_LABEL: Record<PayMethod, string> = {
   gcash: 'GCash',
   maya: 'Maya',
   bank: 'Bank transfer',
-}
-
-export const AGE_GROUP_LABEL: Record<AgeGroup, string> = {
-  juvenile_1: 'Juvenile 1',
-  juvenile_2: 'Juvenile 2',
-  junior_1: 'Junior I',
-  junior_2: 'Junior II',
-  youth: 'Youth',
-  adult: 'Adult',
-  senior: 'Senior',
-}
-
-// As printed on result sheets, e.g. "JUN 1 - E1"
-export const AGE_GROUP_SHORT: Record<AgeGroup, string> = {
-  juvenile_1: 'JUV 1',
-  juvenile_2: 'JUV 2',
-  junior_1: 'JUN 1',
-  junior_2: 'JUN 2',
-  youth: 'YTH',
-  adult: 'ADT',
-  senior: 'SEN',
 }
 
 export const DISCIPLINE_LABEL: Record<Discipline, string> = {
@@ -160,9 +137,12 @@ export const eventCode = (event: Pick<Event, 'number'>) => `E${event.number}`
 export const eventDances = (event: Pick<Event, 'dances'>) =>
   event.dances.map((d) => DANCE_LABEL[d]).join(', ')
 
+// The name of a built-in age group; screens use the admin's names from useCatalog
+export const defaultAgeGroupLabel = (id: string) => ageGroupName(DEFAULT_AGE_GROUPS, id)
+
 // "Junior I · E1 · Latin"
-export const eventGrade = (event: Pick<Event, 'ageGroup' | 'class' | 'discipline'>) =>
-  `${AGE_GROUP_LABEL[event.ageGroup]} · ${event.class} · ${DISCIPLINE_LABEL[event.discipline]}`
+export const eventGrade = (event: Pick<Event, 'ageGroup' | 'class' | 'discipline'>, ageGroupLabel: (id: string) => string = defaultAgeGroupLabel) =>
+  `${ageGroupLabel(event.ageGroup)} · ${event.class} · ${DISCIPLINE_LABEL[event.discipline]}`
 
 export const competitorName = (names: string[]) => names.join(' & ')
 

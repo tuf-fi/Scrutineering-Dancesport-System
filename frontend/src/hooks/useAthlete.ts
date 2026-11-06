@@ -80,6 +80,8 @@ export const useRejectMembership = () =>
 
 export const useResetAthletePassword = () => useWrite((id: string) => api.resetAthletePassword(actor(), id), [])
 
+export const useCorrectAthlete = () => useWrite((v: { id: string; name: string; birthDate: string }) => api.correctAthlete(actor(), v.id, { name: v.name, birthDate: v.birthDate }), ['athletes'])
+
 export const useDeleteAthlete = () => useWrite((id: string) => api.deleteAthlete(actor(), id), ['athletes'])
 
 // Coaches and teams sign in the same way as athletes, each to their own page
@@ -107,6 +109,11 @@ export const useCancelClaim = () => useWrite(() => api.cancelClaim(actor()), ['m
 
 // The secretariat links coach and team accounts to their records
 export const useMemberClaims = () => useQuery({ queryKey: ['member-claims'], queryFn: api.getMemberClaims })
+export const useMemberChanges = () => useQuery({ queryKey: ['member-changes'], queryFn: api.getMemberChanges })
+export const useApproveMemberChange = () => useWrite((memberId: string) => api.approveMemberChange(actor(), memberId), ['member-changes'])
+export const useRejectMemberChange = () =>
+  useWrite((v: { id: string; reason: string }) => api.rejectMemberChange(actor(), v.id, v.reason), ['member-changes'])
+
 export const useApproveMemberClaim = () => useWrite((memberId: string) => api.approveMemberClaim(actor(), memberId), ['member-claims'])
 export const useRejectMemberClaim = () => useWrite((memberId: string) => api.rejectMemberClaim(actor(), memberId), ['member-claims'])
 

@@ -2,13 +2,22 @@ import { ApiError } from '../api/http.ts'
 import {
   DEFAULT_FEE_SCHEDULE,
   DISCIPLINE_DANCES,
-  EventKind,
   PIN_LENGTH,
   PayMethod,
+  checkAgeGroup,
+  checkEventKind,
+  freshId,
+  isFixedFee,
+  kindOf,
+  plural,
   registrationFee,
   registrationWarnings,
   sameProvince,
   type AccountKind,
+  type AgeGroupDef,
+  type AgeGroupInput,
+  type EventKindDef,
+  type EventKindInput,
   type TotpSetup,
   type TotpStatus,
   parseCompetitorCsv,
@@ -78,6 +87,7 @@ import { competitions, currentCompetitionId } from './data/competitions.ts'
 import { ageGroupOf, competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
+import { ageGroups, eventKinds } from './data/catalog.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
 import { announcements } from './announcing.ts'
@@ -100,7 +110,7 @@ import { auditLog, staffUsers } from './data/staff.ts'
 import { isLiveRound, liveRoundComplete, visibleMarks } from './realtime.ts'
 import * as sampleProgram from './program.ts'
 
-export type { CompetitionInput, EventInput, RankingFilter } from '@bis/shared'
+export type { AgeGroupInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
 export { getSubmissionSnapshot, resetLiveRound, subscribeSubmissions } from './realtime.ts'
 
 const LATENCY_MS = 250
@@ -153,6 +163,10 @@ export const getPayments = (status?: PaymentStatus) =>
   reply(status ? payments.filter((p) => p.status === status) : payments)
 
 export const getPointsTable = () => reply(pointsTable)
+
+// The kinds in the admin's order and the age groups from the youngest to the oldest
+const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort((a, b) => (a.oldestAge ?? Infinity) - (b.oldestAge ?? Infinity)) })
+export const getCatalog = () => reply(catalog())
 
 export const getRankingPoints = (filter: RankingFilter = {}) =>
   reply(
@@ -448,6 +462,60 @@ export const setPanel = (actorId: string, eventId: string, adjudicatorIds: strin
   })
 
 // TODO: ranking points already computed from the old table are not recalculated in the sample
+export const saveEventKind = (actorId: string, input: EventKindInput, id?: string) =>
+  settle<EventKindDef>(() => {
+    const checked = checkEventKind(input, eventKinds.filter((k) => k.id !== id))
+    if ('error' in checked) throw new Error(checked.error)
+    if (id) {
+      const kind = found(eventKinds.find((k) => k.id === id), 'Kind')
+      Object.assign(kind, checked.values)
+      record(actorId, 'Edited event kind', kind.name)
+      return kind
+    }
+    const created = { id: freshId(checked.values.name, eventKinds.map((k) => k.id)), ...checked.values }
+    eventKinds.push(created)
+    record(actorId, 'Created event kind', created.name)
+    return created
+  })
+
+export const deleteEventKind = (actorId: string, id: string) =>
+  settle<{ id: string }>(() => {
+    const kind = found(eventKinds.find((k) => k.id === id), 'Kind')
+    if (eventKinds.length === 1) throw new Error('There must be at least one kind.')
+    const used = events.filter((e) => (e.kind ?? 'standard') === id).length
+    if (used > 0) throw new Error(`${kind.name} is used by ${plural(used, 'event')}, so it can't be deleted.`)
+    eventKinds.splice(eventKinds.indexOf(kind), 1)
+    record(actorId, 'Deleted event kind', kind.name)
+    return { id }
+  })
+
+export const saveAgeGroup = (actorId: string, input: AgeGroupInput, id?: string) =>
+  settle<AgeGroupDef>(() => {
+    const checked = checkAgeGroup(input, ageGroups.filter((g) => g.id !== id))
+    if ('error' in checked) throw new Error(checked.error)
+    if (id) {
+      const group = found(ageGroups.find((g) => g.id === id), 'Age group')
+      Object.assign(group, checked.values)
+      record(actorId, 'Edited age group', group.name)
+      return group
+    }
+    const created = { id: freshId(checked.values.name, ageGroups.map((g) => g.id)), ...checked.values }
+    ageGroups.push(created)
+    record(actorId, 'Created age group', created.name)
+    return created
+  })
+
+export const deleteAgeGroup = (actorId: string, id: string) =>
+  settle<{ id: string }>(() => {
+    const group = found(ageGroups.find((g) => g.id === id), 'Age group')
+    if (ageGroups.length === 1) throw new Error('There must be at least one age group.')
+    const used = events.filter((e) => e.ageGroup === id).length
+    if (used > 0) throw new Error(`${group.name} is used by ${plural(used, 'event')}, so it can't be deleted.`)
+    ageGroups.splice(ageGroups.indexOf(group), 1)
+    record(actorId, 'Deleted age group', group.name)
+    return { id }
+  })
+
 export const savePointsTable = (actorId: string, rows: PointsRow[]) =>
   settle<PointsRow[]>(() => {
     if (rows.some((r) => !Number.isInteger(r.points) || r.points < 0)) {
@@ -729,14 +797,14 @@ export const importCompetitorsCsv = (actorId: string, text: string) =>
   importCompetitors(actorId, parseCompetitorCsv(text))
 
 // TODO: a competitor's age group comes from their birth date in the real system; new sample competitors have none
-function checkEligible(competitorId: string, event: { number: number; isSolo: boolean; ageGroup: AgeGroup; kind?: EventKind; province?: string }) {
+function checkEligible(competitorId: string, event: { number: number; isSolo: boolean; ageGroup: AgeGroup; kind?: string; province?: string }) {
   const competitor = found(competitors.find((c) => c.id === competitorId), 'Competitor')
   if ((competitor.names.length === 1) !== event.isSolo) {
     throw new Error(event.isSolo ? 'This is a solo event.' : 'This is a couple event.')
   }
   const age = ageGroupOf.get(competitorId)
   if (age && age !== event.ageGroup) throw new Error('This competitor is in a different age group.')
-  if (event.kind === EventKind.Closed && !sameProvince(competitor.details?.province, event.province)) {
+  if (kindOf(eventKinds, event.kind)?.closedToProvince && !sameProvince(competitor.details?.province, event.province)) {
     throw new Error(`E${event.number} is closed to ${event.province}. This entry is from ${competitor.details?.province?.trim() || 'no province'}.`)
   }
 }
@@ -840,17 +908,17 @@ function priceRegistration(competitorId: string, eventIds: string[], coachFees =
   const competition = found(competitions.find((c) => c.id === chosen[0].competitionId), 'Competition')
   const year = Number(competition.date.slice(0, 4))
   const members = competitor.details?.memberYear === year ? 0 : competitor.names.length
-  const fixed: string[] = [EventKind.Ranking, EventKind.InterCollegiate]
+  const catalogNow = catalog()
   const prior = entries.filter((e) => {
     const event = events.find((x) => x.id === e.eventId)
-    return e.competitorId === competitorId && !e.scratched && event?.competitionId === competition.id && !fixed.includes(event.kind ?? '')
+    return e.competitorId === competitorId && !e.scratched && event?.competitionId === competition.id && !isFixedFee(catalogNow, event.kind)
   }).length
   const coachRow = coaches.find((c) => c.id === competitor.details?.coachId)
   const coach = coachRow
     ? { name: coachRow.name, membershipDue: coachRow.memberYear !== year, summitDue: coachRow.summitYear !== year }
     : undefined
   const collect = { membership: Boolean(coach?.membershipDue && coachFees.membership), summit: Boolean(coach?.summitDue && coachFees.summit) }
-  const { lines, total } = registrationFee(DEFAULT_FEE_SCHEDULE, chosen, members, prior, collect)
+  const { lines, total } = registrationFee(DEFAULT_FEE_SCHEDULE, chosen, members, prior, collect, catalogNow)
   return {
     competitor,
     chosen,
@@ -858,7 +926,7 @@ function priceRegistration(competitorId: string, eventIds: string[], coachFees =
     members,
     collect,
     coachRow,
-    quote: { lines, total, warnings: registrationWarnings(competitor.details, competitor.names.length, chosen, year), ...(coach ? { coach } : {}) },
+    quote: { lines, total, warnings: registrationWarnings(competitor.details, competitor.names.length, chosen, year, catalogNow, members), ...(coach ? { coach } : {}) },
   }
 }
 
@@ -1094,7 +1162,10 @@ function checkEvent(competitionId: string, input: EventInput, id?: string) {
   if (input.dances.some((d) => !allowed.includes(d))) {
     throw new Error(`These dances do not belong to ${input.discipline}.`)
   }
-  if (input.kind === EventKind.Closed && !input.province?.trim()) throw new Error('Enter the province this event is closed to.')
+  const kind = kindOf(eventKinds, input.kind)
+  if (!kind) throw new Error('Choose a kind.')
+  if (!ageGroups.some((g) => g.id === input.ageGroup)) throw new Error('Choose an age group.')
+  if (kind.closedToProvince && !input.province?.trim()) throw new Error('Enter the province this event is closed to.')
 }
 
 export const saveEvent = (actorId: string, competitionId: string, input: EventInput, id?: string) =>
@@ -1317,7 +1388,7 @@ export const markNotificationsRead = (athleteId: string, ids?: string[]) =>
     )
   })
 
-const membershipYear = () => Number(competitions.find((c) => c.id === currentCompetitionId)?.date.slice(0, 4) ?? 2026)
+const membershipYear = () => new Date().getFullYear()
 const athleteOf = (id: string) => found(sampleAthletes.find((a) => a.id === id), 'Athlete')
 const publicAthlete = ({ password: _password, ...profile }: SampleAthlete): AthleteProfile => profile
 
@@ -1373,6 +1444,7 @@ interface SampleMember {
   linkedId: string | null
   claimId: string | null
   claimedAt: string | null
+  changeRequest?: MemberChangeRequest | null
 }
 
 // The sample coach and team start out linked, so their pages show something
@@ -1399,6 +1471,7 @@ function memberAccount(m: SampleMember): MemberAccount {
     photo: m.photo,
     linked: m.linkedId && linked !== null ? { id: m.linkedId, name: linked } : null,
     claim: m.claimId && claim !== null ? { id: m.claimId, name: claim, requestedAt: m.claimedAt ?? '' } : null,
+    changeRequest: m.changeRequest ?? null,
   }
 }
 
@@ -1444,9 +1517,22 @@ export const saveMyMember = (memberId: string, input: MemberInput) =>
   settle<MemberAccount>(() => {
     const member = memberOf(memberId)
     if (!input.name.trim()) throw new Error(member.role === 'team' ? 'Enter the name of your team.' : 'Enter your name.')
-    member.name = input.name.trim()
+    const name = input.name.trim()
+    const coach = member.role === 'coach'
+    const nameAsk = coach && name !== member.name
+    const birthAsk = coach && Boolean(member.birthDate) && Boolean(input.birthDate) && input.birthDate !== member.birthDate
+    if (nameAsk || birthAsk) {
+      const pending = member.changeRequest && !member.changeRequest.rejectedReason ? member.changeRequest : null
+      member.changeRequest = {
+        ...(nameAsk ? { name } : pending?.name ? { name: pending.name } : {}),
+        ...(birthAsk ? { birthDate: input.birthDate } : pending?.birthDate ? { birthDate: pending.birthDate } : {}),
+        requestedAt: new Date().toISOString(),
+      }
+      emitAlert([Role.Secretariat, Role.Admin], { title: 'Profile change', detail: `${member.name} asks to change ${[nameAsk && 'name', birthAsk && 'date of birth'].filter(Boolean).join(' and ')}`, link: '/secretariat/profile-changes' })
+    }
+    if (!coach) member.name = name
     member.phone = input.phone.trim()
-    member.birthDate = input.birthDate
+    member.birthDate = coach ? member.birthDate || input.birthDate : input.birthDate
     member.province = input.province.trim()
     member.address = input.address.trim()
     return memberAccount(member)
@@ -1727,11 +1813,23 @@ export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
     const coachId = input.coachId || null
     const nextTeam = athlete.teamId === null ? teamId : athlete.teamId
     const nextCoach = athlete.coachId === null ? coachId : athlete.coachId
-    const asksForChange = teamId !== nextTeam || coachId !== nextCoach
-    Object.assign(athlete, { ...input, name: input.name.trim(), teamId: nextTeam, coachId: nextCoach })
-    if (asksForChange) {
-      athlete.changeRequest = { teamId, coachId, requestedAt: new Date().toISOString() }
-      emitAlert([Role.Secretariat, Role.Admin], { title: 'Team or coach change', detail: `${athlete.name} asks to change team or coach`, link: '/secretariat/profile-changes' })
+    const name = input.name.trim()
+    const teamAsk = teamId !== nextTeam || coachId !== nextCoach
+    const nameAsk = name !== athlete.name
+    const birthAsk = Boolean(athlete.birthDate) && Boolean(input.birthDate) && input.birthDate !== athlete.birthDate
+    const birthDate = athlete.birthDate || input.birthDate
+    Object.assign(athlete, { ...input, name: athlete.name, birthDate, teamId: nextTeam, coachId: nextCoach })
+    if (teamAsk || nameAsk || birthAsk) {
+      const pending = athlete.changeRequest && !athlete.changeRequest.rejectedReason ? athlete.changeRequest : null
+      athlete.changeRequest = {
+        teamId: teamAsk ? teamId : (pending?.teamId ?? nextTeam),
+        coachId: teamAsk ? coachId : (pending?.coachId ?? nextCoach),
+        ...(nameAsk ? { name } : pending?.name ? { name: pending.name } : {}),
+        ...(birthAsk ? { birthDate: input.birthDate } : pending?.birthDate ? { birthDate: pending.birthDate } : {}),
+        requestedAt: new Date().toISOString(),
+      }
+      const what = [teamAsk && 'team or coach', nameAsk && 'name', birthAsk && 'date of birth'].filter(Boolean).join(', ')
+      emitAlert([Role.Secretariat, Role.Admin], { title: 'Profile change', detail: `${athlete.name} asks to change ${what}`, link: '/secretariat/profile-changes' })
     }
     return publicAthlete(athlete)
   })
@@ -1765,6 +1863,7 @@ export const getAthletes = () =>
       .map((a) => ({
         id: a.id,
         name: a.name,
+        birthDate: a.birthDate,
         email: a.email,
         phone: a.phone,
         teamName: teams.find((c) => c.id === a.teamId)?.name ?? '',
@@ -1772,6 +1871,8 @@ export const getAthletes = () =>
         memberYear: a.memberYear,
         request: a.request,
         changeRequest: a.changeRequest,
+        requestedName: a.changeRequest?.name ?? '',
+        requestedBirthDate: a.changeRequest?.birthDate ?? '',
         requestedTeamName: teams.find((c) => c.id === a.changeRequest?.teamId)?.name ?? '',
         requestedCoachName: coaches.find((c) => c.id === a.changeRequest?.coachId)?.name ?? '',
       })),
@@ -1784,9 +1885,11 @@ export const approveProfileChange = (actorId: string, id: string) =>
     if (!change || change.rejectedReason) throw new Error('This athlete has no change waiting.')
     athlete.teamId = change.teamId
     athlete.coachId = change.coachId
+    if (change.name) athlete.name = change.name
+    if (change.birthDate) athlete.birthDate = change.birthDate
     athlete.changeRequest = null
-    record(actorId, 'Approved a team or coach change', athlete.name)
-    notifyAthlete(id, { kind: 'change_approved', title: 'Your team or coach change was approved', detail: '', link: '/athlete' })
+    record(actorId, 'Approved a profile change', athlete.name)
+    notifyAthlete(id, { kind: 'change_approved', title: 'Your change was approved', detail: '', link: '/athlete' })
   })
 
 export const rejectProfileChange = (actorId: string, id: string, reason: string) =>
@@ -1795,8 +1898,8 @@ export const rejectProfileChange = (actorId: string, id: string, reason: string)
     if (!athlete.changeRequest || athlete.changeRequest.rejectedReason) throw new Error('This athlete has no change waiting.')
     if (!reason.trim()) throw new Error('Say why it was turned down.')
     athlete.changeRequest = { ...athlete.changeRequest, rejectedReason: reason.trim() }
-    record(actorId, 'Turned down a team or coach change', athlete.name)
-    notifyAthlete(id, { kind: 'change_rejected', title: 'Your team or coach change was turned down', detail: reason.trim(), link: '/athlete/edit' })
+    record(actorId, 'Turned down a profile change', athlete.name)
+    notifyAthlete(id, { kind: 'change_rejected', title: 'Your change was turned down', detail: reason.trim(), link: '/athlete/edit' })
   })
 
 export const saveMyPhoto = (athleteId: string, photo: string | null) =>
@@ -1883,6 +1986,63 @@ export const resetAthletePassword = (actorId: string, id: string) =>
     athlete.password = 'temp1234'
     record(actorId, 'Reset an athlete password', athlete.name)
     return { tempPassword: athlete.password }
+  })
+
+export const correctAthlete = (actorId: string, id: string, input: { name: string; birthDate: string }) =>
+  settle<void>(() => {
+    const athlete = athleteOf(id)
+    const name = input.name.trim()
+    if (!name) throw new Error('Enter the name.')
+    record(actorId, 'Corrected an athlete', name)
+    athlete.name = name
+    athlete.birthDate = input.birthDate
+  })
+
+const waitingChange = (m: SampleMember) => Boolean(m.changeRequest) && !m.changeRequest?.rejectedReason
+
+export const getMemberChanges = () =>
+  settle<MemberChangeRow[]>(() =>
+    sampleMembers.filter(waitingChange).map((m) => ({
+      memberId: m.id,
+      role: m.role,
+      name: m.name,
+      birthDate: m.birthDate,
+      requestedName: m.changeRequest?.name ?? '',
+      requestedBirthDate: m.changeRequest?.birthDate ?? '',
+      requestedAt: m.changeRequest?.requestedAt ?? '',
+    })),
+  )
+
+export const approveMemberChange = (actorId: string, memberId: string) =>
+  settle<MemberChangeRow[]>(() => {
+    const member = memberOf(memberId)
+    const change = member.changeRequest
+    if (!change || change.rejectedReason) throw new Error('This account has no change waiting.')
+    if (change.name) member.name = change.name
+    if (change.birthDate) member.birthDate = change.birthDate
+    member.changeRequest = null
+    record(actorId, 'Approved a profile change', member.name)
+    return sampleMembers.filter(waitingChange).map((m) => ({ memberId: m.id, role: m.role, name: m.name, birthDate: m.birthDate, requestedName: m.changeRequest?.name ?? '', requestedBirthDate: m.changeRequest?.birthDate ?? '', requestedAt: m.changeRequest?.requestedAt ?? '' }))
+  })
+
+export const rejectMemberChange = (actorId: string, memberId: string, reason: string) =>
+  settle<MemberChangeRow[]>(() => {
+    const member = memberOf(memberId)
+    if (!member.changeRequest || member.changeRequest.rejectedReason) throw new Error('This account has no change waiting.')
+    if (!reason.trim()) throw new Error('Say why it was turned down.')
+    member.changeRequest = { ...member.changeRequest, rejectedReason: reason.trim() }
+    record(actorId, 'Turned down a profile change', member.name)
+    return sampleMembers.filter(waitingChange).map((m) => ({ memberId: m.id, role: m.role, name: m.name, birthDate: m.birthDate, requestedName: m.changeRequest?.name ?? '', requestedBirthDate: m.changeRequest?.birthDate ?? '', requestedAt: m.changeRequest?.requestedAt ?? '' }))
+  })
+
+export const correctMember = (actorId: string, id: string, input: { name: string; birthDate: string }) =>
+  settle<void>(() => {
+    const member = found(sampleMembers.find((m) => m.id === id), 'Account')
+    const name = input.name.trim()
+    if (!name) throw new Error('Enter the name.')
+    record(actorId, 'Corrected an account', name)
+    member.name = name
+    member.birthDate = input.birthDate
   })
 
 export const deleteAthlete = (actorId: string, id: string) =>

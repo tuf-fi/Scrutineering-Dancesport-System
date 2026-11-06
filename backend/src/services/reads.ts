@@ -1,11 +1,12 @@
 import { Role, type AdjudicatorAssignment, type CompetitorHistoryLine, type PaymentStatus, type RankingFilter } from '@bis/shared'
-import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import { found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import {
   heatsOfRound,
   hiddenEventIds,
   paymentDetail,
+  catalogOf,
   pointsRows,
   toTeam,
   toCompetition,
@@ -54,7 +55,7 @@ export const reads = {
       .map((c) => toCompetitor(sees ? c : { ...c, details: null }))
   },
 
-  getTeams: (ctx: Ctx) => ctx.db.select().from(t.teams).orderBy(asc(t.teams.name)).all().map(toTeam),
+  getTeams: (ctx: Ctx) => ctx.db.select().from(t.teams).orderBy(desc(sql`rowid`)).all().map(toTeam),
 
   getAdjudicators: (ctx: Ctx) =>
     ctx.db
@@ -140,23 +141,32 @@ export const reads = {
       .all()
       .map((p) => paymentDetailToPayment(ctx, p)),
 
-  getPaymentDetails: (ctx: Ctx) => ctx.db.select().from(t.payments).all().map((p) => paymentDetail(ctx, p)),
+  getPaymentDetails: (ctx: Ctx) => ctx.db.select().from(t.payments).orderBy(desc(sql`rowid`)).all().map((p) => paymentDetail(ctx, p)),
 
   getPointsTable: (ctx: Ctx) => pointsRows(ctx),
 
-  getRankingPoints: (ctx: Ctx, filter: RankingFilter = {}) =>
-    ctx.db
+  getCatalog: (ctx: Ctx) => catalogOf(ctx),
+
+  // Points earned in an older version of an age group count under its current version
+  getRankingPoints: (ctx: Ctx, filter: RankingFilter = {}) => {
+    const groups = catalogOf(ctx).ageGroups
+    const current = new Map(groups.filter((g) => !g.retired).map((g) => [g.family ?? g.id, g.id]))
+    const familyOf = new Map(groups.map((g) => [g.id, g.family ?? g.id]))
+    const wanted = filter.ageGroup ? groups.filter((g) => (g.family ?? g.id) === familyOf.get(filter.ageGroup!)).map((g) => g.id) : null
+    return ctx.db
       .select()
       .from(t.rankingPoints)
       .where(
         and(
-          filter.ageGroup ? eq(t.rankingPoints.ageGroup, filter.ageGroup) : undefined,
+          wanted ? inArray(t.rankingPoints.ageGroup, wanted.length > 0 ? wanted : [filter.ageGroup!]) : undefined,
           filter.class ? eq(t.rankingPoints.class, filter.class) : undefined,
           filter.discipline ? eq(t.rankingPoints.discipline, filter.discipline) : undefined,
         ),
       )
       .all()
-      .map(toRankingPoint),
+      .map(toRankingPoint)
+      .map((p) => ({ ...p, ageGroup: current.get(familyOf.get(p.ageGroup) ?? p.ageGroup) ?? p.ageGroup }))
+  },
 
   getCompetitorHistory: (ctx: Ctx, competitorId: string): CompetitorHistoryLine[] => {
     const hidden = hiddenEventIds(ctx)
@@ -197,7 +207,7 @@ export const reads = {
       .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber)
   },
 
-  getStaffUsers: (ctx: Ctx) => ctx.db.select().from(t.staffUsers).orderBy(asc(t.staffUsers.name)).all().map(toStaff),
+  getStaffUsers: (ctx: Ctx) => ctx.db.select().from(t.staffUsers).orderBy(desc(sql`rowid`)).all().map(toStaff),
 
   getAuditLog: (ctx: Ctx) =>
     ctx.db

@@ -6,9 +6,9 @@ import { createPortal } from 'react-dom'
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis, usePlotArea } from 'recharts'
 import logo from '../../assets/logo.png'
 import { ErrorState } from '../../components/ui/index.ts'
-import { useAnnouncements, useCompetitions, useProgram } from '../../hooks/index.ts'
+import { useAnnouncements, useCompetitions, useProgram, useCatalog } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { ROUND_TYPE_LABEL, eventDances, eventGrade, ordinal } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventDances, ordinal } from '../../lib/format.ts'
 import { AccountMenu } from '../../app/layouts/AccountMenu.tsx'
 import { useSignOut } from '../../app/useSignOut.ts'
 import { useAuth } from '../../stores/auth.ts'
@@ -106,6 +106,7 @@ const LABEL = 'font-mono text-[1.9vmin] font-medium uppercase tracking-[0.12em] 
 
 // The sheet the announcer reads from: the event and the one after it, the back numbers as tiles, and what to do with them
 function Sheet({ item, next }: { item: Announcement; next: Announcement | undefined }) {
+  const { eventGrade } = useCatalog()
   const size = sheetSize(item.numbers.length)
   const todo = instruction(item)
 
@@ -173,6 +174,7 @@ function Sheet({ item, next }: { item: Announcement; next: Announcement | undefi
 
 // The slide says what is happening first, then which event it is about
 function Heading({ item }: { item: Announcement }) {
+  const { eventGrade } = useCatalog()
   const centred = item.kind === 'result' || item.kind === 'results'
   const message = item.kind === 'result' ? `${ordinal(item.result!.place)} place` : EYEBROW[item.kind]
   return (

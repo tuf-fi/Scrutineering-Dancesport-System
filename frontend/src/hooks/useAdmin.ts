@@ -33,6 +33,18 @@ export const useSaveCompetition = () =>
 export const useDeleteCompetition = () =>
   useWrite((id: string) => api.deleteCompetition(actor(), id), () => [['competitions']])
 
+export const useSaveEventKind = () =>
+  useWrite((v: { input: api.EventKindInput; id?: string }) => api.saveEventKind(actor(), v.input, v.id), () => [['catalog']])
+
+export const useDeleteEventKind = () =>
+  useWrite((id: string) => api.deleteEventKind(actor(), id), () => [['catalog']])
+
+export const useSaveAgeGroup = () =>
+  useWrite((v: { input: api.AgeGroupInput; id?: string }) => api.saveAgeGroup(actor(), v.input, v.id), () => [['catalog']])
+
+export const useDeleteAgeGroup = () =>
+  useWrite((id: string) => api.deleteAgeGroup(actor(), id), () => [['catalog']])
+
 export const useCreateStaff = () =>
   useWrite(
     (v: { name: string; username: string; role: Role; photo: string }) => api.createStaffUser(actor(), v),
