@@ -9,3 +9,8 @@ deploy/.env
 phone-test-data
 *.tsbuildinfo
 fix*.py
+
+# Local staging test material, kept out of the repository
+docs/operations/STAGING_TEST_GUIDE.pdf
+docs/operations/STAGING_LOGINS.pdf
+docs/operations/test-competitors.csv
