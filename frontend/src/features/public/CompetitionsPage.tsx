@@ -44,7 +44,7 @@ function Deadline({ c, className }: { c: Competition; className?: string }) {
   )
 }
 
-function CompetitionRow({ c }: { c: Competition }) {
+function CompetitionRow({ c, to, results }: { c: Competition; to: string; results: boolean }) {
   const d = dateParts(c.date)
   const s = status(c)
   const done = s.tone === 'done'
@@ -57,11 +57,11 @@ function CompetitionRow({ c }: { c: Competition }) {
 
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className={cn('text-balance text-[1.125rem] font-semibold leading-[1.2] tracking-[-0.02em] lg:text-[1.375rem]', done ? 'text-neutral-600' : 'text-neutral-900')}>
-          <Link to={`/competitions/${c.id}`} className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500">
+          <Link to={to} className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500">
             {c.name}
           </Link>
         </h2>
-        {!done && <Deadline c={c} className="text-gold-700" />}
+        {!done && !results && <Deadline c={c} className="text-gold-700" />}
       </div>
 
       <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
@@ -108,7 +108,8 @@ function ListSkeleton() {
   )
 }
 
-export function CompetitionsPage() {
+// The list of competitions; with results it is the Results page: held competitions, each opening its event results
+export function CompetitionsPage({ results = false }: { results?: boolean } = {}) {
   const competitions = useCompetitions()
   const [when, setWhen] = useState<When>('all')
   const [query, setQuery] = useState('')
@@ -116,9 +117,10 @@ export function CompetitionsPage() {
   const all = competitions.data ?? []
   const today = todayIso()
   const upcomingCount = all.filter((c) => c.date >= today).length
+  const heldCount = all.filter((c) => c.date <= today).length
   const needle = query.trim().toLowerCase()
   const matches = all
-    .filter((c) => (when === 'upcoming' ? c.date >= today : when === 'past' ? c.date < today : true))
+    .filter((c) => (results ? c.date <= today : when === 'upcoming' ? c.date >= today : when === 'past' ? c.date < today : true))
     .filter((c) => !needle || `${c.name} ${c.venue} ${c.organizer}`.toLowerCase().includes(needle))
     // Coming up soonest first, then the past newest first
     .sort((a, b) => {
@@ -134,51 +136,53 @@ export function CompetitionsPage() {
   return (
     <div className="flex flex-col gap-8">
       <PublicHeader
-        title="Competitions"
-        eyebrow="Season calendar"
-        description="Every dancesport competition run on BIS. Open one for its events, program and results."
+        title={results ? 'Results' : 'Competitions'}
+        eyebrow={results ? 'Competition results' : 'Season calendar'}
+        description={results ? 'Open a competition to see the results of each of its events.' : 'Every dancesport competition run on BIS. Open one for its events, program and results.'}
         aside={
           <HeaderStats>
-            <HeaderStat value={competitions.isLoading ? '–' : all.length} label="Total" />
-            <HeaderStat value={competitions.isLoading ? '–' : upcomingCount} label="Upcoming" />
+            <HeaderStat value={competitions.isLoading ? '–' : results ? heldCount : all.length} label={results ? 'Held' : 'Total'} />
+            {!results && <HeaderStat value={competitions.isLoading ? '–' : upcomingCount} label="Upcoming" />}
           </HeaderStats>
         }
       />
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] sm:gap-x-4">
         <SearchField className="col-span-2 sm:col-span-1" value={query} onChange={setQuery} />
-        <Select label="Show" value={when} onChange={(e) => setWhen(e.target.value as When)} className="col-span-2 sm:col-span-1">
-          <option value="all">All ({all.length})</option>
-          <option value="upcoming">Upcoming ({upcomingCount})</option>
-          <option value="past">Completed ({all.length - upcomingCount})</option>
-        </Select>
+        {!results && (
+          <Select label="Show" value={when} onChange={(e) => setWhen(e.target.value as When)} className="col-span-2 sm:col-span-1">
+            <option value="all">All ({all.length})</option>
+            <option value="upcoming">Upcoming ({upcomingCount})</option>
+            <option value="past">Completed ({all.length - upcomingCount})</option>
+          </Select>
+        )}
       </div>
 
       <section aria-labelledby="list" className="flex flex-col gap-4">
         <h2 id="list" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-          {when === 'all' ? 'All competitions' : when === 'upcoming' ? 'Upcoming' : 'Completed'}
+          {results ? 'Competitions' : when === 'all' ? 'All competitions' : when === 'upcoming' ? 'Upcoming' : 'Completed'}
         </h2>
 
         {competitions.isLoading ? (
           <ListSkeleton />
         ) : matches.length === 0 ? (
           <EmptyState
-            title={all.length === 0 ? 'No competitions yet' : 'No competitions match'}
-            description={all.length === 0 ? 'Competitions appear here as soon as they are announced.' : 'Try a different name or show all competitions.'}
+            title={all.length === 0 || (results && heldCount === 0) ? (results ? 'No results yet' : 'No competitions yet') : 'No competitions match'}
+            description={results && heldCount === 0 ? 'Results appear here once a competition has been held.' : all.length === 0 ? 'Competitions appear here as soon as they are announced.' : 'Try a different name or show all competitions.'}
           />
         ) : (
           <div>
             <ListHead />
             <ul className="border-b border-neutral-200">
               {pageItems.map((c) => (
-                <CompetitionRow key={c.id} c={c} />
+                <CompetitionRow key={c.id} c={c} to={results ? `/results/${c.id}` : `/competitions/${c.id}`} results={results} />
               ))}
             </ul>
           </div>
         )}
 
         {!competitions.isLoading && total > pageSize && (
-          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="Competitions pagination" />
+          <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label={results ? "Results pagination" : "Competitions pagination"} />
         )}
       </section>
     </div>

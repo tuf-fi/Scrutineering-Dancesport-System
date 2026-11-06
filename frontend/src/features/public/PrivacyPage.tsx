@@ -21,13 +21,13 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
     title: 'Who sees it',
     body: [
       'Only the organizer’s staff see dates of birth, addresses, emails, contact numbers and payments. An athlete who signs in sees only their own page.',
-      'Results, placings, ranking points, dancer names and team names are public, because that is what a published result is. Many dancers are minors, so the entry form should be signed with a parent’s or guardian’s agreement.',
+      'Results, placings, points, dancer names and team names are public, because that is what a published result is. Many dancers are minors, so the entry form should be signed with a parent’s or guardian’s agreement.',
     ],
   },
   {
     title: 'How long',
     body: [
-      'Entry form details are kept permanently as the organizer’s record. Nothing is deleted automatically; details are removed only when the organizer does it, or when you ask. Results and rankings are kept as the public record.',
+      'Entry form details are kept permanently as the organizer’s record. Nothing is deleted automatically; details are removed only when the organizer does it, or when you ask. Results and standings are kept as the public record.',
     ],
   },
   {

@@ -2,6 +2,7 @@ import type { Competition } from '@bis/shared'
 import { useRef, useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, toast } from '../../components/ui/index.ts'
 import { useSaveCompetition } from '../../hooks/index.ts'
+import { todayIso } from '../../lib/format.ts'
 import { coverPhoto } from '../../lib/image.ts'
 
 interface Values {
@@ -9,6 +10,7 @@ interface Values {
   date: string
   venue: string
   organizer: string
+  executor: string
   entryDeadline: string
   feeDeadline: string
   image: string
@@ -43,6 +45,7 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
     const found: Errors = {}
     if (!values.name.trim()) found.name = 'Enter the competition name.'
     if (!values.date) found.date = 'Pick the date.'
+    else if (values.date < todayIso() && values.date !== initial.date) found.date = 'Pick today or a later date. A finished competition cannot be added.'
     if (!values.venue.trim()) found.venue = 'Enter the venue.'
     if (!values.organizer.trim()) found.organizer = 'Enter the organizer.'
     if (!values.image) found.image = 'Add the photo for its card.'
@@ -57,6 +60,9 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
       </div>
       <Input label="Date" required type="date" value={values.date} onChange={set('date')} error={errors.date} />
       <Input label="Organizer" required value={values.organizer} onChange={set('organizer')} error={errors.organizer} />
+      <div className="sm:col-span-2">
+        <Input label="Executor" hint="Who runs the scoring. Printed on result sheets. Leave empty to use the organizer." value={values.executor} onChange={set('executor')} />
+      </div>
       <div className="sm:col-span-2">
         <Input label="Venue" required value={values.venue} onChange={set('venue')} error={errors.venue} />
       </div>
@@ -160,12 +166,13 @@ export function CompetitionDialog({
                 date: competition.date,
                 venue: competition.venue,
                 organizer: competition.organizer,
+                executor: competition.executor ?? '',
                 entryDeadline: competition.entryDeadline ?? '',
                 feeDeadline: competition.feeDeadline ?? '',
                 image: competition.image ?? '',
                 usesPoints: competition.usesPoints,
               }
-            : { name: '', date: '', venue: '', organizer: '', entryDeadline: '', feeDeadline: '', image: '', usesPoints: true }
+            : { name: '', date: '', venue: '', organizer: '', executor: '', entryDeadline: '', feeDeadline: '', image: '', usesPoints: true }
         }
         onSubmit={submit}
       />

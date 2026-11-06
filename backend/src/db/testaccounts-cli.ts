@@ -6,12 +6,13 @@ import { hashPassword, temporaryPassword } from '../auth/password.ts'
 import { loadConfig } from '../config.ts'
 import { openDatabase } from './client.ts'
 import { runMigrations } from './migrate.ts'
-import { textPdf, type PdfLine } from './minipdf.ts'
+import { loginSheetLines } from './loginsheet.ts'
+import { textPdf } from './minipdf.ts'
 import * as t from './schema.ts'
 import { addTestData } from './testdata.ts'
 
 // pnpm --filter @bis/backend db:testaccounts [--yes] [--site https://staging.example.com] [--password x] [--pin-start 100001] [--pdf path]
-// Makes one test login for each role that has one (admin, secretariat, scrutineer, chairperson, compere, athlete, coach, team) and a PIN for every adjudicator, then prints them
+// Makes one test login for each role that has one (admin, secretariat, scrutineer, chairperson, compere, barker, athlete, coach, team) and a PIN for every adjudicator, then prints them
 // and writes them to a PDF. No password or PIN is kept in the repository: pass --password to choose one password for every login,
 // or leave it out and each login gets its own random password. PINs are random and kept once made. Every run writes the sheet again.
 if (process.env.BIS_DEPLOYED === 'true' && !process.argv.includes('--yes')) {
@@ -59,9 +60,9 @@ const STAFF = [
   { id: 'td-scrutineer', role: 'Scrutineer', key: 'scrutineer', email: 'testscrutineer@testdata.example', name: 'Test Scrutineer', password: passwordFor() },
   { id: 'td-chairperson', role: 'Chairperson', key: 'chairperson', email: 'testchairperson@testdata.example', name: 'Test Chairperson', password: passwordFor() },
   { id: 'td-compere', role: 'Compere', key: 'compere', email: 'testcompere@testdata.example', name: 'Test Compere', password: passwordFor() },
+  { id: 'td-barker', role: 'Barker', key: 'barker', email: 'testbarker@testdata.example', name: 'Test Barker', password: passwordFor() },
 ] as const
 const staff: Login[] = STAFF.map((u) => ({ role: u.role, email: u.email, name: u.name, password: u.password, path: '/staff-access' }))
-const admin = staff[0]!
 const athlete: Login = { role: 'Athlete', email: 'bianca.alcantara@testdata.example', name: 'Bianca Alcantara', password: passwordFor(), path: '/login?as=athlete' }
 const coach: Login = { role: 'Coach', email: 'coach@testdata.example', name: 'Marites Villareal', password: passwordFor(), path: '/login?as=coach' }
 const team: Login = { role: 'Team', email: 'team@testdata.example', name: 'Naga Rhythm Studio', password: passwordFor(), path: '/login?as=team' }
@@ -119,31 +120,7 @@ sqlite.close()
 // ---- The sheet
 const pad = (s: string, n: number) => s.padEnd(n)
 const logins = [...staff, athlete, coach, team]
-const lines: PdfLine[] = [
-  { text: 'BOSS staging test logins', style: 'title' },
-  { text: `Made ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC. Running the command again makes a new sheet.`, style: 'muted' },
-  { text: 'These are working logins for the staging server only. Keep this sheet private and never create these accounts on production.', style: 'muted' },
-  { text: '', style: 'muted' },
-  { text: 'One login for each role', style: 'heading' },
-  { text: `${pad('Role', 12)}${pad('Sign in at', 19)}${pad('Email', 36)}Password`, style: 'code' },
-  ...logins.map((l) => ({ text: `${pad(l.role, 12)}${pad(l.path, 19)}${pad(l.email, 36)}${l.password}`, style: 'code' as const })),
-  { text: '', style: 'muted' },
-  { text: `Open the site at ${site} followed by the path shown, for example ${site}${admin.path}`, style: 'muted' },
-  { text: 'The admin is a second admin account, as well as the one you made. Staff roles sign in at the staff page. The coach and team are already linked to a record,', style: 'muted' },
-  { text: 'so their dancers, results and entries show. The athlete is Bianca Alcantara, a dancer on Naga Rhythm Studio.', style: 'muted' },
-  { text: '', style: 'muted' },
-  { text: `Athletes: all ${athleteRows.length}`, style: 'heading' },
-  { text: `Sign in at /login?as=athlete. Each athlete is also a solo dancer on a test team.`, style: 'muted' },
-  { text: `${pad('Athlete', 22)}${pad('Email', 40)}Password`, style: 'code' },
-  ...athleteRows.map((a) => ({ text: `${pad(a.name, 22)}${pad(a.email, 40)}${a.password}`, style: 'code' as const })),
-  { text: '', style: 'muted' },
-  { text: `Adjudicators: all ${pinRows.length}`, style: 'heading' },
-  { text: `Open ${site}/adjudicator on a phone and type the PIN. The same PINs work for every test competition.`, style: 'muted' },
-  { text: `${pad('Letter', 8)}${pad('Adjudicator', 36)}PIN`, style: 'code' },
-  ...pinRows.map((r) => ({ text: `${pad(r.letter, 8)}${pad(r.name, 36)}${r.pin}`, style: 'code' as const })),
-  { text: '', style: 'muted' },
-  { text: 'Staging lets a PIN work on any day. An adjudicator is signed in on one phone at a time: signing in on a second phone signs the first out.', style: 'muted' },
-]
+const lines = loginSheetLines({ made: new Date().toISOString().slice(0, 16).replace('T', ' '), site, logins, athleteRows, pinRows })
 writeFileSync(pdfPath, textPdf(lines))
 
 console.log('Test logins:')

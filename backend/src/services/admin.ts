@@ -10,7 +10,7 @@ import { newId } from '../ids.ts'
 import { recomputeAllPoints, recomputeCompetitionPoints } from './ranking.ts'
 import { MAX_PHOTO, PHOTO, catalogOf, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 
 function staffRole(role: unknown): Role {
   return STAFF_ROLES.includes(role as Role) ? (role as Role) : fail('Choose a staff role.')
@@ -34,6 +34,7 @@ export const admin = {
       date: clean(input?.date),
       venue: clean(input?.venue),
       organizer: clean(input?.organizer),
+      executor: clean(input?.executor).slice(0, 100),
       entryDeadline: clean(input?.entryDeadline) || null,
       feeDeadline: clean(input?.feeDeadline) || null,
     }
@@ -46,8 +47,12 @@ export const admin = {
       if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail('Enter dates as year-month-day.')
     }
     const user = actor(ctx)
+    // A competition that is over cannot be added, or moved into the past; one already past can still have its other details corrected
+    const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
+    const PAST = 'A competition cannot be dated before today. A finished competition cannot be added.'
     if (id) {
       const before = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
+      if (values.date < today && values.date !== before.date) return fail(PAST)
       if (!(image === undefined ? before.image : image)) return fail('Add the photo for its card.')
       const changes = { ...values, ...(image === undefined ? {} : { image }), ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }) }
       ctx.db.update(t.competitions).set(changes).where(eq(t.competitions.id, id)).run()
@@ -56,6 +61,7 @@ export const admin = {
       record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: changes })
       return toCompetition({ ...before, ...changes })
     }
+    if (values.date < today) return fail(PAST)
     if (!image) return fail('Add the photo for its card.')
     if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
       return fail('A competition with this name and date already exists.', 409)

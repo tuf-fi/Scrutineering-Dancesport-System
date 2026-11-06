@@ -35,7 +35,7 @@ function KindTabs({ kind, onKind }: { kind: AccountKind; onKind: (kind: AccountK
 
 const ABOUT: Record<AccountKind, string> = {
   athlete: 'Register, pay your membership and follow your results.',
-  coach: 'Follow your dancers, their results and rankings, and keep your details up to date.',
+  coach: 'Follow your dancers, their results and standings, and keep your details up to date.',
   team: 'Send entries online, pay for them and follow your dancers’ results.',
 }
 

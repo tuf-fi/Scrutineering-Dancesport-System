@@ -101,7 +101,7 @@ export function getMyRoster(ctx: Ctx): MemberRoster {
 
   if (row.role === 'coach') {
     const coach = ctx.db.select().from(t.coaches).where(eq(t.coaches.id, row.linkedId)).get()
-    return { rows, payments: [], membership: coach ? { memberYear: coach.memberYear, summitYear: coach.summitYear } : null }
+    return { rows, payments: [], membership: coach ? { memberYear: coach.memberYear, summitYear: coach.summitYear, membershipId: coach.membershipId ?? null, summits: coach.summits ?? [] } : null }
   }
   const competitions = new Map(ctx.db.select({ id: t.competitions.id, name: t.competitions.name, date: t.competitions.date }).from(t.competitions).all().map((c) => [c.id, c]))
   const payments = ctx.db

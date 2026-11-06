@@ -62,8 +62,8 @@ describe('route guards', () => {
   })
 
   it('opens the public site without signing in', async () => {
-    renderAt('/rankings')
-    expect(await screen.findByRole('heading', { name: 'Rankings' })).toBeInTheDocument()
+    renderAt('/standings')
+    expect(await screen.findByRole('heading', { name: 'Standings' })).toBeInTheDocument()
   })
 
   it('shows a not-found page for an unknown address', async () => {
@@ -173,7 +173,7 @@ describe('coach and team accounts', () => {
     expect(await screen.findByText('Nothing waiting')).toBeInTheDocument()
   })
 
-  it.each(['dancers', 'results', 'rankings', 'entries', 'payments'])('says to link the account on the %s page until it is linked', async (page) => {
+  it.each([['dancers', 'Dancers'], ['results', 'Results'], ['rankings', 'Standings'], ['entries', 'Entries'], ['payments', 'Payments']])('says to link the account on the %s page until it is linked', async (page, label) => {
     renderAt('/team/sign-in')
     await userEvent.click(await screen.findByRole('button', { name: 'Create an account' }))
     await userEvent.type(screen.getByLabelText('Team name'), `Unlinked ${page}`)
@@ -183,7 +183,7 @@ describe('coach and team accounts', () => {
     await userEvent.upload(screen.getByLabelText('Team picture'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     const sidebar = within(await screen.findByRole('navigation', { name: 'Account' }))
-    await userEvent.click(sidebar.getByRole('link', { name: page[0]!.toUpperCase() + page.slice(1) }))
+    await userEvent.click(sidebar.getByRole('link', { name: label }))
     expect(await screen.findByRole('link', { name: 'Link it here' })).toHaveAttribute('href', '/team/link')
   })
 
@@ -235,7 +235,7 @@ describe('coach and team account pages', () => {
   it.each([
     ['/team/results', 'Results'],
     ['/team/entries', 'Entries'],
-    ['/team/rankings', 'Rankings'],
+    ['/team/rankings', 'Standings'],
   ])('opens %s from the sidebar', async (path, name) => {
     renderApp(path, Role.Team, { id: 'member-sample-team' })
     expect(await screen.findByRole('heading', { name })).toBeInTheDocument()

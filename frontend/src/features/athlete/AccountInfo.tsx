@@ -20,8 +20,9 @@ export function AccountInfo({ page }: { page: AthleteData }) {
     { label: 'Team', value: teams.data?.find((c) => c.id === profile.teamId)?.name },
     { label: 'Coach', value: coaches.data?.find((c) => c.id === profile.coachId)?.name },
     { label: 'Membership', value: profile.memberYear === null ? undefined : membershipLabel(profile.memberYear, year) },
+    { label: 'Membership ID', value: profile.membershipId ?? undefined },
   ]
-  const missing = rows.some((r) => !r.value && r.label !== 'Membership' && r.label !== 'Coach')
+  const missing = rows.some((r) => !r.value && r.label !== 'Membership' && r.label !== 'Membership ID' && r.label !== 'Coach')
 
   return (
     <AccountSection title="Account information" note="Only the secretariat sees these. They use them for your entry form.">

@@ -23,7 +23,7 @@ import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { checkEligible, checkNotStarted } from './secretariat.ts'
-import { applySettles, catalogOf, clean, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
+import { applySettles, catalogOf, clean, giveCoachMembershipId, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
 
 const toCoach = (r: typeof t.coaches.$inferSelect): Coach => ({
   id: r.id,
@@ -32,7 +32,18 @@ const toCoach = (r: typeof t.coaches.$inferSelect): Coach => ({
   phone: r.phone,
   memberYear: r.memberYear,
   summitYear: r.summitYear,
+  membershipId: r.membershipId ?? null,
+  summits: r.summits ?? [],
 })
+
+// The dates a coach attended a Summit: valid days, each once, newest first
+function summitDates(value: unknown): string[] {
+  if (value === undefined || value === null) return []
+  if (!Array.isArray(value) || value.length > 50) return fail('Send the summit dates as a list.')
+  const days = value.map((v) => (typeof v === 'string' ? v.trim() : ''))
+  if (days.some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d) || Number.isNaN(Date.parse(d)))) return fail('Enter each summit date as year-month-day.')
+  return [...new Set(days)].sort().reverse()
+}
 
 const year = (value: unknown): number | null => (Number.isInteger(value) && (value as number) > 2000 ? (value as number) : null)
 
@@ -217,24 +228,26 @@ export const registration = {
       .from(t.coaches)
       .orderBy(desc(sql`rowid`))
       .all()
-      .map((c) => (isStaff(ctx) ? toCoach(c) : { id: c.id, name: c.name, email: '', phone: '', memberYear: null, summitYear: null })),
+      .map((c) => (isStaff(ctx) ? toCoach(c) : { id: c.id, name: c.name, email: '', phone: '', memberYear: null, summitYear: null, membershipId: null, summits: [] })),
 
   saveCoach(ctx: Ctx, input: CoachInput, id?: string): Coach {
     const name = clean(input?.name)
     if (!name) return fail('Enter the coach’s name.')
-    const values = { name, email: clean(input.email), phone: clean(input.phone), memberYear: year(input.memberYear), summitYear: year(input.summitYear) }
+    const values = { name, email: clean(input.email), phone: clean(input.phone), memberYear: year(input.memberYear), summitYear: year(input.summitYear), summits: summitDates(input.summits) }
     if (id) {
       const before = found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
       if (name !== before.name && ctx.user?.role !== Role.Admin) return fail('Only an admin can change a coach’s name.', 403)
       ctx.db.update(t.coaches).set(values).where(eq(t.coaches.id, id)).run()
+      giveCoachMembershipId(ctx, id)
       record(ctx.db, actor(ctx).id, 'Edited coach', name)
-      return toCoach({ id, ...values })
+      return toCoach(found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach'))
     }
     if (ctx.db.select().from(t.coaches).all().some((c) => c.name.toLowerCase() === name.toLowerCase())) return fail('A coach with this name already exists.', 409)
     const row = { id: newId(), ...values }
     ctx.db.insert(t.coaches).values(row).run()
+    giveCoachMembershipId(ctx, row.id)
     record(ctx.db, actor(ctx).id, 'Added coach', name)
-    return toCoach(row)
+    return toCoach(found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, row.id)).get(), 'Coach'))
   },
 
   deleteCoach(ctx: Ctx, id: string): void {

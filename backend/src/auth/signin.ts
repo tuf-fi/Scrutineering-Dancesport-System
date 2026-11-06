@@ -11,7 +11,7 @@ import { decryptSecret } from './vault.ts'
 // Checked even when the account does not exist, so a wrong username takes as long as a wrong password
 const DUMMY_HASH = hashPassword('not-a-real-password')
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 
 type StaffRow = typeof t.staffUsers.$inferSelect
 
@@ -71,15 +71,26 @@ export function adjudicatorSession(ctx: Ctx, pin: string): SessionUser {
   return { id: adjudicator.id, name: adjudicator.name, role: Role.Adjudicator, letter: adjudicator.letter }
 }
 
+// A membership ID such as A-00001 or C-00001 signs in like an email does
+const MEMBERSHIP_ID = /^[AC]-\d+$/i
+
 export function athleteSession(ctx: Ctx, email: string, password: string): SessionUser {
-  const row = ctx.db.select().from(t.athletes).where(eq(t.athletes.email, email.trim().toLowerCase())).get()
+  const who = email.trim()
+  const row = MEMBERSHIP_ID.test(who)
+    ? ctx.db.select().from(t.athletes).where(eq(t.athletes.membershipId, who.toUpperCase())).get()
+    : ctx.db.select().from(t.athletes).where(eq(t.athletes.email, who.toLowerCase())).get()
   const ok = verifyPassword(password, row?.passwordHash ?? DUMMY_HASH)
   if (!row || !ok) return fail('Wrong email or password.', 401)
   return { id: row.id, name: row.name, role: Role.Athlete }
 }
 
 export function memberSession(ctx: Ctx, role: 'coach' | 'team', email: string, password: string): SessionUser {
-  const row = ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.email, email.trim().toLowerCase())).get()
+  const who = email.trim()
+  // A coach's ID belongs to the coach record, so it reaches the account linked to that record
+  const coach = role === 'coach' && MEMBERSHIP_ID.test(who) ? ctx.db.select().from(t.coaches).where(eq(t.coaches.membershipId, who.toUpperCase())).get() : undefined
+  const row = coach
+    ? ctx.db.select().from(t.memberAccounts).where(and(eq(t.memberAccounts.linkedId, coach.id), eq(t.memberAccounts.role, 'coach'))).get()
+    : ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.email, who.toLowerCase())).get()
   const ok = verifyPassword(password, row?.passwordHash ?? DUMMY_HASH)
   if (!row || !ok || row.role !== role) return fail('Wrong email or password.', 401)
   return { id: row.id, name: row.name, role }

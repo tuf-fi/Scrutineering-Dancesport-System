@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useTeams, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useRankingPoints, useCatalog, useBicolAthleteIds } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import { competitorName } from '../../lib/format.ts'
@@ -12,12 +12,13 @@ import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
 
 const COLS = 'lg:grid-cols-[minmax(0,1.6fr)_8rem_minmax(0,1fr)_5rem_1.5rem]'
 
-// Everyone who has danced here, with the age group they have scored the most points in
+// Bicol athletes: those with a ranking entry in Juvenile, Junior or Youth, with the age group they scored the most points in
 export function AthleteDirectoryPage() {
   const { ageGroups, ageGroupLabel } = useCatalog()
   const competitors = useCompetitors()
   const teams = useTeams()
   const points = useRankingPoints()
+  const listed = useBicolAthleteIds()
   const [query, setQuery] = useState('')
   const [ageGroup, setAgeGroup] = useState('all')
 
@@ -30,14 +31,16 @@ export function AthleteDirectoryPage() {
       entry.byAge.set(p.ageGroup, (entry.byAge.get(p.ageGroup) ?? 0) + p.points)
       byAthlete.set(p.competitorId, entry)
     }
+    const shown = new Set(listed.data ?? [])
     return (competitors.data ?? [])
+      .filter((c) => shown.has(c.id))
       .map((c) => {
         const scored = byAthlete.get(c.id)
         const age = scored ? [...scored.byAge].sort((a, b) => b[1] - a[1])[0]?.[0] : undefined
         return { competitor: c, team: teamById.get(c.teamId), age, total: scored?.total ?? 0 }
       })
       .sort((a, b) => competitorName(a.competitor.names).localeCompare(competitorName(b.competitor.names)))
-  }, [competitors.data, teams.data, points.data])
+  }, [competitors.data, teams.data, points.data, listed.data])
 
   const needle = query.trim().toLowerCase()
   const visible = rows.filter(
@@ -47,28 +50,28 @@ export function AthleteDirectoryPage() {
   )
   const { page, setPage, pageSize, total, pageItems } = usePagination(visible, `${ageGroup}|${needle}`)
 
-  if (competitors.isError || teams.isError || points.isError) {
-    return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), teams.refetch(), points.refetch()])} />
+  if (competitors.isError || teams.isError || points.isError || listed.isError) {
+    return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), teams.refetch(), points.refetch(), listed.refetch()])} />
   }
 
-  const loading = competitors.isLoading || teams.isLoading || points.isLoading
+  const loading = competitors.isLoading || teams.isLoading || points.isLoading || listed.isLoading
 
   return (
     <div className="flex flex-col gap-8">
       <PublicHeader
-        title="Athletes"
+        title="Bicol Athletes"
         eyebrow="Directory"
-        description="Every athlete and couple who has danced on BIS. Open a name for their full record."
+        description="Athletes and couples with a ranking entry in Juvenile, Junior or Youth. Open a name for their full record."
         aside={
           <HeaderStats>
-            <HeaderStat value={loading ? '–' : rows.length} label="Athletes" />
+            <HeaderStat value={loading ? '–' : rows.length} label="Bicol athletes" />
             <HeaderStat value={loading ? '–' : new Set((teams.data ?? []).map((c) => c.id)).size} label="Teams" />
           </HeaderStats>
         }
       />
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] sm:gap-x-4">
-        <SearchField className="col-span-2 sm:col-span-1" label="Search athletes" value={query} onChange={setQuery} />
+        <SearchField className="col-span-2 sm:col-span-1" label="Search Bicol athletes" value={query} onChange={setQuery} />
         <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="col-span-2 sm:col-span-1">
           <option value="all">All age groups</option>
           {ageGroups.map((a) => (
@@ -81,7 +84,7 @@ export function AthleteDirectoryPage() {
 
       <section aria-labelledby="directory" className="flex flex-col gap-4">
         <h2 id="directory" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-          All athletes
+          All Bicol athletes
         </h2>
 
         {loading ? (
@@ -95,8 +98,8 @@ export function AthleteDirectoryPage() {
           </div>
         ) : visible.length === 0 ? (
           <EmptyState
-            title={needle || ageGroup !== 'all' ? 'No athletes match' : 'No athletes yet'}
-            description={needle || ageGroup !== 'all' ? 'Try a different name, team or age group.' : 'Athletes appear here once they are entered in a competition.'}
+            title={needle || ageGroup !== 'all' ? 'No Bicol athletes match' : 'No Bicol athletes yet'}
+            description={needle || ageGroup !== 'all' ? 'Try a different name, team or age group.' : 'Athletes appear here once they earn points in a ranking event.'}
           />
         ) : (
           <div>
@@ -107,7 +110,7 @@ export function AthleteDirectoryPage() {
               <span className="text-right">Points</span>
               <span />
             </div>
-            <ul aria-label="Athletes" className="border-b border-neutral-200">
+            <ul aria-label="Bicol athletes" className="border-b border-neutral-200">
               {pageItems.map((r) => (
                 <li
                   key={r.competitor.id}
@@ -147,7 +150,7 @@ export function AthleteDirectoryPage() {
           </div>
         )}
 
-        {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="Athletes pagination" />}
+        {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="Bicol athletes pagination" />}
       </section>
     </div>
   )

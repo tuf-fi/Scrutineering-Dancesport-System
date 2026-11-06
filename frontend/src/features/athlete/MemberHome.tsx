@@ -38,11 +38,11 @@ function groupsFor(role: 'coach' | 'team'): NavGroup[] {
       ],
     },
     {
-      label: role === 'team' ? 'Team' : 'Athletes',
+      label: role === 'team' ? 'Team' : 'Bicol athletes',
       items: [
         { to: `${base}/dancers`, label: 'Dancers', icon: Users },
         { to: `${base}/results`, label: 'Results', icon: Trophy },
-        { to: `${base}/rankings`, label: 'Rankings', icon: Medal },
+        { to: `${base}/rankings`, label: 'Standings', icon: Medal },
         { to: `${base}/entries`, label: 'Entries', icon: ListChecks },
       ],
     },
@@ -129,9 +129,9 @@ function AccountInfo() {
     { label: 'Province', value: account.province },
     { label: 'Address', value: account.address },
     { label: team ? 'Linked team' : 'Linked coach', value: account.linked?.name },
-    ...(roster.membership ? [{ label: 'Membership', value: paidFor(roster.membership.memberYear) }, { label: 'Coaches Summit', value: paidFor(roster.membership.summitYear) }] : []),
+    ...(roster.membership ? [{ label: 'Membership', value: paidFor(roster.membership.memberYear) }, { label: 'Membership ID', value: roster.membership.membershipId ?? undefined }, { label: 'Coaches Summit', value: paidFor(roster.membership.summitYear) }, { label: 'Summits attended', value: roster.membership.summits?.length ? roster.membership.summits.map(formatDate).join(', ') : undefined }] : []),
   ]
-  const missing = rows.some((r) => !r.value && !r.label.startsWith('Linked') && r.label !== 'Membership' && r.label !== 'Coaches Summit')
+  const missing = rows.some((r) => !r.value && !r.label.startsWith('Linked') && r.label !== 'Membership' && r.label !== 'Membership ID' && r.label !== 'Coaches Summit' && r.label !== 'Summits attended')
 
   return (
     <div className="flex flex-col gap-12">
@@ -314,8 +314,8 @@ function Entries() {
 
 function Rankings() {
   const { account } = useMemberData()
-  if (!account.linked) return <NotLinked title="Rankings" />
-  return <MyRankings title="Rankings" note={`Where ${who(account.role)} stand in each category, by points.`} />
+  if (!account.linked) return <NotLinked title="Standings" />
+  return <MyRankings title="Standings" note={`Where ${who(account.role)} stand in each category, by points.`} />
 }
 
 function Register() {

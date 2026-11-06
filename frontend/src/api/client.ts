@@ -19,6 +19,7 @@ import type {
   EntryRequest,
   EntryRequestInput,
   MemberAccount,
+  BarkerBoard,
   MemberChangeRow,
   MemberClaimRow,
   MemberInput,
@@ -110,6 +111,8 @@ export const getPayments = (status?: PaymentStatus) => call<Payment[]>('getPayme
 export const getPaymentDetails = () => call<PaymentDetail[]>('getPaymentDetails')
 export const getPointsTable = () => call<PointsRow[]>('getPointsTable')
 export const getCatalog = () => call<Catalog>('getCatalog')
+export const getBarkerBoard = () => call<BarkerBoard>('getBarkerBoard')
+export const getBicolAthleteIds = () => call<string[]>('getBicolAthleteIds')
 export const getRankingPoints = (filter: RankingFilter = {}) => call<RankingPoint[]>('getRankingPoints', filter)
 export const getCompetitorHistory = (competitorId: string) => call<CompetitorHistoryLine[]>('getCompetitorHistory', competitorId)
 export const getStaffUsers = () => call<StaffUser[]>('getStaffUsers')

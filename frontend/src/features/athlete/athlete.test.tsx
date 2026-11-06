@@ -10,6 +10,13 @@ vi.mock('../../lib/image.ts', () => ({ screenshotImage: async () => 'data:image/
 const SHOT = 'data:image/jpeg;base64,/9j/'
 const screenshot = () => new File(['x'], 'pay.png', { type: 'image/png' })
 
+describe('sign-in field', () => {
+  it.each([['athlete', 'Membership ID or email'], ['coach', 'Membership ID or email'], ['team', 'Email']])('asks %s for %s', async (as, label) => {
+    renderApp(`/login?as=${as}`)
+    expect(await screen.findByLabelText(label)).toBeInTheDocument()
+  })
+})
+
 describe('athlete account', () => {
   it('signs up, fills in details and sends a membership payment, and the secretariat confirms it', async () => {
     renderApp('/athlete')
@@ -122,7 +129,7 @@ describe('athlete account', () => {
     cleanup()
 
     renderApp('/athlete/rankings', Role.Athlete, { id: session.id, name })
-    expect(await screen.findByRole('list', { name: 'My rankings' })).toBeInTheDocument()
+    expect(await screen.findByRole('list', { name: 'My standings' })).toBeInTheDocument()
     cleanup()
 
     renderApp('/athlete/entries', Role.Athlete, { id: session.id, name })

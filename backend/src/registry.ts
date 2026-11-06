@@ -81,12 +81,15 @@ const access: Record<string, Access> = {
   getPointsTable: 'public',
   getCatalog: 'public',
   getRankingPoints: 'public',
+  getBicolAthleteIds: 'public',
   getCompetitorHistory: 'public',
   getCompetitors: 'public',
   getTeams: 'public',
   getResultEventIds: 'public',
   getCompetitionRounds: 'public',
   getProgram: 'public',
+  // The barker lines the competitors up; the officials can see the same board
+  getBarkerBoard: [Role.Barker, ...OFFICIALS],
   getEntriesByBackNumber: 'public',
   // Public only once the round is published; staff see them as the round runs
   getRecallTable: 'public',

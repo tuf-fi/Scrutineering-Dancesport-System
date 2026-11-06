@@ -84,7 +84,7 @@ export function RankingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <PublicHeader
-        title="Rankings"
+        title="Standings"
         eyebrow="Season standings"
         description="Points from every approved result, by discipline, age group and class. Open a name for their full record."
         aside={
@@ -129,7 +129,7 @@ export function RankingsPage() {
           <RankSkeleton />
         ) : visible.length === 0 ? (
           <EmptyState
-            title={needle ? `No competitors match "${query.trim()}"` : 'No rankings in this category yet'}
+            title={needle ? `No competitors match "${query.trim()}"` : 'No standings in this category yet'}
             description={
               needle
                 ? 'Try a different name or team.'
@@ -137,7 +137,7 @@ export function RankingsPage() {
             }
           />
         ) : (
-          <ol aria-label="Rankings" className="flex flex-col divide-y divide-neutral-200 border-y border-neutral-200">
+          <ol aria-label="Standings" className="flex flex-col divide-y divide-neutral-200 border-y border-neutral-200">
             {pageItems.map((r) => (
               <li
                 key={r.competitorId}
@@ -158,7 +158,7 @@ export function RankingsPage() {
                   <div className="flex min-w-0 flex-col">
                     <Link
                       to={`/competitors/${r.competitorId}`}
-                      state={{ from: 'rankings' }}
+                      state={{ from: 'standings' }}
                       className="truncate font-semibold text-neutral-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500"
                     >
                       {competitorName(r.competitor.names)}
@@ -196,7 +196,7 @@ export function RankingsPage() {
             pageSize={pageSize}
             total={total}
             onPageChange={setPage}
-            label="Rankings pagination"
+            label="Standings pagination"
           />
         )}
       </section>

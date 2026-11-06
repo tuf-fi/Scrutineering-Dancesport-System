@@ -17,7 +17,7 @@ interface Standing extends CategoryFilter {
 }
 
 // Where the athlete stands in each category they have points in
-export function MyRankings({ title = 'My rankings', note = 'Where you stand in each category, by points.' }: { title?: string; note?: string } = {}) {
+export function MyRankings({ title = 'My standings', note = 'Where you stand in each category, by points.' }: { title?: string; note?: string } = {}) {
   const { ageGroupLabel } = useCatalog()
   const activity = useMyActivity()
   const points = useRankingPoints()
@@ -75,7 +75,7 @@ export function MyRankings({ title = 'My rankings', note = 'Where you stand in e
                       <span className={cn('text-[1.0625rem] font-semibold leading-none tracking-[-0.02em] tabular-nums', s.rank <= 3 ? 'text-gold-700' : 'text-neutral-700')}>#{s.rank}</span>
                       <div className="flex min-w-0 flex-col gap-1">
                         <Link
-                          to={`/rankings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${s.competitorId}`}
+                          to={`/standings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${s.competitorId}`}
                           className="font-semibold text-neutral-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500"
                         >
                           {ageGroupLabel(s.ageGroup)} <span aria-hidden>/</span> {s.class}
@@ -97,7 +97,7 @@ export function MyRankings({ title = 'My rankings', note = 'Where you stand in e
           </ul>
         </>
       )}
-      {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="My rankings pagination" />}
+      {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="My standings pagination" />}
     </AccountSection>
   )
 }

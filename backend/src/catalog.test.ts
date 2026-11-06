@@ -1,4 +1,4 @@
-import { DEFAULT_FEE_SCHEDULE, ageGroupForBirthYears, registrationFee, registrationWarnings, type AgeGroupDef, type Catalog, type Competition, type Event, type EventKindDef } from '@bis/shared'
+import { DEFAULT_FEE_SCHEDULE, ageGroupFits, ageGroupForBirthYears, registrationFee, registrationWarnings, type AgeGroupDef, type Catalog, type Competition, type Event, type EventKindDef } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import * as t from './db/schema.ts'
@@ -151,6 +151,17 @@ describe('rules follow the catalog', () => {
     expect(fee({ ageGroup: 'rest' })).toBe(DEFAULT_FEE_SCHEDULE.soloOlder.first)
     expect(fee({ kind: 'school' })).toBe(DEFAULT_FEE_SCHEDULE.coupleOlder.first)
     expect(fee({ kind: 'open_day' })).toBe(DEFAULT_FEE_SCHEDULE.fixed)
+  })
+
+  it('puts a couple in the older partner group or older, and a solo only in its own', () => {
+    // A Junior I and a Youth dancer make a Youth couple
+    expect(ageGroupForBirthYears([2013, 2008], 2026)).toBe('youth')
+    expect(ageGroupFits('youth', 'youth', true)).toBe(true)
+    expect(ageGroupFits('adult', 'youth', true)).toBe(true)
+    expect(ageGroupFits('junior_1', 'youth', true)).toBe(false)
+    expect(ageGroupFits('adult', 'youth', false)).toBe(false)
+    expect(ageGroupFits('senior', 'adult', true)).toBe(true)
+    expect(registrationWarnings({ province: '', coachId: null, dancers: [{ birthDate: '2013-01-01', address: '', email: '', phone: '' }, { birthDate: '2008-01-01', address: '', email: '', phone: '' }], beginner: false, memberYear: null }, 2, [{ number: 1, ageGroup: 'junior_1', kind: 'standard', province: '' }, { number: 2, ageGroup: 'adult', kind: 'standard', province: '' }], 2026).filter((w) => w.includes('birth dates'))).toHaveLength(1)
   })
 
   it('works out the age group from birth years with the groups it is given', () => {

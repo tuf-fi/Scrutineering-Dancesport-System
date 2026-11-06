@@ -1,4 +1,4 @@
-import { Role, type AdjudicatorAssignment, type CompetitorHistoryLine, type PaymentStatus, type RankingFilter } from '@bis/shared'
+import { Role, listedInBicolAthletes, type AdjudicatorAssignment, type CompetitorHistoryLine, type PaymentStatus, type RankingFilter } from '@bis/shared'
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import { found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
@@ -166,6 +166,19 @@ export const reads = {
       .all()
       .map(toRankingPoint)
       .map((p) => ({ ...p, ageGroup: current.get(familyOf.get(p.ageGroup) ?? p.ageGroup) ?? p.ageGroup }))
+  },
+
+  // The competitors the public Bicol Athletes list shows; gender stays on the server
+  getBicolAthleteIds: (ctx: Ctx): string[] => {
+    const familyOf = new Map(catalogOf(ctx).ageGroups.map((g) => [g.id, g.family ?? g.id]))
+    const people = new Map(ctx.db.select().from(t.competitors).all().map((c) => [c.id, c]))
+    const listed = new Set<string>()
+    for (const p of ctx.db.select({ competitorId: t.rankingPoints.competitorId, ageGroup: t.rankingPoints.ageGroup }).from(t.rankingPoints).all()) {
+      const person = people.get(p.competitorId)
+      if (!person || listed.has(p.competitorId)) continue
+      if (listedInBicolAthletes(familyOf.get(p.ageGroup) ?? p.ageGroup, person.names.length === 1, person.details?.dancers[0]?.gender)) listed.add(p.competitorId)
+    }
+    return [...listed]
   },
 
   getCompetitorHistory: (ctx: Ctx, competitorId: string): CompetitorHistoryLine[] => {

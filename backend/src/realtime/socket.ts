@@ -6,7 +6,7 @@ import { Presence, type Hub } from './hub.ts'
 
 export const SESSION_COOKIE = 'bis_session'
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 
 function cookieValue(header: string | undefined, name: string): string | null {
   if (!header) return null

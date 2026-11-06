@@ -16,6 +16,8 @@ export const competitions = sqliteTable('competitions', {
   date: text('date').notNull(),
   venue: text('venue').notNull(),
   organizer: text('organizer').notNull(),
+  // The Executor on result sheets; empty means the organizer
+  executor: text('executor').notNull().default(''),
   // YYYY-MM-DD; after these an entry is late or unpaid
   entryDeadline: text('entry_deadline'),
   feeDeadline: text('fee_deadline'),
@@ -55,6 +57,8 @@ export const events = sqliteTable(
     kind: text('kind').notNull().default('standard'),
     // The province a closed event is open to
     province: text('province').notNull().default(''),
+    // What the adjudicators may use in this event; empty uses the standard text for the age group
+    syllabus: text('syllabus').notNull().default(''),
   },
   (t) => [uniqueIndex('events_number_per_competition').on(t.competitionId, t.number)],
 )
@@ -95,6 +99,10 @@ export const coaches = sqliteTable('coaches', {
   // The years the coach's membership and Coaches Summit were last paid for
   memberYear: integer('member_year'),
   summitYear: integer('summit_year'),
+  // Given once, the first time the membership fee is paid: C-00001
+  membershipId: text('membership_id').unique(),
+  // The dates the coach attended a Coaches Summit
+  summits: text('summits', { mode: 'json' }).$type<string[]>().notNull().default([]),
 })
 
 export const payments = sqliteTable('payments', {
@@ -448,6 +456,8 @@ export const athletes = sqliteTable('athletes', {
   id: id(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
+  // Given once, the first time the membership fee is paid: A-00001
+  membershipId: text('membership_id').unique(),
   passwordHash: text('password_hash').notNull(),
   birthDate: text('birth_date').notNull().default(''),
   phone: text('phone').notNull().default(''),

@@ -47,7 +47,7 @@ export function QualifiedPage() {
                 <tr>
                   <th className={`${th} w-16`}>No.</th>
                   <th className={th}>{event.isSolo ? 'Solo' : 'Couple'}:</th>
-                  <th className={th}>Country:</th>
+                  <th className={th}>Team:</th>
                 </tr>
               </thead>
               <tbody>

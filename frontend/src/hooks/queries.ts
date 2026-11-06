@@ -33,6 +33,12 @@ export const useAdjudicatorPins = (competitionId: string) =>
 export const usePointsTable = () =>
   useQuery({ queryKey: ['points-table'], queryFn: api.getPointsTable })
 
+// The barker's board; refetched on every change and, as a fallback, every 15 seconds
+export const useBarkerBoard = () => useQuery({ queryKey: ['barker-board'], queryFn: api.getBarkerBoard, refetchInterval: 15_000 })
+
+// Who the public Bicol Athletes list shows
+export const useBicolAthleteIds = () => useQuery({ queryKey: ['bicol-athletes'], queryFn: api.getBicolAthleteIds })
+
 export const useRankingPoints = (filter: api.RankingFilter = {}) =>
   useQuery({ queryKey: ['ranking-points', filter], queryFn: () => api.getRankingPoints(filter) })
 

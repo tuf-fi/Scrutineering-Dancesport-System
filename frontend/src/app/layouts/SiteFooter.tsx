@@ -37,7 +37,7 @@ export function SiteFooter() {
               </li>
             ))}
           </Column>
-          <Column title="Athletes">
+          <Column title="Bicol athletes">
             <li>
               <Link to="/sign-in" className={linkClass}>
                 Sign in or create an account

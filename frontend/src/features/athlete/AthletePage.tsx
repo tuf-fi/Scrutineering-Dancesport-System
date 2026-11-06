@@ -29,7 +29,7 @@ const GROUPS: NavGroup[] = [
     label: 'Competitions',
     items: [
       { to: '/athlete/results', label: 'My results', icon: Trophy },
-      { to: '/athlete/rankings', label: 'My rankings', icon: Medal },
+      { to: '/athlete/rankings', label: 'My standings', icon: Medal },
       { to: '/athlete/entries', label: 'My entries', icon: ListChecks },
       { to: '/athlete/register', label: 'Enter events', icon: FilePlus2 },
       { to: '/athlete/requests', label: 'My requests', icon: ClipboardList },

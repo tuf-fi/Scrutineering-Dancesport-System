@@ -1,4 +1,4 @@
-import type { AgeGroup, Class, Dance, Discipline, MarkingTask, MarkSubmission, RoundType } from '@bis/shared'
+import { syllabusFor, type AgeGroup, type Class, type Dance, type Discipline, type MarkingTask, type MarkSubmission, type RoundType } from '@bis/shared'
 import { useState } from 'react'
 import { Button, Dialog, DarkPanel, Tabs } from '../../components/ui/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, ordinal } from '../../lib/format.ts'
@@ -49,7 +49,7 @@ const OWN_MARKS = {
 // The marking screen: X marks for early rounds, placings for a final. Used on the adjudicator's phone and,
 // for a paper sheet, on the scrutineer's laptop.
 export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS, compact = false }: MarkSheetProps) {
-  const { eventGrade } = useCatalog()
+  const { eventGrade, catalog } = useCatalog()
   const [answers, setAnswers] = useState<Answers>(initial)
   const [dance, setDance] = useState<Dance>(task.dances[0])
   const [confirming, setConfirming] = useState(false)
@@ -58,6 +58,8 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
   const [signature, setSignature] = useState<string | null>(null)
 
   const isFinal = task.recallNumber === null
+  const group = catalog.ageGroups.find((g) => g.id === task.event.ageGroup)
+  const syllabus = syllabusFor(task.event, group?.family ?? task.event.ageGroup)
   const total = marksNeeded(task)
   const countOf = (d: Dance) => answers[d]?.length ?? 0
   const ready = task.dances.every((d) => countOf(d) === total)
@@ -148,6 +150,13 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
           />
         )}
       </section>
+
+      {syllabus && (
+        <section aria-label="Syllabus" className="mb-4 rounded-lg border border-neutral-200 p-4">
+          <h3 className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-neutral-500">Syllabus</h3>
+          <p className="mt-2 whitespace-pre-line text-small text-neutral-700">{syllabus}</p>
+        </section>
+      )}
 
       <div className={compact ? 'mt-auto border-t border-neutral-100 bg-white' : 'sticky bottom-0 mt-auto border-t border-neutral-100 bg-white'}>
         <div aria-hidden className="h-0.5 bg-neutral-100">

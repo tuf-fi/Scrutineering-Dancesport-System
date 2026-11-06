@@ -11,6 +11,20 @@ export function ageGroupForAge(age: number, groups: AgeGroupDef[] = DEFAULT_AGE_
   return bounded.find((g) => age <= g.oldestAge!)?.id ?? current.find((g) => g.oldestAge === null)?.id ?? null
 }
 
+// A solo dances in the dancer's own age group. A couple dances in its older partner's group or an older one, never a
+// younger: a Junior and a Youth dancer are a Youth couple, so a Junior event is refused to them but an Adult one is not.
+export function ageGroupFits(eventGroup: string, bracket: string, couple: boolean, groups: AgeGroupDef[] = DEFAULT_AGE_GROUPS): boolean {
+  if (eventGroup === bracket) return true
+  if (!couple) return false
+  const limit = (id: string) => {
+    const group = groups.find((g) => g.id === id)
+    return group ? (group.oldestAge ?? Infinity) : null
+  }
+  const event = limit(eventGroup)
+  const own = limit(bracket)
+  return event !== null && own !== null && event >= own
+}
+
 // A couple dances in the group of the older partner. Years that are not sensible give null.
 export function ageGroupForBirthYears(birthYears: number[], competitionYear: number, groups: AgeGroupDef[] = DEFAULT_AGE_GROUPS): AgeGroup | null {
   if (birthYears.length === 0) return null

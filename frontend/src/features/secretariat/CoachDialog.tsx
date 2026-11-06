@@ -1,6 +1,8 @@
 import type { Coach } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, Input, toast } from '../../components/ui/index.ts'
+import { Button, Dialog, IconButton, Input, toast } from '../../components/ui/index.ts'
+import { X } from 'lucide-react'
+import { formatDate } from '../../lib/format.ts'
 import { useSaveCoach } from '../../hooks/index.ts'
 
 const FORM_ID = 'coach-form'
@@ -12,10 +14,17 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
   const [phone, setPhone] = useState(coach?.phone ?? '')
   const [memberYear, setMemberYear] = useState(coach?.memberYear ? String(coach.memberYear) : '')
   const [summitYear, setSummitYear] = useState(coach?.summitYear ? String(coach.summitYear) : '')
+  const [summits, setSummits] = useState<string[]>(coach?.summits ?? [])
+  const [newSummit, setNewSummit] = useState('')
   const [errors, setErrors] = useState<{ name?: string; member?: string; summit?: string }>({})
   const [failure, setFailure] = useState<string | null>(null)
 
   const badYear = (v: string) => v.trim() !== '' && !/^\d{4}$/.test(v.trim())
+  const addSummit = () => {
+    if (!newSummit || summits.includes(newSummit)) return setNewSummit('')
+    setSummits((list) => [...list, newSummit].sort().reverse())
+    setNewSummit('')
+  }
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -36,6 +45,7 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
           phone,
           memberYear: memberYear.trim() ? Number(memberYear) : null,
           summitYear: summitYear.trim() ? Number(summitYear) : null,
+          summits,
         },
       },
       {
@@ -74,6 +84,38 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
           error={errors.summit}
           className="font-mono tabular-nums"
         />
+        <Input
+          label="Membership ID"
+          hint="Given when the first membership fee is paid."
+          value={coach?.membershipId ?? ''}
+          placeholder="Not given yet"
+          disabled
+          readOnly
+          className="font-mono tabular-nums"
+        />
+        <fieldset className="flex flex-col gap-3 sm:col-span-2">
+          <legend className="mb-1.5 text-small font-medium text-neutral-600">Summits attended</legend>
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Input label="Date of the summit" type="date" value={newSummit} onChange={(e) => setNewSummit(e.target.value)} />
+            </div>
+            <Button type="button" variant="secondary" onClick={addSummit} disabled={!newSummit}>
+              Add date
+            </Button>
+          </div>
+          {summits.length === 0 ? (
+            <p className="text-small text-neutral-500">No summit recorded yet.</p>
+          ) : (
+            <ul aria-label="Summits attended" className="border-y border-neutral-200">
+              {summits.map((d) => (
+                <li key={d} className="flex items-center justify-between gap-3 border-t border-neutral-100 py-1.5 first:border-t-0">
+                  <span className="font-mono text-small tabular-nums text-neutral-800">{formatDate(d)}</span>
+                  <IconButton icon={X} tone="danger" label={`Remove ${formatDate(d)}`} onClick={() => setSummits((list) => list.filter((x) => x !== d))} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </fieldset>
       </form>
       {failure && (
         <p role="alert" className="mt-4 text-small text-danger">

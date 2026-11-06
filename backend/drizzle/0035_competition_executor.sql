@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `executor` text DEFAULT '' NOT NULL;

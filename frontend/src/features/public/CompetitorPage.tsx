@@ -19,7 +19,7 @@ interface CategoryStanding extends CategoryFilter {
 export function CompetitorPage() {
   const { eventGrade } = useCatalog()
   const { id = '' } = useParams()
-  const cameFromRankings = (useLocation().state as { from?: string } | null)?.from === 'rankings'
+  const cameFromStandings = (useLocation().state as { from?: string } | null)?.from === 'standings'
   const competitors = useCompetitors()
   const teams = useTeams()
   const history = useCompetitorHistory(id)
@@ -65,10 +65,10 @@ export function CompetitorPage() {
     return (
       <EmptyState
         title="Competitor not found"
-        description="That link doesn't match anyone on the rankings."
+        description="That link doesn't match anyone on the standings."
         action={
-          <ButtonLink to="/rankings" variant="secondary">
-            Back to rankings
+          <ButtonLink to="/standings" variant="secondary">
+            Back to standings
           </ButtonLink>
         }
       />
@@ -81,7 +81,7 @@ export function CompetitorPage() {
   return (
     <div className="flex flex-col gap-8">
       <PublicHeader
-        back={cameFromRankings ? { to: '/rankings', label: 'Rankings' } : { to: '/athletes', label: 'Athletes' }}
+        back={cameFromStandings ? { to: '/standings', label: 'Standings' } : { to: '/athletes', label: 'Bicol Athletes' }}
         eyebrow="Athlete"
         title={competitorName(competitor.names)}
         description={team?.name}
@@ -97,7 +97,7 @@ export function CompetitorPage() {
 
       <section aria-labelledby="standings" className="flex flex-col gap-4">
         <h2 id="standings" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-          Rankings
+          Standings
         </h2>
         {points.isLoading ? (
           <Skeleton className="h-32 w-full" />
@@ -112,7 +112,7 @@ export function CompetitorPage() {
               >
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <Link
-                    to={`/rankings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${id}`}
+                    to={`/standings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${id}`}
                     className="font-semibold text-neutral-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500"
                   >
                     {eventGrade(s)}

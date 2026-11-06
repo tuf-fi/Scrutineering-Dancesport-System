@@ -53,7 +53,7 @@ export function AthletesPage() {
 
   const needle = query.trim().toLowerCase()
   const rows = (athletes.data ?? []).filter(
-    (a) => (filter === 'all' || isWaiting(a)) && (!needle || [a.name, a.email, a.teamName].some((v) => v.toLowerCase().includes(needle))),
+    (a) => (filter === 'all' || isWaiting(a)) && (!needle || [a.name, a.email, a.teamName, a.membershipId ?? ''].some((v) => v.toLowerCase().includes(needle))),
   )
 
   function closeReset() {
@@ -87,6 +87,7 @@ export function AthletesPage() {
         }
         columns={[
           { key: 'name', header: 'Athlete', cell: (a) => <span className="font-medium">{a.name}</span> },
+          { key: 'id', header: 'Membership ID', cell: (a) => a.membershipId ?? '–', mono: true, muted: true, hideBelow: 'sm' },
           { key: 'email', header: 'Email', cell: (a) => a.email, muted: true, hideBelow: 'md' },
           { key: 'team', header: 'Team', cell: (a) => a.teamName || '–', muted: true, hideBelow: 'md' },
           { key: 'member', header: 'Membership', cell: (a) => membershipLabel(a.memberYear, new Date().getFullYear()), mono: true, muted: true, hideBelow: 'sm' },

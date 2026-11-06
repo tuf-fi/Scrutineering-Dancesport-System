@@ -32,6 +32,8 @@ import {
   type EntryRequestInput,
   type MemberAccount,
   type MemberRosterRow,
+  listedInBicolAthletes,
+  type BarkerBoard,
   type MemberChangeRequest,
   type MemberChangeRow,
   type MemberClaimRow,
@@ -170,6 +172,24 @@ export const getPointsTable = () => reply(pointsTable)
 const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort((a, b) => (a.oldestAge ?? Infinity) - (b.oldestAge ?? Infinity)) })
 export const getCatalog = () => reply(catalog())
 
+// TODO: the sample has no barker account, so its board is empty
+export const getBarkerBoard = () => reply<BarkerBoard>({ competitionName: null, ongoing: [], next: null })
+
+// The sample dancers carry no gender, so a sample junior solo counts as female here
+export const getBicolAthleteIds = () =>
+  reply(
+    [
+      ...new Set(
+        rankingPoints
+          .filter((p) => {
+            const solo = competitors.find((c) => c.id === p.competitorId)?.names.length === 1
+            return listedInBicolAthletes(p.ageGroup, solo, solo ? 'female' : undefined)
+          })
+          .map((p) => p.competitorId),
+      ),
+    ],
+  )
+
 export const getRankingPoints = (filter: RankingFilter = {}) =>
   reply(
     rankingPoints.filter(
@@ -267,6 +287,7 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       date: input.date,
       venue: input.venue.trim(),
       organizer: input.organizer.trim(),
+      executor: input.executor?.trim() || undefined,
       entryDeadline: input.entryDeadline || null,
       feeDeadline: input.feeDeadline || null,
       ...(input.image === undefined ? {} : { image: input.image || null }),
@@ -275,6 +296,8 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
     if (!values.name || !values.date || !values.venue || !values.organizer) {
       throw new Error('Fill in every field.')
     }
+    const past = 'A competition cannot be dated before today. A finished competition cannot be added.'
+    if (values.date < new Date().toISOString().slice(0, 10) && values.date !== competitions.find((c) => c.id === id)?.date) throw new Error(past)
     if (id) {
       const competition = found(competitions.find((c) => c.id === id), 'Competition')
       if (!(input.image === undefined ? competition.image : input.image)) throw new Error('Add the photo for its card.')
@@ -882,14 +905,19 @@ export const saveCoach = (actorId: string, input: CoachInput, id?: string) =>
   settle<Coach>(() => {
     const name = input.name.trim()
     if (!name) throw new Error('Enter the coach\u2019s name.')
-    const values = { ...input, name }
+    const values = { ...input, name, summits: [...new Set(input.summits ?? [])].sort().reverse() }
+    const giveId = (coach: Coach) => {
+      if (coach.memberYear !== null && !coach.membershipId) coach.membershipId = `C-${String(coaches.filter((c) => c.membershipId).length + 1).padStart(5, '0')}`
+    }
     if (id) {
       const coach = found(coaches.find((c) => c.id === id), 'Coach')
       Object.assign(coach, values)
+      giveId(coach)
       record(actorId, 'Edited coach', name)
       return coach
     }
     const coach: Coach = { id: `coach-${coaches.length + 1}`, ...values }
+    giveId(coach)
     coaches.push(coach)
     record(actorId, 'Added coach', name)
     return coach
@@ -1425,7 +1453,8 @@ export const signUpAthlete = (name: string, email: string, password: string, pho
 
 export const signInAthlete = (email: string, password: string) =>
   settle<SessionUser>(() => {
-    const athlete = sampleAthletes.find((a) => a.email === email.trim().toLowerCase())
+    const who = email.trim().toLowerCase()
+    const athlete = sampleAthletes.find((a) => a.email === who || (a.membershipId ?? '').toLowerCase() === who)
     if (!athlete || athlete.password !== password) throw new Error('Wrong email or password.')
     return { id: athlete.id, name: athlete.name, role: Role.Athlete }
   })
@@ -1502,7 +1531,9 @@ export const signUpMember = (role: 'coach' | 'team', name: string, email: string
 
 export const signInMember = (role: 'coach' | 'team', email: string, password: string) =>
   settle<SessionUser>(() => {
-    const member = sampleMembers.find((m) => m.email === email.trim().toLowerCase() && m.role === role)
+    const who = email.trim().toLowerCase()
+    const coach = role === 'coach' ? coaches.find((c) => (c.membershipId ?? '').toLowerCase() === who) : undefined
+    const member = sampleMembers.find((m) => (coach ? m.linkedId === coach.id : m.email === who) && m.role === role)
     if (!member || member.password !== password) throw new Error('Wrong email or password.')
     return { id: member.id, name: member.name, role: member.role === 'team' ? Role.Team : Role.Coach }
   })
@@ -1586,7 +1617,7 @@ export const getMyRoster = (memberId: string) =>
       .sort((a, b) => (a.names[0] ?? '').localeCompare(b.names[0] ?? ''))
     if (member.role === 'coach') {
       const coach = coaches.find((c) => c.id === linkedId)
-      return { rows, payments: [], membership: coach ? { memberYear: coach.memberYear, summitYear: coach.summitYear } : null }
+      return { rows, payments: [], membership: coach ? { memberYear: coach.memberYear, summitYear: coach.summitYear, membershipId: coach.membershipId ?? null, summits: coach.summits ?? [] } : null }
     }
     const current = competitions.find((c) => c.id === currentCompetitionId)
     const competitionName = current?.name ?? ''
@@ -1871,6 +1902,7 @@ export const getAthletes = () =>
         teamName: teams.find((c) => c.id === a.teamId)?.name ?? '',
         coachName: coaches.find((c) => c.id === a.coachId)?.name ?? '',
         memberYear: a.memberYear,
+        membershipId: a.membershipId ?? null,
         request: a.request,
         changeRequest: a.changeRequest,
         requestedName: a.changeRequest?.name ?? '',
@@ -1966,6 +1998,7 @@ export const confirmMembership = (actorId: string, id: string) =>
     athlete.history.push({ at: new Date().toISOString(), kind: 'confirmed', year: athlete.request.year, method: athlete.request.method })
     const confirmed = athlete.request
     athlete.memberYear = confirmed.year
+    athlete.membershipId ??= `A-${String(sampleAthletes.filter((a) => a.membershipId).length + 1).padStart(5, '0')}`
     athlete.request = null
     record(actorId, 'Confirmed membership', athlete.name)
     notifyAthlete(id, { kind: 'membership_confirmed', title: `Your ${confirmed.year} membership was confirmed`, detail: `Your ${confirmed.method} payment was received. You are a member until December ${confirmed.year}.`, link: '/athlete/membership' })

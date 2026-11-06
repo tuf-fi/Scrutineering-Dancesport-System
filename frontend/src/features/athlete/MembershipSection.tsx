@@ -52,6 +52,7 @@ export function MembershipSection({ page }: { page: AthleteData }) {
           <p className="font-mono text-display font-semibold leading-none tabular-nums text-neutral-900">{formatPeso(fee)}</p>
         </div>
         <div className="flex items-center gap-4">
+          {paid && profile.membershipId && <span className="font-mono text-xs uppercase text-neutral-500">ID {profile.membershipId}</span>}
           {paid && <span className="font-mono text-xs uppercase text-neutral-500">Valid until December 31, {year}</span>}
           {paid ? (
             <Badge pill tone="success">Paid</Badge>

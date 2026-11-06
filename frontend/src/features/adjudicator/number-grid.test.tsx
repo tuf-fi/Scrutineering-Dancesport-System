@@ -75,3 +75,22 @@ describe('number grid', () => {
     ])
   })
 })
+
+describe('syllabus box', () => {
+  const withEvent = (over: object) => ({ ...task, event: { ...task.event, ...over } }) as unknown as MarkingTask
+
+  it('shows the standard text under the numbers for Juvenile up to Junior I', () => {
+    renderSheet(<MarkSheet task={task} onSubmit={() => {}} />)
+    expect(within(screen.getByRole('region', { name: 'Syllabus' })).getByText(/Lorem ipsum/)).toBeInTheDocument()
+  })
+
+  it('shows the event own syllabus instead, in any age group', () => {
+    renderSheet(<MarkSheet task={withEvent({ ageGroup: 'adult', syllabus: 'Bronze figures only' })} onSubmit={() => {}} />)
+    expect(within(screen.getByRole('region', { name: 'Syllabus' })).getByText('Bronze figures only')).toBeInTheDocument()
+  })
+
+  it('has no box for older age groups without a syllabus', () => {
+    renderSheet(<MarkSheet task={withEvent({ ageGroup: 'adult' })} onSubmit={() => {}} />)
+    expect(screen.queryByRole('region', { name: 'Syllabus' })).not.toBeInTheDocument()
+  })
+})

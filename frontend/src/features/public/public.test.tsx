@@ -1,19 +1,19 @@
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { generateProgram, getCompetitors, getEntriesByBackNumber, getProgram, setProgramStart } from '../../mocks/api.ts'
+import { generateProgram, getBicolAthleteIds, getCompetitors, getEntriesByBackNumber, getProgram, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 // The table shows skeleton rows first, so wait until real rows (with a competitor link) arrive
 const rowsOf = async () => {
-  const list = await screen.findByRole('list', { name: 'Rankings' })
+  const list = await screen.findByRole('list', { name: 'Standings' })
   await within(list).findAllByRole('link')
   return within(list).getAllByRole('listitem')
 }
 
 describe('rankings page', () => {
   it('opens on Latin, E1, Junior I with the leaders ranked from 1', async () => {
-    renderApp('/rankings')
+    renderApp('/standings')
     expect(await screen.findByRole('heading', { name: 'Junior I · E1 · Latin' })).toBeInTheDocument()
     expect(screen.getByLabelText('Discipline')).toHaveValue('latin')
     expect(screen.getByLabelText('Age group')).toHaveValue('junior_1')
@@ -26,15 +26,15 @@ describe('rankings page', () => {
   })
 
   it('opens on the page that holds the highlighted row, and marks it', async () => {
-    renderApp('/rankings')
+    renderApp('/standings')
     await rowsOf()
-    await userEvent.click(within(screen.getByRole('navigation', { name: 'Rankings pagination' })).getByRole('button', { name: 'Next page' }))
+    await userEvent.click(within(screen.getByRole('navigation', { name: 'Standings pagination' })).getByRole('button', { name: 'Next page' }))
     const [onSecondPage] = await rowsOf()
     const id = onSecondPage!.getAttribute('data-row')
     expect(id).toBeTruthy()
     cleanup()
 
-    renderApp(`/rankings?highlight=${id}`)
+    renderApp(`/standings?highlight=${id}`)
     await waitFor(() => expect(screen.getByText(/^11–/)).toBeInTheDocument())
     const row = document.querySelector(`[data-row="${id}"]`)
     expect(row).not.toBeNull()
@@ -42,10 +42,10 @@ describe('rankings page', () => {
   })
 
   it('shows 10 rows a page and pages through the rest, ranks continuing', async () => {
-    renderApp('/rankings')
+    renderApp('/standings')
     const first = await rowsOf()
     expect(first).toHaveLength(10)
-    const nav = within(screen.getByRole('navigation', { name: 'Rankings pagination' }))
+    const nav = within(screen.getByRole('navigation', { name: 'Standings pagination' }))
     expect(screen.getByText(/^1–10$/)).toBeInTheDocument()
 
     await userEvent.click(nav.getByRole('button', { name: 'Next page' }))
@@ -59,9 +59,9 @@ describe('rankings page', () => {
   })
 
   it('goes back to page 1 when the category changes', async () => {
-    renderApp('/rankings')
+    renderApp('/standings')
     await rowsOf()
-    const nav = within(screen.getByRole('navigation', { name: 'Rankings pagination' }))
+    const nav = within(screen.getByRole('navigation', { name: 'Standings pagination' }))
     await userEvent.click(nav.getByRole('button', { name: 'Next page' }))
     expect(screen.getByText(/^11–/)).toBeInTheDocument()
 
@@ -72,7 +72,7 @@ describe('rankings page', () => {
   })
 
   it('changes category with the filters and keeps it in the address', async () => {
-    const router = renderApp('/rankings')
+    const router = renderApp('/standings')
     await userEvent.selectOptions(await screen.findByLabelText('Discipline'), 'standard')
     await userEvent.selectOptions(screen.getByLabelText('Age group'), 'youth')
     expect(await screen.findByRole('heading', { name: 'Youth · E1 · Standard' })).toBeInTheDocument()
@@ -81,24 +81,24 @@ describe('rankings page', () => {
   })
 
   it('opens a category straight from the address and ignores nonsense values', async () => {
-    renderApp('/rankings?discipline=standard&age=juvenile_1&class=C')
+    renderApp('/standings?discipline=standard&age=juvenile_1&class=C')
     expect(await screen.findByRole('heading', { name: 'Juvenile 1 · C · Standard' })).toBeInTheDocument()
   })
 
   it('falls back to the defaults for an invalid address', async () => {
-    renderApp('/rankings?discipline=nope&age=nope&class=nope')
+    renderApp('/standings?discipline=nope&age=nope&class=nope')
     expect(await screen.findByRole('heading', { name: 'Junior I · E1 · Latin' })).toBeInTheDocument()
   })
 
   it('offers only the classes that have rankings', async () => {
-    renderApp('/rankings')
+    renderApp('/standings')
     await rowsOf()
     const classes = within(screen.getByLabelText('Class')).getAllByRole('option')
     expect(classes.map((o) => o.textContent)).toEqual(['E1', 'D', 'C'])
   })
 
   it('searches everyone in the category by name or team, and says when nothing matches', async () => {
-    renderApp('/rankings')
+    renderApp('/standings')
     const first = (await rowsOf())[0]
     const name = within(first).getAllByRole('link')[0].textContent ?? ''
 
@@ -111,14 +111,14 @@ describe('rankings page', () => {
   })
 
   it('shows an empty state for a category with no rankings', async () => {
-    renderApp('/rankings?discipline=latin&age=senior&class=C')
-    expect(await screen.findByText('No rankings in this category yet')).toBeInTheDocument()
+    renderApp('/standings?discipline=latin&age=senior&class=C')
+    expect(await screen.findByText('No standings in this category yet')).toBeInTheDocument()
   })
 })
 
 describe('competitor page', () => {
   it('opens from a ranking row and shows standings and results', async () => {
-    const router = renderApp('/rankings')
+    const router = renderApp('/standings')
     const first = (await rowsOf())[0]
     const link = within(first).getAllByRole('link')[0]
     const name = link.textContent ?? ''
@@ -126,7 +126,7 @@ describe('competitor page', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name })).toBeInTheDocument()
     expect(router.state.location.pathname).toMatch(/^\/competitors\/c-\d+$/)
-    expect(screen.getByRole('heading', { name: 'Rankings' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Standings' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Results' })).toBeInTheDocument()
     expect(screen.getByText('Competitions', { selector: 'dt' })).toBeInTheDocument()
     // The leader of this category is ranked 1st in it
@@ -134,10 +134,10 @@ describe('competitor page', () => {
   })
 
   it('goes back to the right category from a standing row', async () => {
-    const router = renderApp('/rankings')
+    const router = renderApp('/standings')
     await userEvent.click(within((await rowsOf())[0]).getAllByRole('link')[0])
     await userEvent.click(await screen.findByRole('link', { name: 'Junior I · E1 · Latin' }))
-    expect(router.state.location.pathname).toBe('/rankings')
+    expect(router.state.location.pathname).toBe('/standings')
     expect(router.state.location.search).toMatch(/discipline=\w+&age=\w+&class=\w+/)
   })
 
@@ -163,6 +163,33 @@ describe('public site', () => {
     const rows = within(list).getAllByRole('listitem')
     expect(within(rows[0]).getByText('1st')).toBeInTheDocument()
     expect((await screen.findAllByText(/back numbers through to/)).length).toBe(2)
+  })
+
+  it('goes from Results to a competition and then to the results of an event', async () => {
+    renderApp('/results')
+    expect(await screen.findByRole('heading', { name: 'Results' })).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('link', { name: 'Sorsogon Dancesport Open 2026' }))
+    expect(await screen.findByRole('heading', { name: 'Event results' })).toBeInTheDocument()
+    // Only events with published results are listed, and there is no program button
+    expect(screen.queryByRole('link', { name: /Program and running order/ })).not.toBeInTheDocument()
+    await userEvent.type(await screen.findByLabelText('Search events'), 'E12')
+    await userEvent.click(await screen.findByRole('link', { name: /E12/ }))
+    expect(await screen.findByRole('heading', { name: /^E12 Rumba/ })).toBeInTheDocument()
+  })
+
+  it('keeps the old rankings address working by sending it to the standings', async () => {
+    renderApp('/rankings?discipline=latin')
+    expect(await screen.findByRole('heading', { name: 'Standings' })).toBeInTheDocument()
+  })
+
+  it('lists on Bicol Athletes only the competitors the server says qualify', async () => {
+    renderApp('/athletes')
+    expect(await screen.findByRole('heading', { name: 'Bicol Athletes' })).toBeInTheDocument()
+    const listed = new Set(await getBicolAthleteIds())
+    const list = await screen.findByRole('list', { name: 'Bicol athletes' })
+    const links = await within(list).findAllByRole('link')
+    expect(links.length).toBeGreaterThan(0)
+    for (const link of links) expect(listed.has(link.getAttribute('href')!.split('/').pop()!)).toBe(true)
   })
 
   it('opens a competitor profile from the results', async () => {

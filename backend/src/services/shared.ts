@@ -10,6 +10,7 @@ import {
   type Competition,
   type Competitor,
   type CompetitorDetails,
+  type Gender,
   type Entry,
   type Event,
   type Heat,
@@ -34,6 +35,7 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   date: r.date,
   venue: r.venue,
   organizer: r.organizer,
+  ...(r.executor ? { executor: r.executor } : {}),
   ...(r.entryDeadline ? { entryDeadline: r.entryDeadline } : {}),
   ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
   ...(r.image ? { image: r.image } : {}),
@@ -51,6 +53,7 @@ export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
   isSolo: r.isSolo,
   kind: r.kind,
   ...(r.province ? { province: r.province } : {}),
+  ...(r.syllabus ? { syllabus: r.syllabus } : {}),
 })
 
 // The password hash never leaves the server
@@ -173,7 +176,8 @@ export function cleanDetails(ctx: Ctx, names: string[], input: unknown): Competi
     const x = d.dancers?.[i]
     const birthDate = clean(x?.birthDate)
     if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) return fail('Enter each date of birth as year-month-day.')
-    return { birthDate, address: clean(x?.address), email: clean(x?.email), phone: clean(x?.phone) }
+    const gender: Gender | '' = x?.gender === 'female' || x?.gender === 'male' ? x.gender : ''
+    return { birthDate, gender, address: clean(x?.address), email: clean(x?.email), phone: clean(x?.phone) }
   })
   const coachId = clean(d.coachId) || null
   if (coachId) found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get(), 'Coach')
@@ -389,6 +393,32 @@ export const pointsRows = (ctx: Ctx): PointsRow[] =>
     .map((r) => ({ place: r.place, ...(r.round ? { round: r.round } : {}), label: r.label, points: r.points }))
 
 // Once a payment is paid, the memberships it covered count for the year
+// A membership ID is given once, the first time the membership fee is paid: A-00001 for an athlete, C-00001 for a coach.
+// The number runs on from the highest one given.
+function nextMembershipId(ctx: Ctx, kind: 'athlete' | 'coach'): string {
+  const [table, prefix] = kind === 'athlete' ? ['athletes', 'A'] : ['coaches', 'C']
+  const row = ctx.sqlite.prepare(`SELECT max(CAST(substr(membership_id, 3) AS INTEGER)) AS n FROM ${table} WHERE membership_id LIKE ?`).get(`${prefix}-%`) as { n: number | null }
+  return `${prefix}-${String((row.n ?? 0) + 1).padStart(5, '0')}`
+}
+
+export function giveAthleteMembershipId(ctx: Ctx, athleteId: string): string | null {
+  const row = ctx.db.select().from(t.athletes).where(eq(t.athletes.id, athleteId)).get()
+  if (!row || row.memberYear === null) return row?.membershipId ?? null
+  if (row.membershipId) return row.membershipId
+  const membershipId = nextMembershipId(ctx, 'athlete')
+  ctx.db.update(t.athletes).set({ membershipId }).where(eq(t.athletes.id, athleteId)).run()
+  return membershipId
+}
+
+export function giveCoachMembershipId(ctx: Ctx, coachId: string): string | null {
+  const row = ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get()
+  if (!row || row.memberYear === null) return row?.membershipId ?? null
+  if (row.membershipId) return row.membershipId
+  const membershipId = nextMembershipId(ctx, 'coach')
+  ctx.db.update(t.coaches).set({ membershipId }).where(eq(t.coaches.id, coachId)).run()
+  return membershipId
+}
+
 export function applySettles(ctx: Ctx, paymentId: string) {
   const settles = getPaymentRow(ctx, paymentId).settles
   if (!settles) return
@@ -404,10 +434,11 @@ export function applySettles(ctx: Ctx, paymentId: string) {
     if (settles.coachMembership) set.memberYear = settles.year
     if (settles.coachSummit) set.summitYear = settles.year
     if (Object.keys(set).length > 0) ctx.db.update(t.coaches).set(set).where(eq(t.coaches.id, settles.coachId)).run()
+    if (set.memberYear !== undefined) giveCoachMembershipId(ctx, settles.coachId)
   }
 }
 
-const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
+const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 export const isStaff = (ctx: Ctx) => ctx.user !== null && STAFF_ROLES.includes(ctx.user.role)
 
 // Events whose final has not been published yet: only staff may see their results

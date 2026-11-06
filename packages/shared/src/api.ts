@@ -59,6 +59,8 @@ export const API_FUNCTIONS = [
   'getPointsTable',
   'getCatalog',
   'getRankingPoints',
+  'getBicolAthleteIds',
+  'getBarkerBoard',
   'getRecallTable',
   'getResultEventIds',
   'getResults',

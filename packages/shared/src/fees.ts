@@ -1,4 +1,4 @@
-import { ageGroupForBirthYears } from './ageGroup.ts'
+import { ageGroupFits, ageGroupForBirthYears } from './ageGroup.ts'
 import { DEFAULT_CATALOG, FeeMode, KIND_FIELD_LABEL, KindField, ageGroupName, eventKindName, kindOf, type Catalog } from './catalog.ts'
 import type { CompetitorDetails, Event, FeeLine, FeeSchedule, FeeTier } from './types.ts'
 
@@ -106,7 +106,7 @@ export function registrationWarnings(
     for (const field of kind?.requires ?? []) {
       if (missing(field)) warnings.push(`${code} (${eventKindName(catalog.kinds, event.kind ?? '')}) needs the ${KIND_FIELD_LABEL[field]} of every dancer.`)
     }
-    if (bornIn && bornIn !== event.ageGroup) {
+    if (bornIn && !ageGroupFits(event.ageGroup, bornIn, names > 1, catalog.ageGroups)) {
       warnings.push(`${code} is ${ageGroupName(catalog.ageGroups, event.ageGroup)}, but the birth dates make this ${ageGroupName(catalog.ageGroups, bornIn)}.`)
     }
   }

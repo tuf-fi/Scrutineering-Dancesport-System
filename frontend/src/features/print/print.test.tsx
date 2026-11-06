@@ -14,10 +14,12 @@ describe('printouts', () => {
     renderApp(`/print/recall/${E12}?round=${E12}:round_1`, Role.Scrutineer, staff)
     expect(await screen.findByRole('heading', { name: 'Qualified Solos for the semi-final' })).toBeInTheDocument()
     expect(screen.getByText('Sorsogon Provincial Gymnasium, Sorsogon City')).toBeInTheDocument()
+    // With no executor set, the sheet falls back to the organizer
+    expect(screen.getAllByText('BN IT Scrutineer')).toHaveLength(2)
     expect(screen.getByText('JUN 1 - E1 [Rumba]')).toBeInTheDocument()
     expect(within(screen.getByRole('list', { name: 'Adjudicators' })).getAllByRole('listitem')).toHaveLength(7)
     expect(screen.getByRole('columnheader', { name: 'Solo:' })).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'Country:' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'Team:' })).toBeInTheDocument()
     await waitFor(() => expect(sheetRows()).toHaveLength(12))
     // Sorted by back number
     const numbers = sheetRows().map((r) => Number(within(r).getAllByRole('cell')[0].textContent))

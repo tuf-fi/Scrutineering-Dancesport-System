@@ -246,6 +246,27 @@
       "when": 1793931914905,
       "tag": "0034_coach_change_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1793936693539,
+      "tag": "0035_competition_executor",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1793938850676,
+      "tag": "0036_event_syllabus",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1793939243803,
+      "tag": "0037_membership_ids",
+      "breakpoints": true
     }
   ]
 }

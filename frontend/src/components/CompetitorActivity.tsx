@@ -15,11 +15,11 @@ function StandingsList({ competitorId }: { competitorId: string }) {
   if (loading) return <Skeleton className="h-16 w-full" />
   if (standings.length === 0) return <EmptyState title="Not ranked yet" description="Points appear after a result in a ranked category." />
   return (
-    <ul aria-label="Rankings" className="border-y border-neutral-200">
+    <ul aria-label="Standings" className="border-y border-neutral-200">
       {standings.map((s) => (
         <li key={`${s.ageGroup}|${s.class}|${s.discipline}`} className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-x-4 border-t border-neutral-200 py-3 first:border-t-0">
           <span className={cn('text-body font-semibold tabular-nums', s.rank <= 3 ? 'text-gold-700' : 'text-neutral-500')}>#{s.rank}</span>
-          <Link to={`/rankings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${s.competitorId}`} className="min-w-0 text-small text-neutral-900 hover:underline">
+          <Link to={`/standings?discipline=${s.discipline}&age=${s.ageGroup}&class=${s.class}&highlight=${s.competitorId}`} className="min-w-0 text-small text-neutral-900 hover:underline">
             {DISCIPLINE_LABEL[s.discipline]} <span aria-hidden>/</span> {ageGroupLabel(s.ageGroup)} <span aria-hidden>/</span> {s.class}
             <span className="ml-2 text-neutral-500">of {s.of}</span>
           </Link>

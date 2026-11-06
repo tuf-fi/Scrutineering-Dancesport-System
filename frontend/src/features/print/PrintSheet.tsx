@@ -46,8 +46,7 @@ export function PrintSheet({ title, event, competition, adjudicators = [], child
             ['Date', sheetDate(competition.date)],
             ['Location', competition.venue],
             ['Organizer', competition.organizer],
-            // TODO: the executor is the scrutineer's team; the sample reuses the organizer
-            ['Executor', competition.organizer],
+            ['Executor', competition.executor || competition.organizer],
           ]}
         />
         <Fields

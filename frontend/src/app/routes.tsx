@@ -1,5 +1,5 @@
 import { Role } from '@bis/shared'
-import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
+import { Navigate, createBrowserRouter, useLocation, type RouteObject } from 'react-router'
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CategoriesPage } from '../features/admin/CategoriesPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
@@ -22,6 +22,7 @@ import { Waiting } from '../features/adjudicator/Waiting.tsx'
 import { StaffAccountPage } from '../features/auth/StaffAccountPage.tsx'
 import { StaffSignIn } from '../features/auth/StaffSignIn.tsx'
 import { DesignPreview } from '../features/dev/DesignPreview.tsx'
+import { BarkerPage } from '../features/barker/BarkerPage.tsx'
 import { CompereHome } from '../features/compere/CompereHome.tsx'
 import { CompetitionPage } from '../features/public/CompetitionPage.tsx'
 import { CompetitionsPage as PublicCompetitionsPage } from '../features/public/CompetitionsPage.tsx'
@@ -65,6 +66,11 @@ import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
 
 const STAFF = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
+
+// The points page used to live at /rankings; old links and bookmarks keep working
+function LegacyRankings() {
+  return <Navigate to={`/standings${useLocation().search}`} replace />
+}
 
 export const routes: RouteObject[] = [
   {
@@ -243,9 +249,15 @@ export const routes: RouteObject[] = [
       },
 
       {
+        path: '/barker',
+        element: <RequireRole roles={[Role.Barker, ...STAFF]} signInPath={STAFF_SIGN_IN} />,
+        children: [{ element: <StaffLayout />, children: [{ index: true, element: <BarkerPage /> }] }],
+      },
+
+      {
         // Every staff member's own account: their name and their password
         path: '/account',
-        element: <RequireRole roles={[...STAFF, Role.Compere]} signInPath={STAFF_SIGN_IN} />,
+        element: <RequireRole roles={[...STAFF, Role.Compere, Role.Barker]} signInPath={STAFF_SIGN_IN} />,
         children: [{ element: <StaffLayout />, children: [{ index: true, element: <StaffAccountPage /> }] }],
       },
 
@@ -286,8 +298,11 @@ export const routes: RouteObject[] = [
           { path: 'competitions/:competitionId', element: <CompetitionPage /> },
           { path: 'competitions/:competitionId/program', element: <ProgramPublicPage /> },
           { path: 'competitions/:competitionId/events/:eventId', element: <EventResultsPage /> },
+          { path: 'results', element: <PublicCompetitionsPage results /> },
+          { path: 'results/:competitionId', element: <CompetitionPage resultsOnly /> },
           { path: 'athletes', element: <AthleteDirectoryPage /> },
-          { path: 'rankings', element: <RankingsPage /> },
+          { path: 'standings', element: <RankingsPage /> },
+          { path: 'rankings', element: <LegacyRankings /> },
           { path: 'privacy', element: <PrivacyPage /> },
           { path: 'competitors/:id', element: <CompetitorPage /> },
         ],

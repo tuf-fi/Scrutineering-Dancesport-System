@@ -22,7 +22,7 @@ describe('competitions', () => {
     expect(within(dialog).getByText('Add the photo for its card.')).toBeInTheDocument()
 
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Test Cup')
-    fireEvent.change(within(dialog).getByLabelText('Date'), { target: { value: '2020-01-05' } })
+    fireEvent.change(within(dialog).getByLabelText('Date'), { target: { value: '2099-01-05' } })
     await userEvent.type(within(dialog).getByLabelText('Venue'), 'Test Gym')
     await userEvent.type(within(dialog).getByLabelText('Organizer'), 'Test Org')
     await userEvent.upload(within(dialog).getByLabelText('Card photo'), new File(['x'], 'card.png', { type: 'image/png' }))
@@ -135,10 +135,22 @@ describe('competitions', () => {
     expect(await screen.findByText('No competitions match')).toBeInTheDocument()
   })
 
+  it('refuses a competition dated in the past', async () => {
+    renderApp('/admin/competitions', Role.Admin)
+    await userEvent.click(await screen.findByRole('button', { name: 'New competition' }))
+    const dialog = await dialogFor('New competition')
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Old Cup')
+    fireEvent.change(within(dialog).getByLabelText('Date'), { target: { value: '2020-01-05' } })
+    await userEvent.type(within(dialog).getByLabelText('Organizer'), 'Org')
+    await userEvent.type(within(dialog).getByLabelText('Venue'), 'Gym')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Create competition' }))
+    expect(await within(dialog).findByText(/A finished competition cannot be added/)).toBeInTheDocument()
+  })
+
   it('deletes a competition after confirming, and keeps one when cancelled', async () => {
     await api.saveCompetition('staff-admin', {
       name: 'Delete Me Cup',
-      date: '2019-03-03',
+      date: '2099-03-03',
       venue: 'Gym',
       organizer: 'Org',
       image: 'data:image/png;base64,iVBORw0KGgo=',

@@ -1,6 +1,6 @@
 import { Class, DISCIPLINE_DANCES, Discipline, type Event } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
+import { Button, Dialog, Input, Select, Textarea, toast } from '../../components/ui/index.ts'
 import { useSaveEvent, useCatalog } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { DANCE_LABEL, DISCIPLINE_LABEL, eventCode } from '../../lib/format.ts'
@@ -28,6 +28,7 @@ function EventForm({
   const [type, setType] = useState(event?.isSolo === false ? 'couple' : 'solo')
   const [kind, setKind] = useState(event?.kind ?? kinds.find((k) => k.id === 'standard')?.id ?? kinds[0]?.id ?? '')
   const [province, setProvince] = useState(event?.province ?? '')
+  const [syllabus, setSyllabus] = useState(event?.syllabus ?? '')
   const [error, setError] = useState<string | null>(null)
   const closed = kinds.find((k) => k.id === kind)?.closedToProvince === true
 
@@ -51,7 +52,7 @@ function EventForm({
       {
         competitionId,
         id: event?.id,
-        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, ...(closed ? { province: province.trim() } : {}) },
+        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, syllabus: syllabus.trim(), ...(closed ? { province: province.trim() } : {}) },
       },
       {
         onSuccess: (saved) => {
@@ -133,6 +134,15 @@ function EventForm({
             ))}
           </div>
         </fieldset>
+        <div className="sm:col-span-2">
+          <Textarea
+            label="Syllabus"
+            rows={4}
+            hint="Shown to the adjudicators under their numbers. Leave empty to use the standard text for Juvenile up to Junior I."
+            value={syllabus}
+            onChange={(e) => setSyllabus(e.target.value)}
+          />
+        </div>
       </form>
       {error && (
         <p role="alert" className="mt-4 text-small text-danger">

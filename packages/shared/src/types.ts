@@ -24,6 +24,8 @@ export interface Competition {
   date: string
   venue: string
   organizer: string
+  // Who runs the scoring and results, printed as the Executor on result sheets; empty means the organizer
+  executor?: string
   // YYYY-MM-DD; after these the secretariat is warned that an entry is late or unpaid
   entryDeadline?: string | null
   feeDeadline?: string | null
@@ -47,6 +49,8 @@ export interface Event {
   kind?: EventKind
   // The province a closed event is open to
   province?: string
+  // What the adjudicators may use in this event, shown under their numbers; empty uses the standard text for the age group
+  syllabus?: string
 }
 
 export interface Team {
@@ -67,9 +71,13 @@ export interface Competitor {
 }
 
 // What the entry form asks for about each dancer
+export type Gender = 'female' | 'male'
+
 export interface DancerDetails {
   // YYYY-MM-DD
   birthDate: string
+  // Only the Bicol Athletes list uses it (solo junior female); empty when not asked
+  gender?: Gender | ''
   address: string
   email: string
   phone: string
@@ -95,9 +103,13 @@ export interface Coach {
   // The years the coach's membership and Coaches Summit were last paid for
   memberYear: number | null
   summitYear: number | null
+  // Given once, the first time the membership fee is paid: C-00001
+  membershipId?: string | null
+  // The dates the coach attended a Coaches Summit, newest first
+  summits?: string[]
 }
 
-export type CoachInput = Omit<Coach, 'id'>
+export type CoachInput = Omit<Coach, 'id' | 'membershipId'>
 
 // What the secretariat charges, from the organizer's entry form. A tier has a price for the first entry of a
 // dancer or couple and a lower one for each extra entry.
@@ -493,7 +505,7 @@ export interface MemberPaymentRow {
 export interface MemberRoster {
   rows: MemberRosterRow[]
   payments: MemberPaymentRow[]
-  membership: { memberYear: number | null; summitYear: number | null } | null
+  membership: { memberYear: number | null; summitYear: number | null; membershipId?: string | null; summits?: string[] } | null
 }
 
 // A coach or team account waiting to be linked to a record, as the secretariat sees it
@@ -555,6 +567,8 @@ export interface AthleteProfile {
   coachId: Id | null
   // The year the membership was last paid for; it lasts until December
   memberYear: number | null
+  // Given once, the first time the membership fee is paid: A-00001
+  membershipId?: string | null
   request: MembershipRequest | null
   // A small picture as a data URL, or null for the initials
   photo: string | null
@@ -582,6 +596,7 @@ export interface AthleteRow {
   teamName: string
   coachName: string
   memberYear: number | null
+  membershipId?: string | null
   request: MembershipRequest | null
   changeRequest: ProfileChangeRequest | null
   // What they asked for: a new name or birth date, and the team and coach in words
@@ -789,6 +804,37 @@ export interface SkatingTable {
   adjudicators: Array<{ id: Id; letter: string }>
   places: number
   rows: SkatingRow[]
+}
+
+// What the barker needs: who is on the floor, and who comes next, so they can line the competitors up
+export interface BarkerCompetitor {
+  backNumber: number | null
+  names: string[]
+}
+
+export interface BarkerHeat {
+  // Null when the round has no heats (a final)
+  heat: number | null
+  competitors: BarkerCompetitor[]
+}
+
+export interface BarkerEvent {
+  eventId: Id
+  eventNumber: number
+  ageGroup: AgeGroup
+  class: Class
+  discipline: Discipline
+  dances: Dance[]
+  isSolo: boolean
+  roundType: RoundType
+  heats: BarkerHeat[]
+}
+
+export interface BarkerBoard {
+  competitionName: string | null
+  // The rounds on the floor now
+  ongoing: BarkerEvent[]
+  next: BarkerEvent | null
 }
 
 // One thing for the compere to read out; the compere steps through them in order

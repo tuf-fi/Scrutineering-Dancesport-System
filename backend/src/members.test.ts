@@ -85,7 +85,7 @@ describe('coach and team accounts', () => {
     expect((await app.ok<MemberAccount>('getMyMember', [], coach)).linked).toMatchObject({ id: 'coach-1' })
     const roster = await app.ok<MemberRoster>('getMyRoster', [], coach)
     expect(roster.rows.map((r) => r.names[0])).toEqual(['Ana Cruz', 'Mia Tan'])
-    expect(roster.membership).toEqual({ memberYear: 2026, summitYear: null })
+    expect(roster.membership).toEqual({ memberYear: 2026, summitYear: null, membershipId: null, summits: [] })
     expect((await app.call('claimRecord', ['coach-1'], coach)).error).toMatch(/already linked/)
   })
 

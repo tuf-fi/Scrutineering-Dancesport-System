@@ -105,6 +105,7 @@ It loads the test data first if it is not there, then makes these logins. No pas
 | Scrutineer | `/staff-access` | `testscrutineer@testdata.example` |
 | Chairperson | `/staff-access` | `testchairperson@testdata.example` |
 | Compere | `/staff-access` | `testcompere@testdata.example` |
+| Barker | `/staff-access` | `testbarker@testdata.example` |
 | Athlete (Bianca Alcantara) | `/login?as=athlete` | `bianca.alcantara@testdata.example` |
 | Coach (linked to a record) | `/login?as=coach` | `coach@testdata.example` |
 | Team (Naga Rhythm Studio) | `/login?as=team` | `team@testdata.example` |

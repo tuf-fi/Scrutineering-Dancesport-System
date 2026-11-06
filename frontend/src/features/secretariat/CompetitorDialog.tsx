@@ -1,11 +1,11 @@
-import type { CompetitorDetails, CompetitorRow, DancerDetails } from '@bis/shared'
+import type { CompetitorDetails, CompetitorRow, DancerDetails, Gender } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
 import { useTeams, useCoaches, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
 
 const FORM_ID = 'competitor-form'
 
-const BLANK: DancerDetails = { birthDate: '', address: '', email: '', phone: '' }
+const BLANK: DancerDetails = { birthDate: '', gender: '', address: '', email: '', phone: '' }
 
 function CompetitorForm({ competitor, onDone, onAdded }: { competitor: CompetitorRow | null; onDone: () => void; onAdded?: () => void }) {
   const teams = useTeams()
@@ -128,6 +128,11 @@ function CompetitorForm({ competitor, onDone, onAdded }: { competitor: Competito
                 <Input label="Date of birth" required type="date" value={dancers[i]!.birthDate} onChange={(e) => setDancer(i, { birthDate: e.target.value })} error={dancerErrors[i]?.birthDate} />
                 <Input label="Contact no." required inputMode="tel" value={dancers[i]!.phone} onChange={(e) => setDancer(i, { phone: e.target.value })} error={dancerErrors[i]?.phone} />
               </div>
+              <Select label="Gender" hint="Used for the Solo Junior Female entry in the Bicol Athletes list." value={dancers[i]!.gender ?? ''} onChange={(e) => setDancer(i, { gender: e.target.value as Gender | '' })}>
+                <option value="">Not stated</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </Select>
               <Input label="Email" required type="email" value={dancers[i]!.email} onChange={(e) => setDancer(i, { email: e.target.value })} error={dancerErrors[i]?.email} />
               <Input label="Address" required value={dancers[i]!.address} onChange={(e) => setDancer(i, { address: e.target.value })} error={dancerErrors[i]?.address} />
             </div>

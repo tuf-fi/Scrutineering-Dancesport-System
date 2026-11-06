@@ -90,12 +90,16 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
 export const publicNav: NavItem[] = [
   { to: '/', label: 'Home', end: true },
   { to: '/competitions', label: 'Competitions' },
-  { to: '/athletes', label: 'Athletes', also: ['/competitors'] },
-  { to: '/rankings', label: 'Rankings' },
+  { to: '/athletes', label: 'Bicol Athletes', also: ['/competitors'] },
+  { to: '/results', label: 'Results' },
+  { to: '/standings', label: 'Standings' },
 ]
 
 // The announcer has one screen; the account page's sidebar offers it so there is a way back
 export const compereNav: NavItem[] = [{ to: '/compere', label: 'Announcer', icon: Megaphone }]
+
+// The barker has one screen as well
+export const barkerNav: NavItem[] = [{ to: '/barker', label: 'Barker', icon: Megaphone }]
 
 
 // Staff and adjudicators sign in here; it is not linked from any public page
@@ -112,5 +116,6 @@ export const roleHome: Record<Role, string> = {
   coach: '/coach',
   team: '/team',
   compere: '/compere',
+  barker: '/barker',
   public: '/',
 }

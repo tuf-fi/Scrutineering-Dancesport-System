@@ -5,6 +5,9 @@ import {
   RoundType,
   clockTime,
   programStatuses,
+  type BarkerBoard,
+  type BarkerEvent,
+  type BarkerHeat,
   type Program,
   type ProgramRow,
   type ProgramSlotInput,
@@ -14,7 +17,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { activeEntryRows, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
+import { activeEntryRows, currentCompetition, fieldOf, heatsOfRound, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
 
 type Slot = typeof t.programSlots.$inferSelect
 
@@ -139,8 +142,51 @@ function checkMinutes(minutes: unknown): number {
 
 const changed = (ctx: Ctx) => ctx.defer(() => ctx.hub.program())
 
+// The barker's board: the rounds on the floor now, and the next one, each with its competitors by back number
+function barkerBoard(ctx: Ctx): BarkerBoard {
+  const competition = currentCompetition(ctx)
+  if (!competition) return { competitionName: null, ongoing: [], next: null }
+  const rows = build(ctx, competition.id).rows.filter((r) => r.kind === ProgramKind.Round && r.eventId !== null && r.roundType !== null)
+
+  const people = (ids: string[]) =>
+    new Map(ids.length === 0 ? [] : ctx.db.select().from(t.competitors).where(inArray(t.competitors.id, ids)).all().map((c) => [c.id, c]))
+  const listOf = (ids: string[], lookup: ReturnType<typeof people>) =>
+    ids
+      .map((id) => ({ backNumber: lookup.get(id)?.backNumber ?? null, names: lookup.get(id)?.names ?? [] }))
+      .sort((a, b) => (a.backNumber ?? Infinity) - (b.backNumber ?? Infinity))
+
+  const eventOf = (row: ProgramRow): BarkerEvent => {
+    const round = roundsOfEvent(ctx, row.eventId!).find((r) => r.type === row.roundType)
+    const saved = round ? heatsOfRound(ctx, round.id) : []
+    // Before heats are set, the first round is everyone entered; a later round waits for the recall
+    const groups = saved.length > 0 ? saved.map((h) => ({ heat: h.number, ids: h.competitorIds })) : [{ heat: null, ids: round ? fieldOf(ctx, round) : row.entryCount === activeEntryRows(ctx, row.eventId!).length ? activeEntryRows(ctx, row.eventId!).map((e) => e.competitorId) : [] }]
+    const lookup = people(groups.flatMap((g) => g.ids))
+    const heats: BarkerHeat[] = groups.map((g) => ({ heat: row.roundType === RoundType.Final ? null : g.heat, competitors: listOf(g.ids, lookup) }))
+    return {
+      eventId: row.eventId!,
+      eventNumber: row.eventNumber!,
+      ageGroup: row.ageGroup!,
+      class: row.class!,
+      discipline: row.discipline!,
+      dances: row.dances,
+      isSolo: row.isSolo ?? false,
+      roundType: row.roundType!,
+      heats,
+    }
+  }
+
+  const next = rows.find((r) => r.status === ProgramStatus.Next)
+  return {
+    competitionName: competition.name,
+    ongoing: rows.filter((r) => r.status === ProgramStatus.Current).map(eventOf),
+    next: next ? eventOf(next) : null,
+  }
+}
+
 export const program = {
   getProgram: (ctx: Ctx, competitionId: string): Program => build(ctx, competitionId),
+
+  getBarkerBoard: (ctx: Ctx): BarkerBoard => barkerBoard(ctx),
 
   // The events a back number is entered in, for "my entries" on the public program. Only event ids leave: heats and
   // results are public anyway, and no names or teams are given.

@@ -9,7 +9,7 @@ import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { reads } from './reads.ts'
 import { changeMemberPassword, isMember, markMemberNotificationsRead, memberCompetitors, memberNotifications, signOutMember } from './members.ts'
-import { MAX_RECEIPT, MIN_PASSWORD, PHOTO, checkPhoto, clean } from './shared.ts'
+import { MAX_RECEIPT, MIN_PASSWORD, PHOTO, checkPhoto, clean, giveAthleteMembershipId } from './shared.ts'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -27,6 +27,7 @@ const toProfile = (r: AthleteRowDb): AthleteProfile => ({
   teamId: r.teamId,
   coachId: r.coachId,
   memberYear: r.memberYear,
+  membershipId: r.membershipId ?? null,
   request: r.request ?? null,
   photo: r.photo ?? null,
   history: r.membershipHistory ?? [],
@@ -260,6 +261,7 @@ export const athletes = {
         teamName: (r.teamId && teams.get(r.teamId)) || '',
         coachName: (r.coachId && coaches.get(r.coachId)) || '',
         memberYear: r.memberYear,
+        membershipId: r.membershipId ?? null,
         request: r.request ?? null,
         changeRequest: r.changeRequest ?? null,
         requestedName: r.changeRequest?.name ?? '',
@@ -298,8 +300,9 @@ export const athletes = {
     if (row.request.rejectedReason) return fail('This payment was already turned down. The athlete has to send it again.', 409)
     const membershipHistory = withEvent(row, { at: now(), kind: 'confirmed', year: row.request.year, method: row.request.method })
     ctx.db.update(t.athletes).set({ memberYear: row.request.year, request: null, membershipHistory }).where(eq(t.athletes.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Confirmed membership', row.name, { after: { year: row.request.year } })
-    notifyAthlete(ctx, id, { kind: 'membership_confirmed', title: `Your ${row.request.year} membership was confirmed`, detail: `Your ${row.request.method} payment was received. You are a member until December ${row.request.year}.`, link: '/athlete/membership' })
+    const membershipId = giveAthleteMembershipId(ctx, id)
+    record(ctx.db, actor(ctx).id, 'Confirmed membership', row.name, { after: { year: row.request.year, membershipId } })
+    notifyAthlete(ctx, id, { kind: 'membership_confirmed', title: `Your ${row.request.year} membership was confirmed`, detail: `Your ${row.request.method} payment was received. You are a member until December 31, ${row.request.year}.${membershipId ? ` Your membership ID is ${membershipId}.` : ''}`, link: '/athlete/membership' })
   },
 
   rejectMembership(ctx: Ctx, id: string, reason: string): void {

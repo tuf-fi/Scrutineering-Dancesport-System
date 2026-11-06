@@ -12,7 +12,7 @@ import { DISCIPLINE_LABEL, eventCode, eventDances, formatDate } from '../../lib/
 const COLS = 'lg:grid-cols-[5rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_1.5rem]'
 
 // One competition's events; the ones with results link to them
-export function CompetitionPage() {
+export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean } = {}) {
   const { ageGroups, ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
   const competition = useCompetition(competitionId)
@@ -24,6 +24,7 @@ export function CompetitionPage() {
   const needle = query.trim().toLowerCase()
   const rows = [...(events.data ?? [])]
     .sort((a, b) => a.number - b.number)
+    .filter((e) => !resultsOnly || withResults.data?.includes(e.id))
     .filter(
       (e) =>
         (ageGroup === 'all' || e.ageGroup === ageGroup) &&
@@ -46,7 +47,7 @@ export function CompetitionPage() {
   return (
     <div className="flex flex-col gap-8">
       <PublicHeader
-        back={{ to: '/competitions', label: 'All competitions' }}
+        back={resultsOnly ? { to: '/results', label: 'All results' } : { to: '/competitions', label: 'All competitions' }}
         eyebrow={formatDate(c.date)}
         title={c.name}
         description={
@@ -56,9 +57,11 @@ export function CompetitionPage() {
           </>
         }
         meta={
-          <ButtonLink to={`/competitions/${competitionId}/program`}>
-            Program and running order
-          </ButtonLink>
+          resultsOnly ? undefined : (
+            <ButtonLink to={`/competitions/${competitionId}/program`}>
+              Program and running order
+            </ButtonLink>
+          )
         }
         aside={
           !events.isLoading && (
@@ -84,7 +87,7 @@ export function CompetitionPage() {
 
       <section aria-labelledby="events" className="flex flex-col gap-4">
         <h2 id="events" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-          Events
+          {resultsOnly ? 'Event results' : 'Events'}
         </h2>
 
         {loading ? (
@@ -97,7 +100,7 @@ export function CompetitionPage() {
             ))}
           </div>
         ) : rows.length === 0 ? (
-          <EmptyState title="No events match" description="Try a different age group or search." />
+          <EmptyState title={resultsOnly && allEvents.length > 0 && !needle && ageGroup === 'all' ? 'No results published yet' : 'No events match'} description={resultsOnly && !needle && ageGroup === 'all' ? 'Results appear here as each event is approved.' : 'Try a different age group or search.'} />
         ) : (
           <div>
             <div aria-hidden className={cn('hidden gap-x-8 px-3 pb-3 font-mono text-xs uppercase text-neutral-500 lg:grid', COLS)}>

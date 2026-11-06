@@ -72,7 +72,11 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
       <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
         {creating && <Input label={copy.name} autoComplete={kind === 'team' ? 'organization' : 'name'} value={name} onChange={(e) => setName(e.target.value)} required autoFocus />}
         {creating && <PhotoInput name={name} value={photo} onChange={(p) => { setPhoto(p); setPhotoError(undefined) }} error={photoError} label={kind === 'team' ? 'Team picture' : 'Photo'} />}
-        <Input label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus={!creating} />
+        {!creating && kind !== 'team' ? (
+          <Input label="Membership ID or email" autoComplete="username" autoCapitalize="none" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+        ) : (
+          <Input label="Email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus={!creating} />
+        )}
         <Input
           label="Password"
           type="password"

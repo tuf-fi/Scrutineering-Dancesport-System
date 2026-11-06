@@ -72,6 +72,7 @@ export const ROLE_LABEL: Record<Role, string> = {
   coach: 'Coach',
   team: 'Team',
   compere: 'Compere',
+  barker: 'Barker',
   public: 'Public',
 }
 
