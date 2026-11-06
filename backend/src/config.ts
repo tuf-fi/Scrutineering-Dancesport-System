@@ -21,6 +21,8 @@ export interface Config {
   // Requests a minute from one address for calls that need no sign-in, such as the public pages; null means no limit.
   // Spectators on one mobile network can share an address, so this is generous.
   publicRatePerMinute: number | null
+  // The venue laptop on a competition day: no internet, no HTTPS, everyone on the venue Wi-Fi (BIS_VENUE=true)
+  venue: boolean
 }
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
@@ -70,7 +72,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     databasePath: env.DATABASE_PATH ?? './data/bis.db',
     cookieSecret,
     dataKey,
-    cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production',
+    cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production' && env.BIS_VENUE !== 'true',
+    venue: env.BIS_VENUE === 'true',
     backupDirs: (env.BACKUP_DIRS ?? './data/backups').split(',').map((d) => d.trim()).filter(Boolean),
     backupIntervalMinutes: Number(env.BACKUP_INTERVAL_MINUTES ?? 5),
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),

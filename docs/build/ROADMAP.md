@@ -50,7 +50,7 @@ Open from Phase 3 (all since built): age group from birth year, the unbreakable-
 
 Built, then removed in commit `6d286f2`. It gave the venue laptop an offline copy of the app (PWA with HTTPS), backup drives with a takeover and `restore` command for a second laptop, and a rehearsal of those. BIS is now online only. What stayed because it also helps on mobile data: the phone saves marks first and resends them after a dropped connection, the scrutineer's board shows quiet phones and phones holding unsent marks, backups, and the paper fallback.
 
-Offline mode comes back only if the client asks. It would involve a venue server on a laptop, change capture and sync with the cloud, an offline copy of the app, and takeover and restore tooling. All of it can be recovered from git history (`git show 6d286f2^:VENUE.md` for the old running guide).
+Offline mode comes back only if the client asks. It has been asked for, and a first version is on the `offline-mode` branch: a venue laptop runs the same server on a copy of the database, and the day goes back to the online server as one file. See [../operations/OFFLINE_MODE.md](../operations/OFFLINE_MODE.md). It would involve a venue server on a laptop, change capture and sync with the cloud, an offline copy of the app, and takeover and restore tooling. All of it can be recovered from git history (`git show 6d286f2^:VENUE.md` for the old running guide).
 
 ## Phase 5: Cloud backend and sync (removed: online only)
 

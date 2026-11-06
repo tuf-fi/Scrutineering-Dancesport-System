@@ -22,6 +22,7 @@ A dancesport competition system: registration and payments, adjudicators marking
 | [deploy/PRODUCTION.md](deploy/PRODUCTION.md) | Setting up, building and updating the real server |
 | [deploy/STAGING.md](deploy/STAGING.md) | Setting up and using the practice server |
 | [deploy/README.md](deploy/README.md) | Settings and backups reference |
+| [docs/operations/OFFLINE_MODE.md](docs/operations/OFFLINE_MODE.md) | Running a competition day on a venue laptop with no internet (branch `offline-mode`) |
 | [ONLINE_SETUP.md](docs/operations/ONLINE_SETUP.md), [HARDWARE.md](docs/operations/HARDWARE.md) | What to host it on and what it costs; recommended devices |
 | [ROLE_ACCOUNTS.md](docs/operations/ROLE_ACCOUNTS.md) | Making the Admin and every other account safely |
 | [TEST_ACCOUNTS.md](docs/operations/TEST_ACCOUNTS.md) | Sample accounts for trying it (never on a real server) |

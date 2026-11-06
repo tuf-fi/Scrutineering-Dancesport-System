@@ -24,6 +24,7 @@ Where the system stands on 3 November 2026, what is left, and what is still uncl
 | Rehearse with the actual secretariat, scrutineer, chairperson and adjudicators, using the guides in [guides/](../guides/) | Testing |
 | Pilot at a real competition beside the current method; compare every result ([PILOT.md](../operations/PILOT.md)) | Testing |
 | Fix list from the pilot, then a second, smaller event | Testing |
+| Rehearse the offline venue laptop (branch `offline-mode`, [docs/operations/OFFLINE_MODE.md](../operations/OFFLINE_MODE.md)) on a real laptop, router and phones, and decide whether to merge it | Testing |
 | Open the athlete, coach and team flows, and every screen at phone and tablet width, in a real browser and on a real iPhone (only tests and the code have been checked) | Check |
 | Give the sample competitions a card photo, or have the admin add one on each; until then they show the shared dance photo and cannot be edited without one | Setup |
 | Organizer reads the privacy notice (`/privacy`) and confirms it. Entry form details are kept permanently until removed; nothing is deleted automatically | Organizer |

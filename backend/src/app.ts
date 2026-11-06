@@ -104,7 +104,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     } catch {
       return reply.code(503).send({ status: 'error', database: false, time: now() })
     }
-    return { status: 'ok', database: true, time: now() }
+    // mode tells a phone, a person or a script which server it reached: the online one or the venue laptop
+    return { status: 'ok', database: true, mode: config.venue ? 'venue' : 'online', time: now() }
   })
 
   // ---- Sign-in ----
