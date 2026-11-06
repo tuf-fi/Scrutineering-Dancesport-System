@@ -29,6 +29,8 @@ export interface Competition {
   feeDeadline?: string | null
   // The photo on its card on the home page: a JPEG, PNG or WebP picture as a data URL
   image?: string | null
+  // Whether its results count towards the rankings; a competition without points awards none
+  usesPoints: boolean
 }
 
 export interface Event {
@@ -795,7 +797,8 @@ export interface PaymentMethod {
 // What the secretariat keeps about a team
 export type TeamInput = Omit<Team, 'id'>
 
-export type CompetitionInput = Omit<Competition, 'id'>
+// Leaving usesPoints out keeps what is saved, or turns points on for a new competition
+export type CompetitionInput = Omit<Competition, 'id' | 'usesPoints'> & { usesPoints?: boolean }
 
 export type EventInput = Omit<Event, 'id' | 'competitionId'>
 

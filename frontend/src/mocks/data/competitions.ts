@@ -9,6 +9,7 @@ export const competitions: Competition[] = [
     date: '2026-10-10',
     venue: 'Sorsogon Provincial Gymnasium, Sorsogon City',
     organizer: 'BN IT Scrutineer',
+    usesPoints: true,
   },
   {
     id: 'comp-legazpi-2026',
@@ -16,6 +17,7 @@ export const competitions: Competition[] = [
     date: '2026-06-13',
     venue: 'Legazpi City Convention Center, Legazpi City',
     organizer: 'Albay Dancesport Council',
+    usesPoints: true,
   },
   {
     id: 'comp-naga-2025',
@@ -23,5 +25,6 @@ export const competitions: Competition[] = [
     date: '2025-11-22',
     venue: 'Naga City Coliseum, Naga City',
     organizer: 'Camarines Sur Dancesport Association',
+    usesPoints: true,
   },
 ]

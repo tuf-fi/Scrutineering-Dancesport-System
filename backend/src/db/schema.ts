@@ -21,6 +21,8 @@ export const competitions = sqliteTable('competitions', {
   feeDeadline: text('fee_deadline'),
   // The photo on its home page card, as a data URL
   image: text('image'),
+  // Whether its results count towards the rankings
+  usesPoints: integer('uses_points', { mode: 'boolean' }).notNull().default(true),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
 })

@@ -12,6 +12,7 @@ interface Values {
   entryDeadline: string
   feeDeadline: string
   image: string
+  usesPoints: boolean
 }
 
 type Errors = Partial<Record<keyof Values, string>>
@@ -23,7 +24,7 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
   const [errors, setErrors] = useState<Errors>({})
   const picker = useRef<HTMLInputElement>(null)
 
-  const set = (key: keyof Values) => (e: { target: { value: string } }) =>
+  const set = (key: Exclude<keyof Values, 'usesPoints'>) => (e: { target: { value: string } }) =>
     setValues((v) => ({ ...v, [key]: e.target.value }))
 
   async function choose(file: File | undefined) {
@@ -83,6 +84,18 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
       </div>
       <Input label="Entries close" hint="Optional. Later entries are flagged." type="date" value={values.entryDeadline} onChange={set('entryDeadline')} />
       <Input label="Fees due" hint="Optional. Later unpaid entries are flagged." type="date" value={values.feeDeadline} onChange={set('feeDeadline')} />
+      <div className="flex flex-col gap-1.5 sm:col-span-2">
+        <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
+          <input
+            type="checkbox"
+            checked={values.usesPoints}
+            onChange={(e) => setValues((v) => ({ ...v, usesPoints: e.target.checked }))}
+            className="size-5 accent-neutral-900"
+          />
+          Results earn ranking points
+        </label>
+        <p className="text-small text-neutral-600">Turn off for a competition that does not count towards the rankings.</p>
+      </div>
     </form>
   )
 }
@@ -150,8 +163,9 @@ export function CompetitionDialog({
                 entryDeadline: competition.entryDeadline ?? '',
                 feeDeadline: competition.feeDeadline ?? '',
                 image: competition.image ?? '',
+                usesPoints: competition.usesPoints,
               }
-            : { name: '', date: '', venue: '', organizer: '', entryDeadline: '', feeDeadline: '', image: '' }
+            : { name: '', date: '', venue: '', organizer: '', entryDeadline: '', feeDeadline: '', image: '', usesPoints: true }
         }
         onSubmit={submit}
       />

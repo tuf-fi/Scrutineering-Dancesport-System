@@ -254,6 +254,7 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       entryDeadline: input.entryDeadline || null,
       feeDeadline: input.feeDeadline || null,
       ...(input.image === undefined ? {} : { image: input.image || null }),
+      ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }),
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) {
       throw new Error('Fill in every field.')
@@ -269,6 +270,7 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
     const created: Competition = {
       id: `comp-${competitions.length + 1}-${Date.now().toString(36)}`,
       ...values,
+      usesPoints: input.usesPoints ?? true,
     }
     competitions.push(created)
     record(actorId, 'Created competition', values.name)

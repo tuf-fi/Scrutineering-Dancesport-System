@@ -7,7 +7,7 @@ import { hashPassword, temporaryPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { recomputeAllPoints } from './ranking.ts'
+import { recomputeAllPoints, recomputeCompetitionPoints } from './ranking.ts'
 import { MAX_PHOTO, PHOTO, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
@@ -30,6 +30,7 @@ export const admin = {
       feeDeadline: clean(input?.feeDeadline) || null,
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) return fail('Fill in every field.')
+    if (input?.usesPoints !== undefined && typeof input.usesPoints !== 'boolean') return fail('Choose whether the competition uses points.')
     // A missing image keeps the one already there; a competition always has one
     const image = input?.image === undefined ? undefined : typeof input.image === 'string' && input.image ? input.image : null
     if (image && (!PHOTO.test(image) || image.length > MAX_PHOTO)) return fail('Send the photo as a JPEG, PNG or WebP picture under 400 KB.')
@@ -40,15 +41,18 @@ export const admin = {
     if (id) {
       const before = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
       if (!(image === undefined ? before.image : image)) return fail('Add the photo for its card.')
-      ctx.db.update(t.competitions).set({ ...values, ...(image === undefined ? {} : { image }) }).where(eq(t.competitions.id, id)).run()
-      record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: values })
-      return toCompetition({ ...before, ...values, ...(image === undefined ? {} : { image }) })
+      const changes = { ...values, ...(image === undefined ? {} : { image }), ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }) }
+      ctx.db.update(t.competitions).set(changes).where(eq(t.competitions.id, id)).run()
+      // Turning points off removes what its events awarded; turning them on awards them from the results already approved
+      if (changes.usesPoints !== undefined && changes.usesPoints !== before.usesPoints) recomputeCompetitionPoints(ctx, id)
+      record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: changes })
+      return toCompetition({ ...before, ...changes })
     }
     if (!image) return fail('Add the photo for its card.')
     if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
       return fail('A competition with this name and date already exists.', 409)
     }
-    const created = { id: newId(), floorRoundId: null, ...values, image }
+    const created = { id: newId(), floorRoundId: null, ...values, image, usesPoints: input?.usesPoints ?? true }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)

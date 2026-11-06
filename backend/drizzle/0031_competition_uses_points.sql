@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `uses_points` integer DEFAULT true NOT NULL;
