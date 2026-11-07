@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useTeams, useCompetitorRows, useDeleteTeam } from '../../hooks/index.ts'
-import { useAuth } from '../../stores/auth.ts'
 import { TeamDialog } from './TeamDialog.tsx'
 import { TeamMembers } from './TeamMembers.tsx'
 
@@ -12,8 +11,7 @@ export function TeamsPage() {
   const teams = useTeams()
   const competitors = useCompetitorRows()
   const remove = useDeleteTeam()
-  // Admins and the secretariat each have their own competitors page
-  const section = useAuth((s) => (s.user?.role === 'admin' ? '/admin' : '/secretariat'))
+  const section = '/secretariat'
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState<Team | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Team | null>(null)
@@ -54,17 +52,20 @@ export function TeamsPage() {
             header: 'Competitors',
             mono: true,
             align: 'right',
-            cell: (c) => (
-              <Link
-                to={`${section}/competitors?team=${c.id}`}
-                onClick={(e) => e.stopPropagation()}
-                aria-label={`${dancers.get(c.id) ?? 0} competitors of ${c.name}`}
-                className="group/count inline-flex items-center gap-1.5 text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500 focus-visible:outline-2 focus-visible:outline-gold-500"
-              >
-                {dancers.get(c.id) ?? 0}
-                <ArrowUpRight aria-hidden className="size-3.5 text-neutral-400 transition duration-300 group-hover/count:rotate-45 group-hover/count:text-gold-500" strokeWidth={1.75} />
-              </Link>
-            ),
+            cell: (c) =>
+              (dancers.get(c.id) ?? 0) === 0 ? (
+                <span className="text-neutral-500">0</span>
+              ) : (
+                <Link
+                  to={`${section}/competitors?team=${c.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={`${dancers.get(c.id)} competitors of ${c.name}`}
+                  className="group/count inline-flex items-center gap-1.5 text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500 focus-visible:outline-2 focus-visible:outline-gold-500"
+                >
+                  {dancers.get(c.id)}
+                  <ArrowUpRight aria-hidden className="size-3.5 text-neutral-400 transition duration-300 group-hover/count:rotate-45 group-hover/count:text-gold-500" strokeWidth={1.75} />
+                </Link>
+              ),
           },
           {
             key: 'actions',
