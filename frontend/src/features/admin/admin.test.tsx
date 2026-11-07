@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import * as api from '../../api/index.ts'
-import { renderApp } from '../../test-utils.tsx'
+import { confirmDelete, renderApp } from '../../test-utils.tsx'
 
 
 // The sample data is shared across tests in this file, so each test uses its own records
@@ -164,17 +164,19 @@ describe('competitions', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete Delete Me Cup' }))
     dialog = await dialogFor('Delete Delete Me Cup?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(dialog)
     expect(await screen.findByText('Deleted Delete Me Cup')).toBeInTheDocument()
     expect(screen.queryByText('Delete Me Cup')).not.toBeInTheDocument()
   })
 
-  it('will not delete a competition that already has events', async () => {
+  it('lists the events and entries that go with a competition before deleting it', async () => {
     renderApp('/admin/competitions', Role.Admin)
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Naga Dancesport Invitational 2025' }))
     const dialog = await dialogFor('Delete Naga Dancesport Invitational 2025?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText(/has 54 events, so it can't be deleted/)).toBeInTheDocument()
+    expect(await within(dialog).findByText('Will be deleted')).toBeInTheDocument()
+    expect(within(dialog).getByText('Events')).toBeInTheDocument()
+    expect(within(dialog).getByText('54')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     expect(screen.getByText('Naga Dancesport Invitational 2025')).toBeInTheDocument()
   })
 })
@@ -293,7 +295,7 @@ describe('staff accounts', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete Delete Me' }))
     dialog = await dialogFor('Delete Delete Me?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(dialog)
     expect(await screen.findByText('Deleted Delete Me')).toBeInTheDocument()
     expect(screen.queryByText('Delete Me')).not.toBeInTheDocument()
 
@@ -384,12 +386,12 @@ describe('adjudicators and panels', () => {
     // Adjudicator A marks on every panel
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Lorenzo V. Aguilar' }))
     let dialog = await dialogFor('Delete Lorenzo V. Aguilar?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText(/is on \d+ panels, so can't be deleted/)).toBeInTheDocument()
+    expect(await within(dialog).findByText('Panel places')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
 
     await userEvent.click(await screen.findByRole('button', { name: /^Delete (Cecilia R. Ventura|Spare Adjudicator)$/ }))
     dialog = await screen.findByRole('dialog', { name: /^Delete (Cecilia R. Ventura|Spare Adjudicator)\?$/ })
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(dialog)
     expect(await screen.findByText(/^Deleted (Cecilia R. Ventura|Spare Adjudicator)$/)).toBeInTheDocument()
   })
 

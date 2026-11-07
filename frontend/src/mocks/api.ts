@@ -1,6 +1,9 @@
 import { ApiError } from '../api/http.ts'
 import {
   DEFAULT_FEE_SCHEDULE,
+  type DeleteImpact,
+  type DeleteImpactItem,
+  type DeleteKind,
   DISCIPLINE_DANCES,
   PIN_LENGTH,
   PayMethod,
@@ -9,7 +12,6 @@ import {
   freshId,
   isFixedFee,
   kindOf,
-  plural,
   registrationFee,
   registrationWarnings,
   sameProvince,
@@ -316,14 +318,12 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
     return created
   })
 
-export const deleteCompetition = (actorId: string, id: string) =>
+export const deleteCompetition = (actorId: string, id: string, cascade?: boolean) =>
   settle<{ id: string }>(() => {
     const index = competitions.findIndex((c) => c.id === id)
     const competition = found(competitions[index], 'Competition')
-    const eventTotal = events.filter((e) => e.competitionId === id).length
-    if (eventTotal > 0) {
-      throw new Error(`${competition.name} has ${eventTotal} events, so it can't be deleted.`)
-    }
+    confirmCascade('competition', id, cascade)
+    dropEvents(eventsOf('competition', id))
     competitions.splice(index, 1)
     record(actorId, 'Deleted competition', competition.name)
     return { id }
@@ -392,14 +392,12 @@ export const updateAdjudicator = (actorId: string, id: string, input: { name: st
     return adjudicator
   })
 
-export const deleteAdjudicator = (actorId: string, id: string) =>
+export const deleteAdjudicator = (actorId: string, id: string, cascade?: boolean) =>
   settle<{ id: string }>(() => {
     const index = adjudicators.findIndex((a) => a.id === id)
     const adjudicator = found(adjudicators[index], 'Adjudicator')
-    const onPanels = panels.filter((p) => p.adjudicatorIds.includes(id)).length
-    if (onPanels > 0) {
-      throw new Error(`${adjudicator.name} is on ${onPanels} panels, so can't be deleted.`)
-    }
+    confirmCascade('adjudicator', id, cascade)
+    for (const panel of panels) panel.adjudicatorIds = panel.adjudicatorIds.filter((a) => a !== id)
     adjudicators.splice(index, 1)
     for (let i = adjudicatorPins.length - 1; i >= 0; i--) {
       if (adjudicatorPins[i].adjudicatorId === id) adjudicatorPins.splice(i, 1)
@@ -503,12 +501,11 @@ export const saveEventKind = (actorId: string, input: EventKindInput, id?: strin
     return created
   })
 
-export const deleteEventKind = (actorId: string, id: string) =>
+export const deleteEventKind = (actorId: string, id: string, cascade?: boolean) =>
   settle<{ id: string }>(() => {
     const kind = found(eventKinds.find((k) => k.id === id), 'Kind')
-    if (eventKinds.length === 1) throw new Error('There must be at least one kind.')
-    const used = events.filter((e) => (e.kind ?? 'standard') === id).length
-    if (used > 0) throw new Error(`${kind.name} is used by ${plural(used, 'event')}, so it can't be deleted.`)
+    confirmCascade('eventKind', id, cascade)
+    dropEvents(eventsOf('eventKind', id))
     eventKinds.splice(eventKinds.indexOf(kind), 1)
     record(actorId, 'Deleted event kind', kind.name)
     return { id }
@@ -530,12 +527,11 @@ export const saveAgeGroup = (actorId: string, input: AgeGroupInput, id?: string)
     return created
   })
 
-export const deleteAgeGroup = (actorId: string, id: string) =>
+export const deleteAgeGroup = (actorId: string, id: string, cascade?: boolean) =>
   settle<{ id: string }>(() => {
     const group = found(ageGroups.find((g) => g.id === id), 'Age group')
-    if (ageGroups.length === 1) throw new Error('There must be at least one age group.')
-    const used = events.filter((e) => e.ageGroup === id).length
-    if (used > 0) throw new Error(`${group.name} is used by ${plural(used, 'event')}, so it can't be deleted.`)
+    confirmCascade('ageGroup', id, cascade)
+    dropEvents(eventsOf('ageGroup', id))
     ageGroups.splice(ageGroups.indexOf(group), 1)
     record(actorId, 'Deleted age group', group.name)
     return { id }
@@ -923,10 +919,11 @@ export const saveCoach = (actorId: string, input: CoachInput, id?: string) =>
     return coach
   })
 
-export const deleteCoach = (actorId: string, id: string) =>
+export const deleteCoach = (actorId: string, id: string, cascade?: boolean) =>
   settle<void>(() => {
     const coach = found(coaches.find((c) => c.id === id), 'Coach')
-    if (competitors.some((c) => c.details?.coachId === id)) throw new Error('This coach has competitors. Change their coach first.')
+    confirmCascade('coach', id, cascade)
+    for (const c of competitors) if (c.details?.coachId === id) c.details = { ...c.details, coachId: null }
     coaches.splice(coaches.indexOf(coach), 1)
     record(actorId, 'Deleted coach', coach.name)
   })
@@ -1128,15 +1125,12 @@ export const updateCompetitor = (actorId: string, id: string, input: { names: st
     return competitorRow(competitor)
   })
 
-export const deleteCompetitor = (actorId: string, id: string) =>
+export const deleteCompetitor = (actorId: string, id: string, cascade?: boolean) =>
   settle<void>(() => {
-    const index = competitors.findIndex((c) => c.id === id)
-    if (index < 0) throw new Error('Competitor not found')
-    if (entries.some((e) => e.competitorId === id)) {
-      throw new Error('This competitor has entries. Remove or scratch them first.')
-    }
-    record(actorId, 'Deleted competitor', competitors[index].names.join(' & '))
-    competitors.splice(index, 1)
+    if (!competitors.some((c) => c.id === id)) throw new Error('Competitor not found')
+    confirmCascade('competitor', id, cascade)
+    dropCompetitors([id])
+    record(actorId, 'Deleted competitor', 'Competitor')
   })
 
 function lateEntry(entryId: string) {
@@ -1220,17 +1214,11 @@ export const saveEvent = (actorId: string, competitionId: string, input: EventIn
     return event
   })
 
-export const deleteEvent = (actorId: string, id: string) =>
+export const deleteEvent = (actorId: string, id: string, cascade?: boolean) =>
   settle<void>(() => {
     const event = found(events.find((e) => e.id === id), 'Event')
-    if (entries.some((e) => e.eventId === id) || rounds.some((r) => r.eventId === id)) {
-      throw new Error('This event has entries or rounds. Remove them first.')
-    }
-    const order = orderFor(event.competitionId)
-    order.splice(order.indexOf(id), 1)
-    const panel = panels.findIndex((p) => p.eventId === id)
-    if (panel >= 0) panels.splice(panel, 1)
-    events.splice(events.indexOf(event), 1)
+    confirmCascade('event', id, cascade)
+    dropEvents([id])
     record(actorId, 'Deleted event', `Event ${event.number}`)
   })
 
@@ -2107,10 +2095,95 @@ export const saveTeam = (actorId: string, input: TeamInput, id?: string) =>
     return team
   })
 
-export const deleteTeam = (actorId: string, id: string) =>
+export const deleteTeam = (actorId: string, id: string, cascade?: boolean) =>
   settle<void>(() => {
     const team = found(teams.find((c) => c.id === id), 'Team')
-    if (competitors.some((c) => c.teamId === id)) throw new Error('This team has competitors. Move or delete them first.')
+    confirmCascade('team', id, cascade)
+    dropCompetitors(competitors.filter((c) => c.teamId === id).map((c) => c.id))
     teams.splice(teams.indexOf(team), 1)
     record(actorId, 'Deleted team', team.name)
   })
+
+// ---- What a delete would take with it (the sample data's version of the server's preview)
+
+function eventsOf(kind: DeleteKind, id: string): string[] {
+  const match = (e: (typeof events)[number]) =>
+    kind === 'event' ? e.id === id : kind === 'competition' ? e.competitionId === id : kind === 'ageGroup' ? e.ageGroup === id : (e.kind ?? 'standard') === id
+  return events.filter(match).map((e) => e.id)
+}
+
+function dropEvents(ids: string[]) {
+  for (const id of ids) {
+    const event = events.find((e) => e.id === id)
+    if (!event) continue
+    for (let i = entries.length - 1; i >= 0; i--) if (entries[i].eventId === id) entries.splice(i, 1)
+    for (let i = rounds.length - 1; i >= 0; i--) if (rounds[i].eventId === id) rounds.splice(i, 1)
+    const order = orderFor(event.competitionId)
+    if (order.includes(id)) order.splice(order.indexOf(id), 1)
+    const panel = panels.findIndex((p) => p.eventId === id)
+    if (panel >= 0) panels.splice(panel, 1)
+    events.splice(events.indexOf(event), 1)
+  }
+}
+
+function dropCompetitors(ids: string[]) {
+  for (const id of ids) {
+    for (let i = entries.length - 1; i >= 0; i--) if (entries[i].competitorId === id) entries.splice(i, 1)
+    const index = competitors.findIndex((c) => c.id === id)
+    if (index >= 0) competitors.splice(index, 1)
+  }
+}
+
+function impactItems(label: string, n: number, effect: 'delete' | 'change' = 'delete'): DeleteImpactItem[] {
+  return n > 0 ? [{ label, count: n, examples: [], effect }] : []
+}
+
+function underEvents(ids: string[]): DeleteImpactItem[] {
+  const mine = entries.filter((e) => ids.includes(e.eventId))
+  const scratched = mine.filter((e) => e.scratched).length
+  return [
+    ...impactItems(scratched > 0 ? `Entries (${scratched} scratched)` : 'Entries', mine.length),
+    ...impactItems('Rounds', rounds.filter((r) => ids.includes(r.eventId)).length),
+  ]
+}
+
+export const getDeleteImpact = (kind: DeleteKind, id: string) =>
+  settle<DeleteImpact>(() => deleteImpactOf(kind, id))
+
+function deleteImpactOf(kind: DeleteKind, id: string): DeleteImpact {
+  const base = { kind, id }
+  if (kind === 'event') {
+    const event = found(events.find((e) => e.id === id), 'Event')
+    return { ...base, name: `E${event.number}`, items: underEvents([id]) }
+  }
+  if (kind === 'competition' || kind === 'ageGroup' || kind === 'eventKind') {
+    const name =
+      kind === 'competition'
+        ? found(competitions.find((c) => c.id === id), 'Competition').name
+        : kind === 'ageGroup'
+          ? found(ageGroups.find((g) => g.id === id), 'Age group').name
+          : found(eventKinds.find((k) => k.id === id), 'Kind').name
+    const ids = eventsOf(kind, id)
+    return { ...base, name, items: [...impactItems('Events', ids.length), ...underEvents(ids)] }
+  }
+  if (kind === 'team') {
+    const team = found(teams.find((c) => c.id === id), 'Team')
+    const dancers = competitors.filter((c) => c.teamId === id).map((c) => c.id)
+    return { ...base, name: team.name, items: [...impactItems('Dancers and couples', dancers.length), ...impactItems('Entries', entries.filter((e) => dancers.includes(e.competitorId)).length)] }
+  }
+  if (kind === 'coach') {
+    const coach = found(coaches.find((c) => c.id === id), 'Coach')
+    return { ...base, name: coach.name, items: impactItems('Dancers left without a coach', competitors.filter((c) => c.details?.coachId === id).length, 'change') }
+  }
+  if (kind === 'competitor') {
+    const competitor = found(competitors.find((c) => c.id === id), 'Competitor')
+    return { ...base, name: competitor.names.join(' & '), items: impactItems('Entries', entries.filter((e) => e.competitorId === id).length) }
+  }
+  const adjudicator = found(adjudicators.find((a) => a.id === id), 'Adjudicator')
+  return { ...base, name: adjudicator.name, items: impactItems('Panel places', panels.filter((p) => p.adjudicatorIds.includes(id)).length) }
+}
+
+function confirmCascade(kind: DeleteKind, id: string, cascade: boolean | undefined) {
+  const impact = deleteImpactOf(kind, id)
+  if (impact.items.length > 0 && !cascade) throw new Error(`${impact.name} has related data. Confirm to delete it too.`)
+}

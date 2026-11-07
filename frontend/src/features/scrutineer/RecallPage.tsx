@@ -185,7 +185,7 @@ export function RecallPage() {
         {isFinal ? (
           <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
             <div className="flex flex-col gap-2">
-              <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">A final is placed, not recalled</h2>
+              <h2 className="text-2xl font-semibold leading-[1.1] tracking-tight sm:text-3xl lg:text-4xl">A final is placed, not recalled</h2>
               <p className="text-body text-brown-100">Open the results to see the placings.</p>
             </div>
             <Link

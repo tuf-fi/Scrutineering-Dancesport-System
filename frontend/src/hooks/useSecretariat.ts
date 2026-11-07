@@ -1,4 +1,4 @@
-import type { TeamInput, CoachInput, CompetitorDetails, RegistrationInput } from '@bis/shared'
+import type { DeleteKind, TeamInput, CoachInput, CompetitorDetails, RegistrationInput } from '@bis/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
@@ -78,7 +78,7 @@ export const useUpdateCompetitor = () =>
   )
 
 export const useDeleteCompetitor = () =>
-  useWrite((id: string) => api.deleteCompetitor(actor(), id), ['competitor-rows'])
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteCompetitor(actor(), v.id, v.cascade), ['competitor-rows'])
 
 export const useDeleteLateEntry = () =>
   useWrite(
@@ -101,19 +101,19 @@ export const useSaveEvent = () =>
   )
 
 export const useDeleteEvent = () =>
-  useWrite((id: string) => api.deleteEvent(actor(), id), ['events', 'schedule', 'panels'])
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteEvent(actor(), v.id, v.cascade), ['events', 'schedule', 'panels'])
 
 export const useSaveTeam = () =>
   useWrite((v: { input: TeamInput; id?: string }) => api.saveTeam(actor(), v.input, v.id), ['teams', 'competitor-rows'])
 
-export const useDeleteTeam = () => useWrite((id: string) => api.deleteTeam(actor(), id), ['teams'])
+export const useDeleteTeam = () => useWrite((v: { id: string; cascade?: boolean }) => api.deleteTeam(actor(), v.id, v.cascade), ['teams'])
 
 export const useCoaches = (enabled = true) => useQuery({ queryKey: ['coaches'], queryFn: api.getCoaches, enabled })
 
 export const useSaveCoach = () =>
   useWrite((v: { input: CoachInput; id?: string }) => api.saveCoach(actor(), v.input, v.id), ['coaches'])
 
-export const useDeleteCoach = () => useWrite((id: string) => api.deleteCoach(actor(), id), ['coaches'])
+export const useDeleteCoach = () => useWrite((v: { id: string; cascade?: boolean }) => api.deleteCoach(actor(), v.id, v.cascade), ['coaches'])
 
 // The price of the chosen events, worked out by the server
 export const useRegistrationQuote = (competitorId: string, eventIds: string[], coachFees?: { membership: boolean; summit: boolean }) =>
@@ -133,3 +133,7 @@ export const useRegisterCompetitor = () =>
     'payments',
     'registration-quote',
   ])
+
+// What deleting a record would take with it, for the confirmation
+export const useDeleteImpact = (kind: DeleteKind, id: string | undefined) =>
+  useQuery({ queryKey: ['delete-impact', kind, id], queryFn: () => api.getDeleteImpact(kind, id ?? ''), enabled: Boolean(id), gcTime: 0 })

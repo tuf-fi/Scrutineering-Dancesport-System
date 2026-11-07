@@ -1,6 +1,7 @@
 import type { Role, SessionUser } from '@bis/shared'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, within } from '@testing-library/react'
+import { expect } from 'vitest'
+import { fireEvent, render, waitFor, within } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router'
 import { queryDefaults } from './app/queryClient.ts'
 import { routes } from './app/routes.tsx'
@@ -33,4 +34,11 @@ export async function openMenu() {
   const { screen } = await import('@testing-library/react')
   const userEvent = (await import('@testing-library/user-event')).default
   await userEvent.click(await screen.findByRole('button', { name: 'Open menu' }))
+}
+
+// The delete confirmation checks what is connected first; its button only works once that has loaded
+export async function confirmDelete(dialog: HTMLElement) {
+  const button = await within(dialog).findByRole('button', { name: /^Delete( everything)?$/ })
+  await waitFor(() => expect(button).toBeEnabled())
+  fireEvent.click(button)
 }

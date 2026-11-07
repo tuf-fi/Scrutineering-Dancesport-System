@@ -18,6 +18,7 @@ import {
 } from '@bis/shared'
 import { and, desc, eq, lt, sql } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
+import { confirmCascade, impactSummary, removeCascade } from './cascade.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
@@ -212,13 +213,11 @@ export const registration = {
     return toTeam(row)
   },
 
-  deleteTeam(ctx: Ctx, id: string): void {
-    const team = found(ctx.db.select().from(t.teams).where(eq(t.teams.id, id)).get(), 'Team')
-    if (ctx.db.select().from(t.competitors).where(eq(t.competitors.teamId, id)).get()) {
-      return fail('This team has competitors. Move or delete them first.', 409)
-    }
-    ctx.db.delete(t.teams).where(eq(t.teams.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted team', team.name)
+  deleteTeam(ctx: Ctx, id: string, cascade?: boolean): void {
+    const row = found(ctx.db.select().from(t.teams).where(eq(t.teams.id, id)).get(), 'Team')
+    const impact = confirmCascade(ctx, 'team', id, cascade)
+    removeCascade(ctx, 'team', id)
+    record(ctx.db, actor(ctx).id, 'Deleted team', row.name, { before: { removed: impactSummary(impact) } })
   },
 
   // An athlete picks their coach from this list, so they get names only, not contact details or payments
@@ -250,13 +249,11 @@ export const registration = {
     return toCoach(found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, row.id)).get(), 'Coach'))
   },
 
-  deleteCoach(ctx: Ctx, id: string): void {
-    const coach = found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
-    if (ctx.db.select().from(t.competitors).all().some((c) => c.details?.coachId === id)) {
-      return fail('This coach has competitors. Change their coach first.', 409)
-    }
-    ctx.db.delete(t.coaches).where(eq(t.coaches.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted coach', coach.name)
+  deleteCoach(ctx: Ctx, id: string, cascade?: boolean): void {
+    const row = found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
+    const impact = confirmCascade(ctx, 'coach', id, cascade)
+    removeCascade(ctx, 'coach', id)
+    record(ctx.db, actor(ctx).id, 'Deleted coach', row.name, { before: { removed: impactSummary(impact) } })
   },
 
   quoteRegistration(ctx: Ctx, competitorId: string, eventIds: string[], coachFees?: { membership: boolean; summit: boolean }): RegistrationQuote {

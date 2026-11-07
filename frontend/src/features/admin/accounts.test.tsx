@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderApp } from '../../test-utils.tsx'
+import { confirmDelete, renderApp } from '../../test-utils.tsx'
 
 describe('fees and payment details', () => {
   it('shows the saved fees, saves them, and saves a way to pay as soon as it is added', async () => {
@@ -61,7 +61,7 @@ describe('competitors per team', () => {
 })
 
 describe('teams', () => {
-  it('adds and deletes a team, and will not delete one that has competitors', async () => {
+  it('adds and deletes a team, and lists what goes with one that has competitors', async () => {
     renderApp('/secretariat/teams', Role.Secretariat)
     await userEvent.click(await screen.findByRole('button', { name: 'Add team' }))
     const dialog = await screen.findByRole('dialog', { name: 'Add team' })
@@ -73,13 +73,15 @@ describe('teams', () => {
 
     await userEvent.type(screen.getByLabelText('Search teams'), 'Zamboanga')
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Zamboanga Steps' }))
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(await screen.findByRole('dialog'))
     expect(await screen.findByText('Deleted Zamboanga Steps')).toBeInTheDocument()
 
     await userEvent.clear(screen.getByLabelText('Search teams'))
     await userEvent.click((await screen.findAllByRole('button', { name: /^Delete / }))[0]!)
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText(/has competitors/)).toBeInTheDocument()
+    const impact = await screen.findByRole('dialog')
+    expect(await within(impact).findByText('Will be deleted')).toBeInTheDocument()
+    expect(within(impact).getByText('Dancers and couples')).toBeInTheDocument()
+    expect(within(impact).getByRole('button', { name: 'Delete everything' })).toBeInTheDocument()
   })
 })
 

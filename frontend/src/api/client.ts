@@ -3,6 +3,8 @@
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
   AccountKind,
+  DeleteImpact,
+  DeleteKind,
   TotpSetup,
   TotpStatus,
   Adjudicator,
@@ -123,11 +125,12 @@ export const getResultEventIds = (competitionId: string) => call<string[]>('getR
 
 export const saveCompetition = (_actorId: string, input: CompetitionInput, id?: string) =>
   call<Competition>('saveCompetition', input, id)
-export const deleteCompetition = (_actorId: string, id: string) => call<{ id: string }>('deleteCompetition', id)
+export const getDeleteImpact = (kind: DeleteKind, id: string) => call<DeleteImpact>('getDeleteImpact', kind, id)
+export const deleteCompetition = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteCompetition', id, cascade)
 export const saveEventKind = (_actorId: string, input: EventKindInput, id?: string) => call<EventKindDef>('saveEventKind', input, id)
-export const deleteEventKind = (_actorId: string, id: string) => call<{ id: string }>('deleteEventKind', id)
+export const deleteEventKind = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteEventKind', id, cascade)
 export const saveAgeGroup = (_actorId: string, input: AgeGroupInput, id?: string) => call<AgeGroupDef>('saveAgeGroup', input, id)
-export const deleteAgeGroup = (_actorId: string, id: string) => call<{ id: string }>('deleteAgeGroup', id)
+export const deleteAgeGroup = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteAgeGroup', id, cascade)
 export const createStaffUser = (_actorId: string, input: { name: string; username: string; role: Role; photo: string }) =>
   call<{ user: StaffUser; tempPassword: string }>('createStaffUser', input)
 export const updateStaffUser = (_actorId: string, id: string, input: { name: string; role: Role; photo?: string }) =>
@@ -144,7 +147,7 @@ export const createAdjudicator = (_actorId: string, input: { name: string; lette
   call<Adjudicator>('createAdjudicator', input)
 export const updateAdjudicator = (_actorId: string, id: string, input: { name: string; photo?: string }) =>
   call<Adjudicator>('updateAdjudicator', id, input)
-export const deleteAdjudicator = (_actorId: string, id: string) => call<{ id: string }>('deleteAdjudicator', id)
+export const deleteAdjudicator = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteAdjudicator', id, cascade)
 export const generatePins = (_actorId: string, competitionId: string, adjudicatorId?: string) =>
   call<AdjudicatorPin[]>('generatePins', competitionId, adjudicatorId)
 export const setPanel = (_actorId: string, eventId: string, adjudicatorIds: string[]) =>
@@ -192,12 +195,12 @@ export const moveProgramSlot = (_actorId: string, slotId: string, direction: 'up
 export const removeProgramSlot = (_actorId: string, slotId: string) => call<Program>('removeProgramSlot', slotId)
 export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('updateCompetitor', id, input)
-export const deleteCompetitor = (_actorId: string, id: string) => call<void>('deleteCompetitor', id)
+export const deleteCompetitor = (_actorId: string, id: string, cascade?: boolean) => call<void>('deleteCompetitor', id, cascade)
 export const saveTeam = (_actorId: string, input: TeamInput, id?: string) => call<Team>('saveTeam', input, ...(id ? [id] : []))
-export const deleteTeam = (_actorId: string, id: string) => call<void>('deleteTeam', id)
+export const deleteTeam = (_actorId: string, id: string, cascade?: boolean) => call<void>('deleteTeam', id, cascade)
 export const getCoaches = () => call<Coach[]>('getCoaches')
 export const saveCoach = (_actorId: string, input: CoachInput, id?: string) => call<Coach>('saveCoach', input, id)
-export const deleteCoach = (_actorId: string, id: string) => call<void>('deleteCoach', id)
+export const deleteCoach = (_actorId: string, id: string, cascade?: boolean) => call<void>('deleteCoach', id, cascade)
 export const quoteRegistration = (competitorId: string, eventIds: string[], coachFees?: { membership: boolean; summit: boolean }) =>
   call<RegistrationQuote>('quoteRegistration', competitorId, eventIds, ...(coachFees ? [coachFees] : []))
 export const registerCompetitor = (_actorId: string, input: RegistrationInput) => call<RegistrationResult>('registerCompetitor', input)
@@ -206,7 +209,7 @@ export const updateLateEntry = (_actorId: string, entryId: string, input: { even
   call<LateEntryRow>('updateLateEntry', entryId, input)
 export const saveEvent = (_actorId: string, competitionId: string, input: EventInput, id?: string) =>
   call<Event>('saveEvent', competitionId, input, id)
-export const deleteEvent = (_actorId: string, id: string) => call<void>('deleteEvent', id)
+export const deleteEvent = (_actorId: string, id: string, cascade?: boolean) => call<void>('deleteEvent', id, cascade)
 
 // ---- Adjudicator ----
 

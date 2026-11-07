@@ -21,6 +21,7 @@ import {
 } from '@bis/shared'
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
+import { confirmCascade, impactSummary, removeCascade } from './cascade.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
@@ -371,13 +372,11 @@ export const secretariat = {
     return competitorRow(ctx, { ...competitor, names, teamId: input.teamId, details })
   },
 
-  deleteCompetitor(ctx: Ctx, id: string): void {
+  deleteCompetitor(ctx: Ctx, id: string, cascade?: boolean): void {
     const competitor = getCompetitorRow(ctx, id)
-    if (ctx.db.select().from(t.entries).where(eq(t.entries.competitorId, id)).get()) {
-      return fail('This competitor has entries. Remove or scratch them first.', 409)
-    }
-    ctx.db.delete(t.competitors).where(eq(t.competitors.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted competitor', competitor.names.join(' & '))
+    const impact = confirmCascade(ctx, 'competitor', id, cascade)
+    removeCascade(ctx, 'competitor', id)
+    record(ctx.db, actor(ctx).id, 'Deleted competitor', competitor.names.join(' & '), { before: { removed: impactSummary(impact) } })
   },
 
   deleteLateEntry(ctx: Ctx, entryId: string): void {
@@ -456,13 +455,11 @@ export const secretariat = {
     return toEvent(row)
   },
 
-  deleteEvent(ctx: Ctx, id: string): void {
+  deleteEvent(ctx: Ctx, id: string, cascade?: boolean): void {
     const event = getEventRow(ctx, id)
-    if (ctx.db.select().from(t.entries).where(eq(t.entries.eventId, id)).get() || roundsOfEvent(ctx, id).length > 0) {
-      return fail('This event has entries or rounds. Remove them first.', 409)
-    }
-    ctx.db.delete(t.events).where(eq(t.events.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted event', `Event ${event.number}`)
+    const impact = confirmCascade(ctx, 'event', id, cascade)
+    removeCascade(ctx, 'event', id)
+    record(ctx.db, actor(ctx).id, 'Deleted event', `Event ${event.number}`, { before: { removed: impactSummary(impact) } })
   },
 }
 

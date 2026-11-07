@@ -3,7 +3,6 @@ import { ListOrdered, Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
   Button,
-  Dialog,
   ErrorState,
   IconButton,
   PageHeader,
@@ -12,8 +11,8 @@ import {
   Table,
   Toolbar,
   ToolbarActions,
-  toast,
 } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCompetitions, useDeleteCompetition, useEvents } from '../../hooks/index.ts'
 import { dateParts, formatDate } from '../../lib/format.ts'
 import { CompetitionDialog } from './CompetitionDialog.tsx'
@@ -45,18 +44,6 @@ export function CompetitionsPage() {
   )
   const eventCount = (id: string) => events.data?.filter((e) => e.competitionId === id).length
 
-  function confirmDelete(competition: Competition) {
-    remove.mutate(competition.id, {
-      onSuccess: () => {
-        setToDelete(null)
-        toast.success(`Deleted ${competition.name}`)
-      },
-      onError: (e) => {
-        setToDelete(null)
-        toast.error(e.message)
-      },
-    })
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -136,22 +123,7 @@ export function CompetitionsPage() {
         onClose={() => setEditing(null)}
       />
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="This can't be undone. A competition that already has events can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button variant="danger" disabled={remove.isPending} onClick={() => toDelete && confirmDelete(toDelete)}>
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="competition" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

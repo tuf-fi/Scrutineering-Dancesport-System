@@ -48,7 +48,7 @@ describe('event kinds', () => {
     expect((await app.ok<Catalog>('getCatalog', [])).kinds.some((k) => k.id === made.id)).toBe(false)
   })
 
-  it('lets an event use a new kind, and refuses to delete a kind an event uses', async () => {
+  it('lets an event use a new kind, and deletes a kind with its events only when told to', async () => {
     const made = await app.ok<EventKindDef>('saveEventKind', [{ ...kindInput, name: 'Cup' }], admin)
     expect((await app.call('saveEvent', [competitionId, { ...eventInput, kind: 'nonsense' }], secretariat)).error).toMatch(/Choose a kind/)
     expect((await app.call('saveEvent', [competitionId, { ...eventInput, kind: made.id, ageGroup: 'nonsense' }], secretariat)).error).toMatch(/age group/)
@@ -57,9 +57,11 @@ describe('event kinds', () => {
 
     const refusal = await app.call('deleteEventKind', [made.id], admin)
     expect(refusal.status).toBe(409)
-    expect(refusal.error).toMatch(/Cup is used by 1 event/)
-    await app.ok('deleteEvent', [event.id], secretariat)
-    await app.ok('deleteEventKind', [made.id], admin)
+    expect(refusal.error).toMatch(/Cup has related data/)
+    const impact = await app.ok<{ items: Array<{ label: string; count: number }> }>('getDeleteImpact', ['eventKind', made.id], admin)
+    expect(impact.items).toEqual([expect.objectContaining({ label: 'Events', count: 1 })])
+    await app.ok('deleteEventKind', [made.id, true], admin)
+    expect((await app.ok<Event[]>('getEvents', [competitionId])).some((e) => e.id === event.id)).toBe(false)
   })
 
   it('requires a province for any kind closed to one', async () => {
@@ -91,14 +93,14 @@ describe('age groups', () => {
     await app.ok('deleteAgeGroup', [made.id], admin)
   })
 
-  it('refuses to delete an age group an event uses', async () => {
+  it('deletes an age group with its events only when told to', async () => {
     const made = await app.ok<AgeGroupDef>('saveAgeGroup', [{ ...groupInput, oldestAge: 44 }], admin)
     const event = await app.ok<Event>('saveEvent', [competitionId, { ...eventInput, ageGroup: made.id }], secretariat)
     const refusal = await app.call('deleteAgeGroup', [made.id], admin)
     expect(refusal.status).toBe(409)
-    expect(refusal.error).toMatch(/Masters is used by 1 event/)
-    await app.ok('deleteEvent', [event.id], secretariat)
-    await app.ok('deleteAgeGroup', [made.id], admin)
+    expect(refusal.error).toMatch(/Masters has related data/)
+    await app.ok('deleteAgeGroup', [made.id, true], admin)
+    expect((await app.ok<Event[]>('getEvents', [competitionId])).some((e) => e.id === event.id)).toBe(false)
   })
 
   it('keeps what a group meant for events that have started, and moves the rest to the new version', async () => {

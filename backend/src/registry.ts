@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import { fail, type Ctx } from './core/context.ts'
 import { admin } from './services/admin.ts'
+import { deleteImpact } from './services/cascade.ts'
 import { program } from './services/program.ts'
 import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
@@ -42,6 +43,7 @@ const getBackupStatus = (ctx: Ctx) => ctx.backups.status()
 
 const handlers: Record<string, Handler> = {
   ...reads,
+  getDeleteImpact: deleteImpact,
   ...admin,
   ...secretariat,
   ...registration,
@@ -139,6 +141,7 @@ const access: Record<string, Access> = {
   updateAdjudicator: ADMIN,
   deleteAdjudicator: ADMIN,
   generatePins: ADMIN,
+  getDeleteImpact: ADMIN_OR_SECRETARIAT,
   setPanel: ADMIN,
   savePointsTable: ADMIN,
   saveEventKind: ADMIN,

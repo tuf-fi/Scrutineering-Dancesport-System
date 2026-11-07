@@ -1,7 +1,8 @@
 import type { AgeGroupDef } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Button, Dialog, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCatalog, useDeleteAgeGroup, useEvents } from '../../hooks/index.ts'
 import { AgeGroupDialog } from './AgeGroupDialog.tsx'
 
@@ -27,18 +28,6 @@ export function AgeGroupsTab() {
   const rows = ageGroups.filter((g) => !needle || [g.name, g.short].some((v) => v.toLowerCase().includes(needle)))
   const eventCount = (id: string) => events.data?.filter((e) => e.ageGroup === id).length
 
-  function confirmDelete(group: AgeGroupDef) {
-    remove.mutate(group.id, {
-      onSuccess: () => {
-        setToDelete(null)
-        toast.success(`Deleted ${group.name}`)
-      },
-      onError: (e) => {
-        setToDelete(null)
-        toast.error(e.message)
-      },
-    })
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -80,22 +69,7 @@ export function AgeGroupsTab() {
 
       <AgeGroupDialog open={editing !== null} group={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="This can't be undone. An age group that events, competitors or rankings use can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button variant="danger" disabled={remove.isPending} onClick={() => toDelete && confirmDelete(toDelete)}>
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="ageGroup" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

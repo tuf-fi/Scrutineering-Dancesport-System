@@ -2,7 +2,8 @@ import type { Team } from '@bis/shared'
 import { ArrowUpRight, Pencil, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useTeams, useCompetitorRows, useDeleteTeam } from '../../hooks/index.ts'
 import { TeamDialog } from './TeamDialog.tsx'
 import { TeamMembers } from './TeamMembers.tsx'
@@ -83,38 +84,7 @@ export function TeamsPage() {
       />
 
       <TeamDialog open={editing !== null} team={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="This can't be undone. A team with competitors can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={remove.isPending}
-              onClick={() =>
-                toDelete &&
-                remove.mutate(toDelete.id, {
-                  onSuccess: () => {
-                    toast.success(`Deleted ${toDelete.name}`)
-                    setToDelete(null)
-                  },
-                  onError: (e) => {
-                    setToDelete(null)
-                    toast.error(e.message)
-                  },
-                })
-              }
-            >
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="team" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

@@ -31,19 +31,19 @@ export const useSaveCompetition = () =>
   )
 
 export const useDeleteCompetition = () =>
-  useWrite((id: string) => api.deleteCompetition(actor(), id), () => [['competitions']])
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteCompetition(actor(), v.id, v.cascade), () => [['competitions']])
 
 export const useSaveEventKind = () =>
   useWrite((v: { input: api.EventKindInput; id?: string }) => api.saveEventKind(actor(), v.input, v.id), () => [['catalog']])
 
 export const useDeleteEventKind = () =>
-  useWrite((id: string) => api.deleteEventKind(actor(), id), () => [['catalog']])
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteEventKind(actor(), v.id, v.cascade), () => [['catalog']])
 
 export const useSaveAgeGroup = () =>
   useWrite((v: { input: api.AgeGroupInput; id?: string }) => api.saveAgeGroup(actor(), v.input, v.id), () => [['catalog']])
 
 export const useDeleteAgeGroup = () =>
-  useWrite((id: string) => api.deleteAgeGroup(actor(), id), () => [['catalog']])
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteAgeGroup(actor(), v.id, v.cascade), () => [['catalog']])
 
 export const useCreateStaff = () =>
   useWrite(
@@ -68,7 +68,7 @@ export const useUpdateAdjudicator = () =>
 
 export const useDeleteAdjudicator = () =>
   useWrite(
-    (id: string) => api.deleteAdjudicator(actor(), id),
+    (v: { id: string; cascade?: boolean }) => api.deleteAdjudicator(actor(), v.id, v.cascade),
     () => [['adjudicators'], ['adjudicator-pins'], ['panels']],
   )
 

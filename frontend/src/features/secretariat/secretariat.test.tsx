@@ -7,7 +7,7 @@ import { currentCompetitionId } from '../../mocks/data/competitions.ts'
 import { ageGroupOf, competitors } from '../../mocks/data/competitors.ts'
 import { entries } from '../../mocks/data/entries.ts'
 import { events } from '../../mocks/data/events.ts'
-import { renderApp } from '../../test-utils.tsx'
+import { confirmDelete, renderApp } from '../../test-utils.tsx'
 
 // The sample data is shared across tests in this file, so each test uses its own records
 
@@ -151,7 +151,7 @@ describe('the detail panel of a row', () => {
 })
 
 describe('editing and removing', () => {
-  it('adds, edits and deletes an event, and refuses to delete one with entries', async () => {
+  it('adds, edits and deletes an event, and lists what goes with one that has entries', async () => {
     renderApp('/secretariat', Role.Secretariat)
     await screen.findByRole('link', { name: 'E1' })
     await userEvent.click(await screen.findByRole('button', { name: 'Add event' }))
@@ -173,16 +173,19 @@ describe('editing and removing', () => {
     expect(await screen.findByText('Samba, Jive')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete E55' }))
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(await screen.findByRole('dialog'))
     expect(await screen.findByText('Deleted E55')).toBeInTheDocument()
 
     await userEvent.clear(screen.getByLabelText('Search events'))
     await userEvent.click(await screen.findByRole('button', { name: 'Delete E1' }))
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText(/has entries or rounds/)).toBeInTheDocument()
+    const impact = await screen.findByRole('dialog')
+    expect(await within(impact).findByText('Will be deleted')).toBeInTheDocument()
+    expect(within(impact).getByText(/^Entries/)).toBeInTheDocument()
+    expect(within(impact).getByRole('button', { name: 'Delete everything' })).toBeInTheDocument()
+    await userEvent.click(within(impact).getByRole('button', { name: 'Cancel' }))
   })
 
-  it('edits and deletes a competitor, and refuses to delete one who has entries', async () => {
+  it('edits and deletes a competitor, and lists what goes with one who has entries', async () => {
     renderApp('/secretariat/competitors', Role.Secretariat)
     await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
     let dialog = await screen.findByRole('dialog', { name: 'Add competitor' })
@@ -204,7 +207,7 @@ describe('editing and removing', () => {
     expect(await screen.findByText('Saved Edna Fixed')).toBeInTheDocument()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Edna Fixed' }))
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(await screen.findByRole('dialog'))
     expect(await screen.findByText('Deleted Edna Fixed')).toBeInTheDocument()
 
     // Someone with entries cannot be deleted
@@ -213,8 +216,9 @@ describe('editing and removing', () => {
     const withEntries = bodyRows().find((r) => within(r).queryByText(/^[1-9]\d*$/, { selector: 'td.text-right' }))
     const label = within(withEntries!).getAllByRole('button').find((b) => b.getAttribute('aria-label')?.startsWith('Delete '))!
     await userEvent.click(label)
-    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText(/has entries/)).toBeInTheDocument()
+    const entriesDialog = await screen.findByRole('dialog')
+    expect(await within(entriesDialog).findByText('Entries')).toBeInTheDocument()
+    await userEvent.click(within(entriesDialog).getByRole('button', { name: 'Cancel' }))
   })
 
   it('opens a read-only modal with every column when a row is clicked', async () => {

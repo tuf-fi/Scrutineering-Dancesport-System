@@ -4,7 +4,6 @@ import { Hash, ListPlus, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import {
   Button,
-  Dialog,
   ErrorState,
   IconButton,
   PageHeader,
@@ -15,6 +14,7 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import {
   useAssignBackNumbers,
   useTeams,
@@ -229,38 +229,7 @@ export function CompetitorsPage() {
           setTeamId('all')
         }}
       />
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete ? competitorName(toDelete.names) : ''}?`}
-        description="This can't be undone. A competitor with entries can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={remove.isPending}
-              onClick={() =>
-                toDelete &&
-                remove.mutate(toDelete.id, {
-                  onSuccess: () => {
-                    toast.success(`Deleted ${competitorName(toDelete.names)}`)
-                    setToDelete(null)
-                  },
-                  onError: (e) => {
-                    setToDelete(null)
-                    toast.error(e.message)
-                  },
-                })
-              }
-            >
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="competitor" target={toDelete ? { id: toDelete.id, label: competitorName(toDelete.names) } : null} remove={remove} onClose={() => setToDelete(null)} />
       <ImportDialog open={importing} onClose={() => setImporting(false)} />
       <BackNumberDialog competitor={numbering} onClose={() => setNumbering(null)} />
       <RegistrationDialog competitor={entering} onClose={() => setEntering(null)} />

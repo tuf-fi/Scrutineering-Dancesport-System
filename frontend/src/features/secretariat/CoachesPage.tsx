@@ -2,7 +2,8 @@ import { membershipLabel, type Coach } from '@bis/shared'
 import { formatDate } from '../../lib/format.ts'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Button, Dialog, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCoaches, useCompetitorRows, useDeleteCoach } from '../../hooks/index.ts'
 import { CoachDialog } from './CoachDialog.tsx'
 
@@ -67,38 +68,7 @@ export function CoachesPage() {
       />
 
       <CoachDialog open={editing !== null} coach={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="This can't be undone. A coach with competitors can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={remove.isPending}
-              onClick={() =>
-                toDelete &&
-                remove.mutate(toDelete.id, {
-                  onSuccess: () => {
-                    toast.success(`Deleted ${toDelete.name}`)
-                    setToDelete(null)
-                  },
-                  onError: (e) => {
-                    setToDelete(null)
-                    toast.error(e.message)
-                  },
-                })
-              }
-            >
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="coach" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

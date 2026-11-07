@@ -948,3 +948,23 @@ export interface AlertNote {
   // Where in the app it leads
   link: string | null
 }
+
+// What a delete would take with it, so a screen can show it before the person confirms
+export type DeleteKind = 'event' | 'competition' | 'ageGroup' | 'eventKind' | 'team' | 'coach' | 'competitor' | 'adjudicator'
+
+export interface DeleteImpactItem {
+  label: string
+  count: number
+  // A few names or numbers, so the person can see what the count is made of
+  examples: string[]
+  // 'delete' rows go; 'change' rows stay but lose a link, such as a coach's name on a dancer
+  effect: 'delete' | 'change'
+}
+
+export interface DeleteImpact {
+  kind: DeleteKind
+  id: string
+  name: string
+  // Set when it can never be deleted, such as the last age group
+  items: DeleteImpactItem[]
+}

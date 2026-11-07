@@ -5,7 +5,6 @@ import { Link } from 'react-router'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import {
   Button,
-  Dialog,
   ErrorState,
   IconButton,
   PageHeader,
@@ -14,8 +13,8 @@ import {
   Table,
   Toolbar,
   ToolbarActions,
-  toast,
 } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCompetitionEntries, useDeleteEvent, useEvents, useCatalog } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import { EventDialog } from './EventDialog.tsx'
@@ -124,38 +123,7 @@ export function EventsPage() {
         />
       )}
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete ? eventCode(toDelete) : ''}?`}
-        description="This can't be undone. An event that has entries or rounds can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={remove.isPending}
-              onClick={() =>
-                toDelete &&
-                remove.mutate(toDelete.id, {
-                  onSuccess: () => {
-                    toast.success(`Deleted ${eventCode(toDelete)}`)
-                    setToDelete(null)
-                  },
-                  onError: (e) => {
-                    setToDelete(null)
-                    toast.error(e.message)
-                  },
-                })
-              }
-            >
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="event" target={toDelete ? { id: toDelete.id, label: eventCode(toDelete) } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

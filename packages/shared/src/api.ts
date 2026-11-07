@@ -19,6 +19,7 @@ export const API_FUNCTIONS = [
   'deleteStaffUser',
   'enterAdjudicatorMarks',
   'generatePins',
+  'getDeleteImpact',
   'getAdjudicatorPins',
   'getAdjudicatorState',
   'getAdjudicators',

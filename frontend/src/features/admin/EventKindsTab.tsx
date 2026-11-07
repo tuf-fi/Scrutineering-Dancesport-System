@@ -1,7 +1,8 @@
 import { KIND_FIELD_LABEL, type EventKindDef } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Button, Dialog, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCatalog, useDeleteEventKind, useEvents } from '../../hooks/index.ts'
 import { FEE_MODE_LABEL } from '../../lib/format.ts'
 import { EventKindDialog } from './EventKindDialog.tsx'
@@ -31,18 +32,6 @@ export function EventKindsTab() {
   const rows = kinds.filter((k) => !needle || k.name.toLowerCase().includes(needle))
   const eventCount = (id: string) => events.data?.filter((e) => (e.kind ?? 'standard') === id).length
 
-  function confirmDelete(kind: EventKindDef) {
-    remove.mutate(kind.id, {
-      onSuccess: () => {
-        setToDelete(null)
-        toast.success(`Deleted ${kind.name}`)
-      },
-      onError: (e) => {
-        setToDelete(null)
-        toast.error(e.message)
-      },
-    })
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -83,22 +72,7 @@ export function EventKindsTab() {
 
       <EventKindDialog open={editing !== null} kind={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="This can't be undone. A kind that events use can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button variant="danger" disabled={remove.isPending} onClick={() => toDelete && confirmDelete(toDelete)}>
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="eventKind" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

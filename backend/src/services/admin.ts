@@ -1,7 +1,8 @@
-import { PIN_LENGTH, Role, checkAgeGroup, checkEventKind, freshId, plural, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
+import { PIN_LENGTH, Role, checkAgeGroup, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray, ne } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
+import { confirmCascade, impactSummary, removeCascade } from './cascade.ts'
 import { record } from '../core/audit.ts'
 import { hashPassword, temporaryPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
@@ -90,14 +91,11 @@ export const admin = {
     return { id: created.id, ...values }
   },
 
-  deleteEventKind(ctx: Ctx, id: string): { id: string } {
-    const kinds = ctx.db.select().from(t.eventKinds).all()
-    const kind = found(kinds.find((k) => k.id === id), 'Kind')
-    if (kinds.length === 1) return fail('There must be at least one kind.', 409)
-    const used = ctx.db.select().from(t.events).where(eq(t.events.kind, id)).all().length
-    if (used > 0) return fail(`${kind.name} is used by ${plural(used, 'event')}, so it can't be deleted.`, 409)
-    ctx.db.delete(t.eventKinds).where(eq(t.eventKinds.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted event kind', kind.name, { before: { id, name: kind.name } })
+  deleteEventKind(ctx: Ctx, id: string, cascade?: boolean): { id: string } {
+    const row = found(ctx.db.select().from(t.eventKinds).where(eq(t.eventKinds.id, id)).get(), 'Kind')
+    const impact = confirmCascade(ctx, 'eventKind', id, cascade)
+    removeCascade(ctx, 'eventKind', id)
+    record(ctx.db, actor(ctx).id, 'Deleted event kind', row.name, { before: { id, removed: impactSummary(impact) } })
     return { id }
   },
 
@@ -137,28 +135,19 @@ export const admin = {
     return created
   },
 
-  deleteAgeGroup(ctx: Ctx, id: string): { id: string } {
-    const groups = ctx.db.select().from(t.ageGroups).all()
-    const group = found(groups.find((g) => g.id === id), 'Age group')
-    if (groups.filter((g) => !g.retired).length === 1 && !group.retired) return fail('There must be at least one age group.', 409)
-    const events = ctx.db.select().from(t.events).where(eq(t.events.ageGroup, id)).all().length
-    const competitors = ctx.db.select().from(t.competitors).where(eq(t.competitors.ageGroup, id)).all().length
-    const ranked = ctx.db.select().from(t.rankingPoints).where(eq(t.rankingPoints.ageGroup, id)).all().length
-    if (events + competitors + ranked > 0) {
-      const used = [events && plural(events, 'event'), competitors && plural(competitors, 'competitor'), ranked && `${ranked} ranking ${ranked === 1 ? 'entry' : 'entries'}`].filter(Boolean).join(', ')
-      return fail(`${group.name} is used by ${used}, so it can't be deleted.`, 409)
-    }
-    ctx.db.delete(t.ageGroups).where(eq(t.ageGroups.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted age group', group.name, { before: { id, name: group.name } })
+  deleteAgeGroup(ctx: Ctx, id: string, cascade?: boolean): { id: string } {
+    const row = found(ctx.db.select().from(t.ageGroups).where(eq(t.ageGroups.id, id)).get(), 'Age group')
+    const impact = confirmCascade(ctx, 'ageGroup', id, cascade)
+    removeCascade(ctx, 'ageGroup', id)
+    record(ctx.db, actor(ctx).id, 'Deleted age group', row.name, { before: { id, removed: impactSummary(impact) } })
     return { id }
   },
 
-  deleteCompetition(ctx: Ctx, id: string): { id: string } {
-    const competition = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
-    const eventTotal = ctx.db.select().from(t.events).where(eq(t.events.competitionId, id)).all().length
-    if (eventTotal > 0) return fail(`${competition.name} has ${eventTotal} events, so it can't be deleted.`, 409)
-    ctx.db.delete(t.competitions).where(eq(t.competitions.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted competition', competition.name, { before: toCompetition(competition) })
+  deleteCompetition(ctx: Ctx, id: string, cascade?: boolean): { id: string } {
+    const row = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
+    const impact = confirmCascade(ctx, 'competition', id, cascade)
+    removeCascade(ctx, 'competition', id)
+    record(ctx.db, actor(ctx).id, 'Deleted competition', row.name, { before: { id, removed: impactSummary(impact) } })
     return { id }
   },
 
@@ -247,15 +236,11 @@ export const admin = {
     return { id, name, letter: adjudicator.letter, photo }
   },
 
-  deleteAdjudicator(ctx: Ctx, id: string): { id: string } {
-    const adjudicator = found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, id)).get(), 'Adjudicator')
-    const onPanels = ctx.db.select().from(t.panelMembers).where(eq(t.panelMembers.adjudicatorId, id)).all().length
-    if (onPanels > 0) return fail(`${adjudicator.name} is on ${onPanels} panels, so can't be deleted.`, 409)
-    if (ctx.db.select().from(t.submissions).where(eq(t.submissions.adjudicatorId, id)).get()) {
-      return fail(`${adjudicator.name} has submitted marks, so can't be deleted.`, 409)
-    }
-    ctx.db.delete(t.adjudicators).where(eq(t.adjudicators.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Deleted adjudicator', `${adjudicator.letter} ${adjudicator.name}`)
+  deleteAdjudicator(ctx: Ctx, id: string, cascade?: boolean): { id: string } {
+    const row = found(ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, id)).get(), 'Adjudicator')
+    const impact = confirmCascade(ctx, 'adjudicator', id, cascade)
+    removeCascade(ctx, 'adjudicator', id)
+    record(ctx.db, actor(ctx).id, 'Deleted adjudicator', `${row.letter} ${row.name}`, { before: { id, removed: impactSummary(impact) } })
     return { id }
   },
 

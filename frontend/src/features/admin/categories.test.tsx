@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderApp } from '../../test-utils.tsx'
+import { confirmDelete, renderApp } from '../../test-utils.tsx'
 
 // The sample data is shared across tests in this file, so each test uses its own records
 
@@ -38,17 +38,18 @@ describe('event kinds', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete Inter-school cup' }))
     dialog = await dialogFor('Delete Inter-school cup?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await confirmDelete(dialog)
     expect(await screen.findByText('Deleted Inter-school cup')).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByText('Inter-school cup')).not.toBeInTheDocument())
   })
 
-  it('refuses to delete a kind that events use, and says why', async () => {
+  it('lists the events that go with a kind before deleting it', async () => {
     renderApp('/admin/categories', Role.Admin)
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Standard' }))
     const dialog = await dialogFor('Delete Standard?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText(/Standard is used by \d+ events?, so it can't be deleted/)).toBeInTheDocument()
+    expect(await within(dialog).findByText('Will be deleted')).toBeInTheDocument()
+    expect(within(dialog).getByText('Events')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Delete everything' })).toBeInTheDocument()
   })
 })
 

@@ -5,7 +5,6 @@ import { Avatars } from '../../components/Avatars.tsx'
 import {
   Button,
   ButtonLink,
-  Dialog,
   ErrorState,
   IconButton,
   SearchField,
@@ -14,6 +13,7 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import {
   useAdjudicatorPins,
   useAdjudicators,
@@ -89,18 +89,6 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
     )
   }
 
-  function doDelete(adjudicator: Adjudicator) {
-    remove.mutate(adjudicator.id, {
-      onSuccess: () => {
-        setToDelete(null)
-        toast.success(`Deleted ${adjudicator.name}`)
-      },
-      onError: (e) => {
-        setToDelete(null)
-        toast.error(e.message)
-      },
-    })
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -228,22 +216,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
         onClose={() => setEditing(null)}
       />
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="Their PINs are removed too. An adjudicator who is on a panel can't be deleted."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button variant="danger" disabled={remove.isPending} onClick={() => toDelete && doDelete(toDelete)}>
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="adjudicator" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }
