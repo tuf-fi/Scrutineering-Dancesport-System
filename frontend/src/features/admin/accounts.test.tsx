@@ -61,7 +61,7 @@ describe('competitors per team', () => {
 })
 
 describe('teams', () => {
-  it('adds and deletes a team, and lists what goes with one that has competitors', async () => {
+  it('adds and deletes a team, and will not delete one that still has dancers', async () => {
     renderApp('/secretariat/teams', Role.Secretariat)
     await userEvent.click(await screen.findByRole('button', { name: 'Add team' }))
     const dialog = await screen.findByRole('dialog', { name: 'Add team' })
@@ -79,9 +79,9 @@ describe('teams', () => {
     await userEvent.clear(screen.getByLabelText('Search teams'))
     await userEvent.click((await screen.findAllByRole('button', { name: /^Delete / }))[0]!)
     const impact = await screen.findByRole('dialog')
-    expect(await within(impact).findByText('Will be deleted')).toBeInTheDocument()
-    expect(within(impact).getByText('Dancers and couples')).toBeInTheDocument()
-    expect(within(impact).getByRole('button', { name: 'Delete everything' })).toBeInTheDocument()
+    expect(await within(impact).findByText(/Move them to another team first/)).toBeInTheDocument()
+    expect(within(impact).getByText(/^Dancers and couples/)).toBeInTheDocument()
+    expect(within(impact).queryByRole('button', { name: /^Delete/ })).not.toBeInTheDocument()
   })
 })
 

@@ -2099,7 +2099,6 @@ export const deleteTeam = (actorId: string, id: string, cascade?: boolean) =>
   settle<void>(() => {
     const team = found(teams.find((c) => c.id === id), 'Team')
     confirmCascade('team', id, cascade)
-    dropCompetitors(competitors.filter((c) => c.teamId === id).map((c) => c.id))
     teams.splice(teams.indexOf(team), 1)
     record(actorId, 'Deleted team', team.name)
   })
@@ -2134,16 +2133,30 @@ function dropCompetitors(ids: string[]) {
   }
 }
 
-function impactItems(label: string, n: number, effect: 'delete' | 'change' = 'delete'): DeleteImpactItem[] {
-  return n > 0 ? [{ label, count: n, examples: [], effect }] : []
+const who = (names: string[]) => names.join(' & ')
+const eventLine = (e: (typeof events)[number]) =>
+  `E${e.number}  ${e.dances.map((d) => d.replace(/_/g, ' ')).join(', ')}, ${ageGroups.find((g) => g.id === e.ageGroup)?.name ?? e.ageGroup}, class ${e.class}, ${e.isSolo ? 'solo' : 'couples'}`
+
+function item(label: string, lines: string[], effect: 'delete' | 'change' = 'delete'): DeleteImpactItem[] {
+  return lines.length > 0 ? [{ label, count: lines.length, lines, effect }] : []
 }
 
-function underEvents(ids: string[]): DeleteImpactItem[] {
+function underEvents(ids: string[], withEvents = false): DeleteImpactItem[] {
+  const code = (id: string) => `E${events.find((e) => e.id === id)?.number ?? ''}`
   const mine = entries.filter((e) => ids.includes(e.eventId))
   const scratched = mine.filter((e) => e.scratched).length
   return [
-    ...impactItems(scratched > 0 ? `Entries (${scratched} scratched)` : 'Entries', mine.length),
-    ...impactItems('Rounds', rounds.filter((r) => ids.includes(r.eventId)).length),
+    ...(withEvents ? item('Events', ids.flatMap((id) => events.filter((e) => e.id === id).map(eventLine))) : []),
+    ...item(
+      scratched > 0 ? `Entries (${scratched} scratched)` : 'Entries',
+      mine.map((e) => `${who(competitors.find((c) => c.id === e.competitorId)?.names ?? [])}, ${code(e.eventId)}${e.scratched ? ' (scratched)' : ''}`),
+    ),
+    ...item('Rounds', rounds.filter((r) => ids.includes(r.eventId)).map((r) => `${code(r.eventId)}, ${r.type} (${r.status})`)),
+    ...item(
+      'Adjudicators taken off the panel (they stay)',
+      panels.filter((p) => ids.includes(p.eventId)).flatMap((p) => p.adjudicatorIds.map((a) => `${adjudicators.find((x) => x.id === a)?.letter ?? ''} ${adjudicators.find((x) => x.id === a)?.name ?? ''}, ${code(p.eventId)}`)),
+      'change',
+    ),
   ]
 }
 
@@ -2151,7 +2164,7 @@ export const getDeleteImpact = (kind: DeleteKind, id: string) =>
   settle<DeleteImpact>(() => deleteImpactOf(kind, id))
 
 function deleteImpactOf(kind: DeleteKind, id: string): DeleteImpact {
-  const base = { kind, id }
+  const base = { kind, id, blocked: null as string | null }
   if (kind === 'event') {
     const event = found(events.find((e) => e.id === id), 'Event')
     return { ...base, name: `E${event.number}`, items: underEvents([id]) }
@@ -2163,27 +2176,34 @@ function deleteImpactOf(kind: DeleteKind, id: string): DeleteImpact {
         : kind === 'ageGroup'
           ? found(ageGroups.find((g) => g.id === id), 'Age group').name
           : found(eventKinds.find((k) => k.id === id), 'Kind').name
-    const ids = eventsOf(kind, id)
-    return { ...base, name, items: [...impactItems('Events', ids.length), ...underEvents(ids)] }
+    return { ...base, name, items: underEvents(eventsOf(kind, id), true) }
   }
   if (kind === 'team') {
     const team = found(teams.find((c) => c.id === id), 'Team')
-    const dancers = competitors.filter((c) => c.teamId === id).map((c) => c.id)
-    return { ...base, name: team.name, items: [...impactItems('Dancers and couples', dancers.length), ...impactItems('Entries', entries.filter((e) => dancers.includes(e.competitorId)).length)] }
+    const dancers = competitors.filter((c) => c.teamId === id).map((c) => who(c.names))
+    return {
+      ...base,
+      name: team.name,
+      blocked: dancers.length > 0 ? `${team.name} still has ${dancers.length === 1 ? 'a dancer' : `${dancers.length} dancers`}. Move them to another team first.` : null,
+      items: item('Dancers and couples (they stay)', dancers, 'change'),
+    }
   }
   if (kind === 'coach') {
     const coach = found(coaches.find((c) => c.id === id), 'Coach')
-    return { ...base, name: coach.name, items: impactItems('Dancers left without a coach', competitors.filter((c) => c.details?.coachId === id).length, 'change') }
+    return { ...base, name: coach.name, items: item('Dancers left without a coach (they stay)', competitors.filter((c) => c.details?.coachId === id).map((c) => who(c.names)), 'change') }
   }
   if (kind === 'competitor') {
     const competitor = found(competitors.find((c) => c.id === id), 'Competitor')
-    return { ...base, name: competitor.names.join(' & '), items: impactItems('Entries', entries.filter((e) => e.competitorId === id).length) }
+    const mine = entries.filter((e) => e.competitorId === id)
+    return { ...base, name: who(competitor.names), items: item('Entries', mine.map((e) => `${who(competitor.names)}, E${events.find((x) => x.id === e.eventId)?.number ?? ''}${e.scratched ? ' (scratched)' : ''}`)) }
   }
   const adjudicator = found(adjudicators.find((a) => a.id === id), 'Adjudicator')
-  return { ...base, name: adjudicator.name, items: impactItems('Panel places', panels.filter((p) => p.adjudicatorIds.includes(id)).length) }
+  const places = panels.filter((p) => p.adjudicatorIds.includes(id)).map((p) => events.find((e) => e.id === p.eventId)).filter((e): e is (typeof events)[number] => Boolean(e))
+  return { ...base, name: adjudicator.name, items: item('Taken off these panels', places.map(eventLine), 'change') }
 }
 
 function confirmCascade(kind: DeleteKind, id: string, cascade: boolean | undefined) {
   const impact = deleteImpactOf(kind, id)
+  if (impact.blocked) throw new Error(impact.blocked)
   if (impact.items.length > 0 && !cascade) throw new Error(`${impact.name} has related data. Confirm to delete it too.`)
 }

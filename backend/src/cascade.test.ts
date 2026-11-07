@@ -41,6 +41,23 @@ describe('deleting with related data', () => {
     expect(app.db.select().from(t.competitors).where(eq(t.competitors.id, competitor.id)).get()).toBeDefined()
   })
 
+  it('never deletes a dancer or an adjudicator when their event goes, and blocks a team that still has dancers', async () => {
+    const event = await app.ok<Event>('saveEvent', [competitionId, { ...eventInput, number: 952 }], secretariat)
+    const competitor = app.db.select().from(t.competitors).get()!
+    const adjudicator = app.db.select().from(t.adjudicators).get()!
+    app.db.insert(t.entries).values({ id: 'keep-entry', eventId: event.id, competitorId: competitor.id }).run()
+    await app.ok('setPanel', [event.id, [adjudicator.id]], admin)
+    const impact = await app.ok<DeleteImpact>('getDeleteImpact', ['event', event.id], secretariat)
+    expect(impact.items.find((i) => i.label.startsWith('Adjudicators taken off'))).toMatchObject({ effect: 'change' })
+    await app.ok('deleteEvent', [event.id, true], secretariat)
+    expect(app.db.select().from(t.competitors).where(eq(t.competitors.id, competitor.id)).get()).toBeDefined()
+    expect(app.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, adjudicator.id)).get()).toBeDefined()
+
+    const team = await app.ok<DeleteImpact>('getDeleteImpact', ['team', competitor.teamId], secretariat)
+    expect(team.blocked).toMatch(/Move them to another team first/)
+    expect((await app.call('deleteTeam', [competitor.teamId, true], secretariat)).status).toBe(409)
+  })
+
   it('deletes an event with nothing attached without a yes', async () => {
     const event = await app.ok<Event>('saveEvent', [competitionId, { ...eventInput, number: 951 }], secretariat)
     expect((await app.ok<DeleteImpact>('getDeleteImpact', ['event', event.id], secretariat)).items).toEqual([])

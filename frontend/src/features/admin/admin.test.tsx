@@ -386,7 +386,7 @@ describe('adjudicators and panels', () => {
     // Adjudicator A marks on every panel
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Lorenzo V. Aguilar' }))
     let dialog = await dialogFor('Delete Lorenzo V. Aguilar?')
-    expect(await within(dialog).findByText('Panel places')).toBeInTheDocument()
+    expect(await within(dialog).findByText('Taken off these panels')).toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
 
     await userEvent.click(await screen.findByRole('button', { name: /^Delete (Cecilia R. Ventura|Spare Adjudicator)$/ }))

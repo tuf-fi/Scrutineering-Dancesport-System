@@ -955,9 +955,9 @@ export type DeleteKind = 'event' | 'competition' | 'ageGroup' | 'eventKind' | 't
 export interface DeleteImpactItem {
   label: string
   count: number
-  // A few names or numbers, so the person can see what the count is made of
-  examples: string[]
-  // 'delete' rows go; 'change' rows stay but lose a link, such as a coach's name on a dancer
+  // One line for each record, so the person can see exactly what the count is made of; empty for plain counts such as marks
+  lines: string[]
+  // 'delete' rows go; 'change' rows stay (people, adjudicators) and only lose a link to what is being deleted
   effect: 'delete' | 'change'
 }
 
@@ -965,6 +965,7 @@ export interface DeleteImpact {
   kind: DeleteKind
   id: string
   name: string
-  // Set when it can never be deleted, such as the last age group
+  // Set when it cannot be deleted yet, such as a team that still has dancers
+  blocked: string | null
   items: DeleteImpactItem[]
 }
