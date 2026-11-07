@@ -45,3 +45,18 @@ export async function screenshotImage(file: File, longest = 1400): Promise<strin
   bitmap.close()
   return canvas.toDataURL('image/jpeg', 0.8)
 }
+
+// Shrinks a wide picture to at most 1600 pixels on its long side, keeping its shape, for the home page
+export async function heroPhoto(file: File, longest = 1600): Promise<string> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Choose a JPEG, PNG or WebP picture.')
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, longest / Math.max(bitmap.width, bitmap.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(bitmap.width * scale)
+  canvas.height = Math.round(bitmap.height * scale)
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('This browser cannot resize pictures.')
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  bitmap.close()
+  return canvas.toDataURL('image/jpeg', 0.8)
+}

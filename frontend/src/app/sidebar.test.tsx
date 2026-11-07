@@ -52,6 +52,7 @@ describe('staff sidebar', () => {
       'Points table',
       'Payments',
       'Fees and payment details',
+      'Home page',
       'Staff accounts',
       'Security',
     ])

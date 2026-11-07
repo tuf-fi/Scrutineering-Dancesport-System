@@ -969,3 +969,9 @@ export interface DeleteImpact {
   blocked: string | null
   items: DeleteImpactItem[]
 }
+
+// What the admin sets for the public home page
+export interface SiteSettings {
+  // A data URL, or null for the built-in picture
+  heroImage: string | null
+}

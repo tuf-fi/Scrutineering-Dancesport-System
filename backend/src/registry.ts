@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import { fail, type Ctx } from './core/context.ts'
 import { admin } from './services/admin.ts'
+import { site } from './services/site.ts'
 import { deleteImpact } from './services/cascade.ts'
 import { program } from './services/program.ts'
 import { reads } from './services/reads.ts'
@@ -45,6 +46,7 @@ const handlers: Record<string, Handler> = {
   ...reads,
   getDeleteImpact: deleteImpact,
   ...admin,
+  ...site,
   ...secretariat,
   ...registration,
   ...program,
@@ -82,6 +84,8 @@ const access: Record<string, Access> = {
   getResults: 'public',
   getPointsTable: 'public',
   getCatalog: 'public',
+  getSiteSettings: 'public',
+  saveHeroImage: ADMIN,
   getRankingPoints: 'public',
   getBicolAthleteIds: 'public',
   getCompetitorHistory: 'public',

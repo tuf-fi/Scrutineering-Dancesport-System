@@ -4,6 +4,7 @@ import {
   type DeleteImpact,
   type DeleteImpactItem,
   type DeleteKind,
+  type SiteSettings,
   DISCIPLINE_DANCES,
   PIN_LENGTH,
   PayMethod,
@@ -173,6 +174,15 @@ export const getPointsTable = () => reply(pointsTable)
 // The kinds in the admin's order and the age groups from the youngest to the oldest
 const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort((a, b) => (a.oldestAge ?? Infinity) - (b.oldestAge ?? Infinity)) })
 export const getCatalog = () => reply(catalog())
+
+let heroImage: string | null = null
+export const getSiteSettings = () => reply<SiteSettings>({ heroImage })
+export const saveHeroImage = (actorId: string, image: string | null) =>
+  settle<SiteSettings>(() => {
+    heroImage = image
+    record(actorId, image ? 'Changed the home page picture' : 'Reset the home page picture', 'Home page')
+    return { heroImage }
+  })
 
 // TODO: the sample has no barker account, so its board is empty
 export const getBarkerBoard = () => reply<BarkerBoard>({ competitionName: null, ongoing: [], next: null })

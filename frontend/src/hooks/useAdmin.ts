@@ -100,3 +100,7 @@ export const useSavePointsTable = () =>
 
 export const useRevokeSessions = () =>
   useWrite((v: { kind: AccountKind; id: string }) => api.revokeSessions(actor(), v.kind, v.id), () => [])
+
+export const useSiteSettings = () => useQuery({ queryKey: ['site-settings'], queryFn: api.getSiteSettings, staleTime: 5 * 60_000 })
+
+export const useSaveHeroImage = () => useWrite((image: string | null) => api.saveHeroImage(actor(), image), () => [['site-settings']])

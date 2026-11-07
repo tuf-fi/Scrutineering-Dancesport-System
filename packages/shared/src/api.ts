@@ -20,6 +20,8 @@ export const API_FUNCTIONS = [
   'enterAdjudicatorMarks',
   'generatePins',
   'getDeleteImpact',
+  'getSiteSettings',
+  'saveHeroImage',
   'getAdjudicatorPins',
   'getAdjudicatorState',
   'getAdjudicators',

@@ -5,6 +5,7 @@ import { CategoriesPage } from '../features/admin/CategoriesPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
+import { SitePage } from '../features/admin/SitePage.tsx'
 import { TeamsPage } from '../features/secretariat/TeamsPage.tsx'
 import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
@@ -188,6 +189,7 @@ export const routes: RouteObject[] = [
               { path: 'points', element: <PointsPage /> },
               { path: 'payments', element: <PaymentsPage /> },
               { path: 'fees', element: <FeesPage /> },
+              { path: 'site', element: <SitePage /> },
               { path: 'security', element: <SecurityPage /> },
             ],
           },

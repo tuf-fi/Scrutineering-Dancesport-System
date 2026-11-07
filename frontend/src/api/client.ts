@@ -3,6 +3,7 @@
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
   AccountKind,
+  SiteSettings,
   DeleteImpact,
   DeleteKind,
   TotpSetup,
@@ -113,6 +114,8 @@ export const getPayments = (status?: PaymentStatus) => call<Payment[]>('getPayme
 export const getPaymentDetails = () => call<PaymentDetail[]>('getPaymentDetails')
 export const getPointsTable = () => call<PointsRow[]>('getPointsTable')
 export const getCatalog = () => call<Catalog>('getCatalog')
+export const getSiteSettings = () => call<SiteSettings>('getSiteSettings')
+export const saveHeroImage = (_actorId: string, image: string | null) => call<SiteSettings>('saveHeroImage', image)
 export const getBarkerBoard = () => call<BarkerBoard>('getBarkerBoard')
 export const getBicolAthleteIds = () => call<string[]>('getBicolAthleteIds')
 export const getRankingPoints = (filter: RankingFilter = {}) => call<RankingPoint[]>('getRankingPoints', filter)
