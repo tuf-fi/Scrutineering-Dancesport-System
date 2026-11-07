@@ -90,6 +90,15 @@ describe('rankings page', () => {
     expect(await screen.findByRole('heading', { name: 'Junior I · E1 · Latin' })).toBeInTheDocument()
   })
 
+  it('offers only the age groups that have standings', async () => {
+    renderApp('/standings')
+    await rowsOf()
+    const names = within(screen.getByLabelText('Age group')).getAllByRole('option').map((o) => o.textContent)
+    // The sample has points in every group but Juvenile 2, so that one is not offered
+    expect(names).toContain('Junior I')
+    expect(names).not.toContain('Juvenile 2')
+  })
+
   it('offers only the classes that have rankings', async () => {
     renderApp('/standings')
     await rowsOf()

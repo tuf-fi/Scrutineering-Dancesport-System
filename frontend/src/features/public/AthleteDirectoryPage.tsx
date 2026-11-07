@@ -14,7 +14,7 @@ const COLS = 'lg:grid-cols-[minmax(0,1.6fr)_8rem_minmax(0,1fr)_5rem_1.5rem]'
 
 // Bicol athletes: those with a ranking entry in Juvenile, Junior or Youth, with the age group they scored the most points in
 export function AthleteDirectoryPage() {
-  const { ageGroups, ageGroupLabel } = useCatalog()
+  const { catalog, ageGroups, ageGroupLabel } = useCatalog()
   const competitors = useCompetitors()
   const teams = useTeams()
   const points = useRankingPoints()
@@ -42,10 +42,16 @@ export function AthleteDirectoryPage() {
       .sort((a, b) => competitorName(a.competitor.names).localeCompare(competitorName(b.competitor.names)))
   }, [competitors.data, teams.data, points.data, listed.data])
 
+  const loading = competitors.isLoading || teams.isLoading || points.isLoading || listed.isLoading
+  // An age group is offered only when someone in the list scored in it; a retired version counts as its family
+  const familyOf = (id: string) => catalog.ageGroups.find((g) => g.id === id)?.family ?? id
+  const present = new Set(rows.flatMap((r) => (r.age ? [familyOf(r.age)] : [])))
+  const offered = loading ? ageGroups : ageGroups.filter((g) => present.has(g.family ?? g.id))
+
   const needle = query.trim().toLowerCase()
   const visible = rows.filter(
     (r) =>
-      (ageGroup === 'all' || r.age === ageGroup) &&
+      (ageGroup === 'all' || (r.age !== undefined && familyOf(r.age) === familyOf(ageGroup))) &&
       (!needle || `${competitorName(r.competitor.names)} ${r.team ?? ''} `.toLowerCase().includes(needle)),
   )
   const { page, setPage, pageSize, total, pageItems } = usePagination(visible, `${ageGroup}|${needle}`)
@@ -54,7 +60,6 @@ export function AthleteDirectoryPage() {
     return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), teams.refetch(), points.refetch(), listed.refetch()])} />
   }
 
-  const loading = competitors.isLoading || teams.isLoading || points.isLoading || listed.isLoading
 
   return (
     <div className="flex flex-col gap-8">
@@ -72,14 +77,16 @@ export function AthleteDirectoryPage() {
 
       <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] sm:gap-x-4">
         <SearchField className="col-span-2 sm:col-span-1" label="Search Bicol athletes" value={query} onChange={setQuery} />
-        <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="col-span-2 sm:col-span-1">
-          <option value="all">All age groups</option>
-          {ageGroups.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </Select>
+        {offered.length > 0 && (
+          <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="col-span-2 sm:col-span-1">
+            <option value="all">All age groups</option>
+            {offered.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </Select>
+        )}
       </div>
 
       <section aria-labelledby="directory" className="flex flex-col gap-4">

@@ -27,7 +27,7 @@ function parse<T extends string>(value: string | null, allowed: readonly T[], fa
 }
 
 export function RankingsPage() {
-  const { ageGroups, eventGrade } = useCatalog()
+  const { catalog, ageGroups: allGroups, eventGrade } = useCatalog()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const points = useRankingPoints()
@@ -35,8 +35,16 @@ export function RankingsPage() {
   const teams = useTeams()
 
   const classes = useMemo(() => availableClasses(points.data ?? []), [points.data])
+  // Only the age groups that have standings are offered; a retired version counts as its family
+  const ageGroups = useMemo(() => {
+    // Until the points arrive every group is listed, so the filter does not jump when they do
+    if (!points.data) return allGroups
+    const familyOf = (id: string) => catalog.ageGroups.find((g) => g.id === id)?.family ?? id
+    const present = new Set(points.data.map((p) => familyOf(p.ageGroup)))
+    return allGroups.filter((g) => present.has(g.family ?? g.id))
+  }, [points.data, allGroups, catalog.ageGroups])
   const discipline = parse(params.get('discipline'), Object.values(Discipline), Discipline.Latin)
-  const ageGroup = parse(params.get('age'), ageGroups.map((g) => g.id), ageGroups.find((g) => g.id === AgeGroup.Junior1)?.id ?? ageGroups[0]?.id ?? '')
+  const ageGroup = parse(params.get('age'), ageGroups.map((g) => g.id), ageGroups.find((g) => g.id === AgeGroup.Junior1)?.id ?? ageGroups[0]?.id ?? allGroups[0]?.id ?? '')
   const cls = parse(params.get('class'), classes.length ? classes : [Class.E1], Class.E1)
 
   const set = (key: string) => (value: string) =>
@@ -80,6 +88,7 @@ export function RankingsPage() {
   if (points.isError || competitors.isError || teams.isError) {
     return <ErrorState onRetry={() => void Promise.all([points.refetch(), competitors.refetch(), teams.refetch()])} />
   }
+  const nothingYet = !loading && (points.data ?? []).length === 0
 
   return (
     <div className="flex flex-col gap-8">
@@ -95,6 +104,10 @@ export function RankingsPage() {
         }
       />
 
+      {nothingYet ? (
+        <EmptyState title="No standings yet" description="Points appear here once the first results are approved." />
+      ) : (
+        <>
       <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))] sm:gap-x-4">
         <SearchField className="col-span-2 sm:col-span-1" value={query} onChange={setQuery} />
         <Select label="Discipline" value={discipline} onChange={(e) => set('discipline')(e.target.value)}>
@@ -200,6 +213,8 @@ export function RankingsPage() {
           />
         )}
       </section>
+        </>
+      )}
     </div>
   )
 }
