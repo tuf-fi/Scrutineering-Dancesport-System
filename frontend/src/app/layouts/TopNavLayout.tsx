@@ -1,6 +1,6 @@
 import { Role } from '@bis/shared'
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router'
 import { Brand } from '../../components/Brand.tsx'
 import { SignInChooser } from '../../components/SignInChooser.tsx'
 import { Button } from '../../components/ui/index.ts'
@@ -70,7 +70,7 @@ function TopNavLayout({ items, right }: { items: NavItem[]; right: ReactNode }) 
   )
 }
 
-// Right side of the navbar: the signed-in athlete, a link back to staff screens, or the athlete sign-in
+// Right side of the navbar: the signed-in athlete, coach or team, or the sign-in
 function Account() {
   const user = useAuth((s) => s.user)
   const signOut = useSignOut(user?.role === Role.Coach ? '/coach/sign-in' : user?.role === Role.Team ? '/team/sign-in' : '/athlete/sign-in')
@@ -97,13 +97,6 @@ function Account() {
       </>
     )
   }
-  if (user.role !== Role.Athlete) {
-    return (
-      <Link to={roleHome[user.role]} className="text-small font-semibold text-white underline decoration-white/40 underline-offset-4 hover:decoration-white">
-        Dashboard
-      </Link>
-    )
-  }
   return (
     <>
       <NotificationBell />
@@ -112,6 +105,11 @@ function Account() {
   )
 }
 
+// Staff and adjudicators belong on their own screens: a public address sends them straight back
+const MEMBER_ROLES: Role[] = [Role.Athlete, Role.Coach, Role.Team, Role.Public]
+
 export function PublicLayout() {
+  const user = useAuth((s) => s.user)
+  if (user && !MEMBER_ROLES.includes(user.role)) return <Navigate to={roleHome[user.role]} replace />
   return <TopNavLayout items={publicNav} right={<Account />} />
 }
