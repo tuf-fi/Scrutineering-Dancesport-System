@@ -6,6 +6,7 @@ import { Button, ButtonLink, Dialog, ErrorState, PageHeader, SkeletonList, Table
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
 import { DANCE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
+import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -63,7 +64,7 @@ function columnsFor(table: SkatingTable) {
 }
 
 export function ResultsPage() {
-  const { rounds, list, roundId, row, setRoundId, readOnly, isChairperson } = useRoundChoice()
+  const { rounds, list, roundId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice()
   const skating = useSkatingTable(roundId)
   const undecided = row?.status === RoundStatus.Marking || row?.status === RoundStatus.Review
   const finalTie = useFinalTie(roundId, Boolean(row) && row?.recallNumber === null && undecided)
@@ -72,6 +73,7 @@ export function ResultsPage() {
   const [confirming, setConfirming] = useState<'approve' | 'publish' | null>(null)
 
   if (rounds.isError || skating.isError) return <ErrorState onRetry={() => void Promise.all([rounds.refetch(), skating.refetch()])} />
+  if (noRounds) return <NoRounds title="Results" description="Each adjudicator's marks and how the round works out." canPlan={!readOnly} />
 
   const status = row?.status
   const action = status === RoundStatus.Review ? 'approve' : status === RoundStatus.Approved ? 'publish' : null

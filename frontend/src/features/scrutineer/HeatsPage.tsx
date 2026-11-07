@@ -18,6 +18,7 @@ import {
 } from '../../components/ui/index.ts'
 import { useCompetitorRows, useHeatAssignments, useSaveHeats } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
+import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -184,10 +185,11 @@ function HeatEditor({
 }
 
 export function HeatsPage() {
-  const { rounds, list, roundId, row, setRoundId, readOnly } = useRoundChoice()
+  const { rounds, list, roundId, row, setRoundId, readOnly, noRounds } = useRoundChoice()
   const heats = useHeatAssignments(roundId)
 
   if (rounds.isError || heats.isError) return <ErrorState onRetry={() => void Promise.all([rounds.refetch(), heats.refetch()])} />
+  if (noRounds) return <NoRounds title="Heats" description="Split the round's competitors into heats, then move anyone who needs a different one." canPlan={!readOnly} />
 
   const roundSelect = <RoundSelect rounds={list} value={roundId} onChange={setRoundId} />
   const closed = row?.status === RoundStatus.Approved || row?.status === RoundStatus.Published

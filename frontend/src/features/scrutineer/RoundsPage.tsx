@@ -102,7 +102,7 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
 }
 
 export function RoundsPage() {
-  const { competitionId, rounds, list, roundId, row, readOnly } = useRoundChoice()
+  const { competitionId, rounds, list, roundId, row, readOnly, fallback } = useRoundChoice()
   const start = useStartRound()
   const plan = usePlanRounds()
   const [query, setQuery] = useState('')
@@ -123,7 +123,7 @@ export function RoundsPage() {
     <div className="flex flex-col gap-8">
       <PageHeader title="Rounds" description="Where the competition is, and every round still to run." />
 
-      {row && row.status !== RoundStatus.Pending ? (
+      {row && !fallback && row.status !== RoundStatus.Pending ? (
         <OnTheFloor key={roundId} row={row} competitionId={competitionId} readOnly={readOnly} />
       ) : null}
 

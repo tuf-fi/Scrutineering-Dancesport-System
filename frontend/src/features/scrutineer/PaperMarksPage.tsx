@@ -4,6 +4,7 @@ import { EmptyState, ErrorState, PageHeader, Select, SkeletonList, Toolbar, toas
 import { useAdjudicators, useEnterAdjudicatorMarks, useLiveSubmissions, useMarkingTask } from '../../hooks/index.ts'
 import { MarkSheet } from '../adjudicator/MarkSheet.tsx'
 import { GoToFloor } from './GoToFloor.tsx'
+import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -11,10 +12,11 @@ const OPEN = [RoundStatus.Marking, RoundStatus.Review] as const
 
 // The paper fallback: an adjudicator whose phone failed hands in their sheet, and the scrutineer types it in here
 export function PaperMarksPage() {
-  const { rounds, list, roundId, floorId, row, setRoundId } = useRoundChoice()
+  const { rounds, list, roundId, floorId, row, setRoundId, noRounds } = useRoundChoice()
   const [adjudicatorId, setAdjudicatorId] = useState('')
 
   if (rounds.isError) return <ErrorState onRetry={() => void rounds.refetch()} />
+  if (noRounds) return <NoRounds title="Paper marks" description="Type in the marks from an adjudicator's paper sheet when their phone could not send them." canPlan />
 
   const roundSelect = (
     <div className="flex min-w-0 flex-wrap items-end gap-2">

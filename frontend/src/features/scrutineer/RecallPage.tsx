@@ -6,6 +6,7 @@ import { Badge, Button, ErrorState, DarkPanel, PageHeader, Skeleton, Table, glas
 import { useConfirmTie, useProposeTie, useRecallTable } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
+import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -154,12 +155,13 @@ function TiePanel({
 }
 
 export function RecallPage() {
-  const { rounds, list, roundId, floorId, row, setRoundId, readOnly, isChairperson } = useRoundChoice()
+  const { rounds, list, roundId, floorId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice()
   const isFinal = row?.recallNumber === null
   const recall = useRecallTable(roundId, Boolean(row) && !isFinal)
   const tieStatus = useTieStatus(recall.data, isChairperson)
 
   if (rounds.isError || recall.isError) return <ErrorState onRetry={() => void Promise.all([rounds.refetch(), recall.refetch()])} />
+  if (noRounds) return <NoRounds title="Recall" description="X marks per competitor, with the cutoff for the next round." canPlan={!readOnly} />
 
   const table = recall.data
   const cutoffRank = table ? table.rows.filter((r) => r.outcome === 'recalled').length : 0

@@ -7,6 +7,7 @@ import { ErrorState, DarkPanel, PageHeader, Skeleton, glass } from '../../compon
 import { useAdjudicators, useLiveSubmissions, useCatalog } from '../../hooks/index.ts'
 import { eventCode, eventDances } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
+import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -137,9 +138,10 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
 }
 
 export function LivePage() {
-  const { rounds, list, roundId, floorId, row, setRoundId } = useRoundChoice()
+  const { rounds, list, roundId, floorId, row, setRoundId, noRounds, readOnly } = useRoundChoice()
 
   if (rounds.isError) return <ErrorState onRetry={() => void rounds.refetch()} />
+  if (noRounds) return <NoRounds title="Live board" description="Each adjudicator's phone, updating as marks come in." canPlan={!readOnly} />
 
   return (
     <div className="flex flex-col gap-6">
