@@ -58,7 +58,7 @@ export const useUpdateStaff = () =>
   )
 
 export const useDeleteStaff = () =>
-  useWrite((id: string) => api.deleteStaffUser(actor(), id), () => [['staff-users']])
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteStaffUser(actor(), v.id, v.cascade), () => [['staff-users']])
 
 export const useUpdateAdjudicator = () =>
   useWrite(

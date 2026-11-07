@@ -7,6 +7,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
+import { confirmCascade, removeCascade } from './cascade.ts'
 import { reads } from './reads.ts'
 import { changeMemberPassword, isMember, markMemberNotificationsRead, memberCompetitors, memberNotifications, signOutMember } from './members.ts'
 import { MAX_RECEIPT, MIN_PASSWORD, PHOTO, checkPhoto, clean, giveAthleteMembershipId } from './shared.ts'
@@ -337,9 +338,10 @@ export const athletes = {
     return { tempPassword }
   },
 
-  deleteAthlete(ctx: Ctx, id: string): void {
+  deleteAthlete(ctx: Ctx, id: string, cascade?: boolean): void {
     const row = found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, id)).get(), 'Athlete')
-    ctx.db.delete(t.athletes).where(eq(t.athletes.id, id)).run()
+    confirmCascade(ctx, 'athlete', id, cascade)
+    removeCascade(ctx, 'athlete', id)
     record(ctx.db, actor(ctx).id, 'Deleted an athlete account', row.name)
   },
 }

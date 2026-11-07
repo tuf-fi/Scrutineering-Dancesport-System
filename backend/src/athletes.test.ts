@@ -123,7 +123,7 @@ describe('athlete accounts', () => {
 
   it('deletes an account', async () => {
     const rows = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
-    await app.ok('deleteAthlete', [rows[0]!.id], secretariat)
+    await app.ok('deleteAthlete', [rows[0]!.id, true], secretariat)
     expect(await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).toHaveLength(rows.length - 1)
   })
 })

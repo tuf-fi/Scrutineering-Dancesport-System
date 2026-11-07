@@ -15,6 +15,7 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useDeleteStaff, useResetStaffPassword, useResetTotp, useStaffUsers } from '../../hooks/index.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
@@ -62,18 +63,6 @@ export function StaffPage() {
     })
   }
 
-  function doDelete(user: StaffUser) {
-    remove.mutate(user.id, {
-      onSuccess: () => {
-        setToDelete(null)
-        toast.success(`Deleted ${user.name}`)
-      },
-      onError: (e) => {
-        setToDelete(null)
-        toast.error(e.message)
-      },
-    })
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -211,22 +200,7 @@ export function StaffPage() {
         }
       />
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete ${toDelete?.name ?? ''}?`}
-        description="They can no longer sign in. This can't be undone."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button variant="danger" disabled={remove.isPending} onClick={() => toDelete && doDelete(toDelete)}>
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="staff" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
 
       <TempPasswordDialog
         title={shown?.title ?? ''}

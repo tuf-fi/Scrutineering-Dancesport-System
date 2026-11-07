@@ -2,6 +2,7 @@ import { membershipLabel, type AthleteRow } from '@bis/shared'
 import { Check, KeyRound, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, toast } from '../../components/ui/index.ts'
+import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useAthletes, useConfirmMembership, useCorrectAthlete, useDeleteAthlete, useRejectMembership, useResetAthletePassword } from '../../hooks/index.ts'
 
 import { useAuth } from '../../stores/auth.ts'
@@ -258,38 +259,7 @@ export function AthletesPage() {
         {tempPassword && <p className="font-mono text-title text-neutral-900">{tempPassword}</p>}
       </Dialog>
 
-      <Dialog
-        open={toDelete !== null}
-        onClose={() => setToDelete(null)}
-        title={`Delete the account of ${toDelete?.name ?? ''}?`}
-        description="This can't be undone. Their entries and results are not affected."
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setToDelete(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={remove.isPending}
-              onClick={() =>
-                toDelete &&
-                remove.mutate(toDelete.id, {
-                  onSuccess: () => {
-                    toast.success(`Deleted ${toDelete.name}`)
-                    setToDelete(null)
-                  },
-                  onError: (e) => {
-                    setToDelete(null)
-                    toast.error(e.message)
-                  },
-                })
-              }
-            >
-              {remove.isPending ? 'Deleting…' : 'Delete'}
-            </Button>
-          </>
-        }
-      />
+      <DeleteDialog kind="athlete" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )
 }

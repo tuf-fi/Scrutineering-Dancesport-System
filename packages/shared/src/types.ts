@@ -950,7 +950,7 @@ export interface AlertNote {
 }
 
 // What a delete would take with it, so a screen can show it before the person confirms
-export type DeleteKind = 'event' | 'competition' | 'ageGroup' | 'eventKind' | 'team' | 'coach' | 'competitor' | 'adjudicator'
+export type DeleteKind = 'event' | 'competition' | 'ageGroup' | 'eventKind' | 'team' | 'coach' | 'competitor' | 'adjudicator' | 'staff' | 'athlete'
 
 export interface DeleteImpactItem {
   label: string

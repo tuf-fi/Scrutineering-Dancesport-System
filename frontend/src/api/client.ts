@@ -135,7 +135,7 @@ export const createStaffUser = (_actorId: string, input: { name: string; usernam
   call<{ user: StaffUser; tempPassword: string }>('createStaffUser', input)
 export const updateStaffUser = (_actorId: string, id: string, input: { name: string; role: Role; photo?: string }) =>
   call<StaffUser>('updateStaffUser', id, input)
-export const deleteStaffUser = (_actorId: string, id: string) => call<{ id: string }>('deleteStaffUser', id)
+export const deleteStaffUser = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteStaffUser', id, cascade)
 export const resetStaffPassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetStaffPassword', id)
 export const getTotpStatus = (_actorId: string) => call<TotpStatus>('getTotpStatus')
 export const startTotpSetup = (_actorId: string) => call<TotpSetup>('startTotpSetup')
@@ -303,7 +303,7 @@ export const rejectMembership = (_actorId: string, id: string, reason: string) =
 export const resetAthletePassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetAthletePassword', id)
 export const correctAthlete = (_actorId: string, id: string, input: { name: string; birthDate: string }) => call<void>('correctAthlete', id, input)
 export const correctMember = (_actorId: string, id: string, input: { name: string; birthDate: string }) => call<void>('correctMember', id, input)
-export const deleteAthlete = (_actorId: string, id: string) => call<void>('deleteAthlete', id)
+export const deleteAthlete = (_actorId: string, id: string, cascade?: boolean) => call<void>('deleteAthlete', id, cascade)
 export const signOut = () => auth<null>('sign-out', {})
 // Who the cookie belongs to, or null: used when the page loads
 export const getSession = () => getSessionFromServer<SessionUser | null>()

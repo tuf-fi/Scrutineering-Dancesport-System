@@ -6,7 +6,7 @@ import { actor, fail, type Ctx } from '../core/context.ts'
 // People (dancers, adjudicators, athletes) and competitions are never deleted as a side effect:
 // they are only taken off the event or competition that goes.
 
-const ADMIN_ONLY: DeleteKind[] = ['competition', 'ageGroup', 'eventKind', 'adjudicator']
+const ADMIN_ONLY: DeleteKind[] = ['competition', 'ageGroup', 'eventKind', 'adjudicator', 'staff']
 const MAX_LINES = 300
 
 const inList = (ids: string[]) => ids.map(() => '?').join(', ')
@@ -210,6 +210,18 @@ export function deleteImpact(ctx: Ctx, kind: DeleteKind, id: string): DeleteImpa
     if (!row) return fail('Competitor not found.', 404)
     return { ...base, name: namesOf(row.names), items: underCompetitors(ctx, [id]) }
   }
+  if (kind === 'staff') {
+    const row = one('SELECT name, role, disabled FROM staff_users WHERE id = ?')
+    if (!row) return fail('Staff account not found.', 404)
+    const admins = count(ctx, "staff_users WHERE role = 'admin' AND disabled = 0")
+    const blocked = id === user.id ? "You can't delete your own account." : row.role === Role.Admin && admins === 1 ? 'There must be at least one admin.' : null
+    return { ...base, name: String(row.name), blocked, items: [] }
+  }
+  if (kind === 'athlete') {
+    const row = one('SELECT name FROM athletes WHERE id = ?')
+    if (!row) return fail('Athlete not found.', 404)
+    return { ...base, name: String(row.name), items: counted('Notifications', count(ctx, 'notifications WHERE athlete_id = ?', id)) }
+  }
   const row = one('SELECT letter, name FROM adjudicators WHERE id = ?')
   if (!row) return fail('Adjudicator not found.', 404)
   const places = rows(ctx, 'SELECT p.event_id FROM panel_members m JOIN panels p ON p.id = m.panel_id WHERE m.adjudicator_id = ?', id)
@@ -272,6 +284,8 @@ export function removeCascade(ctx: Ctx, kind: DeleteKind, id: string) {
     return void ctx.sqlite.prepare('DELETE FROM coaches WHERE id = ?').run(id)
   }
   if (kind === 'competitor') return removeCompetitors(ctx, [id])
+  if (kind === 'staff') return void ctx.sqlite.prepare('DELETE FROM staff_users WHERE id = ?').run(id)
+  if (kind === 'athlete') return void ctx.sqlite.prepare('DELETE FROM athletes WHERE id = ?').run(id)
   ctx.sqlite.prepare('DELETE FROM marks WHERE adjudicator_id = ?').run(id)
   ctx.sqlite.prepare('DELETE FROM submissions WHERE adjudicator_id = ?').run(id)
   ctx.sqlite.prepare('DELETE FROM adjudicators WHERE id = ?').run(id)

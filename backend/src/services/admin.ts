@@ -180,11 +180,10 @@ export const admin = {
     return toStaff({ ...user, name, role, photo })
   },
 
-  deleteStaffUser(ctx: Ctx, id: string): { id: string } {
-    if (id === actor(ctx).id) return fail("You can't delete your own account.", 409)
+  deleteStaffUser(ctx: Ctx, id: string, cascade?: boolean): { id: string } {
     const user = found(ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.id, id)).get(), 'Staff account')
-    if (user.role === Role.Admin && adminCount(ctx) === 1) return fail('There must be at least one admin.', 409)
-    ctx.db.delete(t.staffUsers).where(eq(t.staffUsers.id, id)).run()
+    confirmCascade(ctx, 'staff', id, cascade)
+    removeCascade(ctx, 'staff', id)
     record(ctx.db, actor(ctx).id, 'Deleted staff account', user.name, { before: { username: user.username, role: user.role } })
     return { id }
   },

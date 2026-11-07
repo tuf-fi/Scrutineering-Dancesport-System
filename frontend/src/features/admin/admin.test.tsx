@@ -55,7 +55,7 @@ describe('competitions', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'New competition' }))
     dialog = await dialogFor('New competition')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    await userEvent.click(within(dialog).getAllByRole('button', { name: 'Close' }).at(-1)!)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'New competition' }))
@@ -302,8 +302,9 @@ describe('staff accounts', () => {
     // The signed-in user is Amelia, the only admin
     await userEvent.click(screen.getByRole('button', { name: 'Delete Amelia Rosales' }))
     dialog = await dialogFor('Delete Amelia Rosales?')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
-    expect(await screen.findByText("You can't delete your own account.")).toBeInTheDocument()
+    expect(await within(dialog).findByText('There must be at least one admin.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    await userEvent.click(within(dialog).getAllByRole('button', { name: 'Close' }).at(-1)!)
     expect(within(screen.getByRole('table')).getByText('Amelia Rosales')).toBeInTheDocument()
   })
 })

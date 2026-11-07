@@ -82,7 +82,7 @@ export const useResetAthletePassword = () => useWrite((id: string) => api.resetA
 
 export const useCorrectAthlete = () => useWrite((v: { id: string; name: string; birthDate: string }) => api.correctAthlete(actor(), v.id, { name: v.name, birthDate: v.birthDate }), ['athletes'])
 
-export const useDeleteAthlete = () => useWrite((id: string) => api.deleteAthlete(actor(), id), ['athletes'])
+export const useDeleteAthlete = () => useWrite((v: { id: string; cascade?: boolean }) => api.deleteAthlete(actor(), v.id, v.cascade), ['athletes'])
 
 // Coaches and teams sign in the same way as athletes, each to their own page
 export const useSignUpMember = (role: 'coach' | 'team') =>

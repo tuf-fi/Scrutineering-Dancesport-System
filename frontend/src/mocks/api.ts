@@ -367,8 +367,9 @@ export const updateStaffUser = (actorId: string, id: string, input: { name: stri
     return user
   })
 
-export const deleteStaffUser = (actorId: string, id: string) =>
+export const deleteStaffUser = (actorId: string, id: string, cascade?: boolean) =>
   settle<{ id: string }>(() => {
+    void cascade
     if (id === actorId) throw new Error("You can't delete your own account.")
     const index = staffUsers.findIndex((s) => s.id === id)
     const user = found(staffUsers[index], 'Staff account')
@@ -2068,8 +2069,9 @@ export const correctMember = (actorId: string, id: string, input: { name: string
     member.birthDate = input.birthDate
   })
 
-export const deleteAthlete = (actorId: string, id: string) =>
+export const deleteAthlete = (actorId: string, id: string, cascade?: boolean) =>
   settle<void>(() => {
+    void cascade
     const athlete = athleteOf(id)
     sampleAthletes.splice(sampleAthletes.indexOf(athlete), 1)
     record(actorId, 'Deleted an athlete account', athlete.name)
@@ -2197,6 +2199,12 @@ function deleteImpactOf(kind: DeleteKind, id: string): DeleteImpact {
     const mine = entries.filter((e) => e.competitorId === id)
     return { ...base, name: who(competitor.names), items: item('Entries', mine.map((e) => `${who(competitor.names)}, E${events.find((x) => x.id === e.eventId)?.number ?? ''}${e.scratched ? ' (scratched)' : ''}`)) }
   }
+  if (kind === 'staff') {
+    const user = found(staffUsers.find((s) => s.id === id), 'Staff account')
+    const blocked = user.role === Role.Admin && adminCount() === 1 ? 'There must be at least one admin.' : null
+    return { ...base, name: user.name, blocked, items: [] }
+  }
+  if (kind === 'athlete') return { ...base, name: athleteOf(id).name, items: [] }
   const adjudicator = found(adjudicators.find((a) => a.id === id), 'Adjudicator')
   const places = panels.filter((p) => p.adjudicatorIds.includes(id)).map((p) => events.find((e) => e.id === p.eventId)).filter((e): e is (typeof events)[number] => Boolean(e))
   return { ...base, name: adjudicator.name, items: item('Taken off these panels', places.map(eventLine), 'change') }
