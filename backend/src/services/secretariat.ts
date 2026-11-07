@@ -80,7 +80,6 @@ export function checkEligible(ctx: Ctx, competitorId: string, event: { competiti
   if ((competitor.names.length === 1) !== event.isSolo) return fail(event.isSolo ? 'This is a solo event.' : 'This is a couple event.')
   const couple = competitor.names.length > 1
   const catalog = catalogOf(ctx)
-  if (competitor.ageGroup && !ageGroupFits(event.ageGroup, competitor.ageGroup, couple, catalog.ageGroups)) return fail('This competitor is in a different age group.')
   // The age that counts is the older partner's, in the competition's year
   const date = ctx.db.select({ date: t.competitions.date }).from(t.competitions).where(eq(t.competitions.id, event.competitionId)).get()?.date
   const birthYears = (competitor.details?.dancers ?? []).map((d) => Number(d.birthDate?.slice(0, 4))).filter((y) => y > 0)
@@ -91,6 +90,8 @@ export function checkEligible(ctx: Ctx, competitorId: string, event: { competiti
       409,
     )
   }
+  // Without usable birth dates, the age group kept on the competitor is all there is to go by
+  if (!bornIn && competitor.ageGroup && !ageGroupFits(event.ageGroup, competitor.ageGroup, couple, catalog.ageGroups)) return fail('This competitor is in a different age group.')
   if (kindOf(catalog.kinds, event.kind)?.closedToProvince && !sameProvince(competitor.details?.province, event.province)) {
     return fail(`E${event.number} is closed to ${event.province}. This entry is from ${competitor.details?.province?.trim() || 'no province'}.`, 409)
   }

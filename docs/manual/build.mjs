@@ -73,7 +73,7 @@ out.push(`<div class="cover">
   <img src="../../frontend/src/assets/logo.png" alt="BOSS">
   <div><div class="bar"></div><p class="kicker">Bicol Oragon Scruteneering System</p><h1>User<br>Manual</h1>
   <p>Every screen and every action, role by role, then a step-by-step guide to running a whole competition.</p></div>
-  <p class="roles">Visitors · Athletes · Coaches · Teams · Adjudicators · Compere · Scrutineer · Chairperson · Secretariat · Admin</p>
+  <p class="roles">Visitors · Athletes · Coaches · Teams · Adjudicators · Compere · Barker · Scrutineer · Chairperson · Secretariat · Admin</p>
 </div>`)
 out.push('@@TOC@@')
 
@@ -83,12 +83,13 @@ out.push(pageNew(`
 <p class="lead">Find your role, then go to its section. Each section starts with a page showing the role's name, then explains every screen it has.</p>
 <table>
 <tr><th>Role</th><th>What you do</th><th>Sign in</th><th>Use</th></tr>
-<tr><td>Visitor</td><td>Watch the program, results and rankings.</td><td>None</td><td>Phone</td></tr>
-<tr><td>Athlete</td><td>Keep your details, pay membership, send your own entries.</td><td>Email</td><td>Phone</td></tr>
-<tr><td>Coach</td><td>Follow your athletes' results and entries.</td><td>Email</td><td>Phone</td></tr>
+<tr><td>Visitor</td><td>Watch the program, results and standings.</td><td>None</td><td>Phone</td></tr>
+<tr><td>Athlete</td><td>Keep your details, pay membership, send your own entries.</td><td>Membership ID or email</td><td>Phone</td></tr>
+<tr><td>Coach</td><td>Follow your athletes' results and entries.</td><td>Membership ID or email</td><td>Phone</td></tr>
 <tr><td>Team</td><td>Follow your dancers, pay and send their entries.</td><td>Email</td><td>Phone</td></tr>
 <tr><td>Adjudicator</td><td>Mark the dancers.</td><td>6-digit PIN</td><td>Phone</td></tr>
 <tr><td>Compere</td><td>Read out who is called and who won.</td><td>Email</td><td>Laptop or screen</td></tr>
+<tr><td>Barker</td><td>Line the competitors up and call them to be ready.</td><td>Email</td><td>Phone or tablet</td></tr>
 <tr><td>Scrutineer</td><td>Run each round, check marks, publish results.</td><td>Email</td><td>Laptop</td></tr>
 <tr><td>Chairperson</td><td>Watch the marks and confirm tie decisions.</td><td>Email</td><td>Laptop</td></tr>
 <tr><td>Secretariat</td><td>Enter dancers, give back numbers, plan the program.</td><td>Email</td><td>Laptop</td></tr>
@@ -96,9 +97,9 @@ out.push(pageNew(`
 </table>
 <div class="signin"><div><h2 style="margin-top:0">Where to sign in</h2>
 <ul>
-<li><b>Staff</b> (admin, secretariat, scrutineer, chairperson, compere): the website address followed by <b>/staff-access</b>.</li>
+<li><b>Staff</b> (admin, secretariat, scrutineer, chairperson, compere, barker): the website address followed by <b>/staff-access</b>.</li>
 <li><b>Adjudicators:</b> the same page, <b>Adjudicator</b> tab, or the website address followed by <b>/adjudicator</b>.</li>
-<li><b>Athletes, coaches and teams:</b> press <b>Sign in</b> on the website and choose who you are.</li>
+<li><b>Athletes, coaches and teams:</b> press <b>Sign in</b> on the website and choose who you are. Athletes and coaches type their <b>membership ID</b> or their email; teams type their email.</li>
 </ul>
 ${note('Everyone needs an internet connection: mobile data or Wi-Fi is fine. Staff and adjudicators are given their account by the admin.')}</div>
 ${I('athlete/signup', 'Athletes, coaches and teams create their own account.', { mm: 38, h: 1100 })}</div>
@@ -108,7 +109,7 @@ out.push(pageNew(`
 <p class="num">Start here</p><h1>What every signed-in person has</h1>
 <p class="lead">These work the same for everyone.</p>
 <h2>Pop-up messages</h2>
-<p>Short messages with a small sound appear on the screen when something needs you. Staff see them for new entry requests, new account links and membership payments. The admin hears the same ones as the secretariat. Athletes, coaches and teams see what the secretariat decided, and the same message is kept under <b>Notifications</b>. Adjudicators and the compere get none.</p>
+<p>Short messages with a small sound appear on the screen when something needs you. Staff see them for new entry requests, new account links, membership payments and changes to names and birth dates. The admin hears the same ones as the secretariat. Athletes, coaches and teams see what the secretariat decided, and the same message is kept under <b>Notifications</b>. Adjudicators and the compere get none.</p>
 <h2>Required fields and saving</h2>
 <p>A field that must be filled in has a red <b>*</b> after its label. Buttons that save are switched off while the save is under way, so pressing twice never saves twice. On a phone the fields do not zoom in when you tap them.</p>
 <h2>Your password</h2>
@@ -120,11 +121,11 @@ out.push(pageNew(`
 `))
 
 // ================================================================================ VISITOR
-out.push(divider('Visitors', 'No account needed. Use your phone.', 'Home · Competitions · Program · Results · Athletes · Rankings · Privacy · Sign in'))
+out.push(divider('Visitors', 'No account needed. Use your phone.', 'Home · Competitions · Program · Bicol Athletes · Results · Standings · Privacy · Sign in'))
 out.push(pageCols(
   feat('Home', 'Open the website', 'The front page of the website.', [
     'Upcoming events: a photo card for each competition with its date. Press one to open that competition.',
-    'Latest competitions: press one to see its ranking.',
+    'Latest competitions: press one to see its results.',
     'How to join: a short guide for newcomers.',
   ], [I('public/home', 'Top of the page'), I('public/home-join', 'How to join')], true),
   feat('Competitions', 'Menu: Competitions', 'Every competition in one list.', [
@@ -143,16 +144,25 @@ out.push(pageCols(
     'Type a back number to follow one competitor.',
     'Press Print to print the program or save it as a PDF.',
   ], [I('public/program')], true),
-  feat('Event results', 'A competition, then an event', 'The published results of one event.', [
+  feat('Event results', 'Results or Competitions, then a competition, then an event', 'The published results of one event.', [
     'Results show only after the scrutineer publishes them. Until then you see "No results yet".',
   ], [I('public/event-results')], true),
-  feat('Athletes', 'Menu: Athletes', 'A directory of competitors and teams.', ['Search by name.', 'Press a name to open that dancer.'], [I('public/athletes')], true),
-  feat('A competitor', 'Athletes, then a name', 'One dancer or couple.', ['See their points, their results and their history.'], [I('public/competitor')], true),
-  feat('Rankings', 'Menu: Rankings', 'Points from every approved result.', [
+  feat('Bicol Athletes', 'Menu: Bicol Athletes', 'The athletes and couples who have a ranking entry.', [
+    'Only those with points in a ranking event in Juvenile, Junior or Youth are listed. A Junior solo is listed only for a female dancer.',
+    'Search by name or team and filter by age group.',
+    'Press a name to open that dancer.',
+  ], [I('public/athletes')], true),
+  feat('A competitor', 'Bicol Athletes, then a name', 'One dancer or couple.', ['See their points, their results and their history.'], [I('public/competitor')], true),
+  feat('Results', 'Menu: Results', 'The competitions that have been held.', [
+    'Newest first. Search by name.',
+    'Press a competition to see its events that have results, then press an event to read its results.',
+    'A competition that has not been held yet is not listed here. Find it under Competitions.',
+  ], [I('public/results'), I('public/results-competition', 'A competition opened from Results')], true),
+  feat('Standings', 'Menu: Standings', 'Points from every approved result.', [
     'Choose the style, age group and class.',
     'Press a name to see that dancer\'s full record.',
-    'Rankings update as soon as the scrutineer approves a result.',
-  ], [I('public/rankings')], true),
+    'Standings update as soon as the scrutineer approves a result.',
+  ], [I('public/standings')], true),
   feat('Privacy notice', 'Bottom of every page', 'How details from entry forms are kept.', [], [I('public/privacy')], true),
   feat('Menu and sign in', 'The three lines at the top right', 'On a phone, the menu opens the same links. Sign in is here too.', [
     'Press Sign in, then choose Athlete, Coach or Team and press Continue.',
@@ -161,29 +171,35 @@ out.push(pageCols(
 ))
 
 // ================================================================================ ATHLETE
-out.push(divider('Athletes', 'Competitors with their own account. Use your phone or laptop.', 'Account · Edit account · Membership · Payments · Results · Rankings · Entries · Enter events · My requests · Notifications · Password'))
+out.push(divider('Athletes', 'Competitors with their own account. Use your phone or laptop.', 'Account · Edit account · Membership · Payments · Results · Standings · Entries · Enter events · My requests · Notifications · Password'))
 out.push(pageCols(
   feat('Create your account', 'Sign in, choose Athlete, then Create an account', 'Make your own account with your name, a photo, an email and a password of at least 8 characters. Coaches and teams do the same, choosing Coach or Team.', [
     'A photo is required. Choose a square picture; it shows in your account and the menu.',
     'Use the same email as on your entry form, so you are not charged membership twice.',
     'Forgot your password? Ask the secretariat for a new one.',
   ], [I('athlete/signup')], true),
+  feat('Sign in', 'Sign in, then choose Athlete', 'Type your membership ID or your email, then your password.', [
+    'Your membership ID (such as A-00001) is given when your first membership payment is confirmed. Until then, sign in with your email.',
+    'The ID and the email both work from then on.',
+  ], [I('athlete/signin')], true),
   feat('Account', 'Athlete menu: Account', 'Your home page.', [
-    'Your picture, team and coach, and whether this year\'s membership is paid.',
+    'Your picture, team and coach, your membership ID, and whether this year\'s membership is paid.',
     'Account information: date of birth, contact number, province and address. Only the secretariat sees these.',
   ], [I('athlete/account')], true),
   feat('Edit account', 'Athlete menu: Edit account', 'Change your details and picture.', [
     'Your picture can be replaced but not taken away: every account has one.',
     'Changing your team or coach is a request. The secretariat approves it, and your old team or coach stays until then.',
+    'A new name, or a new date of birth when one is already on file, is a request too. Your current details stay until the secretariat approves it. Your first date of birth is saved straight away.',
   ], [I('athlete/edit')], true),
   feat('Membership', 'Athlete menu: Membership', 'Pay your yearly membership.', [
+    'A membership covers the calendar year it is paid in and ends on December 31 of that year, whenever you pay. Your membership ID is given with your first confirmed payment and never changes.',
     'See the fee and where to pay: GCash, Maya or bank.',
     'Pay, then choose how you paid, add the reference number or screenshot and press Send payment.',
     'It shows Waiting for the secretariat. If turned down, you see why and can send it again.',
   ], [I('athlete/membership')], true),
   feat('Payments', 'Athlete menu: Payments', 'Your payment history.', ['Every payment you sent and what happened to it.'], [I('athlete/payments')], true),
   feat('Results', 'Athlete menu: My results', 'How you placed.', ['Your results, by competition.'], [I('athlete/results')], true),
-  feat('Rankings', 'Athlete menu: My rankings', 'Where you stand.', ['Your points and your place in your category.'], [I('athlete/rankings')], true),
+  feat('Standings', 'Athlete menu: My standings', 'Where you stand.', ['Your points and your place in your category.'], [I('athlete/standings')], true),
   feat('Entries', 'Athlete menu: Entries', 'What you are entered in.', ['The events you are entered in, by competition.'], [I('athlete/entries')], true),
   feat('Enter events', 'Athlete menu: Enter events', 'Send your own entry online.', [
     'Pick the competition and yourself (a solo, or a couple that carries your name).',
@@ -204,25 +220,32 @@ out.push(pageCols(
 ))
 
 // ================================================================================ COACH
-out.push(divider('Coaches', 'Follow your athletes. Use your phone or laptop.', 'Account · Link your coach · Edit account · Notifications · Dancers · Results · Rankings · Entries · Password'))
+out.push(divider('Coaches', 'Follow your athletes. Use your phone or laptop.', 'Account · Link your coach · Edit account · Notifications · Dancers · Results · Standings · Entries · Password'))
 out.push(pageCols(
-  feat('Account', 'Coach menu: Account', 'Your home page.', ['Your details, picture and what you are linked to.', 'A new account is not linked yet. Every page that needs the link tells you so.'], [I('coach/account')], true),
+  feat('Account', 'Coach menu: Account', 'Your home page.', [
+    'Your details, picture and what you are linked to.',
+    'Your membership ID (such as C-00001) and the dates you attended a Coaches Summit, once the secretariat has recorded them. The ID is given when your membership is first paid.',
+    'You can sign in with the membership ID or your email, once your account is linked to your coach record.',
+    'A new account is not linked yet. Every page that needs the link tells you so.',
+  ], [I('coach/account')], true),
   feat('Link your coach', 'Coach menu: Link your coach', 'Connect your account to your coach record.', [
     'Pick your name from the list and send the request.',
     'Press Take back to cancel while it waits.',
     'The secretariat approves or turns it down. Until then you see nothing about athletes.',
   ], [I('coach/link', 'Shown here after the link was approved')], true),
-  feat('Edit account', 'Coach menu: Edit account', 'Change your name, contact details and picture.', [], [I('coach/edit')], true),
+  feat('Edit account', 'Coach menu: Edit account', 'Change your contact details and picture.', [
+    'A new name, or a new date of birth when one is already on file, is a request. The secretariat approves it, and your current details stay until then.',
+  ], [I('coach/edit')], true),
   feat('Notifications', 'The bell, or Notifications', 'What the secretariat decided.', ['Pop-ups arrive live, and are kept here.'], [I('coach/notifications')], true),
   feat('Dancers', 'Coach menu: Dancers', 'The athletes you coach.', ['Needs the link to be approved.'], [I('coach/dancers')], true),
   feat('Results', 'Coach menu: Results', 'How your athletes placed.', [], [I('coach/results')], true),
-  feat('Rankings', 'Coach menu: Rankings', 'Where your athletes stand.', [], [I('coach/rankings')], true),
+  feat('Standings', 'Coach menu: Standings', 'Where your athletes stand.', [], [I('coach/standings')], true),
   feat('Entries', 'Coach menu: Entries', 'The events your athletes are entered in.', ['A coach can look but cannot enter or pay. There are no entry or payment pages.'], [I('coach/entries')], true),
   feat('Password', 'Coach menu: Password', 'Change your password.', ['Press Sign out everywhere to sign out of every device.'], [I('coach/password')], true),
 ))
 
 // ================================================================================ TEAM
-out.push(divider('Teams', 'Dance teams, studios and clubs. Use your phone or laptop.', 'Account · Link your team · Edit account · Notifications · Dancers · Results · Rankings · Entries · Payments · Enter events · My requests · Password'))
+out.push(divider('Teams', 'Dance teams, studios and clubs. Use your phone or laptop.', 'Account · Link your team · Edit account · Notifications · Dancers · Results · Standings · Entries · Payments · Enter events · My requests · Password'))
 out.push(pageCols(
   feat('Account', 'Team menu: Account', 'Your home page.', ['Your team\'s details, picture and what you are linked to.', 'The number of dancers on your team.'], [I('team/account')], true),
   feat('Link your team', 'Team menu: Link your team', 'Connect your account to your team record.', [
@@ -233,7 +256,7 @@ out.push(pageCols(
   feat('Notifications', 'The bell, or Notifications', 'What the secretariat decided.', ['Pop-ups arrive live, and are kept here.'], [I('team/notifications')], true),
   feat('Dancers', 'Team menu: Dancers', 'Your team\'s dancers and couples.', ['Search by name. Shows each dancer\'s back number.'], [I('team/dancers')], true),
   feat('Results', 'Team menu: Results', 'How your dancers placed.', [], [I('team/results')], true),
-  feat('Rankings', 'Team menu: Rankings', 'Where your dancers stand.', [], [I('team/rankings')], true),
+  feat('Standings', 'Team menu: Standings', 'Where your dancers stand.', [], [I('team/standings')], true),
   feat('Entries', 'Team menu: Entries', 'The events your dancers are entered in.', [], [I('team/entries')], true),
   feat('Payments', 'Team menu: Payments', 'What has been paid and how.', [], [I('team/payments')], true),
   feat('Enter events', 'Team menu: Enter events', 'Send entries for your dancers.', [
@@ -260,7 +283,8 @@ out.push(pageCols(
     'Choose exactly the number shown at the top ("Mark an X for exactly 12").',
     'The counter at the bottom shows how many you have marked.',
     'Dancers are grouped by heat. Tap again to remove a mark.',
-  ], [I('adjudicator/mark', 'The round arrives'), I('adjudicator/mark-chosen', 'Numbers chosen')], true),
+    'Under the numbers, a Syllabus box lists what may be danced in this event. Juvenile up to Junior I show a standard text unless the admin or secretariat wrote one for the event; older age groups show the box only when the event has its own text.',
+  ], [I('adjudicator/mark', 'The round arrives'), I('adjudicator/mark-syllabus', 'The syllabus under the numbers'), I('adjudicator/mark-chosen', 'Numbers chosen')], true),
   feat('Review and sign', 'Press Submit', 'Check your choices, then sign.', [
     'Review your selection: check the numbers. They cannot be changed once sent.',
     'Press Final and submit, sign with your finger (Clear to sign again) and press Finalize.',
@@ -294,6 +318,19 @@ out.push(page(
   ], [I('compere/announcer', 'Next event', { h: 720 }), I('compere/recalled', 'Recalled', { h: 720 })]),
   feat('Program view', 'Press 5', 'The whole program, with start times.', [], [I('compere/program', '', { h: 720 })]),
   feat('Account', 'Your name at the top right', 'Change your name and password. Turn on two-step sign-in.', ['The compere cannot change anything about the competition.'], [I('compere/account', '', { h: 560 })]),
+))
+
+// ================================================================================ BARKER
+out.push(divider('Barker', 'You line the competitors up. Use a phone or a tablet.', 'Board · Account'))
+out.push(page(
+  feat('Board', 'Sign in as barker: you land here', 'Who is on the floor, and who to call next.', [
+    'On the floor now: the round being danced, with each competitor\'s back number and names, by heat.',
+    'Next event: the next round in the running order, with the back numbers and names to call and line up.',
+    'The board updates by itself when the scrutineer starts a round. It needs the running order: ask the secretariat to generate it if nothing shows.',
+    'A competitor without a back number shows a dash. Ask the secretariat to assign one.',
+    'The barker only reads. Nothing can be changed from this screen.',
+  ], [I('barker/board', '', { h: 900 })], true),
+  feat('Account', 'Menu: Account', 'Change your name and password. Turn on two-step sign-in.', ['The admin makes the barker\'s account under Staff accounts.']),
 ))
 
 // ================================================================================ SCRUTINEER
@@ -365,11 +402,12 @@ out.push(page(
 ))
 
 // ================================================================================ SECRETARIAT
-out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Competitors · Teams · Coaches · Athletes · Entry requests · Account links · Team and coach changes · Late entries · Schedule · Program · Printouts · Security'))
+out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Competitors · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Program · Printouts · Security'))
 out.push(page(
   feat('Events', 'Menu: Events', 'Every event in the competition and how many entries it has.', [
     'Add event, edit and delete. Set the age group, class, style, dances, solo or couple.',
     'Set the Kind so it is priced and checked correctly: Beginners, Ranking, Inter-school, or Closed to a province.',
+    'Syllabus is optional: write what may be danced in this event and the adjudicators see it under their numbers. Empty uses the standard text for Juvenile up to Junior I. It cannot be changed once the event has started.',
     'Search, filter by age group and choose the competition.',
     'Press an event to see its entries.',
   ], [I('secretariat/events', '', { h: 560 }), I('secretariat/event-add', 'Add event')]),
@@ -379,7 +417,7 @@ out.push(page(
     'Print the Heat list and the Recall list, or press All printouts.',
   ], [I('secretariat/event', '', { h: 640 })]),
   feat('Competitors', 'Menu: Competitors', 'Everyone who can be entered, with their back numbers.', [
-    'Add competitor: a dancer and partner (leave the partner empty for a solo), team, province, coach and Beginner if it applies. Each dancer\'s date of birth, contact number, email and address are required. The same dancers cannot be added twice to one team.',
+    'Add competitor: a dancer and partner (leave the partner empty for a solo), team, province, coach and Beginner if it applies. Each dancer\'s date of birth, contact number, email and address are required; gender is optional and is used for the Solo Junior Female entries on the Bicol Athletes list. The same dancers cannot be added twice to one team.',
     'Import CSV: add many from a spreadsheet file that follows the entry form columns. The coach must already be added.',
     'Assign back numbers: gives every competitor a number. The # icon sets one by hand.',
     'Filter by competition, event and team.',
@@ -388,13 +426,15 @@ out.push(page(
     'Choose the competition and tick the events from the entry form. The fee shows as you tick.',
     'Choose how it was paid: cash, GCash, Maya, bank, or Not paid yet. Teams usually pay after your summary.',
     'If the coach has not paid this year, you can add the coach\'s membership and the Coaches Summit to the payment.',
-    'Red notes are warnings, not blocks: a beginner in a non-beginner event, birth dates that do not fit the age group, or an entry after the deadline.',
+    'A couple dances in the age group of its older partner, or an older one, never a younger one: a Junior and a Youth dancer are a Youth couple, so a Junior event is refused. A solo dances only in its own age group. A refused entry says the age does not match the event\'s age requirement.',
+    'Red notes are warnings, not blocks: a beginner in a non-beginner event, or an entry after the deadline.',
     'Press Enter.',
   ], [I('secretariat/enter-in-events'), I('secretariat/back-number', 'Setting one back number')]),
   feat('Teams', 'Menu: Teams', 'The teams on the entry forms.', ['Add, edit and delete. A team that still has competitors cannot be deleted, and the same team name cannot be added twice.'], [I('secretariat/teams', '', { h: 560 }), I('secretariat/team-add')]),
-  feat('Coaches', 'Menu: Coaches', 'The coaches on the entry forms.', ['Add, edit and delete. Tick the year their membership and the Coaches Summit were paid. The same coach name cannot be added twice.'], [I('secretariat/coaches', '', { h: 560 }), I('secretariat/coach-add')]),
+  feat('Coaches', 'Menu: Coaches', 'The coaches on the entry forms.', ['Add, edit and delete. Enter the year their membership and the Coaches Summit were paid.', 'The membership ID (C-00001) is given automatically when the coach\'s membership is first recorded or paid. It cannot be typed in or changed.', 'Summits attended: add the date of each Coaches Summit the coach attended, and remove one added by mistake. The newest shows first.', 'Only an admin can change a coach\'s name. The same coach name cannot be added twice.'], [I('secretariat/coaches', '', { h: 560 }), I('secretariat/coach-add')]),
   feat('Athletes', 'Menu: Athletes', 'Athletes who made an account.', [
-    'Payment waiting: check it against the money received, then press the tick to confirm. Their membership is then recorded for the year.',
+    'Payment waiting: check it against the money received, then press the tick to confirm. Their membership is then recorded for the year, and they get their membership ID (A-00001) with the first one.',
+    'The Membership ID column shows it, and you can search by it.',
     'Press the cross to turn a payment down. You must give a reason, and the athlete sees it.',
     'The key gives a new password and the bin deletes an account.',
   ], [I('secretariat/athletes', '', { h: 560 })]),
@@ -409,7 +449,11 @@ out.push(page(
     'See who is asking and which record they want.',
     'Press the tick to link them, or the cross to turn them down. Check that the person really is that coach or team.',
   ], [I('secretariat/account-links', '', { h: 520 })]),
-  feat('Team and coach changes', 'Menu: Team and coach changes', 'An athlete asking to change their team or coach.', ['Approve, or turn down with a reason.'], [I('secretariat/profile-changes', '', { h: 520 })]),
+  feat('Profile changes', 'Menu: Profile changes', 'An athlete or coach asking to change their name, date of birth, team or coach.', [
+    'Each row shows the current details next to what they ask for. Athletes are listed first, coaches below.',
+    'Press the tick to approve it: everything asked for is applied and the person is told. Press the cross to turn it down. You must give a reason, and they read it.',
+    'Until you approve it, their current details stay. Athletes and coaches cannot change a name or birth date on file themselves; the admin can correct one directly.',
+  ], [I('secretariat/profile-changes', '', { h: 520 })]),
   feat('Late entries', 'Menu: Late entries', 'Dancers added after the entries closed.', [
     'Add, edit or delete a late entry. Say whether it was paid in cash at the venue. A late entry that has not paid cannot dance.',
     'Cash payments tab: mark a team\'s unpaid or rejected payment as paid at the venue.',
@@ -427,13 +471,19 @@ out.push(page(
 ))
 
 // ================================================================================ ADMIN
-out.push(divider('Admin', 'You set the system up. Use a laptop.', 'Competitions · Adjudicators and panels · Points table · Payments · Fees · Staff accounts · Security · plus every secretariat screen'))
+out.push(divider('Admin', 'You set the system up. Use a laptop.', 'Competitions · Kinds and age groups · Adjudicators and panels · Points table · Payments · Fees · Staff accounts · Security · plus every secretariat screen'))
 out.push(page(
   feat('Competitions', 'Menu: Competitions', 'Create and manage the competitions.', [
-    'New competition: name, date, organizer, venue and a card photo (required).',
+    'New competition: name, date, organizer, venue and a card photo (required). The date cannot be before today: a finished competition cannot be added or moved into the past. A competition already held can still have its other details corrected.',
+    'Executor (optional) is who runs the scoring; it is printed as the Executor on result sheets. Empty uses the organizer.',
     'Entries close and Fees due are optional. Later entries are flagged to the secretariat.',
     'Search, filter by year, edit and delete. A competition with events cannot be deleted.',
   ], [I('admin/competitions', '', { h: 560 }), I('admin/competition-new')]),
+  feat('Kinds and age groups', 'Menu: Kinds and age groups', 'The kinds of event and the age groups the system uses.', [
+    'Kinds set how an event is priced and who may enter, for example Beginners, Ranking or Closed to a province. Age groups set a name, how it is printed and the oldest age in the group.',
+    'A change never rewrites the past. Once an event in an age group has started, saving a change makes a new version and keeps the old one for those events, their results and sheets. Events still to run, and competitors, move to the new version.',
+    'Standings add points earned under the old version to the new one. A group or kind that events use cannot be deleted.',
+  ]),
   feat('Adjudicators', 'Menu: Adjudicators and panels', 'The adjudicators and their PINs.', [
     'Add adjudicator: name, a photo (required) and a letter, A to J. Edit or delete with the icons on the row. Adjudicators can be added before any competition exists; only their PINs need one.',
     'Choose a competition to see each adjudicator\'s PIN for it. The pencil edits, the key makes a new PIN, the arrow signs that phone out at once.',
@@ -460,10 +510,11 @@ out.push(page(
     'Teams cannot enter events until the fees are saved.',
   ], [I('admin/fees', 'Registration fees', { h: 640 }), I('admin/fees-late', 'Late entry fees', { h: 460 }), I('admin/fees-accounts', 'Accounts', { h: 520 }), I('admin/payment-method-add')]),
   feat('Staff accounts', 'Menu: Staff accounts', 'Create and manage the people who run the system.', [
-    'Add account: name, email, photo (required) and role (secretariat, scrutineer, chairperson, compere or admin).',
+    'Add account: name, email, photo (required) and role (secretariat, scrutineer, chairperson, compere, barker or admin).',
     'A temporary password appears once. Give it to the person in person.',
     'Row icons: edit, reset password, reset two-step sign-in (if on), sign out everywhere, delete.',
     'Open an account to read its activity log.',
+    'On the Athletes screen, the pencil corrects an athlete\'s name or date of birth directly. Only the admin can do this.',
   ], [I('admin/staff', '', { h: 560 }), I('admin/staff-add'), I('admin/staff-password', 'Shown only once')]),
   feat('Security', 'Menu: Security', 'Turn on two-step sign-in and change your password.', [
     'Turn on: scan the code with an authenticator app, type the 6-digit code it shows and save the recovery codes it gives you.',
@@ -471,7 +522,7 @@ out.push(page(
   ], [I('admin/security', '', { h: 420 }), I('admin/two-step')]),
   feat('Backups and the secretariat\'s screens', 'Top of every screen; menu sections Entries and The day', 'Two more things for the admin.', [
     'A warning appears at the top if a backup folder fails.',
-    'Your menu also holds every secretariat screen (Events, Competitors, Teams, Coaches, Athletes, Entry requests, Account links, Team and coach changes, Late entries, Schedule, Program), so you can do that work from your own account. See the Secretariat section.',
+    'Your menu also holds every secretariat screen (Events, Competitors, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Program), so you can do that work from your own account. See the Secretariat section.',
     'You cannot start, approve or publish a round, or confirm a tie.',
   ]),
 ))
@@ -523,7 +574,7 @@ ${step(7, 'Secretariat', 'Add the teams and coaches', 'Open <b>Teams</b> and <b>
 ${step(8, 'Athletes, coaches, teams', 'Make accounts and link them', 'Each person presses <b>Sign in</b> on the website and creates an account. Coaches and teams then send a link request. The secretariat approves them under <b>Account links</b>.')}
 ${step(9, 'Secretariat', 'Enter dancers from entry forms', 'Open <b>Competitors</b>. Use <b>Add competitor</b> or <b>Import CSV</b>, then press the first icon on a row to enter the dancer in events and record how they paid.', [I('secretariat/enter-in-events', '', { mm: 64 })])}
 ${step(10, 'Secretariat', 'Approve entries sent online', 'Open <b>Entry requests</b>. Check each payment screenshot against the money received. Press the tick to approve, or the cross to turn down with a reason.')}
-${step(11, 'Secretariat', 'Confirm memberships', 'Open <b>Athletes</b> and confirm each membership payment once the money arrives.')}
+${step(11, 'Secretariat', 'Confirm memberships', 'Open <b>Athletes</b> and confirm each membership payment once the money arrives. The athlete\'s membership ID is given with the first one.')}
 ${step(12, 'Secretariat', 'Give out back numbers', 'On <b>Competitors</b>, press <b>Assign back numbers</b> once the entries are in.')}
 ${step(13, 'Admin', 'Choose the panels', 'On <b>Adjudicators and panels</b>, open the <b>Panels</b> tab and choose which adjudicators mark each event.')}
 ${step(14, 'Secretariat', 'Plan the day', 'Open <b>Schedule</b> to set the order of the events. Then open <b>Program</b>, press <b>Generate</b>, set the start time and add breaks. The program is now on the website for everyone.', [I('secretariat/program', '', { y: 0, h: 560 })])}
@@ -544,7 +595,7 @@ ${step(26, 'Compere', 'Announce', 'The compere reads the numbers that go through
 ${step(27, 'Scrutineer', 'Next round', 'Go back to step 21 for the next round: round 1, round 2, quarter-final, semi-final and finally the final. In the final the adjudicators place every finalist, and a tie in the final is settled the same way as step 24.')}
 ${step(28, 'Secretariat', 'Late changes', 'A dancer withdraws: open the event and press <b>Scratch</b>. A dancer arrives late: add them under <b>Late entries</b>. They cannot dance until they have paid.')}
 <h2>Part 5 · After the competition</h2>
-${step(29, 'Everyone', 'Results and rankings are public', 'Visitors read the results on the competition page and the new rankings on <b>Rankings</b>. Athletes, coaches and teams see their results on their own pages.', [I('public/rankings', '', { mm: 40, h: 1450 })])}
+${step(29, 'Everyone', 'Results and standings are public', 'Visitors read the results on the competition page and the points on <b>Standings</b>. Athletes, coaches and teams see their results on their own pages.', [I('public/standings', '', { mm: 40, h: 1450 })])}
 ${step(30, 'Scrutineer', 'Print the results', 'Use <b>Print summary</b> on <b>Results</b>, or <b>All printouts</b> for score sheets and final results.')}
 ${step(31, 'Admin', 'Check the money and the backups', 'Open <b>Payments</b> to see what is paid and what is still owed. Check there is no backup warning.')}
 `))

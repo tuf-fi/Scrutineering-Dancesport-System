@@ -20,7 +20,7 @@ export function Hero() {
         <h1 className="max-w-xl text-balance text-[clamp(1.75rem,1rem+2.4vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] motion-safe:animate-rise-in">
           Bicol Oragon Scruteneering System
         </h1>
-        <ul style={{ animationDelay: '60ms' }} className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs font-medium uppercase tracking-[0.14em] text-white motion-safe:animate-rise-in">
+        <ul style={{ animationDelay: '60ms' }} className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs font-medium uppercase tracking-[0.14em] text-gold-300 motion-safe:animate-rise-in">
           {['Integrity', 'Precision', 'Excellence'].map((word, i) => (
             <li key={word} className="flex items-center gap-4">
               {i > 0 && <span aria-hidden className="h-3 w-px bg-white/30" />}

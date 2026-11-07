@@ -32,7 +32,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
                     src={c.image || HERO_IMAGE}
                     alt=""
                     loading="lazy"
-                    className="absolute inset-0 -z-20 size-full object-cover object-[50%_18%] lg:grayscale transition duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"
+                    className="absolute inset-0 -z-20 size-full object-cover object-[50%_18%] opacity-60 lg:grayscale transition duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"
                   />
                   <span aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(to_bottom,rgb(0_0_0/0.55),transparent_35%,transparent_40%,rgb(0_0_0/0.9))]" />
                   {/* The whole card opens the event; Register sits above it as its own link */}

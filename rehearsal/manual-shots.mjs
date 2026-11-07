@@ -163,12 +163,16 @@ const JOBS = {
     await visit(page, R, 'program', `/competitions/${COMP}/program`)
     if (withResults) await visit(page, R, 'event-results', `/competitions/${withResults.c}/events/${withResults.e}`)
     await visit(page, R, 'athletes', '/athletes')
+    await visit(page, R, 'results', '/results')
+    await visit(page, R, 'results-competition', `/results/${withResults ? withResults.c : COMP}`)
     await tryShot(page, R, 'competitor', async () => {
-      await page.getByRole('link').filter({ hasText: /Ana Cruz/ }).first().click()
-      await page.waitForURL(/competitors/)
+      await page.goto(BASE + '/athletes')
+      await settle(page)
+      const href = await page.locator('a[href^="/competitors/"]').first().getAttribute('href')
+      await page.goto(BASE + href)
       await settle(page)
     })
-    await visit(page, R, 'rankings', '/rankings')
+    await visit(page, R, 'standings', '/standings')
     await visit(page, R, 'privacy', '/privacy')
     await page.goto(BASE + '/')
     await settle(page)
@@ -186,6 +190,7 @@ const JOBS = {
   async athlete() {
     const R = 'athlete'
     const anon = await session('public', PHONE)
+    await visit(anon.page, R, 'signin', '/login?as=athlete')
     await tryShot(anon.page, R, 'signup', async () => {
       await anon.page.goto(BASE + '/login?as=athlete')
       await settle(anon.page)
@@ -200,7 +205,7 @@ const JOBS = {
       ['membership', '/athlete/membership'],
       ['payments', '/athlete/payments'],
       ['results', '/athlete/results'],
-      ['rankings', '/athlete/rankings'],
+      ['standings', '/athlete/rankings'],
       ['entries', '/athlete/entries'],
     ]) await visit(page, R, name, path)
     await visit(page, R, 'register', '/athlete/register', {
@@ -227,7 +232,7 @@ const JOBS = {
       ['notifications', '/coach/notifications'],
       ['dancers', '/coach/dancers'],
       ['results', '/coach/results'],
-      ['rankings', '/coach/rankings'],
+      ['standings', '/coach/rankings'],
       ['entries', '/coach/entries'],
       ['password', '/coach/password'],
     ]) await visit(page, 'coach', name, path)
@@ -243,7 +248,7 @@ const JOBS = {
       ['notifications', '/team/notifications'],
       ['dancers', '/team/dancers'],
       ['results', '/team/results'],
-      ['rankings', '/team/rankings'],
+      ['standings', '/team/rankings'],
       ['entries', '/team/entries'],
       ['payments', '/team/payments'],
     ]) await visit(page, 'team', name, path)
@@ -270,6 +275,7 @@ const JOBS = {
       await form('Date', '2027-03-14')
       await form('Organizer', 'Camarines Sur Dancesport Association')
       await form('Venue', 'Naga City Coliseum, Naga City')
+      await form('Executor', 'BN IT Scrutineer')
       await form('Entries close', '2027-03-01')
       await form('Fees due', '2027-03-07')
     })
@@ -298,6 +304,7 @@ const JOBS = {
         await settle(p)
       },
     })
+    await visit(page, R, 'categories', '/admin/categories')
     await visit(page, R, 'points', '/admin/points')
     await visit(page, R, 'payments', '/admin/payments')
     await tryShot(page, R, 'payment-detail', async () => {
@@ -466,7 +473,12 @@ const JOBS = {
 
     // ---- Adjudicator D: marking and signing
     await visit(P, 'adjudicator', 'mark', '/adjudicator/mark')
+    await tryShot(P, 'adjudicator', 'mark-syllabus', async () => {
+      await P.getByRole('region', { name: 'Syllabus' }).scrollIntoViewIfNeeded()
+      await sleep(400)
+    })
     await tryShot(P, 'adjudicator', 'mark-chosen', async () => {
+      await P.evaluate(() => window.scrollTo(0, 0))
       for (const n of [...ABOVE, 56]) await tap(P, n)
     })
     await tryShot(P, 'adjudicator', 'review', async () => {
@@ -605,6 +617,29 @@ const JOBS = {
       await compere.page.keyboard.press('3')
       await sleep(1000)
     })
+    // ---- Barker: made by the admin, sees the round on the floor and the next event
+    {
+      // The board reads the running order, so the secretariat generates it first
+      const sec = await session('secretariat')
+      await api(sec.ctx, 'generateProgram', COMP)
+      await api(sec.ctx, 'setProgramStart', COMP, '08:00')
+      await sec.ctx.close()
+      const adm = await session('admin')
+      // The sample competition is dated in the past, which the running order treats as finished: a real one is held today
+      const comp = (await api(adm.ctx, 'getCompetitions')).find((c) => c.id === COMP)
+      const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
+      await api(adm.ctx, 'saveCompetition', { name: comp.name, date: today, venue: comp.venue, organizer: comp.organizer }, COMP)
+      const made = await api(adm.ctx, 'createStaffUser', { name: 'Ruben Soriano', username: 'barker@sample.example', role: 'barker', photo: 'data:image/png;base64,iVBORw0KGgo=' })
+      await adm.ctx.close()
+      const ctx = await browser.newContext({ ...PHONE, reducedMotion: 'reduce' })
+      const r = await ctx.request.post(`${BASE}/api/auth/staff`, { data: { username: 'barker@sample.example', password: made.tempPassword } })
+      if (!r.ok()) throw new Error(`barker sign-in gave ${r.status()}`)
+      const page = await ctx.newPage()
+      page.setDefaultTimeout(15000)
+      await visit(page, 'barker', 'board', '/barker')
+      await ctx.close()
+    }
+
     await scr.ctx.close()
     await chair.ctx.close()
     await compere.ctx.close()
