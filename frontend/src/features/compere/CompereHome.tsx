@@ -503,11 +503,78 @@ export function CompereHome() {
     return () => window.removeEventListener('keydown', onKey)
   }, [go, jump, fullscreen, index, items.length])
 
-  if (announcements.isError) return <ErrorState onRetry={() => void announcements.refetch()} />
+  // The controls stay on screen in every state, including while nothing is queued
+  const controls = (
+  <nav
+    aria-label="Announcer controls"
+    className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-white/10 bg-brown-950 px-[4.5vmin] text-small text-brown-100"
+  >
+    <div className="flex items-center gap-1">
+      {MODES.map((m) => (
+        <button
+          key={m.kind}
+          type="button"
+          onClick={() => jump(m.kind)}
+          disabled={!items.some((a) => a.kind === m.kind)}
+          className={cn(
+            'rounded-md px-3 py-2 transition-colors hover:text-white disabled:opacity-30',
+            !showProgram && (current?.kind === 'result' ? 'results' : current?.kind) === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
+          )}
+        >
+          <span className="mr-2 font-mono text-xs opacity-70">{m.key}</span>
+          {m.label}
+        </button>
+      ))}
+      <button
+        type="button"
+        onClick={() => setView('program')}
+        className={cn('rounded-md px-3 py-2 transition-colors hover:text-white', showProgram ? 'font-semibold text-gold-400' : 'text-brown-100')}
+      >
+        <span className="mr-2 font-mono text-xs opacity-70">{PROGRAM_KEY}</span>
+        Program
+      </button>
+    </div>
+    <div className="flex items-center gap-1">
+      {!showProgram && (
+        <p aria-label="Up next" className="mr-3 flex items-baseline gap-2 border-r border-white/10 pr-4 text-small">
+          <span className="font-mono text-xs uppercase tracking-[0.12em] text-brown-100">Up next</span>
+          {items[index + 1] ? (
+            <span className="font-semibold text-white">
+              {screenName(items[index + 1]!)}
+              <span className="ml-2 font-mono text-xs font-medium tabular-nums text-gold-400">E{items[index + 1]!.eventNumber}</span>
+            </span>
+          ) : (
+            <span className="font-medium text-white/50">End</span>
+          )}
+        </p>
+      )}
+      <button type="button" aria-label="Previous announcement" disabled={items.length === 0 || (index === 0 && !showProgram)} onClick={() => go(index - 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
+        <ChevronLeft aria-hidden className="size-5" />
+      </button>
+      <button type="button" aria-label="Next announcement" disabled={items.length === 0 || (index === items.length - 1 && !showProgram)} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
+        <ChevronRight aria-hidden className="size-5" />
+      </button>
+      <button type="button" aria-label="Full screen" onClick={fullscreen} className="grid size-10 place-items-center rounded-md hover:text-white">
+        <Maximize aria-hidden className="size-4" />
+      </button>
+      <span aria-hidden className="mx-2 h-6 w-px bg-white/10" />
+      {user && <AccountMenu name={user.name} profile={{ to: '/account', label: 'My account' }} onSignOut={signOut} />}
+    </div>
+  </nav>  )
+
+  if (announcements.isError) {
+    return (
+      <div className="relative flex flex-1 flex-col">
+        <ErrorState onRetry={() => void announcements.refetch()} />
+        {controls}
+      </div>
+    )
+  }
 
   if (!current && !showProgram) {
     return (
-      <div className="flex flex-1 items-center">
+      <div className="relative flex flex-1 items-center">
+        {controls}
         <h1 className="max-w-[18ch] text-balance text-[10vmin] font-semibold leading-[1.02] tracking-[-0.035em] text-white">
           {data ? 'Waiting for the next announcement' : ''}
         </h1>
@@ -564,62 +631,7 @@ export function CompereHome() {
         </>
       )}
 
-      <nav
-        aria-label="Announcer controls"
-        className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-white/10 bg-brown-950 px-[4.5vmin] text-small text-brown-100"
-      >
-        <div className="flex items-center gap-1">
-          {MODES.map((m) => (
-            <button
-              key={m.kind}
-              type="button"
-              onClick={() => jump(m.kind)}
-              disabled={!items.some((a) => a.kind === m.kind)}
-              className={cn(
-                'rounded-md px-3 py-2 transition-colors hover:text-white disabled:opacity-30',
-                !showProgram && (current?.kind === 'result' ? 'results' : current?.kind) === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
-              )}
-            >
-              <span className="mr-2 font-mono text-xs opacity-70">{m.key}</span>
-              {m.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setView('program')}
-            className={cn('rounded-md px-3 py-2 transition-colors hover:text-white', showProgram ? 'font-semibold text-gold-400' : 'text-brown-100')}
-          >
-            <span className="mr-2 font-mono text-xs opacity-70">{PROGRAM_KEY}</span>
-            Program
-          </button>
-        </div>
-        <div className="flex items-center gap-1">
-          {!showProgram && (
-            <p aria-label="Up next" className="mr-3 flex items-baseline gap-2 border-r border-white/10 pr-4 text-small">
-              <span className="font-mono text-xs uppercase tracking-[0.12em] text-brown-100">Up next</span>
-              {items[index + 1] ? (
-                <span className="font-semibold text-white">
-                  {screenName(items[index + 1]!)}
-                  <span className="ml-2 font-mono text-xs font-medium tabular-nums text-gold-400">E{items[index + 1]!.eventNumber}</span>
-                </span>
-              ) : (
-                <span className="font-medium text-white/50">End</span>
-              )}
-            </p>
-          )}
-          <button type="button" aria-label="Previous announcement" disabled={items.length === 0 || (index === 0 && !showProgram)} onClick={() => go(index - 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
-            <ChevronLeft aria-hidden className="size-5" />
-          </button>
-          <button type="button" aria-label="Next announcement" disabled={items.length === 0 || (index === items.length - 1 && !showProgram)} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
-            <ChevronRight aria-hidden className="size-5" />
-          </button>
-          <button type="button" aria-label="Full screen" onClick={fullscreen} className="grid size-10 place-items-center rounded-md hover:text-white">
-            <Maximize aria-hidden className="size-4" />
-          </button>
-          <span aria-hidden className="mx-2 h-6 w-px bg-white/10" />
-          {user && <AccountMenu name={user.name} profile={{ to: '/account', label: 'My account' }} onSignOut={signOut} />}
-        </div>
-      </nav>
+      {controls}
     </div>
   )
 }
