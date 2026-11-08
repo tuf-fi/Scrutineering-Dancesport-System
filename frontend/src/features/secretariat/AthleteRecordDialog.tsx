@@ -65,22 +65,26 @@ function AthleteRecordForm({ athlete, onDone }: { athlete: AthleteRecord | null;
         <div className="sm:col-span-2">
           <Input label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
         </div>
-        <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
-          <option value="">No team</option>
-          {(teams.data ?? []).map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </Select>
-        <Select label="Coach" value={coachId} onChange={(e) => setCoachId(e.target.value)}>
-          <option value="">No coach</option>
-          {(coaches.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
+        <div className="sm:col-span-2">
+          <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+            <option value="">No team</option>
+            {(teams.data ?? []).map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="sm:col-span-2">
+          <Select label="Coach" value={coachId} onChange={(e) => setCoachId(e.target.value)}>
+            <option value="">No coach</option>
+            {(coaches.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
       </form>
       {failure && (
         <p role="alert" className="mt-4 text-small text-danger">

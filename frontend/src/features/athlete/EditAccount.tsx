@@ -43,22 +43,26 @@ export function EditAccount({ page }: { page: AthleteData }) {
         <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input label="Province" value={province} onChange={(e) => setProvince(e.target.value)} />
         <Input label="Address" value={address} onChange={(e) => setAddress(e.target.value)} />
-        <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
-          <option value="">No team yet</option>
-          {(teams.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
-        <Select label="Coach" value={coachId} onChange={(e) => setCoachId(e.target.value)}>
-          <option value="">No coach</option>
-          {(coaches.data ?? []).map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </Select>
+        <div className="sm:col-span-2">
+          <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+            <option value="">No team yet</option>
+            {(teams.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="sm:col-span-2">
+          <Select label="Coach" value={coachId} onChange={(e) => setCoachId(e.target.value)}>
+            <option value="">No coach</option>
+            {(coaches.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
         <p className="text-small text-neutral-600 sm:col-span-2">
           {profile.changeRequest && !profile.changeRequest.rejectedReason
             ? 'A change is waiting for the secretariat. Until they approve it, your current details stay.'
