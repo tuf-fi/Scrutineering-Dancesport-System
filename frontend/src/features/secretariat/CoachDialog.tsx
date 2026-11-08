@@ -1,6 +1,6 @@
-import type { Coach } from '@bis/shared'
+import { MONTH_NAMES, SUMMIT_QUARTERS, type Coach } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, IconButton, Input, toast } from '../../components/ui/index.ts'
+import { Button, Dialog, IconButton, Input, Select, toast } from '../../components/ui/index.ts'
 import { X } from 'lucide-react'
 import { formatDate } from '../../lib/format.ts'
 import { useSaveCoach } from '../../hooks/index.ts'
@@ -13,10 +13,14 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
   const [email, setEmail] = useState(coach?.email ?? '')
   const [phone, setPhone] = useState(coach?.phone ?? '')
   const [memberYear, setMemberYear] = useState(coach?.memberYear ? String(coach.memberYear) : '')
+  const [memberMonth, setMemberMonth] = useState(coach?.memberMonth ? String(coach.memberMonth) : '')
+  const savedPeriod = coach?.summitPeriod ?? ''
+  const [period, setPeriod] = useState(!savedPeriod ? '' : SUMMIT_QUARTERS.includes(savedPeriod) ? savedPeriod : 'other')
+  const [periodName, setPeriodName] = useState(savedPeriod && !SUMMIT_QUARTERS.includes(savedPeriod) ? savedPeriod : '')
   const [summitYear, setSummitYear] = useState(coach?.summitYear ? String(coach.summitYear) : '')
   const [summits, setSummits] = useState<string[]>(coach?.summits ?? [])
   const [newSummit, setNewSummit] = useState('')
-  const [errors, setErrors] = useState<{ name?: string; member?: string; summit?: string }>({})
+  const [errors, setErrors] = useState<{ name?: string; member?: string; summit?: string; period?: string }>({})
   const [failure, setFailure] = useState<string | null>(null)
 
   const badYear = (v: string) => v.trim() !== '' && !/^\d{4}$/.test(v.trim())
@@ -32,9 +36,10 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
       name: name.trim() ? undefined : 'Enter the coach’s name.',
       member: badYear(memberYear) ? 'Four digits, such as 2026.' : undefined,
       summit: badYear(summitYear) ? 'Four digits, such as 2026.' : undefined,
+      period: period === 'other' && !periodName.trim() ? 'Enter the competition name.' : undefined,
     }
     setErrors(found)
-    if (found.name || found.member || found.summit) return
+    if (found.name || found.member || found.summit || found.period) return
     setFailure(null)
     save.mutate(
       {
@@ -44,7 +49,9 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
           email,
           phone,
           memberYear: memberYear.trim() ? Number(memberYear) : null,
+          memberMonth: memberYear.trim() && memberMonth ? Number(memberMonth) : null,
           summitYear: summitYear.trim() ? Number(summitYear) : null,
+          summitPeriod: summitYear.trim() && period ? (period === 'other' ? periodName.trim() : period) : null,
           summits,
         },
       },
@@ -64,26 +71,51 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
         <div className="sm:col-span-2">
           <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} error={errors.name} autoFocus />
         </div>
-        <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <div className="sm:col-span-2">
+          <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <div className="sm:col-span-2">
+          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <Select label="Membership paid for" value={memberMonth} onChange={(e) => setMemberMonth(e.target.value)}>
+          <option value="">Not paid</option>
+          {MONTH_NAMES.map((m, i) => (
+            <option key={m} value={i + 1}>
+              {m}
+            </option>
+          ))}
+        </Select>
         <Input
-          label="Membership paid for"
-          hint="The year it was paid in. It ends December 31 of that year, whenever it was paid. Leave empty if not paid."
+          label="Membership year"
+          hint="It ends December 31 of this year, whenever it was paid."
           inputMode="numeric"
           value={memberYear}
           onChange={(e) => setMemberYear(e.target.value)}
           error={errors.member}
           className="font-mono tabular-nums"
         />
+        <Select label="Coaches Summit paid for" value={period} onChange={(e) => setPeriod(e.target.value)}>
+          <option value="">Not paid</option>
+          {SUMMIT_QUARTERS.map((q) => (
+            <option key={q} value={q}>
+              {q}
+            </option>
+          ))}
+          <option value="other">Competition</option>
+        </Select>
         <Input
-          label="Coaches Summit paid for"
-          hint="The year. Leave empty if not paid."
+          label="Summit year"
           inputMode="numeric"
           value={summitYear}
           onChange={(e) => setSummitYear(e.target.value)}
           error={errors.summit}
           className="font-mono tabular-nums"
         />
+        {period === 'other' && (
+          <div className="sm:col-span-2">
+            <Input label="Competition name" required value={periodName} onChange={(e) => setPeriodName(e.target.value)} error={errors.period} />
+          </div>
+        )}
         <Input
           label="Membership ID"
           hint="Given when the first membership fee is paid."

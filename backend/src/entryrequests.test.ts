@@ -4,7 +4,7 @@ import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
 import { startTestApp, type TestApp } from './testing.ts'
 
-// A team (or an athlete) sends an entry request with a payment screenshot; the secretariat approves it into real entries
+// A team sends an entry request with a payment screenshot; the secretariat approves it into real entries
 
 let app: TestApp
 let secretariat = ''
@@ -50,11 +50,11 @@ const entrantsOf = (cookie: string) => app.ok<MemberRosterRow[]>('getMyEntrants'
 const request = (competitorId: string, eventIds: string[], over: Record<string, unknown> = {}) => ({ competitorId, eventIds, method: 'gcash', reference: 'GC123', receipt: SHOT, ...over })
 
 describe('entering a competition online', () => {
-  it('lets a team enter only its own team\'s dancers, and an athlete only the ones with their name', async () => {
+  it('lets a team enter only its own team\'s dancers, and keeps athletes out', async () => {
     const teamList = await entrantsOf(team)
     expect(teamList.map((r) => r.names.join(' & ')).sort()).toEqual(['Ana Cruz', 'Ana Cruz & Luis Cruz'])
-    // The athlete is a partner in the couple and a solo dancer, so both carry their name
-    expect((await entrantsOf(athlete)).map((r) => r.names.join(' & ')).sort()).toEqual(['Ana Cruz', 'Ana Cruz & Luis Cruz'])
+    // An athlete cannot enter or pay for events, only the team can
+    expect((await app.call('getMyEntrants', [], athlete)).status).toBe(403)
 
     const mia = (await app.ok<Array<{ id: string; names: string[] }>>('getCompetitorRows', [], secretariat)).find((c) => c.names[0] === 'Mia Tan')!
     expect((await app.call('quoteMyEntries', [mia.id, [events.solo1]], team)).status).toBe(403)
@@ -88,7 +88,7 @@ describe('entering a competition online', () => {
     expect((await app.ok<EntryRequest[]>('getMyEntryRequests', [], team)).map((r) => r.id)).toEqual([sent.id])
     expect((await app.call('submitEntryRequest', [request(solo, [events.solo2])], team)).error).toMatch(/already waiting/)
     // Only the requester sees it
-    expect(await app.ok<EntryRequest[]>('getMyEntryRequests', [], athlete)).toEqual([])
+    expect((await app.call('getMyEntryRequests', [], athlete)).status).toBe(403)
   })
 
   it('lets the requester take a waiting request back', async () => {
@@ -119,14 +119,14 @@ describe('entering a competition online', () => {
     type Note = { kind: string; title: string }
     expect((await app.ok<Note[]>('getMyNotifications', [], team)).map((n) => n.kind)).toContain('entry_approved')
 
-    const mine = (await entrantsOf(athlete)).find((r) => r.names.length === 2)!
-    const sent = await app.ok<EntryRequest>('submitEntryRequest', [request(mine.competitorId, [events.couple])], athlete)
+    const mine = (await entrantsOf(team)).find((r) => r.names.length === 2)!
+    const sent = await app.ok<EntryRequest>('submitEntryRequest', [request(mine.competitorId, [events.couple])], team)
     expect((await app.call('rejectEntryRequest', [sent.id, '  '], secretariat)).error).toMatch(/Say why/)
     await app.ok('rejectEntryRequest', [sent.id, 'The screenshot is cut off'], secretariat)
-    const [back] = await app.ok<EntryRequest[]>('getMyEntryRequests', [], athlete)
+    const [back] = (await app.ok<EntryRequest[]>('getMyEntryRequests', [], team)).filter((r) => r.id === sent.id)
     expect(back).toMatchObject({ status: 'rejected', rejectedReason: 'The screenshot is cut off' })
-    expect((await app.ok<Note[]>('getMyNotifications', [], athlete)).map((n) => n.kind)).toContain('entry_rejected')
+    expect((await app.ok<Note[]>('getMyNotifications', [], team)).map((n) => n.kind)).toContain('entry_rejected')
     // A turned-down request can be sent again
-    await app.ok('submitEntryRequest', [request(mine.competitorId, [events.couple])], athlete)
+    await app.ok('submitEntryRequest', [request(mine.competitorId, [events.couple])], team)
   })
 })

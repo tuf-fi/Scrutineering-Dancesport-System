@@ -15,6 +15,10 @@ import type {
   AgeGroupDef,
   AgeGroupInput,
   AthleteInput,
+  AthleteRecord,
+  AthleteRecordInput,
+  TeamMembershipInput,
+  TeamMembershipPage,
   Catalog,
   EventKindDef,
   EventKindInput,
@@ -287,7 +291,8 @@ export const rejectMemberClaim = (_actorId: string, memberId: string) => call<Me
 
 export const getMyAthlete = (_athleteId: string) => call<AthletePage>('getMyAthlete')
 export const saveMyAthlete = (_athleteId: string, input: AthleteInput) => call<AthleteProfile>('saveMyAthlete', input)
-export const requestMembership = (_athleteId: string, input: { method: string; receipt: string }) => call<AthleteProfile>('requestMembership', input)
+export const getTeamMembership = (_memberId: string) => call<TeamMembershipPage>('getTeamMembership')
+export const requestTeamMembership = (_memberId: string, input: TeamMembershipInput) => call<void>('requestTeamMembership', input)
 export const changeMyPassword = (_athleteId: string, current: string, next: string) => call<void>('changeMyPassword', current, next)
 export const signOutEverywhere = (_athleteId: string) => call<void>('signOutEverywhere')
 export const saveMyPhoto = (_athleteId: string, photo: string | null) => call<AthleteProfile>('saveMyPhoto', photo)
@@ -301,6 +306,11 @@ export const saveMyStaffName = (_actorId: string, name: string) => call<StaffUse
 export const getMyNotifications = (_athleteId: string) => call<AthleteNotification[]>('getMyNotifications')
 export const markNotificationsRead = (_athleteId: string, ids?: string[]) => call<void>('markNotificationsRead', ids)
 export const getAthletes = () => call<AthleteRow[]>('getAthletes')
+export const getAthleteRecords = () => call<AthleteRecord[]>('getAthleteRecords')
+export const saveAthleteRecord = (_actorId: string, input: AthleteRecordInput, id?: string) => call<AthleteRecord>('saveAthleteRecord', input, id)
+export const deleteAthleteRecord = (_actorId: string, id: string) => call<void>('deleteAthleteRecord', id)
+export const claimAthleteRecord = (_athleteId: string, targetId: string) => call<void>('claimAthleteRecord', targetId)
+export const cancelAthleteClaim = (_athleteId: string) => call<void>('cancelAthleteClaim')
 export const confirmMembership = (_actorId: string, id: string) => call<void>('confirmMembership', id)
 export const rejectMembership = (_actorId: string, id: string, reason: string) => call<void>('rejectMembership', id, reason)
 export const resetAthletePassword = (_actorId: string, id: string) => call<{ tempPassword: string }>('resetAthletePassword', id)

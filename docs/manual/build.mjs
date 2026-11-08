@@ -501,7 +501,7 @@ out.push(page(
   ], [I('admin/points', '', { h: 640 })]),
   feat('Payments', 'Menu: Payments', 'What each team owes and has paid.', [
     'Cards at the top: Unpaid, Approved, Paid at venue and All. Search teams and filter by status.',
-    'Press a row to see what it covers and who recorded it. This is read-only: the secretariat records payments.',
+    'Press a row to see what it covers and who recorded it. Press Confirm payment on an unpaid one once the money has arrived. The secretariat can confirm payments too, but only the admin has this record.',
   ], [I('admin/payments', '', { h: 560 }), I('admin/payment-detail', '', { maxh: 130 })]),
   feat('Fees and payment details', 'Menu: Fees and payment details', 'Three tabs: Registration fees, Late entry fees and Accounts.', [
     'Registration fees: first entry and each extra entry for solos and couples, the fixed fees (ranking and inter-collegiate events, athlete and coach membership, Coaches Summit). Press Save registration fees.',

@@ -10,7 +10,7 @@ import { TeamsPage } from '../features/secretariat/TeamsPage.tsx'
 import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
-import { AccountPage, AthletePage, EditAccountPage, EntriesPage, MembershipPage, NotificationsPage, PaymentsPage as MyPaymentsPage, PasswordPage, RankingsPage as MyRankingsPage, RegisterEventsPage, RequestsPage, ResultsPage as MyResultsPage } from '../features/athlete/AthletePage.tsx'
+import { AccountPage, AthletePage, EditAccountPage, EntriesPage, MembershipPage, NotificationsPage, PaymentsPage as MyPaymentsPage, PasswordPage, RankingsPage as MyRankingsPage, ResultsPage as MyResultsPage } from '../features/athlete/AthletePage.tsx'
 import { AthleteSignIn, MemberSignIn, SignInPage } from '../features/athlete/AthleteSignIn.tsx'
 import { EntryRequestsPage } from '../features/secretariat/EntryRequestsPage.tsx'
 import { AccountLinksPage } from '../features/secretariat/AccountLinksPage.tsx'
@@ -61,7 +61,7 @@ import { PrintLayout } from './layouts/PrintLayout.tsx'
 import { StaffLayout } from './layouts/StaffLayout.tsx'
 import { PublicLayout } from './layouts/TopNavLayout.tsx'
 import { STAFF_SIGN_IN } from './nav.ts'
-import { MemberAccountPage, MemberDancersPage, MemberEditPage, MemberEntriesPage, MemberHome, MemberRegisterPage, MemberRequestsPage, MemberLinkPage, MemberNotificationsPage, MemberPasswordPage, MemberPaymentsPage, MemberRankingsPage, MemberResultsPage } from '../features/athlete/MemberHome.tsx'
+import { MemberAccountPage, MemberDancersPage, MemberEditPage, MemberEntriesPage, MemberHome, MemberRegisterPage, MemberRequestsPage, MemberLinkPage, MemberNotificationsPage, MemberPasswordPage, MemberMembershipPage, MemberPaymentsPage, MemberRankingsPage, MemberResultsPage } from '../features/athlete/MemberHome.tsx'
 import { NotFound } from './NotFound.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
@@ -123,8 +123,6 @@ export const routes: RouteObject[] = [
                       { path: 'results', element: <MyResultsPage /> },
                       { path: 'rankings', element: <MyRankingsPage /> },
                       { path: 'entries', element: <EntriesPage /> },
-                      { path: 'register', element: <RegisterEventsPage /> },
-                      { path: 'requests', element: <RequestsPage /> },
                       { path: 'notifications', element: <NotificationsPage /> },
                       { path: 'password', element: <PasswordPage /> },
                     ],
@@ -161,6 +159,7 @@ export const routes: RouteObject[] = [
                       ...(kind === 'team'
                         ? [
                             { path: 'payments', element: <MemberPaymentsPage /> },
+                            { path: 'membership', element: <MemberMembershipPage /> },
                             { path: 'register', element: <MemberRegisterPage /> },
                             { path: 'requests', element: <MemberRequestsPage /> },
                           ]

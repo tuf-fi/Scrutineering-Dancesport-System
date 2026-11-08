@@ -99,6 +99,8 @@ export const coaches = sqliteTable('coaches', {
   // The years the coach's membership and Coaches Summit were last paid for
   memberYear: integer('member_year'),
   summitYear: integer('summit_year'),
+  memberMonth: integer('member_month'),
+  summitPeriod: text('summit_period'),
   // Given once, the first time the membership fee is paid: C-00001
   membershipId: text('membership_id').unique(),
   // The dates the coach attended a Coaches Summit
@@ -478,6 +480,23 @@ export const athletes = sqliteTable('athletes', {
   membershipHistory: text('membership_history', { mode: 'json' }).$type<MembershipEvent[]>().notNull().default([]),
   // A team or coach change waiting for the secretariat
   changeRequest: text('change_request', { mode: 'json' }).$type<ProfileChangeRequest>(),
+  // The athlete record this account asked to be linked to; the secretariat decides
+  claimId: text('claim_id'),
+  claimedAt: text('claimed_at'),
+})
+
+// An athlete the secretariat added before they made an account. Linking an account merges it in, and it is gone.
+export const athleteRecords = sqliteTable('athlete_records', {
+  id: id(),
+  name: text('name').notNull(),
+  birthDate: text('birth_date').notNull().default(''),
+  phone: text('phone').notNull().default(''),
+  address: text('address').notNull().default(''),
+  province: text('province').notNull().default(''),
+  teamId: text('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  coachId: text('coach_id').references(() => coaches.id, { onDelete: 'set null' }),
+  memberYear: integer('member_year'),
+  membershipId: text('membership_id').unique(),
 })
 
 // A coach's or a team's own account. Athletes keep their own table; these two only sign in and see their page.

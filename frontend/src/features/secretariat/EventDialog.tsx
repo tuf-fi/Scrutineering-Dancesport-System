@@ -113,15 +113,13 @@ function EventForm({
             </option>
           ))}
         </Select>
-        <div className="sm:col-span-2">
-          <Select label="Discipline" required value={discipline} onChange={(e) => pickDiscipline(e.target.value as Discipline)}>
-            {disciplines.map((d) => (
-              <option key={d} value={d}>
-                {DISCIPLINE_LABEL[d]}
-              </option>
-            ))}
-          </Select>
-        </div>
+        <Select label="Discipline" required value={discipline} onChange={(e) => pickDiscipline(e.target.value as Discipline)}>
+          {disciplines.map((d) => (
+            <option key={d} value={d}>
+              {DISCIPLINE_LABEL[d]}
+            </option>
+          ))}
+        </Select>
         <fieldset className="flex flex-col gap-2 sm:col-span-2">
           <legend className="mb-1.5 text-small font-medium text-neutral-600">Dances</legend>
           <div className="flex flex-wrap gap-2">

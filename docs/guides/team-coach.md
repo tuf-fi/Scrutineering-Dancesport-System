@@ -15,6 +15,7 @@ Your account sees nothing until it is linked to the team or coach record the sec
 - **Dancers**: the dancers on your record.
 - **Results** and **Rankings**: how those dancers placed, and where they stand.
 - **Entries**: the events they are entered in.
+- **Membership** (team): tick the athletes on your team you are paying the membership fee for, pay to GCash, Maya or the bank account shown, add a screenshot and press **Send payment**. The secretariat confirms it. Only a team pays; athletes and coaches cannot.
 - **Payments** (team): what has been paid and how.
 - **Notifications**: what the secretariat decided. A new one arrives as a pop-up with a short sound; press it to open the page it is about.
 - **Password**: change it here.

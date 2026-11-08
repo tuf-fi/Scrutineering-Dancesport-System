@@ -616,9 +616,6 @@ export function addSampleEntryData(db: Db) {
     db.insert(t.payments).values({ id: paymentId, teamId, competitionId: 'comp-naga-2027', late: false, amountDue: priced(events), amountPaid: priced(events), referenceNumber: 'BK55102', method: 'bank', receipt: SAMPLE_RECEIPT, status: 'approved', checkedBy: 'staff-secretariat', checkedAt: at(70) }).onConflictDoNothing().run()
     for (const e of events) db.insert(t.entries).values({ id: `en-req-${c.id}-${e.id}`, eventId: e.id, competitorId: c.id, paymentId }).onConflictDoNothing().run()
   }
-  // Ana asks to enter two more events herself
-  const mine = soloEvents('comp-naga-2027', groupIn(home), 2)
-  requests.push({ id: 'req-sample-athlete', requesterId: athlete.id, requesterRole: 'athlete', requesterName: athlete.name, competitorId: home.id, competitionId: 'comp-naga-2027', eventIds: mine.map((e) => e.id), total: priced(mine), warnings: [], method: 'gcash', reference: 'GC7040098765', receipt: SAMPLE_RECEIPT, status: 'waiting', createdAt: at(1) })
   for (const r of requests) if (r.eventIds.length > 0) db.insert(t.entryRequests).values(r).onConflictDoNothing().run()
 
   // What the team and the coach were told

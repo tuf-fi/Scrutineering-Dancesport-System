@@ -1,4 +1,5 @@
 import { isMember, membershipLabel, type AthleteNotification, type AthletePage, type AthleteProfile, type AthleteRow, type RegistrationQuote } from '@bis/shared'
+import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -12,6 +13,18 @@ let athlete = ''
 
 const SHOT = 'data:image/png;base64,iVBORw0KGgo='
 const PROFILE = { name: 'Ana Cruz', birthDate: '2017-03-02', phone: '0917', address: 'Naga City', province: 'Camarines Sur', teamId: 'team-1', coachId: null }
+
+// A team's payment waiting for the secretariat, put straight in the database (the team's own flow is in teammembership.test.ts)
+function sendPayment(name: string, method = 'GCash') {
+  const row = app.db.select().from(t.athletes).all().find((a) => a.name === name)!
+  const year = new Date().getFullYear()
+  const at = new Date().toISOString()
+  app.db
+    .update(t.athletes)
+    .set({ request: { year, method, receipt: SHOT, requestedAt: at }, membershipHistory: [...(row.membershipHistory ?? []), { at, kind: 'sent', year, method }] })
+    .where(eq(t.athletes.id, row.id))
+    .run()
+}
 
 beforeAll(async () => {
   app = await startTestApp({ seed: false })
@@ -77,31 +90,28 @@ describe('athlete accounts', () => {
     expect(isMember(year, year + 1)).toBe(false)
   })
 
-  it('takes a membership payment report, and the secretariat confirms it', async () => {
-    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: '' }], athlete)).error).toMatch(/screenshot/)
-    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: 'data:text/html;base64,PGI+' }], athlete)).status).toBe(400)
-    expect((await app.call('requestMembership', [{ method: '', receipt: SHOT }], athlete)).error).toMatch(/how you paid/)
-    const sent = await app.ok<AthleteProfile>('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)
-    expect(sent.request).toMatchObject({ year: 2026, method: 'GCash', receipt: SHOT })
-    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)).status).toBe(409)
-
+  it('lets the secretariat confirm a payment the team sent', async () => {
+    sendPayment('Ana Cruz')
     const [row] = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
     expect(row).toMatchObject({ name: 'Ana Cruz', teamName: 'Naga Dancers', memberYear: null })
     await app.ok('confirmMembership', [row!.id], secretariat)
     const page = await app.ok<AthletePage>('getMyAthlete', [], athlete)
     expect(page.profile).toMatchObject({ memberYear: 2026, request: null })
-    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)).error).toMatch(/already paid/)
   })
 
-  it('lets the athlete send a payment again after it was turned down', async () => {
+  it('keeps athletes from paying a membership themselves', async () => {
+    expect((await app.call('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)).status).toBe(404)
+  })
+
+  it('lets the team send a payment again after it was turned down', async () => {
     const other = await app.signIn.athleteSignUp('Ben Reyes', 'ben@test.example', 'a-long-password')
-    await app.ok('requestMembership', [{ method: 'Maya', receipt: SHOT }], other)
+    sendPayment('Ben Reyes', 'Maya')
     const ben = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ben Reyes')!
     expect((await app.call('rejectMembership', [ben.id, ' '], secretariat)).status).toBe(400)
     await app.ok('rejectMembership', [ben.id, 'No payment found for that reference'], secretariat)
     expect((await app.ok<AthletePage>('getMyAthlete', [], other)).profile.request?.rejectedReason).toMatch(/No payment/)
     expect((await app.call('confirmMembership', [ben.id], secretariat)).status).toBe(409)
-    await app.ok('requestMembership', [{ method: 'Maya', receipt: SHOT }], other)
+    sendPayment('Ben Reyes', 'Maya')
     expect((await app.ok<AthletePage>('getMyAthlete', [], other)).profile.request).toMatchObject({ receipt: SHOT })
   })
 
@@ -160,10 +170,10 @@ describe('the athlete account beyond the basics', () => {
   })
 
   it('keeps a history of every payment', async () => {
-    await app.ok('requestMembership', [{ method: 'GCash', receipt: SHOT }], dana)
+    sendPayment('Dana Lopez')
     const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Dana Lopez')!
     await app.ok('rejectMembership', [row.id, 'Wrong reference'], secretariat)
-    await app.ok('requestMembership', [{ method: 'GCash', receipt: SHOT }], dana)
+    sendPayment('Dana Lopez')
     await app.ok('confirmMembership', [row.id], secretariat)
     const { history } = (await app.ok<AthletePage>('getMyAthlete', [], dana)).profile
     expect(history.map((h) => h.kind)).toEqual(['sent', 'rejected', 'sent', 'confirmed'])

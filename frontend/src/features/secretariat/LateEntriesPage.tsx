@@ -215,7 +215,7 @@ function CashTab() {
       <Dialog
         open={target !== null}
         onClose={() => setTarget(null)}
-        title={`Record ${formatPeso(target?.amountDue ?? 0)} in cash?`}
+        title={`Confirm ${formatPeso(target?.amountDue ?? 0)} in cash?`}
         description={`${target?.teamName ?? ''} paid at the venue. This replaces any proof they uploaded.`}
         actions={
           <>
@@ -223,7 +223,7 @@ function CashTab() {
               Cancel
             </Button>
             <Button disabled={markPaid.isPending} onClick={confirm}>
-              {markPaid.isPending ? 'Saving…' : 'Record payment'}
+              {markPaid.isPending ? 'Saving…' : 'Confirm payment'}
             </Button>
           </>
         }

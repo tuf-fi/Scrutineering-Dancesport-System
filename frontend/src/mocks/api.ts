@@ -31,6 +31,10 @@ import {
   RoundStatus,
   type Adjudicator,
   type AthleteInput,
+  type AthleteRecord,
+  type AthleteRecordInput,
+  type TeamMembershipInput,
+  type TeamMembershipPage,
   type AthletePage,
   type AlertNote,
   type EntryRequest,
@@ -1360,6 +1364,8 @@ export const savePaymentSettings = (actorId: string, input: PaymentSettings) =>
 
 interface SampleAthlete extends AthleteProfile {
   password: string
+  claimId?: string | null
+  claimedAt?: string | null
 }
 const SAMPLE_ATHLETE_EMAIL = 'athlete@sample.example'
 const sampleAthletes: SampleAthlete[] = [
@@ -1422,7 +1428,11 @@ export const markNotificationsRead = (athleteId: string, ids?: string[]) =>
 
 const membershipYear = () => new Date().getFullYear()
 const athleteOf = (id: string) => found(sampleAthletes.find((a) => a.id === id), 'Athlete')
-const publicAthlete = ({ password: _password, ...profile }: SampleAthlete): AthleteProfile => profile
+const athleteRecords: AthleteRecord[] = []
+const publicAthlete = ({ password: _password, claimId, claimedAt, ...profile }: SampleAthlete): AthleteProfile => {
+  const target = athleteRecords.find((r) => r.id === claimId)
+  return { ...profile, claim: claimId && target ? { id: claimId, name: target.name, requestedAt: claimedAt ?? '' } : null }
+}
 
 export const signUpAthlete = (name: string, email: string, password: string, photo: string) =>
   settle<SessionUser>(() => {
@@ -1627,10 +1637,36 @@ export const getMyRoster = (memberId: string) =>
     return { rows, payments: paid, membership: null }
   })
 
-export const getMemberClaims = () => settle<MemberClaimRow[]>(() => sampleMembers.filter((m) => m.claimId && recordName(m.role, m.claimId) !== null).map(claimRow))
+const athleteClaimRows = (): MemberClaimRow[] =>
+  sampleAthletes.flatMap((a) => {
+    const target = athleteRecords.find((r) => r.id === a.claimId)
+    return a.claimId && target ? [{ memberId: a.id, role: 'athlete' as const, name: a.name, email: a.email, targetId: a.claimId, targetName: target.name, requestedAt: a.claimedAt ?? '' }] : []
+  })
+const allClaims = () => [...sampleMembers.filter((m) => m.claimId && recordName(m.role, m.claimId) !== null).map(claimRow), ...athleteClaimRows()]
+
+export const getMemberClaims = () => settle<MemberClaimRow[]>(allClaims)
 
 export const approveMemberClaim = (actorId: string, memberId: string) =>
   settle<MemberClaimRow[]>(() => {
+    const account = sampleAthletes.find((a) => a.id === memberId)
+    if (account) {
+      const target = athleteRecords.find((r) => r.id === account.claimId)
+      if (!target) throw new Error('This account has no request waiting.')
+      account.name = target.name
+      account.birthDate = target.birthDate || account.birthDate
+      account.phone = account.phone || target.phone
+      account.address = account.address || target.address
+      account.province = account.province || target.province
+      account.teamId = target.teamId ?? account.teamId
+      account.coachId = target.coachId ?? account.coachId
+      account.memberYear = Math.max(account.memberYear ?? 0, target.memberYear ?? 0) || null
+      account.membershipId = account.membershipId ?? target.membershipId ?? null
+      athleteRecords.splice(athleteRecords.indexOf(target), 1)
+      for (const a of sampleAthletes) if (a.claimId === target.id) a.claimId = a.claimedAt = null
+      record(actorId, 'Linked an account to a record', target.name)
+      notifyAthlete(account.id, { kind: 'link_approved', title: `You are linked to ${target.name}`, detail: 'Your details, team and membership are on your account now.', link: '/athlete' })
+      return allClaims()
+    }
     const member = memberOf(memberId)
     if (!member.claimId) throw new Error('This account has no request waiting.')
     if (sampleMembers.some((m) => m.id !== member.id && m.role === member.role && m.linkedId === member.claimId)) throw new Error('That record is already linked to another account.')
@@ -1639,18 +1675,26 @@ export const approveMemberClaim = (actorId: string, memberId: string) =>
     member.claimedAt = null
     record(actorId, 'Linked an account to a record', member.name)
     notifyAthlete(member.id, { kind: 'link_approved', title: `You are linked to ${recordName(member.role, member.linkedId) ?? ''}`, detail: member.role === 'team' ? 'Your dancers and payments are on your page now.' : 'Your athletes are on your page now.', link: `/${member.role}/dancers` })
-    return sampleMembers.filter((m) => m.claimId).map(claimRow)
+    return allClaims()
   })
 
 export const rejectMemberClaim = (actorId: string, memberId: string) =>
   settle<MemberClaimRow[]>(() => {
+    const account = sampleAthletes.find((a) => a.id === memberId)
+    if (account) {
+      if (!account.claimId) throw new Error('This account has no request waiting.')
+      account.claimId = account.claimedAt = null
+      record(actorId, 'Turned down a request to link an account', account.name)
+      notifyAthlete(account.id, { kind: 'link_rejected', title: 'Your request to be linked was turned down', detail: 'Check that you chose the right record and ask again.', link: '/athlete' })
+      return allClaims()
+    }
     const member = memberOf(memberId)
     if (!member.claimId) throw new Error('This account has no request waiting.')
     member.claimId = null
     member.claimedAt = null
     record(actorId, 'Turned down a request to link an account', member.name)
     notifyAthlete(member.id, { kind: 'link_rejected', title: 'Your request to be linked was turned down', detail: 'Check that you chose the right record and ask again.', link: `/${member.role}` })
-    return sampleMembers.filter((m) => m.claimId).map(claimRow)
+    return allClaims()
   })
 
 // ---- Entering a competition online ----
@@ -1869,18 +1913,47 @@ export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
     return publicAthlete(athlete)
   })
 
-export const requestMembership = (athleteId: string, input: { method: string; receipt: string }) =>
-  settle<AthleteProfile>(() => {
-    const athlete = athleteOf(athleteId)
+export const getTeamMembership = (memberId: string) =>
+  settle<TeamMembershipPage>(() => {
+    const member = memberOf(memberId)
+    if (!member.linkedId) throw new Error('Your account is not linked to a team yet.')
     const year = membershipYear()
-    if (athlete.memberYear === year) throw new Error(`Your ${year} membership is already paid.`)
-    if (athlete.request && !athlete.request.rejectedReason) throw new Error('You already sent a payment. Wait for the secretariat to confirm it.')
+    return {
+      year,
+      fee: (samplePaymentSettings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
+      methods: samplePaymentSettings.methods,
+      athletes: sampleAthletes
+        .filter((a) => a.teamId === member.linkedId)
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((a) => ({
+          id: a.id,
+          name: a.name,
+          membershipId: a.membershipId ?? null,
+          status: a.memberYear === year ? ('paid' as const) : a.request ? (a.request.rejectedReason ? ('rejected' as const) : ('waiting' as const)) : ('unpaid' as const),
+          reason: a.request?.rejectedReason ?? null,
+        })),
+    }
+  })
+
+export const requestTeamMembership = (memberId: string, input: TeamMembershipInput) =>
+  settle<void>(() => {
+    const member = memberOf(memberId)
+    const year = membershipYear()
+    if (input.athleteIds.length === 0) throw new Error('Choose the athletes you are paying for.')
     if (!input.method.trim()) throw new Error('Say how you paid.')
     if (!input.receipt) throw new Error('Send a screenshot of your payment.')
-    athlete.request = { year, method: input.method.trim(), receipt: input.receipt, requestedAt: new Date().toISOString() }
-    athlete.history.push({ at: athlete.request.requestedAt, kind: 'sent', year, method: athlete.request.method })
-    emitAlert([Role.Secretariat, Role.Admin], { title: 'Membership payment sent', detail: `${athlete.name} · ${year} membership by ${athlete.request.method}`, link: '/secretariat/athletes' })
-    return publicAthlete(athlete)
+    const rows = input.athleteIds.map((id) => athleteOf(id))
+    if (rows.some((a) => a.teamId !== member.linkedId)) throw new Error('You can only pay for your own athletes.')
+    for (const a of rows) {
+      if (a.memberYear === year) throw new Error(`${a.name} is already a member for ${year}.`)
+      if (a.request && !a.request.rejectedReason) throw new Error(`A payment for ${a.name} is already waiting for the secretariat.`)
+    }
+    const at = new Date().toISOString()
+    for (const a of rows) {
+      a.request = { year, method: input.method.trim(), receipt: input.receipt, requestedAt: at, paidBy: member.name }
+      a.history.push({ at, kind: 'sent', year, method: input.method.trim() })
+    }
+    emitAlert([Role.Secretariat, Role.Admin], { title: 'Membership payment sent', detail: `${member.name} · ${rows.length} athlete${rows.length === 1 ? '' : 's'} by ${input.method.trim()}`, link: '/secretariat/athletes' })
   })
 
 export const changeMyPassword = (athleteId: string, current: string, next: string) =>
@@ -1913,6 +1986,61 @@ export const getAthletes = () =>
         requestedCoachName: coaches.find((c) => c.id === a.changeRequest?.coachId)?.name ?? '',
       })),
   )
+
+export const getAthleteRecords = (role?: string) =>
+  reply<AthleteRecord[]>(
+    [...athleteRecords]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((r) => (role === Role.Athlete ? { id: r.id, name: r.name, birthDate: '', phone: '', address: '', province: '', teamId: null, coachId: null, memberYear: null, membershipId: null } : r)),
+  )
+
+export const saveAthleteRecord = (actorId: string, input: AthleteRecordInput, id?: string) =>
+  settle<AthleteRecord>(() => {
+    const name = input.name.trim()
+    if (!name) throw new Error('Enter the athlete\u2019s name.')
+    if (input.birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(input.birthDate)) throw new Error('Enter a valid date of birth.')
+    const values = { ...input, name, teamId: input.teamId || null, coachId: input.coachId || null }
+    const give = (r: AthleteRecord) => {
+      if (r.memberYear !== null && !r.membershipId) {
+        r.membershipId = `A-${String(sampleAthletes.filter((a) => a.membershipId).length + athleteRecords.filter((x) => x.membershipId).length + 1).padStart(5, '0')}`
+      }
+    }
+    if (id) {
+      const row = found(athleteRecords.find((r) => r.id === id), 'Athlete')
+      Object.assign(row, values)
+      give(row)
+      record(actorId, 'Edited athlete', name)
+      return row
+    }
+    const row: AthleteRecord = { id: `athlete-record-${athleteRecords.length + 1}-${Date.now()}`, ...values }
+    give(row)
+    athleteRecords.push(row)
+    record(actorId, 'Added athlete', name)
+    return row
+  })
+
+export const deleteAthleteRecord = (actorId: string, id: string) =>
+  settle<void>(() => {
+    const row = found(athleteRecords.find((r) => r.id === id), 'Athlete')
+    for (const a of sampleAthletes) if (a.claimId === id) a.claimId = a.claimedAt = null
+    athleteRecords.splice(athleteRecords.indexOf(row), 1)
+    record(actorId, 'Deleted athlete', row.name)
+  })
+
+export const claimAthleteRecord = (athleteId: string, targetId: string) =>
+  settle<void>(() => {
+    const athlete = athleteOf(athleteId)
+    const target = athleteRecords.find((r) => r.id === targetId)
+    if (!target) throw new Error('Choose your name from the list of athletes.')
+    athlete.claimId = targetId
+    athlete.claimedAt = new Date().toISOString()
+    emitAlert([Role.Secretariat, Role.Admin], { title: 'Account link request', detail: `${athlete.name} wants to be linked to ${target.name}`, link: '/secretariat/account-links' })
+  })
+
+export const cancelAthleteClaim = (athleteId: string) =>
+  settle<void>(() => {
+    athleteOf(athleteId).claimId = athleteOf(athleteId).claimedAt = null
+  })
 
 export const approveProfileChange = (actorId: string, id: string) =>
   settle<void>(() => {

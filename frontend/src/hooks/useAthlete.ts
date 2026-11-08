@@ -1,4 +1,4 @@
-import { Role, type AthleteInput, type EntryRequestInput, type MemberInput } from '@bis/shared'
+import { Role, type AthleteInput, type AthleteRecordInput, type TeamMembershipInput, type EntryRequestInput, type MemberInput } from '@bis/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import * as api from '../api/index.ts'
@@ -31,8 +31,6 @@ export const useMyAthlete = () => {
 
 export const useSaveMyAthlete = () => useWrite((input: AthleteInput) => api.saveMyAthlete(actor(), input), ['my-athlete'])
 
-export const useRequestMembership = () =>
-  useWrite((input: { method: string; receipt: string }) => api.requestMembership(actor(), input), ['my-athlete'])
 
 export const useChangeMyPassword = () =>
   useWrite((v: { current: string; next: string }) => api.changeMyPassword(actor(), v.current, v.next), [])
@@ -73,6 +71,13 @@ export const useRejectProfileChange = () =>
 // The secretariat's list of athlete accounts
 export const useAthletes = () => useQuery({ queryKey: ['athletes'], queryFn: api.getAthletes })
 
+// Athletes the secretariat added before they made an account, and the link between the two
+export const useAthleteRecords = (enabled = true) => useQuery({ queryKey: ['athlete-records'], queryFn: api.getAthleteRecords, enabled })
+export const useSaveAthleteRecord = () => useWrite((v: { input: AthleteRecordInput; id?: string }) => api.saveAthleteRecord(actor(), v.input, v.id), ['athlete-records'])
+export const useDeleteAthleteRecord = () => useWrite((id: string) => api.deleteAthleteRecord(actor(), id), ['athlete-records'])
+export const useClaimAthleteRecord = () => useWrite((targetId: string) => api.claimAthleteRecord(actor(), targetId), ['my-athlete'])
+export const useCancelAthleteClaim = () => useWrite(() => api.cancelAthleteClaim(actor()), ['my-athlete'])
+
 export const useConfirmMembership = () => useWrite((id: string) => api.confirmMembership(actor(), id), ['athletes'])
 
 export const useRejectMembership = () =>
@@ -102,6 +107,13 @@ export const useMyRoster = () => {
   return useQuery({ queryKey: ['my-roster', id], queryFn: () => api.getMyRoster(id), enabled: id !== '' })
 }
 
+// A team's athletes, who is paid up, and sending one payment for the ticked ones
+export const useTeamMembership = () => {
+  const id = useAuth((s) => s.user?.id ?? '')
+  return useQuery({ queryKey: ['team-membership', id], queryFn: () => api.getTeamMembership(id), enabled: id !== '' })
+}
+export const useRequestTeamMembership = () => useWrite((input: TeamMembershipInput) => api.requestTeamMembership(actor(), input), ['team-membership', 'athletes'])
+
 export const useSaveMyMember = () => useWrite((input: MemberInput) => api.saveMyMember(actor(), input), ['my-member'])
 export const useSaveMyMemberPhoto = () => useWrite((photo: string | null) => api.saveMyMemberPhoto(actor(), photo), ['my-member'])
 export const useClaimRecord = () => useWrite((targetId: string) => api.claimRecord(actor(), targetId), ['my-member', 'my-roster'])
@@ -114,8 +126,8 @@ export const useApproveMemberChange = () => useWrite((memberId: string) => api.a
 export const useRejectMemberChange = () =>
   useWrite((v: { id: string; reason: string }) => api.rejectMemberChange(actor(), v.id, v.reason), ['member-changes'])
 
-export const useApproveMemberClaim = () => useWrite((memberId: string) => api.approveMemberClaim(actor(), memberId), ['member-claims'])
-export const useRejectMemberClaim = () => useWrite((memberId: string) => api.rejectMemberClaim(actor(), memberId), ['member-claims'])
+export const useApproveMemberClaim = () => useWrite((memberId: string) => api.approveMemberClaim(actor(), memberId), ['member-claims', 'athletes', 'athlete-records'])
+export const useRejectMemberClaim = () => useWrite((memberId: string) => api.rejectMemberClaim(actor(), memberId), ['member-claims', 'athletes', 'athlete-records'])
 
 // Entering a competition online: a team's dancers (or an athlete's own entries) are picked, priced and sent for the secretariat to approve
 export const useMyEntrants = () => {

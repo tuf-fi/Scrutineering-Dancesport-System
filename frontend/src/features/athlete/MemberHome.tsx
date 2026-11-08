@@ -1,5 +1,5 @@
 import { membershipLabel, type MemberAccount, type MemberPaymentRow, type MemberRoster, type MemberRosterRow } from '@bis/shared'
-import { Bell, ClipboardList, FilePlus2, KeyRound, Link2, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, Users } from 'lucide-react'
+import { Bell, ClipboardList, FilePlus2, KeyRound, Link2, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, Users, WalletCards } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, Outlet, useLocation, useOutletContext } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
@@ -9,6 +9,7 @@ import { useCancelClaim, useClaimRecord, useTeams, useCoaches, useMyMember, useM
 import { competitorName, formatDate, formatPeso } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
 import { AccountNav, type NavGroup } from './AccountNav.tsx'
+import { TeamMembership } from './TeamMembership.tsx'
 import { AccountSection } from './AccountSection.tsx'
 import { EntryRequestsList, RegisterPage } from './EntryRegistration.tsx'
 import { Notifications, type Todo } from './Notifications.tsx'
@@ -57,7 +58,7 @@ function groupsFor(role: 'coach' | 'team'): NavGroup[] {
           },
         ]
       : []),
-    ...(role === 'team' ? [{ label: 'Payments', items: [{ to: `${base}/payments`, label: 'Payments', icon: Receipt }] }] : []),
+    ...(role === 'team' ? [{ label: 'Payments', items: [{ to: `${base}/membership`, label: 'Membership', icon: WalletCards }, { to: `${base}/payments`, label: 'Payments', icon: Receipt }] }] : []),
     { label: 'Security', items: [{ to: `${base}/password`, label: 'Password', icon: KeyRound }] },
   ]
 }
@@ -342,6 +343,7 @@ export const MemberPasswordPage = SecurityPage
 export const MemberAccountPage = AccountInfo
 export const MemberDancersPage = Dancers
 export const MemberPaymentsPage = Payments
+export const MemberMembershipPage = TeamMembership
 
 // A coach's or a team's account, laid out like the athlete's: a sidebar of sections beside the one that is open
 export function MemberHome() {

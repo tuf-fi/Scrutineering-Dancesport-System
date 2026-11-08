@@ -457,7 +457,7 @@ describe('payments', () => {
     return queueRows()
   }
 
-  it('lists what is still owed, and shows what a payment covers without any decision to make', async () => {
+  it('lists what is still owed, and shows what a payment covers with a way to confirm it', async () => {
     renderApp('/admin/payments', Role.Admin)
     const items = await teams()
     expect(items.length).toBeGreaterThanOrEqual(1)
@@ -468,6 +468,7 @@ describe('payments', () => {
     expect(within(drawer).getByText('Amount paid')).toBeInTheDocument()
     expect(within(drawer).getByText('Reference number')).toBeInTheDocument()
     expect(within(drawer).getByText(/Not paid yet/)).toBeInTheDocument()
+    expect(within(drawer).getByRole('button', { name: 'Confirm payment' })).toBeInTheDocument()
     expect(within(drawer).queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
     expect(within(drawer).queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
   })
@@ -475,7 +476,7 @@ describe('payments', () => {
   it('shows who recorded a payment that is paid', async () => {
     renderApp('/admin/payments?status=paid_at_venue', Role.Admin)
     await userEvent.click((await teams())[0])
-    expect(await screen.findByText(/^Recorded/)).toBeInTheDocument()
+    expect(await screen.findByText(/^Confirmed/)).toBeInTheDocument()
   })
 })
 

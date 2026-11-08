@@ -1,19 +1,21 @@
 import { PaymentStatus, type PaymentDetail, type PaymentLine } from '@bis/shared'
 import { Fact } from '../../components/Fact.tsx'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge.tsx'
-import { Drawer, Table } from '../../components/ui/index.ts'
-import { useStaffUsers } from '../../hooks/index.ts'
+import { Button, Drawer, Table, toast } from '../../components/ui/index.ts'
+import { useMarkPaidAtVenue, useStaffUsers } from '../../hooks/index.ts'
 import { DANCE_LABEL, competitorName, eventCode, formatDateTime, formatPeso } from '../../lib/format.ts'
 
-// What one payment covers, and who recorded it. The secretariat records every payment; nothing is decided here.
+// What one payment covers, and who confirmed it. The admin keeps the record and can confirm a cash payment here; the secretariat only confirms.
 export function PaymentReview({ payment, onClose }: { payment: PaymentDetail; onClose: () => void }) {
   const staff = useStaffUsers()
+  const markPaid = useMarkPaidAtVenue()
+  const open = payment.status === PaymentStatus.Unpaid || payment.status === PaymentStatus.Rejected
   const checker = staff.data?.find((s) => s.id === payment.checkedBy)?.name
 
   const note =
     payment.status === PaymentStatus.Unpaid
-      ? 'Not paid yet. The secretariat records it under Late entries, Cash payments, once the money arrives.'
-      : `Recorded${checker ? ` by ${checker}` : ''}${payment.checkedAt ? ` on ${formatDateTime(payment.checkedAt)}` : ''}.`
+      ? 'Not paid yet. Confirm it once the money has arrived.'
+      : `Confirmed${checker ? ` by ${checker}` : ''}${payment.checkedAt ? ` on ${formatDateTime(payment.checkedAt)}` : ''}.`
 
   return (
     <Drawer
@@ -21,7 +23,24 @@ export function PaymentReview({ payment, onClose }: { payment: PaymentDetail; on
       onClose={onClose}
       title={payment.teamName}
       meta={<PaymentStatusBadge status={payment.status} />}
-      footer={<p className="text-small text-neutral-600">{note}</p>}
+      footer={
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-small text-neutral-600">{note}</p>
+          {open && (
+            <Button
+              disabled={markPaid.isPending}
+              onClick={() =>
+                markPaid.mutate(payment.id, {
+                  onSuccess: () => toast.success(`${payment.teamName} confirmed as paid`),
+                  onError: (e) => toast.error(e.message),
+                })
+              }
+            >
+              {markPaid.isPending ? 'Saving…' : 'Confirm payment'}
+            </Button>
+          )}
+        </div>
+      }
     >
       <div className="flex flex-col gap-6">
         <dl className="grid gap-4">

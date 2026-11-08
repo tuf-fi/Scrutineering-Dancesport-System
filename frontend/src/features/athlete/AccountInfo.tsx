@@ -3,6 +3,7 @@ import { ButtonLink } from '../../components/ui/index.ts'
 import { useTeams, useCoaches } from '../../hooks/index.ts'
 import { formatDate } from '../../lib/format.ts'
 import { AccountSection } from './AccountSection.tsx'
+import { LinkAthleteRecord } from './LinkAthleteRecord.tsx'
 
 // What the secretariat has on file, read-only; Edit account changes it
 export function AccountInfo({ page }: { page: AthleteData }) {
@@ -19,12 +20,14 @@ export function AccountInfo({ page }: { page: AthleteData }) {
     { label: 'Address', value: profile.address },
     { label: 'Team', value: teams.data?.find((c) => c.id === profile.teamId)?.name },
     { label: 'Coach', value: coaches.data?.find((c) => c.id === profile.coachId)?.name },
-    { label: 'Membership', value: profile.memberYear === null ? undefined : membershipLabel(profile.memberYear, year) },
+    { label: 'Membership', value: profile.memberYear === null ? 'Not paid' : membershipLabel(profile.memberYear, year) },
     { label: 'Membership ID', value: profile.membershipId ?? undefined },
   ]
   const missing = rows.some((r) => !r.value && r.label !== 'Membership' && r.label !== 'Membership ID' && r.label !== 'Coach')
 
   return (
+    <div className="flex flex-col gap-10">
+    <LinkAthleteRecord profile={profile} />
     <AccountSection title="Account information" note="Only the secretariat sees these. They use them for your entry form.">
       <dl className="divide-y divide-neutral-200 border-y border-neutral-200">
         {rows.map((r) => (
@@ -36,13 +39,9 @@ export function AccountInfo({ page }: { page: AthleteData }) {
       </dl>
       <div className="flex flex-wrap gap-2">
         <ButtonLink to="/athlete/edit">Edit account</ButtonLink>
-        {profile.memberYear !== year && (
-          <ButtonLink to="/athlete/membership" variant="secondary">
-            Pay {year} membership
-          </ButtonLink>
-        )}
       </div>
       {missing && <p className="text-small text-neutral-600">Some details are empty. Fill them in before you enter a competition.</p>}
     </AccountSection>
+    </div>
   )
 }

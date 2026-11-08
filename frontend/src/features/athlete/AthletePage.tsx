@@ -1,12 +1,11 @@
-import type { AthletePage as AthleteData } from '@bis/shared'
-import { Bell, ClipboardList, FilePlus2, KeyRound, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, WalletCards } from 'lucide-react'
+import { membershipState, type AthletePage as AthleteData } from '@bis/shared'
+import { Bell, KeyRound, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, WalletCards } from 'lucide-react'
 import { Outlet, useLocation, useOutletContext } from 'react-router'
 import { ErrorState, Skeleton, SkeletonList } from '../../components/ui/index.ts'
 import { useMyAthlete } from '../../hooks/index.ts'
 import { Avatars } from '../../components/Avatars.tsx'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
 import { AccountInfo } from './AccountInfo.tsx'
-import { EntryRequestsList, RegisterPage } from './EntryRegistration.tsx'
 import { AccountNav, type NavGroup } from './AccountNav.tsx'
 import { EditAccount } from './EditAccount.tsx'
 import { MembershipSection } from './MembershipSection.tsx'
@@ -31,8 +30,6 @@ const GROUPS: NavGroup[] = [
       { to: '/athlete/results', label: 'My results', icon: Trophy },
       { to: '/athlete/rankings', label: 'My standings', icon: Medal },
       { to: '/athlete/entries', label: 'My entries', icon: ListChecks },
-      { to: '/athlete/register', label: 'Enter events', icon: FilePlus2 },
-      { to: '/athlete/requests', label: 'My requests', icon: ClipboardList },
     ],
   },
   {
@@ -56,8 +53,6 @@ export const PasswordPage = () => <Security />
 export const ResultsPage = () => <MyResults />
 export const RankingsPage = () => <MyRankings />
 export const EntriesPage = () => <MyEntries />
-export const RegisterEventsPage = () => <RegisterPage who="athlete" />
-export const RequestsPage = () => <EntryRequestsList />
 export const NotificationsPage = () => <Notifications todos={todosOf(useAthleteData())} />
 
 // The signed-in athlete's account: a sidebar of sections beside the one that is open
@@ -69,7 +64,7 @@ export function AthletePage() {
   if (athlete.isError) return <ErrorState onRetry={() => void athlete.refetch()} />
 
   const page = athlete.data
-  const paid = page ? page.profile.memberYear === page.year : false
+  const state = page ? membershipState(page.profile.memberYear, page.year) : 'none'
 
   return (
     <div className="flex flex-col gap-8 max-lg:pt-14 lg:pl-[15rem]">
@@ -82,7 +77,7 @@ export function AthletePage() {
           aside={
             page && (
               <HeaderStats>
-                <HeaderStat value={paid ? 'Paid' : 'Not paid'} label={`${page.year} membership`} />
+                <HeaderStat value={state === 'paid' ? 'Paid' : state === 'expired' ? 'Expired' : 'Not paid'} label={`${page.year} membership`} />
               </HeaderStats>
             )
           }

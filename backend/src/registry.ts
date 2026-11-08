@@ -13,6 +13,8 @@ import { security } from './services/security.ts'
 import { accountFunctions } from './services/accounts.ts'
 import { athletes } from './services/athletes.ts'
 import { entryRequests } from './services/entryRequests.ts'
+import { getTeamMembership, requestTeamMembership } from './services/teamMembership.ts'
+import { cancelAthleteClaim, claimAthleteRecord, deleteAthleteRecord, getAthleteRecords, saveAthleteRecord } from './services/athleteRecords.ts'
 import { approveMemberChange, approveMemberClaim, correctMember, getMemberChanges, rejectMemberChange, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
 import { isStaff, toTeam } from './services/shared.ts'
 import * as t from './db/schema.ts'
@@ -63,6 +65,13 @@ const handlers: Record<string, Handler> = {
   rejectMemberChange,
   saveMyMember,
   saveMyMemberPhoto,
+  getTeamMembership,
+  requestTeamMembership,
+  getAthleteRecords,
+  saveAthleteRecord,
+  deleteAthleteRecord,
+  claimAthleteRecord,
+  cancelAthleteClaim,
   claimRecord,
   cancelClaim,
   getMyRoster,
@@ -212,15 +221,20 @@ const access: Record<string, Access> = {
   getMyMember: [Role.Coach, Role.Team],
   saveMyMember: [Role.Coach, Role.Team],
   saveMyMemberPhoto: [Role.Coach, Role.Team],
-  getMyEntrants: [Role.Team, Role.Athlete],
-  getEntryPaymentMethods: [Role.Team, Role.Athlete],
-  quoteMyEntries: [Role.Team, Role.Athlete],
-  submitEntryRequest: [Role.Team, Role.Athlete],
-  getMyEntryRequests: [Role.Team, Role.Athlete],
-  cancelEntryRequest: [Role.Team, Role.Athlete],
+  getMyEntrants: [Role.Team],
+  getEntryPaymentMethods: [Role.Team],
+  quoteMyEntries: [Role.Team],
+  submitEntryRequest: [Role.Team],
+  getMyEntryRequests: [Role.Team],
+  cancelEntryRequest: [Role.Team],
   getEntryRequests: ADMIN_OR_SECRETARIAT,
   approveEntryRequest: ADMIN_OR_SECRETARIAT,
   rejectEntryRequest: ADMIN_OR_SECRETARIAT,
+  getAthleteRecords: [...ADMIN_OR_SECRETARIAT, Role.Athlete],
+  saveAthleteRecord: ADMIN_OR_SECRETARIAT,
+  deleteAthleteRecord: ADMIN_OR_SECRETARIAT,
+  claimAthleteRecord: [Role.Athlete],
+  cancelAthleteClaim: [Role.Athlete],
   claimRecord: [Role.Coach, Role.Team],
   cancelClaim: [Role.Coach, Role.Team],
   getMyRoster: [Role.Coach, Role.Team],
@@ -228,7 +242,8 @@ const access: Record<string, Access> = {
   approveMemberClaim: ADMIN_OR_SECRETARIAT,
   rejectMemberClaim: ADMIN_OR_SECRETARIAT,
   saveMyAthlete: [Role.Athlete],
-  requestMembership: [Role.Athlete],
+  getTeamMembership: [Role.Team],
+  requestTeamMembership: [Role.Team],
   changeMyPassword: [Role.Athlete, Role.Coach, Role.Team],
   signOutEverywhere: [Role.Athlete, Role.Coach, Role.Team],
   saveMyPhoto: [Role.Athlete],

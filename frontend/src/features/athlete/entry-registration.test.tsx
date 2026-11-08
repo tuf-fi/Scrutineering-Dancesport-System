@@ -76,12 +76,11 @@ describe('entering a competition online', () => {
     expect(await screen.findByText('Page not found')).toBeInTheDocument()
   })
 
-  it('gives an athlete their own Enter events and My requests pages', async () => {
-    renderApp('/athlete/register', Role.Athlete, { id: 'athlete-sample', name: 'Ana Cruz' })
-    expect(await screen.findByRole('heading', { name: 'Enter events' })).toBeInTheDocument()
-    await userEvent.click(within(screen.getByRole('navigation', { name: 'Account' })).getByRole('link', { name: 'My requests' }))
-    expect(await screen.findByRole('heading', { name: 'My requests' })).toBeInTheDocument()
-    expect(await screen.findByText('No requests yet')).toBeInTheDocument()
+  it('does not let an athlete enter events: only the team does', async () => {
+    renderApp('/athlete', Role.Athlete, { id: 'athlete-sample', name: 'Ana Cruz' })
+    const nav = await screen.findByRole('navigation', { name: 'Account' })
+    expect(within(nav).queryByRole('link', { name: 'Enter events' })).not.toBeInTheDocument()
+    expect(within(nav).queryByRole('link', { name: 'My requests' })).not.toBeInTheDocument()
   })
 
 })

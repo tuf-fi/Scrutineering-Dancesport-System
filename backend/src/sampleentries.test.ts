@@ -30,13 +30,11 @@ describe('sample entries', () => {
     expect((await app.ok<MemberRoster>('getMyRoster', [], coach)).rows.length).toBeGreaterThan(0)
   })
 
-  it('has entry requests in every state, and the athlete asks for herself', async () => {
+  it('has entry requests in every state, all sent by teams', async () => {
     const secretariat = await app.signIn.staff('secretariat')
     const all = await app.ok<EntryRequest[]>('getEntryRequests', [], secretariat)
-    expect(all.map((r) => r.status).sort()).toEqual(['approved', 'rejected', 'waiting', 'waiting'])
-    expect(all.filter((r) => r.status === 'waiting').map((r) => r.requesterRole).sort()).toEqual(['athlete', 'team'])
-    const athlete = await app.signIn.athlete('athlete@sample.example', 'bis2026')
-    expect((await app.ok<EntryRequest[]>('getMyEntryRequests', [], athlete)).map((r) => r.status)).toEqual(['waiting'])
+    expect(all.map((r) => r.status).sort()).toEqual(['approved', 'rejected', 'waiting'])
+    expect(all.filter((r) => r.status === 'waiting').map((r) => r.requesterRole).sort()).toEqual(['team'])
   })
 
   it('can be added again without doubling anything', () => {

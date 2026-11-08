@@ -398,8 +398,9 @@ export const pointsRows = (ctx: Ctx): PointsRow[] =>
 // Once a payment is paid, the memberships it covered count for the year
 // A membership ID is given once, the first time the membership fee is paid: A-00001 for an athlete, C-00001 for a coach.
 // The number runs on from the highest one given.
-function nextMembershipId(ctx: Ctx, kind: 'athlete' | 'coach'): string {
-  const [table, prefix] = kind === 'athlete' ? ['athletes', 'A'] : ['coaches', 'C']
+export function nextMembershipId(ctx: Ctx, kind: 'athlete' | 'coach'): string {
+  // An athlete number also counts the records added before an account exists
+  const [table, prefix] = kind === 'athlete' ? ['(SELECT membership_id FROM athletes UNION ALL SELECT membership_id FROM athlete_records)', 'A'] : ['coaches', 'C']
   const row = ctx.sqlite.prepare(`SELECT max(CAST(substr(membership_id, 3) AS INTEGER)) AS n FROM ${table} WHERE membership_id LIKE ?`).get(`${prefix}-%`) as { n: number | null }
   return `${prefix}-${String((row.n ?? 0) + 1).padStart(5, '0')}`
 }

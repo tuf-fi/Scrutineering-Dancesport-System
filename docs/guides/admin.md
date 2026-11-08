@@ -11,7 +11,7 @@ Your menu also holds the secretariat's screens (Events, Competitors, Teams, Coac
 5. **Competitions**: create the competition.
 
 ## Checking payments
-**Payments**: a record of what each team owes and has paid. Open one to see what it covers and who recorded it. The secretariat records payments (cash, GCash, Maya or bank); there is nothing to approve here.
+**Payments**: a record of what each team owes and has paid. Open one to see what it covers and who recorded it. Press **Confirm payment** on an unpaid one once the money has arrived. The secretariat can also confirm payments, but only the admin has this record.
 
 ## Teams
 **Teams**: add, edit or delete the teams on the entry forms. A team that still has competitors cannot be deleted. A team can make its own account and ask to be linked to its record; the secretariat approves the link and enters the dancers, or approves the entries the team sends online.

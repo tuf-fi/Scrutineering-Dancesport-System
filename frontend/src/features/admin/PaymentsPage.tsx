@@ -56,7 +56,7 @@ export function PaymentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Payments" description="What each team has paid, and what is still owed. The secretariat records payments." />
+      <PageHeader title="Payments" description="What each team has paid, and what is still owed. The secretariat confirms payments as the money arrives." />
 
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-4">
         {filters.map((f) => (

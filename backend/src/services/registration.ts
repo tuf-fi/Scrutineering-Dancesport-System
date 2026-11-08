@@ -33,6 +33,8 @@ const toCoach = (r: typeof t.coaches.$inferSelect): Coach => ({
   phone: r.phone,
   memberYear: r.memberYear,
   summitYear: r.summitYear,
+  memberMonth: r.memberMonth,
+  summitPeriod: r.summitPeriod,
   membershipId: r.membershipId ?? null,
   summits: r.summits ?? [],
 })
@@ -47,6 +49,7 @@ function summitDates(value: unknown): string[] {
 }
 
 const year = (value: unknown): number | null => (Number.isInteger(value) && (value as number) > 2000 ? (value as number) : null)
+const month = (value: unknown): number | null => (Number.isInteger(value) && (value as number) >= 1 && (value as number) <= 12 ? (value as number) : null)
 
 // Today in the Philippines, as YYYY-MM-DD
 const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
@@ -232,7 +235,7 @@ export const registration = {
   saveCoach(ctx: Ctx, input: CoachInput, id?: string): Coach {
     const name = clean(input?.name)
     if (!name) return fail('Enter the coach’s name.')
-    const values = { name, email: clean(input.email), phone: clean(input.phone), memberYear: year(input.memberYear), summitYear: year(input.summitYear), summits: summitDates(input.summits) }
+    const values = { name, email: clean(input.email), phone: clean(input.phone), memberYear: year(input.memberYear), summitYear: year(input.summitYear), memberMonth: month(input.memberMonth), summitPeriod: clean(input.summitPeriod).slice(0, 60) || null, summits: summitDates(input.summits) }
     if (id) {
       const before = found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
       if (name !== before.name && ctx.user?.role !== Role.Admin) return fail('Only an admin can change a coach’s name.', 403)

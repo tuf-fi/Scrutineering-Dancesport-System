@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
+import { approveAthleteClaim, athleteClaims, isAthleteAccount, rejectAthleteClaim } from './athleteRecords.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
@@ -135,6 +136,10 @@ export function markMemberNotificationsRead(ctx: Ctx, ids?: string[]): void {
 // ---- The secretariat's side ----
 
 export function getMemberClaims(ctx: Ctx): MemberClaimRow[] {
+  return [...memberClaims(ctx), ...athleteClaims(ctx)].sort((a, b) => a.requestedAt.localeCompare(b.requestedAt))
+}
+
+function memberClaims(ctx: Ctx): MemberClaimRow[] {
   return ctx.db
     .select()
     .from(t.memberAccounts)
@@ -156,6 +161,10 @@ function waiting(ctx: Ctx, memberId: string) {
 }
 
 export function approveMemberClaim(ctx: Ctx, memberId: string): MemberClaimRow[] {
+  if (isAthleteAccount(ctx, memberId)) {
+    approveAthleteClaim(ctx, memberId)
+    return getMemberClaims(ctx)
+  }
   const row = waiting(ctx, memberId)
   const taken = ctx.db.select().from(t.memberAccounts).where(eq(t.memberAccounts.linkedId, row.claimId!)).get()
   if (taken && taken.id !== row.id) return fail('That record is already linked to another account.', 409)
@@ -167,6 +176,10 @@ export function approveMemberClaim(ctx: Ctx, memberId: string): MemberClaimRow[]
 }
 
 export function rejectMemberClaim(ctx: Ctx, memberId: string): MemberClaimRow[] {
+  if (isAthleteAccount(ctx, memberId)) {
+    rejectAthleteClaim(ctx, memberId)
+    return getMemberClaims(ctx)
+  }
   const row = waiting(ctx, memberId)
   ctx.db.update(t.memberAccounts).set({ claimId: null, claimedAt: null }).where(eq(t.memberAccounts.id, row.id)).run()
   record(ctx.db, actor(ctx).id, 'Turned down a request to link an account', row.name, { before: { claimId: row.claimId } })

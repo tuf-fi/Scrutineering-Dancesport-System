@@ -2,13 +2,21 @@ import { Role } from '@bis/shared'
 import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { confirmMembership, getCompetitorHistory, getCompetitors, rejectMembership, requestMembership, saveMyAthlete, signUpAthlete } from '../../mocks/api.ts'
+import { confirmMembership, getAthletes, getCompetitorHistory, getCompetitors, getTeams, rejectMembership, requestTeamMembership, saveMyAthlete, signUpAthlete } from '../../mocks/api.ts'
 import { openMenu, renderApp } from '../../test-utils.tsx'
 
 // jsdom cannot decode or draw pictures, so the resizing helper is faked
 vi.mock('../../lib/image.ts', () => ({ screenshotImage: async () => 'data:image/jpeg;base64,/9j/', squarePhoto: async () => 'data:image/jpeg;base64,/9j/' }))
 const SHOT = 'data:image/jpeg;base64,/9j/'
 const screenshot = () => new File(['x'], 'pay.png', { type: 'image/png' })
+
+// The sample team pays the membership of an athlete: the athlete joins that team first, since only a team can pay
+async function teamPays(athleteId: string, method = 'GCash') {
+  const [team] = await getTeams()
+  const row = (await getAthletes()).find((a) => a.id === athleteId)!
+  await saveMyAthlete(athleteId, { name: row.name, birthDate: '2015-01-01', phone: '0917', address: '', province: '', coachId: null, teamId: team!.id })
+  await requestTeamMembership('member-sample-team', { athleteIds: [athleteId], method, receipt: SHOT })
+}
 
 describe('sign-in field', () => {
   it.each([['athlete', 'Membership ID or email'], ['coach', 'Membership ID or email'], ['team', 'Email']])('asks %s for %s', async (as, label) => {
@@ -18,7 +26,7 @@ describe('sign-in field', () => {
 })
 
 describe('athlete account', () => {
-  it('signs up, fills in details and sends a membership payment, and the secretariat confirms it', async () => {
+  it('signs up and fills in details, and the secretariat confirms the membership the team paid', async () => {
     renderApp('/athlete')
     expect(await screen.findByRole('heading', { name: 'Athlete sign-in' })).toBeInTheDocument()
 
@@ -37,7 +45,7 @@ describe('athlete account', () => {
     await userEvent.upload(screen.getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
     expect(await screen.findByRole('heading', { name: 'Ana Lim' })).toBeInTheDocument()
-    expect(await screen.findByText('Not paid')).toBeInTheDocument()
+    expect((await screen.findAllByText('Not paid')).length).toBeGreaterThan(0)
 
     await userEvent.click(within(screen.getByRole('navigation', { name: 'Account' })).getByRole('link', { name: 'Edit account' }))
     await userEvent.type(await screen.findByLabelText('Contact no.'), '0917')
@@ -45,16 +53,16 @@ describe('athlete account', () => {
     expect(await screen.findByText('Saved')).toBeInTheDocument()
 
     await userEvent.click(within(screen.getByRole('navigation', { name: 'Account' })).getByRole('link', { name: 'Membership' }))
-    await userEvent.click(await screen.findByRole('button', { name: 'Send payment' }))
-    expect(await screen.findByText('Send a screenshot of your payment.')).toBeInTheDocument()
-    await userEvent.upload(screen.getByLabelText('Payment screenshot'), screenshot())
-    await userEvent.click(screen.getByRole('button', { name: 'Send payment' }))
-    expect(await screen.findByText('Waiting for the secretariat')).toBeInTheDocument()
+    // Only a team pays the membership: the athlete sees the status and no way to pay
+    expect(await screen.findByText('Your team pays the membership fee. Ask your team to include you.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Send payment' })).not.toBeInTheDocument()
+    const ana = (await getAthletes()).find((a) => a.name === 'Ana Lim')!
+    await teamPays(ana.id)
 
     cleanup()
     renderApp('/secretariat/athletes', Role.Secretariat)
-    expect(await screen.findByText('Ana Lim')).toBeInTheDocument()
-    expect(screen.getByText('Waiting')).toBeInTheDocument()
+    await userEvent.type(await screen.findByLabelText('Search athletes'), 'Ana Lim')
+    expect(await screen.findByText('Waiting')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Confirm membership of Ana Lim' }))
     expect(await screen.findByText('Confirmed Ana Lim')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Confirm membership of Ana Lim' })).not.toBeInTheDocument()
@@ -69,13 +77,12 @@ describe('athlete account', () => {
     await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
     await userEvent.upload(screen.getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
-    await userEvent.click(within(await screen.findByRole('navigation', { name: 'Account' })).getByRole('link', { name: 'Membership' }))
-    await userEvent.upload(await screen.findByLabelText('Payment screenshot'), screenshot())
-    await userEvent.click(screen.getByRole('button', { name: 'Send payment' }))
-    expect(await screen.findByText('Waiting for the secretariat')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Ben Reyes' })).toBeInTheDocument()
+    await teamPays((await getAthletes()).find((a) => a.name === 'Ben Reyes')!.id)
 
     cleanup()
     renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.type(await screen.findByLabelText('Search athletes'), 'Ben Reyes')
     await userEvent.click(await screen.findByRole('button', { name: 'Turn down payment of Ben Reyes' }))
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByRole('button', { name: 'Turn down' })).toBeDisabled()
@@ -83,6 +90,34 @@ describe('athlete account', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Turn down' }))
     expect(await screen.findByText('Turned down the payment of Ben Reyes')).toBeInTheDocument()
     expect(await screen.findByText('Not confirmed')).toBeInTheDocument()
+  })
+
+  it('lets staff add an athlete, who then links their account to it once the secretariat agrees', async () => {
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
+    await userEvent.type(within(dialog).getByLabelText('Full name'), 'Lia Gomez')
+    await userEvent.type(within(dialog).getByLabelText('Province'), 'Albay')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
+    expect(await screen.findByText('Added Lia Gomez')).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Search athletes'), 'Lia Gomez')
+    expect(await screen.findByRole('button', { name: 'Edit Lia Gomez' })).toBeInTheDocument()
+
+    cleanup()
+    renderApp('/athlete', Role.Athlete, { id: 'athlete-sample', name: 'Ana Cruz' })
+    await userEvent.selectOptions(await screen.findByLabelText('Athlete'), 'Lia Gomez')
+    await userEvent.click(screen.getByRole('button', { name: 'Send request' }))
+    expect(await screen.findByText('Waiting for the secretariat')).toBeInTheDocument()
+
+    cleanup()
+    renderApp('/secretariat/account-links', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Link Ana Cruz to Lia Gomez' }))
+    expect(await screen.findByText('Linked Ana Cruz')).toBeInTheDocument()
+
+    cleanup()
+    renderApp('/athlete', Role.Athlete, { id: 'athlete-sample', name: 'Lia Gomez' })
+    expect(await screen.findByText('Albay')).toBeInTheDocument()
+    expect(screen.queryByText('Link your athlete record')).not.toBeInTheDocument()
   })
 
   it('changes the password only with the current one', async () => {
@@ -153,7 +188,7 @@ describe('athlete account', () => {
     const otherTeam = (await (await import('../../mocks/api.ts')).getTeams())[1]!.id
     await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', teamId, coachId: null })
     await saveMyAthlete(session.id, { name: 'Eve Dela Cruz', birthDate: '2015-01-01', phone: '0917', address: '', province: '', teamId: otherTeam, coachId: null })
-    await requestMembership(session.id, { method: 'GCash', receipt: SHOT })
+    await teamPays(session.id, 'GCash')
 
     renderApp('/athlete/payments', Role.Athlete, { id: session.id, name: 'Eve Dela Cruz' })
     const history = await screen.findByRole('list', { name: 'Payment history' })
@@ -168,7 +203,7 @@ describe('athlete account', () => {
 
   it('shows a new notification as it happens, with a count on the bell', async () => {
     const session = await signUpAthlete('Gia Reyes', 'gia@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
-    await requestMembership(session.id, { method: 'GCash', receipt: SHOT })
+    await teamPays(session.id, 'GCash')
     renderApp('/athlete/notifications', Role.Athlete, { id: session.id, name: 'Gia Reyes' })
     expect(await screen.findByText('Nothing yet')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument()
@@ -183,9 +218,30 @@ describe('athlete account', () => {
     expect(await screen.findByRole('button', { name: 'Notifications' })).toBeInTheDocument()
   })
 
+  it('lets a team tick the athletes it pays the membership for, and only those', async () => {
+    const [team] = await getTeams()
+    const lia = await signUpAthlete('Lia Soriano', 'lia@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
+    const ken = await signUpAthlete('Ken Ramos', 'ken@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
+    const input = { birthDate: '2015-01-01', phone: '0917', address: '', province: '', coachId: null, teamId: team!.id }
+    await saveMyAthlete(lia.id, { name: 'Lia Soriano', ...input })
+    await saveMyAthlete(ken.id, { name: 'Ken Ramos', ...input })
+
+    renderApp('/team/membership', Role.Team, { id: 'member-sample-team', name: 'Sample Dance Team' })
+    await userEvent.click(await screen.findByRole('checkbox', { name: 'Lia Soriano' }))
+    expect(screen.getByText('1 athlete chosen')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Send payment' }))
+    expect(await screen.findByText('Send a screenshot of your payment.')).toBeInTheDocument()
+    await userEvent.upload(screen.getByLabelText('Payment screenshot'), screenshot())
+    await userEvent.click(screen.getByRole('button', { name: 'Send payment' }))
+    expect(await screen.findByText('Payment sent to the secretariat')).toBeInTheDocument()
+
+    expect(screen.getByRole('checkbox', { name: 'Lia Soriano' })).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: 'Ken Ramos' })).toBeEnabled()
+  })
+
   it('opens the bell with the latest notifications', async () => {
     const session = await signUpAthlete('Hal Torres', 'hal@test.example', 'A-long-password1', 'data:image/png;base64,iVBORw0KGgo=')
-    await requestMembership(session.id, { method: 'Maya', receipt: SHOT })
+    await teamPays(session.id, 'Maya')
     await rejectMembership('staff-admin', session.id, 'Screenshot is blurry')
     renderApp('/athlete', Role.Athlete, { id: session.id, name: 'Hal Torres' })
     await userEvent.click(await screen.findByRole('button', { name: 'Notifications, 1 new' }))

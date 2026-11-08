@@ -8,9 +8,10 @@ import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { confirmCascade, removeCascade } from './cascade.ts'
+import { claimOf } from './athleteRecords.ts'
 import { reads } from './reads.ts'
 import { changeMemberPassword, isMember, markMemberNotificationsRead, memberCompetitors, memberNotifications, signOutMember } from './members.ts'
-import { MAX_RECEIPT, MIN_PASSWORD, PHOTO, checkPhoto, clean, giveAthleteMembershipId } from './shared.ts'
+import { MIN_PASSWORD, checkPhoto, clean, giveAthleteMembershipId } from './shared.ts'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -108,7 +109,7 @@ export const athletes = {
   getMyAthlete(ctx: Ctx): AthletePage {
     const settings = readPaymentSettings(ctx.sqlite)
     return {
-      profile: toProfile(mine(ctx)),
+      profile: { ...toProfile(mine(ctx)), claim: claimOf(ctx, mine(ctx)) },
       year: membershipYear(),
       fee: (settings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
       methods: settings.methods,
@@ -166,25 +167,6 @@ export const athletes = {
       ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Profile change', detail: `${row.name} asks to change ${what}`, link: '/secretariat/profile-changes' }))
     }
     return toProfile({ ...row, ...values })
-  },
-
-  // The athlete says they paid; the secretariat checks it against the money received
-  requestMembership(ctx: Ctx, input: { method: string; receipt: string }): AthleteProfile {
-    const row = mine(ctx)
-    const year = membershipYear()
-    if (row.memberYear === year) return fail(`Your ${year} membership is already paid.`, 409)
-    if (row.request && !row.request.rejectedReason) return fail('You already sent a payment. Wait for the secretariat to confirm it.', 409)
-    const method = clean(input?.method)
-    const receipt = typeof input?.receipt === 'string' ? input.receipt : ''
-    if (!method || method.length > 40) return fail('Say how you paid.')
-    if (!receipt) return fail('Send a screenshot of your payment.')
-    if (!PHOTO.test(receipt) || receipt.length > MAX_RECEIPT) return fail('Send the screenshot as a JPEG, PNG or WebP picture.')
-    const request = { year, method, receipt, requestedAt: now() }
-    const membershipHistory = withEvent(row, { at: request.requestedAt, kind: 'sent', year, method })
-    ctx.db.update(t.athletes).set({ request, membershipHistory }).where(eq(t.athletes.id, row.id)).run()
-    record(ctx.db, row.id, 'Sent a membership payment', row.name, { after: { year, method } })
-    ctx.defer(() => ctx.hub.alert([Role.Secretariat, Role.Admin], { title: 'Membership payment sent', detail: `${row.name} · ${year} membership by ${method}`, link: '/secretariat/athletes' }))
-    return toProfile({ ...row, request, membershipHistory })
   },
 
   // Asks for the current password so someone at an unlocked phone cannot change it

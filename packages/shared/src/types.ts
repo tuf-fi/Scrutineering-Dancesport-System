@@ -103,6 +103,9 @@ export interface Coach {
   // The years the coach's membership and Coaches Summit were last paid for
   memberYear: number | null
   summitYear: number | null
+  // The month the membership was paid for (1 to 12), and what the Summit payment covers: a quarter or a competition name
+  memberMonth?: number | null
+  summitPeriod?: string | null
   // Given once, the first time the membership fee is paid: C-00001
   membershipId?: string | null
   // The dates the coach attended a Coaches Summit, newest first
@@ -508,10 +511,10 @@ export interface MemberRoster {
   membership: { memberYear: number | null; summitYear: number | null; membershipId?: string | null; summits?: string[] } | null
 }
 
-// A coach or team account waiting to be linked to a record, as the secretariat sees it
+// A coach, team or athlete account waiting to be linked to a record, as the secretariat sees it
 export interface MemberClaimRow {
   memberId: string
-  role: 'coach' | 'team'
+  role: 'coach' | 'team' | 'athlete'
   name: string
   email: string
   targetId: string
@@ -528,8 +531,33 @@ export interface MembershipRequest {
   receipt?: string
   reference?: string
   requestedAt: Timestamp
-  // Set when the secretariat could not confirm it; the athlete can send it again
+  // The team that paid for the athlete
+  paidBy?: string
+  // Set when the secretariat could not confirm it; the team can send it again
   rejectedReason?: string
+}
+
+// What a team sends when it pays the membership fee for some of its athletes
+export interface TeamMembershipInput {
+  athleteIds: Id[]
+  method: string
+  receipt: string
+}
+
+export interface TeamMembershipRow {
+  id: Id
+  name: string
+  membershipId: string | null
+  status: 'paid' | 'waiting' | 'rejected' | 'unpaid'
+  reason: string | null
+}
+
+// The team's membership page: its athletes, the fee and where to pay
+export interface TeamMembershipPage {
+  year: number
+  fee: number
+  methods: PaymentMethod[]
+  athletes: TeamMembershipRow[]
 }
 
 // The signed-in athlete's own page
@@ -574,7 +602,25 @@ export interface AthleteProfile {
   photo: string | null
   history: MembershipEvent[]
   changeRequest: ProfileChangeRequest | null
+  // The record they asked to be linked to, until the secretariat decides
+  claim?: { id: Id; name: string; requestedAt: Timestamp } | null
 }
+
+// An athlete the secretariat added before they made an account
+export interface AthleteRecord {
+  id: Id
+  name: string
+  birthDate: string
+  phone: string
+  address: string
+  province: string
+  teamId: Id | null
+  coachId: Id | null
+  memberYear: number | null
+  membershipId?: string | null
+}
+
+export type AthleteRecordInput = Omit<AthleteRecord, 'id' | 'membershipId'>
 
 export type AthleteInput = Pick<AthleteProfile, 'name' | 'birthDate' | 'phone' | 'address' | 'province' | 'teamId' | 'coachId'>
 

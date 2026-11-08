@@ -1,4 +1,5 @@
 import type { Coach, AthleteRow } from '@bis/shared'
+import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -10,6 +11,18 @@ let app: TestApp
 let secretariat = ''
 const SHOT = 'data:image/png;base64,iVBORw0KGgo='
 
+// A team's payment waiting for the secretariat, put straight in the database (the team's own flow is in teammembership.test.ts)
+function sendPayment(name: string, method = 'GCash') {
+  const row = app.db.select().from(t.athletes).all().find((a) => a.name === name)!
+  const year = new Date().getFullYear()
+  const at = new Date().toISOString()
+  app.db
+    .update(t.athletes)
+    .set({ request: { year, method, receipt: SHOT, requestedAt: at }, membershipHistory: [...(row.membershipHistory ?? []), { at, kind: 'sent', year, method }] })
+    .where(eq(t.athletes.id, row.id))
+    .run()
+}
+
 beforeAll(async () => {
   app = await startTestApp({ seed: false })
   app.db.insert(t.staffUsers).values({ id: 's2', name: 'secretariat', username: 'secretariat@sample.example', role: 'secretariat', passwordHash: hashPassword('pw-secretariat'), disabled: false }).run()
@@ -19,17 +32,17 @@ afterAll(() => app.close())
 
 describe('athlete membership IDs', () => {
   it('has none until the first membership is confirmed, then keeps it', async () => {
-    const athlete = await app.signIn.athleteSignUp('Ana Cruz', 'ana@test.example', 'a-long-password')
+    await app.signIn.athleteSignUp('Ana Cruz', 'ana@test.example', 'a-long-password')
     expect((await app.ok<AthleteRow[]>('getAthletes', [], secretariat))[0]).toMatchObject({ name: 'Ana Cruz', membershipId: null })
 
-    await app.ok('requestMembership', [{ method: 'GCash', receipt: SHOT }], athlete)
+    sendPayment('Ana Cruz')
     const [row] = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
     await app.ok('confirmMembership', [row!.id], secretariat)
     expect((await app.ok<AthleteRow[]>('getAthletes', [], secretariat))[0]).toMatchObject({ membershipId: 'A-00001' })
 
     // The next athlete's number follows, and Ana's does not change when a later year is paid
-    const ben = await app.signIn.athleteSignUp('Ben Reyes', 'ben@test.example', 'a-long-password')
-    await app.ok('requestMembership', [{ method: 'GCash', receipt: SHOT }], ben)
+    await app.signIn.athleteSignUp('Ben Reyes', 'ben@test.example', 'a-long-password')
+    sendPayment('Ben Reyes')
     const rows = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
     await app.ok('confirmMembership', [rows.find((r) => r.name === 'Ben Reyes')!.id], secretariat)
     const after = await app.ok<AthleteRow[]>('getAthletes', [], secretariat)
