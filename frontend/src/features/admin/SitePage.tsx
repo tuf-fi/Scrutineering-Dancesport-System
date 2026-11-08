@@ -27,13 +27,15 @@ export function SitePage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Home page" description="The picture beside the heading on the public home page." />
-      <section aria-label="Hero picture" className="flex max-w-3xl flex-col gap-4">
+      <section aria-label="Hero picture" className="flex flex-col gap-4">
         <h2 className="font-mono text-xs uppercase text-neutral-500">Hero picture</h2>
-        {settings.isLoading ? (
-          <Skeleton className="aspect-[16/9] w-full" />
-        ) : (
-          <img src={custom ?? HERO_IMAGE} alt="The picture now on the home page" className="aspect-[16/9] w-full rounded-lg border border-neutral-200 object-cover" />
-        )}
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+          {settings.isLoading ? (
+            <Skeleton className="h-32 w-full shrink-0 sm:w-64" />
+          ) : (
+            <img src={custom ?? HERO_IMAGE} alt="The picture now on the home page" className="h-auto w-full shrink-0 rounded-lg border border-neutral-200 sm:w-64" />
+          )}
+          <div className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" disabled={save.isPending || settings.isLoading} onClick={() => picker.current?.click()}>
             <ImageUp aria-hidden className="size-4" />
@@ -50,7 +52,9 @@ export function SitePage() {
             </Button>
           )}
         </div>
-        <p className="text-small text-neutral-500">A wide, landscape photo works best. It shows on the right half of the home page, fading into the black on its left.</p>
+        <p className="max-w-md text-small text-neutral-500">A wide, landscape photo works best. It shows on the right half of the home page, fading into the black on its left.</p>
+          </div>
+        </div>
         <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" aria-label="Hero picture" className="sr-only" onChange={(e) => void choose(e.target.files?.[0])} />
       </section>
     </div>

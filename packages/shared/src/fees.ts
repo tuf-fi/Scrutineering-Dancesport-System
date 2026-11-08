@@ -79,13 +79,12 @@ export function registrationWarnings(
   details: CompetitorDetails | undefined,
   names: number,
   events: Array<Pick<Event, 'number' | 'ageGroup' | 'kind' | 'province'>>,
-  competitionYear: number,
   catalog: Catalog = DEFAULT_CATALOG,
   newMembers = 0,
 ): string[] {
   const warnings: string[] = []
   const birthYears = (details?.dancers ?? []).map((d) => Number(d.birthDate.slice(0, 4))).filter((y) => y > 0)
-  const bornIn = birthYears.length === names ? ageGroupForBirthYears(birthYears, competitionYear, catalog.ageGroups) : null
+  const bornIn = birthYears.length === names ? ageGroupForBirthYears(birthYears, catalog.ageGroups) : null
   const missing = (field: KindField) => {
     if (field === KindField.Membership) return details !== undefined && newMembers > 0
     const key = { [KindField.BirthDate]: 'birthDate', [KindField.Address]: 'address', [KindField.Email]: 'email', [KindField.Phone]: 'phone' }[field]

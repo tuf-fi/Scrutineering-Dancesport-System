@@ -60,7 +60,7 @@ async function send<T>(method: 'GET' | 'POST', url: string, body?: unknown, sign
   }
   if (!res.ok) {
     if (res.status === 401 && !signingIn) ended()
-    throw new ApiError(res.status, payload.error ?? `The server answered ${res.status}.`)
+    throw new ApiError(res.status, res.status === 413 ? 'The file exceeded the maximum size.' : (payload.error ?? `The server answered ${res.status}.`))
   }
   return payload.data as T
 }

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCatalog, useDeleteEventKind, useEvents } from '../../hooks/index.ts'
-import { FEE_MODE_LABEL } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL } from '../../lib/format.ts'
 import { EventKindDialog } from './EventKindDialog.tsx'
 
 // What a kind asks of an entry, in a line
@@ -52,7 +52,7 @@ export function EventKindsTab() {
         empty={needle ? { title: 'No kinds match', description: 'Try a different name.' } : { title: 'No kinds yet', description: 'Add one so events can be created.' }}
         columns={[
           { key: 'name', header: 'Kind', cell: (k) => <span className="font-medium text-neutral-900">{k.name}</span> },
-          { key: 'fee', header: 'Price', cell: (k) => FEE_MODE_LABEL[k.feeMode], muted: true, hideBelow: 'sm' },
+          { key: 'disciplines', header: 'Disciplines', cell: (k) => k.disciplines.map((d) => DISCIPLINE_LABEL[d]).join(', '), muted: true, hideBelow: 'sm' },
           { key: 'rules', header: 'Rules', cell: rules, muted: true, hideBelow: 'md' },
           { key: 'events', header: 'Events', cell: (k) => eventCount(k.id) ?? '–', mono: true, align: 'right', hideBelow: 'sm' },
           {

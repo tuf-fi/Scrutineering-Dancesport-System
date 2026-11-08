@@ -590,9 +590,9 @@ export function addSampleEntryData(db: Db) {
       .filter((e) => e.isSolo && e.ageGroup === ageGroup)
       .sort((a, b) => a.number - b.number)
       .slice(0, take)
-  // A dancer's age group in a competition's year: the sample birth years fit 2026, so a 2027 request needs the next group up
-  const groupIn = (c: { ageGroup: string | null; details?: { dancers: Array<{ birthDate: string }> } | null }, year: number) =>
-    ageGroupForBirthYears((c.details?.dancers ?? []).map((d) => Number(d.birthDate.slice(0, 4))), year) ?? c.ageGroup
+  // A dancer's age group, from the birth years of the dancers
+  const groupIn = (c: { ageGroup: string | null; details?: { dancers: Array<{ birthDate: string }> } | null }) =>
+    ageGroupForBirthYears((c.details?.dancers ?? []).map((d) => Number(d.birthDate.slice(0, 4)))) ?? c.ageGroup
   const priced = (events: Array<typeof t.events.$inferSelect>) => registrationFee(DEFAULT_FEE_SCHEDULE, events as never, 0).total
   const at = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString()
   const team = { requesterId: 'member-sample-team', requesterRole: 'team' as const, requesterName: 'Sample Dance Team' }
@@ -609,7 +609,7 @@ export function addSampleEntryData(db: Db) {
     requests.push({ id: 'req-sample-rejected', ...team, competitorId: b.id, competitionId: 'comp-bicol-2026', eventIds: events.map((e) => e.id), total: priced(events), warnings: [], method: 'maya', reference: 'MY2209912', receipt: SAMPLE_RECEIPT, status: 'rejected', rejectedReason: 'The screenshot is cut off. Send the whole payment.', createdAt: at(30), decidedAt: at(26), decidedBy: 'staff-secretariat' })
   }
   if (c) {
-    const events = soloEvents('comp-naga-2027', groupIn(c, 2027), 2)
+    const events = soloEvents('comp-naga-2027', groupIn(c), 2)
     requests.push({ id: 'req-sample-approved', ...team, competitorId: c.id, competitionId: 'comp-naga-2027', eventIds: events.map((e) => e.id), total: priced(events), warnings: [], method: 'bank', reference: 'BK55102', receipt: SAMPLE_RECEIPT, status: 'approved', createdAt: at(72), decidedAt: at(70), decidedBy: 'staff-secretariat' })
     // An approved request has its entries and its payment
     const paymentId = 'pay-sample-request'
@@ -617,7 +617,7 @@ export function addSampleEntryData(db: Db) {
     for (const e of events) db.insert(t.entries).values({ id: `en-req-${c.id}-${e.id}`, eventId: e.id, competitorId: c.id, paymentId }).onConflictDoNothing().run()
   }
   // Ana asks to enter two more events herself
-  const mine = soloEvents('comp-naga-2027', groupIn(home, 2027), 2)
+  const mine = soloEvents('comp-naga-2027', groupIn(home), 2)
   requests.push({ id: 'req-sample-athlete', requesterId: athlete.id, requesterRole: 'athlete', requesterName: athlete.name, competitorId: home.id, competitionId: 'comp-naga-2027', eventIds: mine.map((e) => e.id), total: priced(mine), warnings: [], method: 'gcash', reference: 'GC7040098765', receipt: SAMPLE_RECEIPT, status: 'waiting', createdAt: at(1) })
   for (const r of requests) if (r.eventIds.length > 0) db.insert(t.entryRequests).values(r).onConflictDoNothing().run()
 

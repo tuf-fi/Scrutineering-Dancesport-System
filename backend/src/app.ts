@@ -22,6 +22,7 @@ import { createSocketHub, SESSION_COOKIE } from './realtime/socket.ts'
 import type { Hub } from './realtime/hub.ts'
 import { allowed, endpoint } from './registry.ts'
 import { submissionSnapshot } from './services/rounds.ts'
+import { MAX_PHOTO } from './services/shared.ts'
 
 export interface AppDeps {
   config: Config
@@ -146,6 +147,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   }
   // Nothing sent to these routes is large, unlike a payment receipt
   const small = { bodyLimit: 16 * 1024 }
+  // A sign-up also carries the photo, which can be up to MAX_PHOTO characters
+  const withPhoto = { bodyLimit: MAX_PHOTO + 16 * 1024 }
   const body = (request: FastifyRequest) => (request.body ?? {}) as Record<string, string>
 
   app.post('/api/auth/staff', small, (request, reply) =>
@@ -159,7 +162,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   )
   // Anyone can make an account, so a few per address per hour keeps one visitor from filling the database
   const signUps = new RequestLimiter(5, 60 * 60_000)
-  app.post('/api/auth/athlete/sign-up', small, async (request, reply) => {
+  app.post('/api/auth/athlete/sign-up', withPhoto, async (request, reply) => {
     if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
     try {
       const input = body(request)
@@ -173,7 +176,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     app.post(`/api/auth/${role}`, small, (request, reply) =>
       attempt(request, reply, String(body(request).email ?? ''), (ctx) => memberSession(ctx, role, String(body(request).email ?? ''), String(body(request).password ?? ''))),
     )
-    app.post(`/api/auth/${role}/sign-up`, small, async (request, reply) => {
+    app.post(`/api/auth/${role}/sign-up`, withPhoto, async (request, reply) => {
       if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
       try {
         const input = body(request)

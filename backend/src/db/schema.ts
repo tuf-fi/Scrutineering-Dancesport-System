@@ -378,6 +378,7 @@ export const eventKinds = sqliteTable('event_kinds', {
   feeMode: text('fee_mode').$type<FeeMode>().notNull().default('standard'),
   beginnersOnly: integer('beginners_only', { mode: 'boolean' }).notNull().default(false),
   closedToProvince: integer('closed_to_province', { mode: 'boolean' }).notNull().default(false),
+  disciplines: text('disciplines', { mode: 'json' }).$type<Discipline[]>().notNull().default(['latin', 'standard']),
   requires: text('requires', { mode: 'json' }).$type<KindField[]>().notNull().default([]),
   sortOrder: integer('sort_order').notNull(),
 })
@@ -386,8 +387,9 @@ export const ageGroups = sqliteTable('age_groups', {
   id: id(),
   name: text('name').notNull(),
   short: text('short').notNull(),
-  // The oldest age in the group; null for the oldest group
-  oldestAge: integer('oldest_age'),
+  // The years of birth the group covers, both included; null reaches back to the oldest or up to the youngest
+  bornFrom: integer('born_from'),
+  bornTo: integer('born_to'),
   juvenileFee: integer('juvenile_fee', { mode: 'boolean' }).notNull().default(false),
   // Changing a group that events have already run in makes a new version and retires this one, so those events keep
   // what it meant on the day. Versions share a family (null is the group's own id); rankings add a family together.

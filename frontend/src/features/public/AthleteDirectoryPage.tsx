@@ -66,7 +66,7 @@ export function AthleteDirectoryPage() {
       <PublicHeader
         title="Bicol Athletes"
         eyebrow="Directory"
-        description="Athletes and couples with a ranking entry in Juvenile, Junior or Youth. Open a name for their full record."
+        description="Solos and Couples athletes competition track record."
         aside={
           <HeaderStats>
             <HeaderStat value={loading ? '–' : rows.length} label="Bicol athletes" />

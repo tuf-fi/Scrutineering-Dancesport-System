@@ -91,7 +91,7 @@ export function addTestData(db: Db): TestDataReport {
     const team = Math.floor(i / 4)
     const year = BIRTH_YEARS[i % 4]!
     const birthDate = `${year}-${String(1 + ((i * 3) % 12)).padStart(2, '0')}-${String(5 + ((i * 7) % 20)).padStart(2, '0')}`
-    const ageGroup = ageGroupForBirthYears([year], 2026)!
+    const ageGroup = ageGroupForBirthYears([year])!
     const email = `${slug(name)}@testdata.example`
     const address = `${10 + i} Rizal Street, ${['Naga City', 'Legazpi City', 'Sorsogon City', 'Iriga City', 'Daet'][team]}`
     const phone = `0920 555 ${String(3000 + i * 37)}`

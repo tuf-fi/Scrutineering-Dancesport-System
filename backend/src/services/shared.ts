@@ -5,6 +5,7 @@ import {
   type AdjudicatorPin,
   type AgeGroupDef,
   type Catalog,
+  byAge,
   type EventKindDef,
   type Team,
   type Competition,
@@ -360,6 +361,7 @@ const toKind = (r: typeof t.eventKinds.$inferSelect): EventKindDef => ({
   feeMode: r.feeMode,
   beginnersOnly: r.beginnersOnly,
   closedToProvince: r.closedToProvince,
+  disciplines: r.disciplines,
   requires: r.requires,
 })
 
@@ -367,7 +369,8 @@ const toAgeGroup = (r: typeof t.ageGroups.$inferSelect): AgeGroupDef => ({
   id: r.id,
   name: r.name,
   short: r.short,
-  oldestAge: r.oldestAge,
+  bornFrom: r.bornFrom,
+  bornTo: r.bornTo,
   juvenileFee: r.juvenileFee,
   ...(r.retired ? { retired: true } : {}),
   family: r.family ?? r.id,
@@ -381,7 +384,7 @@ export const catalogOf = (ctx: Ctx): Catalog => ({
     .from(t.ageGroups)
     .all()
     .map(toAgeGroup)
-    .sort((a, b) => (a.oldestAge ?? Infinity) - (b.oldestAge ?? Infinity)),
+    .sort(byAge),
 })
 
 export const pointsRows = (ctx: Ctx): PointsRow[] =>

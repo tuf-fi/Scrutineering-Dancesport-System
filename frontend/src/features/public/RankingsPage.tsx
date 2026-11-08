@@ -95,7 +95,7 @@ export function RankingsPage() {
       <PublicHeader
         title="Standings"
         eyebrow="Season standings"
-        description="Points from every approved result, by discipline, age group and class. Open a name for their full record."
+        description="Ranking result of Juvenile, Junior, Youth, Inter-Collegiate, Solo Female Junior, and Solo Female Youth."
         aside={
           <HeaderStats>
             <HeaderStat value={loading ? '–' : ranked.length} label="Ranked" />

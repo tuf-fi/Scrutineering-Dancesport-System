@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { squarePhoto } from '../lib/image.ts'
 import { Avatars } from './Avatars.tsx'
 import { Button } from './ui/index.ts'
@@ -10,7 +10,7 @@ export function PhotoInput({
   onChange,
   error,
   label = 'Photo',
-  hint = 'A square picture works best.',
+  hint = 'JPEG, PNG or WebP, up to 10 MB. It is cropped to a square.',
 }: {
   name: string
   value: string
@@ -20,14 +20,16 @@ export function PhotoInput({
   hint?: string
 }) {
   const picker = useRef<HTMLInputElement>(null)
+  const [problem, setProblem] = useState<string | undefined>()
 
   async function choose(file: File | undefined) {
     if (!file) return
+    setProblem(undefined)
     try {
       onChange(await squarePhoto(file))
     } catch (e) {
       onChange('')
-      throw e
+      setProblem(e instanceof Error ? e.message : 'Could not read that picture.')
     }
   }
 
@@ -40,7 +42,7 @@ export function PhotoInput({
           <Button type="button" variant="secondary" size="sm" onClick={() => picker.current?.click()}>
             {value ? 'Change photo' : 'Choose photo'}
           </Button>
-          <p className={error ? 'text-small text-danger' : 'text-small text-neutral-500'}>{error ?? hint}</p>
+          <p role={error || problem ? 'alert' : undefined} className={error || problem ? 'text-small text-danger' : 'text-small text-neutral-500'}>{error ?? problem ?? hint}</p>
         </div>
         <input
           ref={picker}
@@ -48,7 +50,7 @@ export function PhotoInput({
           accept="image/jpeg,image/png,image/webp"
           aria-label={label}
           className="sr-only"
-          onChange={(e) => void choose(e.target.files?.[0]).catch(() => undefined)}
+          onChange={(e) => void choose(e.target.files?.[0])}
         />
       </div>
     </div>

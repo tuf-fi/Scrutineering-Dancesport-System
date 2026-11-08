@@ -201,6 +201,24 @@ describe('public site', () => {
     for (const link of links) expect(listed.has(link.getAttribute('href')!.split('/').pop()!)).toBe(true)
   })
 
+  it('opens an athlete from Bicol Athletes and shows their competitions, events and placings', async () => {
+    const router = renderApp('/athletes')
+    const [link] = await within(await screen.findByRole('list', { name: 'Bicol athletes' })).findAllByRole('link')
+    const name = link.textContent ?? ''
+    await userEvent.click(link)
+
+    expect(await screen.findByRole('heading', { level: 1, name })).toBeInTheDocument()
+    expect(router.state.location.pathname).toMatch(/^\/competitors\/c-\d+$/)
+    const results = await screen.findByRole('list', { name: 'Results' })
+    const [competition] = await within(results).findAllByRole('button', { expanded: false })
+    await userEvent.click(competition)
+    const events = await screen.findByRole('list', { name: /^Results at / })
+    const [row] = within(events).getAllByRole('listitem')
+    expect(row).toHaveTextContent(/E\d+/)
+    expect(row).toHaveTextContent(/\d+(st|nd|rd|th)|Semi-final|Quarter-final|Round/)
+    expect(row).toHaveTextContent(/pts/)
+  })
+
   it('opens a competitor profile from the results', async () => {
     renderApp('/competitions/comp-sorsogon-2026/events/comp-sorsogon-2026:e12')
     const list = await screen.findByRole('list', { name: 'Results' })

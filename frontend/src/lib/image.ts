@@ -1,6 +1,11 @@
+// The biggest picture a person may choose; it is shrunk before it is sent
+export const MAX_PICTURE_BYTES = 10 * 1024 * 1024
+export const TOO_BIG = 'The image exceeded the maximum size of 10 MB.'
+
 // Crops a picture to a centred square and shrinks it, so a profile photo stays a few kilobytes
 export async function squarePhoto(file: File, size = 256): Promise<string> {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Choose a JPEG, PNG or WebP picture.')
+  if (file.size > MAX_PICTURE_BYTES) throw new Error(TOO_BIG)
   const bitmap = await createImageBitmap(file)
   const side = Math.min(bitmap.width, bitmap.height)
   const canvas = document.createElement('canvas')

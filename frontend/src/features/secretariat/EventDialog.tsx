@@ -30,7 +30,16 @@ function EventForm({
   const [province, setProvince] = useState(event?.province ?? '')
   const [syllabus, setSyllabus] = useState(event?.syllabus ?? '')
   const [error, setError] = useState<string | null>(null)
-  const closed = kinds.find((k) => k.id === kind)?.closedToProvince === true
+  const picked = kinds.find((k) => k.id === kind)
+  const closed = picked?.closedToProvince === true
+  const disciplines = Object.values(Discipline).filter((d) => picked?.disciplines.includes(d) ?? true)
+
+  function pickKind(next: string) {
+    setKind(next)
+    const allowed = kinds.find((k) => k.id === next)?.disciplines
+    // A kind danced in one discipline only moves the event to it
+    if (allowed && !allowed.includes(discipline)) pickDiscipline(allowed[0]!)
+  }
 
   function pickDiscipline(next: Discipline) {
     setDiscipline(next)
@@ -78,7 +87,7 @@ function EventForm({
           <option value="solo">Solo</option>
           <option value="couple">Couple</option>
         </Select>
-        <Select label="Kind" required hint="Sets the fee and who may enter." value={kind} onChange={(e) => setKind(e.target.value)}>
+        <Select label="Kind" required hint="Sets the fee, the disciplines and who may enter." value={kind} onChange={(e) => pickKind(e.target.value)}>
           {kinds.map((k) => (
             <option key={k.id} value={k.id}>
               {k.name}
@@ -106,7 +115,7 @@ function EventForm({
         </Select>
         <div className="sm:col-span-2">
           <Select label="Discipline" required value={discipline} onChange={(e) => pickDiscipline(e.target.value as Discipline)}>
-            {Object.values(Discipline).map((d) => (
+            {disciplines.map((d) => (
               <option key={d} value={d}>
                 {DISCIPLINE_LABEL[d]}
               </option>

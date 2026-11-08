@@ -17,12 +17,11 @@ export function AgeGroupsTab() {
 
   if (isError) return <ErrorState onRetry={() => void refetch()} />
 
-  // The ages a group covers: above the group before it, up to its own oldest age
-  const ages = (group: AgeGroupDef) => {
-    const before = ageGroups[ageGroups.indexOf(group) - 1]?.oldestAge
-    const from = before == null ? null : before + 1
-    if (group.oldestAge === null) return from === null ? 'All ages' : `${from} and over`
-    return from === null ? `Up to ${group.oldestAge}` : `${from} to ${group.oldestAge}`
+  // The years of birth a group covers
+  const years = (group: AgeGroupDef) => {
+    if (group.bornFrom === null) return `${group.bornTo} and earlier`
+    if (group.bornTo === null) return `${group.bornFrom} and later`
+    return group.bornFrom === group.bornTo ? String(group.bornFrom) : `${group.bornFrom} to ${group.bornTo}`
   }
   const needle = query.trim().toLowerCase()
   const rows = ageGroups.filter((g) => !needle || [g.name, g.short].some((v) => v.toLowerCase().includes(needle)))
@@ -49,8 +48,8 @@ export function AgeGroupsTab() {
         columns={[
           { key: 'name', header: 'Age group', cell: (g) => <span className="font-medium text-neutral-900">{g.name}</span> },
           { key: 'short', header: 'Printed as', cell: (g) => g.short, mono: true, hideBelow: 'sm' },
-          { key: 'ages', header: 'Ages', cell: ages, mono: true },
-          { key: 'fee', header: 'Price', cell: (g) => (g.juvenileFee ? 'Juvenile' : 'Standard'), muted: true, hideBelow: 'md' },
+          { key: 'years', header: 'Born', cell: years, mono: true },
+          { key: 'fee', header: 'Fee tier', cell: (g) => (g.juvenileFee ? 'Juvenile' : 'Standard'), muted: true, hideBelow: 'md' },
           { key: 'events', header: 'Events', cell: (g) => eventCount(g.id) ?? '–', mono: true, align: 'right', hideBelow: 'sm' },
           {
             key: 'actions',

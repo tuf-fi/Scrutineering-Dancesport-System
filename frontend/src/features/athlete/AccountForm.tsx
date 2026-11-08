@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
+import { ApiError } from '../../api/http.ts'
 import { roleHome } from '../../app/nav.ts'
 import { PhotoInput } from '../../components/PhotoInput.tsx'
 import { Button, Input } from '../../components/ui/index.ts'
@@ -56,6 +57,9 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
       onDone?.()
       navigate(roleHome[session.role], { replace: true })
     } catch (e) {
+      // A photo too big for the server, or one it did not accept, is the photo's problem
+      if (creating && e instanceof ApiError && e.status === 413) return setPhotoError('The image exceeded the maximum size.')
+      if (creating && e instanceof Error && /photo|picture/i.test(e.message)) return setPhotoError(e.message)
       setError(e instanceof Error ? e.message : 'Could not sign in. Try again.')
     }
   }

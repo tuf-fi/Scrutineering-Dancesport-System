@@ -1,12 +1,12 @@
-import { FeeMode, KIND_FIELD_LABEL, KindField, type EventKindDef, type EventKindInput } from '@bis/shared'
+import { Discipline, KIND_FIELD_LABEL, KindField, type EventKindDef, type EventKindInput } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
-import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
+import { Button, Dialog, Input, toast } from '../../components/ui/index.ts'
 import { useSaveEventKind } from '../../hooks/index.ts'
-import { FEE_MODE_LABEL } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL } from '../../lib/format.ts'
 
 const FORM_ID = 'event-kind-form'
 
-const empty: EventKindInput = { name: '', feeMode: FeeMode.Standard, beginnersOnly: false, closedToProvince: false, requires: [] }
+const empty: EventKindInput = { name: '', disciplines: [Discipline.Latin, Discipline.Standard], beginnersOnly: false, closedToProvince: false, requires: [] }
 
 function Check({ checked, onChange, label, hint }: { checked: boolean; onChange: (checked: boolean) => void; label: string; hint?: string }) {
   return (
@@ -20,15 +20,17 @@ function Check({ checked, onChange, label, hint }: { checked: boolean; onChange:
   )
 }
 
+const toggled = <T,>(list: T[], item: T, on: boolean) => (on ? [...list, item] : list.filter((x) => x !== item))
+
 function KindForm({ initial, onSubmit }: { initial: EventKindInput; onSubmit: (values: EventKindInput) => void }) {
   const [values, setValues] = useState(initial)
   const [error, setError] = useState<string>()
   const set = <K extends keyof EventKindInput>(key: K, value: EventKindInput[K]) => setValues((v) => ({ ...v, [key]: value }))
-  const toggleField = (field: KindField, on: boolean) => set('requires', on ? [...values.requires, field] : values.requires.filter((f) => f !== field))
 
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!values.name.trim()) return setError('Enter the name of the kind.')
+    if (values.disciplines.length === 0) return setError('Choose Latin, Standard or both.')
     setError(undefined)
     onSubmit(values)
   }
@@ -36,21 +38,17 @@ function KindForm({ initial, onSubmit }: { initial: EventKindInput; onSubmit: (v
   return (
     <form id={FORM_ID} onSubmit={submit} noValidate className="flex flex-col gap-5">
       <Input label="Name" required value={values.name} onChange={(e) => set('name', e.target.value)} error={error} autoFocus />
-      <Select label="Price" required hint="Which price in the fee schedule an entry pays." value={values.feeMode} onChange={(e) => set('feeMode', e.target.value as FeeMode)}>
-        {Object.values(FeeMode).map((mode) => (
-          <option key={mode} value={mode}>
-            {FEE_MODE_LABEL[mode]}
-          </option>
+      <fieldset className="flex flex-col gap-3 border-t border-neutral-200 pt-5">
+        <legend className="float-left mb-3 text-small font-medium text-neutral-700">Events</legend>
+        <p className="text-small text-neutral-600">Discipline. Its events are danced in the ones you tick.</p>
+        {Object.values(Discipline).map((d) => (
+          <Check key={d} checked={values.disciplines.includes(d)} onChange={(on) => set('disciplines', toggled(values.disciplines, d, on))} label={DISCIPLINE_LABEL[d]} />
         ))}
-      </Select>
-      <div className="flex flex-col gap-3">
-        <Check checked={values.beginnersOnly} onChange={(on) => set('beginnersOnly', on)} label="Beginners only" hint="Beginner (BGB) athletes enter it and nothing else." />
-        <Check checked={values.closedToProvince} onChange={(on) => set('closedToProvince', on)} label="Closed to one province" hint="Each event of this kind names its province." />
-      </div>
+      </fieldset>
       <fieldset className="flex flex-col gap-3 border-t border-neutral-200 pt-5">
         <legend className="float-left mb-3 text-small font-medium text-neutral-700">Every dancer entering must have</legend>
         {Object.values(KindField).map((field) => (
-          <Check key={field} checked={values.requires.includes(field)} onChange={(on) => toggleField(field, on)} label={KIND_FIELD_LABEL[field].replace(/^./, (c) => c.toUpperCase())} />
+          <Check key={field} checked={values.requires.includes(field)} onChange={(on) => set('requires', toggled(values.requires, field, on))} label={KIND_FIELD_LABEL[field].replace(/^./, (c) => c.toUpperCase())} />
         ))}
         <p className="text-small text-neutral-600">A missing one shows the secretariat a warning. It does not stop the entry.</p>
       </fieldset>
@@ -89,7 +87,7 @@ export function EventKindDialog({ open, kind, onClose }: { open: boolean; kind: 
       onClose={close}
       className="max-w-lg"
       title={editing ? 'Edit kind' : 'New kind'}
-      description={editing ? 'Change the name or the rules. Events keep this kind.' : 'Set how events of this kind are priced and who may enter.'}
+      description={editing ? 'Change the name or the rules. Events keep this kind.' : 'Choose the disciplines of its events and who may enter.'}
       actions={
         <>
           <Button variant="ghost" onClick={close}>
@@ -103,7 +101,7 @@ export function EventKindDialog({ open, kind, onClose }: { open: boolean; kind: 
     >
       <KindForm
         key={kind?.id ?? 'new'}
-        initial={kind ? { name: kind.name, feeMode: kind.feeMode, beginnersOnly: kind.beginnersOnly, closedToProvince: kind.closedToProvince, requires: kind.requires } : empty}
+        initial={kind ? { name: kind.name, disciplines: kind.disciplines, beginnersOnly: kind.beginnersOnly, closedToProvince: kind.closedToProvince, requires: kind.requires } : empty}
         onSubmit={submit}
       />
       {failure && (

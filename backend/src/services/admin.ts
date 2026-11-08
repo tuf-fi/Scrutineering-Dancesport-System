@@ -1,4 +1,4 @@
-import { PIN_LENGTH, Role, checkAgeGroup, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
+import { FeeMode, PIN_LENGTH, Role, checkAgeGroup, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray, ne } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -77,14 +77,15 @@ export const admin = {
     const kinds = catalogOf(ctx).kinds
     const checked = checkEventKind(input, kinds.filter((k) => k.id !== id))
     if ('error' in checked) return fail(checked.error, checked.status)
-    const values = checked.values
     const user = actor(ctx)
     if (id) {
       const before = found(kinds.find((k) => k.id === id), 'Kind')
+      const values = { ...checked.values, feeMode: checked.values.feeMode ?? before.feeMode }
       ctx.db.update(t.eventKinds).set(values).where(eq(t.eventKinds.id, id)).run()
       record(ctx.db, user.id, 'Edited event kind', values.name, { before: { ...before, id: undefined }, after: values })
       return { id, ...values }
     }
+    const values = { ...checked.values, feeMode: checked.values.feeMode ?? FeeMode.Standard }
     const created = { id: freshId(values.name, kinds.map((k) => k.id)), ...values, sortOrder: kinds.length }
     ctx.db.insert(t.eventKinds).values(created).run()
     record(ctx.db, user.id, 'Created event kind', values.name, { after: values })
@@ -108,7 +109,7 @@ export const admin = {
     if (id) {
       const before = found(groups.find((g) => g.id === id), 'Age group')
       if (before.retired) return fail(`${before.name} was replaced by a newer version. Edit that one.`, 409)
-      const unchanged = before.name === values.name && before.short === values.short && before.oldestAge === values.oldestAge && before.juvenileFee === values.juvenileFee
+      const unchanged = before.name === values.name && before.short === values.short && before.bornFrom === values.bornFrom && before.bornTo === values.bornTo && before.juvenileFee === values.juvenileFee
       if (unchanged) return { id, ...values }
       const started = startedEventIds(ctx, id)
       if (started.size === 0) {

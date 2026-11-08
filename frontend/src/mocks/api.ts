@@ -9,6 +9,8 @@ import {
   PIN_LENGTH,
   PayMethod,
   checkAgeGroup,
+  FeeMode,
+  byAge,
   checkEventKind,
   freshId,
   isFixedFee,
@@ -172,7 +174,7 @@ export const getPayments = (status?: PaymentStatus) =>
 export const getPointsTable = () => reply(pointsTable)
 
 // The kinds in the admin's order and the age groups from the youngest to the oldest
-const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort((a, b) => (a.oldestAge ?? Infinity) - (b.oldestAge ?? Infinity)) })
+const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort(byAge) })
 export const getCatalog = () => reply(catalog())
 
 let heroImage: string | null = null
@@ -506,7 +508,7 @@ export const saveEventKind = (actorId: string, input: EventKindInput, id?: strin
       record(actorId, 'Edited event kind', kind.name)
       return kind
     }
-    const created = { id: freshId(checked.values.name, eventKinds.map((k) => k.id)), ...checked.values }
+    const created = { id: freshId(checked.values.name, eventKinds.map((k) => k.id)), ...checked.values, feeMode: checked.values.feeMode ?? FeeMode.Standard }
     eventKinds.push(created)
     record(actorId, 'Created event kind', created.name)
     return created
@@ -964,7 +966,7 @@ function priceRegistration(competitorId: string, eventIds: string[], coachFees =
     members,
     collect,
     coachRow,
-    quote: { lines, total, warnings: registrationWarnings(competitor.details, competitor.names.length, chosen, year, catalogNow, members), ...(coach ? { coach } : {}) },
+    quote: { lines, total, warnings: registrationWarnings(competitor.details, competitor.names.length, chosen, catalogNow, members), ...(coach ? { coach } : {}) },
   }
 }
 
@@ -1199,6 +1201,7 @@ function checkEvent(competitionId: string, input: EventInput, id?: string) {
   }
   const kind = kindOf(eventKinds, input.kind)
   if (!kind) throw new Error('Choose a kind.')
+  if (!kind.disciplines.includes(input.discipline)) throw new Error(`${kind.name} events are not danced in ${input.discipline}.`)
   if (!ageGroups.some((g) => g.id === input.ageGroup)) throw new Error('Choose an age group.')
   if (kind.closedToProvince && !input.province?.trim()) throw new Error('Enter the province this event is closed to.')
 }

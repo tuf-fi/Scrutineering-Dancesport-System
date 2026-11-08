@@ -81,10 +81,9 @@ export function checkEligible(ctx: Ctx, competitorId: string, event: { competiti
   if ((competitor.names.length === 1) !== event.isSolo) return fail(event.isSolo ? 'This is a solo event.' : 'This is a couple event.')
   const couple = competitor.names.length > 1
   const catalog = catalogOf(ctx)
-  // The age that counts is the older partner's, in the competition's year
-  const date = ctx.db.select({ date: t.competitions.date }).from(t.competitions).where(eq(t.competitions.id, event.competitionId)).get()?.date
+  // The age that counts is the older partner's birth year
   const birthYears = (competitor.details?.dancers ?? []).map((d) => Number(d.birthDate?.slice(0, 4))).filter((y) => y > 0)
-  const bornIn = date && birthYears.length === competitor.names.length ? ageGroupForBirthYears(birthYears, Number(date.slice(0, 4)), catalog.ageGroups) : null
+  const bornIn = birthYears.length === competitor.names.length ? ageGroupForBirthYears(birthYears, catalog.ageGroups) : null
   if (bornIn && !ageGroupFits(event.ageGroup, bornIn, couple, catalog.ageGroups)) {
     return fail(
       `E${event.number} is ${ageGroupName(catalog.ageGroups, event.ageGroup)}. The age of this entry doesn't match the event's age requirement (the birth dates make it ${ageGroupName(catalog.ageGroups, bornIn)}).`,
@@ -152,6 +151,7 @@ function checkEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: str
   const catalog = catalogOf(ctx)
   const kind = kindOf(catalog.kinds, input.kind)
   if (!kind) return fail('Choose a kind.')
+  if (!kind.disciplines.includes(input.discipline)) return fail(`${kind.name} events are not danced in ${input.discipline}.`)
   if (!catalog.ageGroups.some((g) => g.id === input.ageGroup && !g.retired)) return fail('Choose an age group.')
   if (kind.closedToProvince && !clean(input.province)) return fail('Enter the province this event is closed to.')
 }

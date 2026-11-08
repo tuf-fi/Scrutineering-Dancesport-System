@@ -126,7 +126,7 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   const { lines, total } = registrationFee(schedule, events.map(toEvent), newMembers, prior, collect, catalog)
 
   const warnings = [
-    ...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), competitionYear, catalog, newMembers),
+    ...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, newMembers),
     ...medalWarnings(ctx, competitor.id, competition, events, catalog),
   ]
   const day = today()

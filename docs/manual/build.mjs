@@ -480,7 +480,7 @@ out.push(page(
     'Search, filter by year, edit and delete. A competition with events cannot be deleted.',
   ], [I('admin/competitions', '', { h: 560 }), I('admin/competition-new')]),
   feat('Kinds and age groups', 'Menu: Kinds and age groups', 'The kinds of event and the age groups the system uses.', [
-    'Kinds set how an event is priced and who may enter, for example Beginners, Ranking or Closed to a province. Age groups set a name, how it is printed and the oldest age in the group.',
+    'Kinds set which disciplines their events are danced in and who may enter, for example Beginners only or Closed to one province. Age groups set a name, how it is printed and the years of birth the group covers.',
     'A change never rewrites the past. Once an event in an age group has started, saving a change makes a new version and keeps the old one for those events, their results and sheets. Events still to run, and competitors, move to the new version.',
     'Standings add points earned under the old version to the new one. A group or kind that events use cannot be deleted.',
   ]),
