@@ -18,6 +18,7 @@ const toRecord = (r: typeof t.athleteRecords.$inferSelect): AthleteRecord => ({
   teamId: r.teamId,
   coachId: r.coachId,
   memberYear: r.memberYear,
+  memberMonth: r.memberMonth,
   membershipId: r.membershipId ?? null,
 })
 
@@ -28,7 +29,7 @@ const recordRow = (ctx: Ctx, id: string) => ctx.db.select().from(t.athleteRecord
 export function getAthleteRecords(ctx: Ctx): AthleteRecord[] {
   const all = ctx.db.select().from(t.athleteRecords).all().map(toRecord).sort((a, b) => a.name.localeCompare(b.name))
   if (ctx.user?.role !== Role.Athlete) return all
-  return all.map((r) => ({ id: r.id, name: r.name, birthDate: '', phone: '', address: '', province: '', teamId: null, coachId: null, memberYear: null, membershipId: null }))
+  return all.map((r) => ({ id: r.id, name: r.name, birthDate: '', phone: '', address: '', province: '', teamId: null, coachId: null, memberYear: null, memberMonth: null, membershipId: null }))
 }
 
 export function saveAthleteRecord(ctx: Ctx, input: AthleteRecordInput, id?: string): AthleteRecord {
@@ -41,7 +42,8 @@ export function saveAthleteRecord(ctx: Ctx, input: AthleteRecordInput, id?: stri
   if (teamId && !ctx.db.select().from(t.teams).where(eq(t.teams.id, teamId)).get()) return fail('Choose a team from the list.')
   if (coachId && !ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get()) return fail('Choose a coach from the list.')
   const memberYear = Number.isInteger(input.memberYear) && (input.memberYear as number) > 2000 ? (input.memberYear as number) : null
-  const values = { name, birthDate, phone: clean(input.phone), address: clean(input.address), province: clean(input.province), teamId, coachId, memberYear }
+  const memberMonth = memberYear !== null && Number.isInteger(input.memberMonth) && (input.memberMonth as number) >= 1 && (input.memberMonth as number) <= 12 ? (input.memberMonth as number) : null
+  const values = { name, birthDate, phone: clean(input.phone), address: clean(input.address), province: clean(input.province), teamId, coachId, memberYear, memberMonth }
   const give = (rowId: string, before: string | null) => {
     if (memberYear === null || before) return
     ctx.db.update(t.athleteRecords).set({ membershipId: nextMembershipId(ctx, 'athlete') }).where(eq(t.athleteRecords.id, rowId)).run()
@@ -114,6 +116,8 @@ export function approveAthleteClaim(ctx: Ctx, athleteId: string): void {
   const target = account.claimId ? recordRow(ctx, account.claimId) : undefined
   if (!target) return fail('This account has no request waiting.', 409)
   const memberYear = Math.max(account.memberYear ?? 0, target.memberYear ?? 0) || null
+  // The month goes with whichever payment is the later one
+  const memberMonth = (target.memberYear ?? 0) >= (account.memberYear ?? 0) ? target.memberMonth : account.memberMonth
   ctx.db.update(t.athletes).set({ claimId: null, claimedAt: null }).where(eq(t.athletes.claimId, target.id)).run()
   ctx.db.delete(t.athleteRecords).where(eq(t.athleteRecords.id, target.id)).run()
   ctx.db
@@ -127,6 +131,7 @@ export function approveAthleteClaim(ctx: Ctx, athleteId: string): void {
       teamId: target.teamId ?? account.teamId,
       coachId: target.coachId ?? account.coachId,
       memberYear,
+      memberMonth: memberYear === null ? null : memberMonth,
       membershipId: account.membershipId ?? target.membershipId,
     })
     .where(eq(t.athletes.id, account.id))

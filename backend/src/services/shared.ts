@@ -183,7 +183,8 @@ export function cleanDetails(ctx: Ctx, names: string[], input: unknown): Competi
   const coachId = clean(d.coachId) || null
   if (coachId) found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get(), 'Coach')
   const memberYear = Number.isInteger(d.memberYear) && (d.memberYear as number) > 2000 ? (d.memberYear as number) : null
-  return { province: clean(d.province), coachId, dancers, beginner: Boolean(d.beginner), memberYear }
+  const memberMonth = memberYear !== null && Number.isInteger(d.memberMonth) && (d.memberMonth as number) >= 1 && (d.memberMonth as number) <= 12 ? (d.memberMonth as number) : null
+  return { province: clean(d.province), coachId, dancers, beginner: Boolean(d.beginner), memberYear, memberMonth }
 }
 
 export function cleanNames(names: unknown, what = 'competitor'): string[] {

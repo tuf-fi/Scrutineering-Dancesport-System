@@ -1,5 +1,5 @@
 import { membershipLabel, membershipState, type AthleteRecord, type AthleteRow } from '@bis/shared'
-import { Check, KeyRound, Pencil, Trash2, UserPlus, X } from 'lucide-react'
+import { Check, KeyRound, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
@@ -16,19 +16,19 @@ const isWaiting = (a: AthleteRow) => a.request !== null && !a.request.rejectedRe
 type Row =
   | { key: string; kind: 'account'; name: string; a: AthleteRow }
   | { key: string; kind: 'record'; name: string; r: AthleteRecord }
-  | { key: string; kind: 'dancer'; name: string; teamName: string; prefill: Partial<AthleteRecord> }
+  | { key: string; kind: 'dancer'; name: string; teamName: string }
 
 const plain = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
 
 // The paid-until date, or a label when it was never paid or has run out
-function MembershipCell({ year }: { year: number | null }) {
+function MembershipCell({ year, month }: { year: number | null; month?: number | null }) {
   const now = new Date().getFullYear()
   const state = membershipState(year, now)
-  if (state === 'paid') return <span>{membershipLabel(year, now)}</span>
+  if (state === 'paid') return <span>{membershipLabel(year, now, month)}</span>
   return (
     <span className="flex flex-col gap-0.5">
       <Badge tone={state === 'expired' ? 'danger' : 'neutral'}>{state === 'expired' ? 'Membership expired' : 'Not paid'}</Badge>
-      {state === 'expired' && <span className="font-mono text-small text-neutral-600">{membershipLabel(year, now)}</span>}
+      {state === 'expired' && <span className="font-mono text-small text-neutral-600">{membershipLabel(year, now, month)}</span>}
     </span>
   )
 }
@@ -72,7 +72,6 @@ export function AthletesPage() {
   const [tempPassword, setTempPassword] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<AthleteRow | null>(null)
   const [editingRecord, setEditingRecord] = useState<AthleteRecord | 'new' | null>(null)
-  const [prefill, setPrefill] = useState<Partial<AthleteRecord> | null>(null)
   const [recordToDelete, setRecordToDelete] = useState<AthleteRecord | null>(null)
   const records = useAthleteRecords()
   const competitors = useCompetitorRows()
@@ -88,16 +87,7 @@ export function AthletesPage() {
   for (const c of competitors.data ?? []) {
     for (const name of c.names) {
       const key = plain(name)
-      if (!known.has(key) && !dancers.has(key)) {
-        const d = c.details?.dancers[c.names.indexOf(name)]
-        dancers.set(key, {
-          key: 'dancer-' + key,
-          kind: 'dancer',
-          name,
-          teamName: teamName(c.teamId),
-          prefill: { name, teamId: c.teamId, coachId: c.details?.coachId ?? null, province: c.details?.province ?? '', birthDate: d?.birthDate ?? '', phone: d?.phone ?? '', address: d?.address ?? '' },
-        })
-      }
+      if (!known.has(key) && !dancers.has(key)) dancers.set(key, { key: 'dancer-' + key, kind: 'dancer', name, teamName: teamName(c.teamId) })
     }
   }
   const all: Row[] = [
@@ -159,7 +149,7 @@ export function AthletesPage() {
           {
             key: 'member',
             header: 'Membership',
-            cell: (row) => <MembershipCell year={row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear} />,
+            cell: (row) => <MembershipCell year={row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear} month={row.kind === 'account' ? row.a.memberMonth : row.kind === 'record' ? row.r.memberMonth : null} />,
             mono: true,
             muted: true,
             hideBelow: 'sm',
@@ -175,13 +165,7 @@ export function AthletesPage() {
             align: 'right',
             widthClass: 'w-44',
             cell: (row) => {
-              if (row.kind === 'dancer') {
-                return (
-                  <div className="flex justify-end gap-0.5">
-                    <IconButton icon={UserPlus} label={`Add ${row.name} as an athlete`} onClick={() => setPrefill(row.prefill)} />
-                  </div>
-                )
-              }
+              if (row.kind === 'dancer') return null
               if (row.kind === 'record') {
                 return (
                   <div className="flex justify-end gap-0.5">
@@ -229,15 +213,7 @@ export function AthletesPage() {
         ]}
       />
 
-      <AthleteRecordDialog
-        open={editingRecord !== null || prefill !== null}
-        athlete={editingRecord === 'new' ? null : editingRecord}
-        prefill={prefill ?? undefined}
-        onClose={() => {
-          setEditingRecord(null)
-          setPrefill(null)
-        }}
-      />
+      <AthleteRecordDialog open={editingRecord !== null} athlete={editingRecord === 'new' ? null : editingRecord} onClose={() => setEditingRecord(null)} />
 
       <Dialog
         open={recordToDelete !== null}

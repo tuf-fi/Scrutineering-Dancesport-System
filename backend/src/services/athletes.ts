@@ -29,6 +29,7 @@ const toProfile = (r: AthleteRowDb): AthleteProfile => ({
   teamId: r.teamId,
   coachId: r.coachId,
   memberYear: r.memberYear,
+  memberMonth: r.memberMonth,
   membershipId: r.membershipId ?? null,
   request: r.request ?? null,
   photo: r.photo ?? null,
@@ -244,6 +245,7 @@ export const athletes = {
         teamName: (r.teamId && teams.get(r.teamId)) || '',
         coachName: (r.coachId && coaches.get(r.coachId)) || '',
         memberYear: r.memberYear,
+        memberMonth: r.memberMonth,
         membershipId: r.membershipId ?? null,
         request: r.request ?? null,
         changeRequest: r.changeRequest ?? null,
@@ -282,7 +284,7 @@ export const athletes = {
     if (!row.request) return fail('This athlete has no payment waiting.', 409)
     if (row.request.rejectedReason) return fail('This payment was already turned down. The athlete has to send it again.', 409)
     const membershipHistory = withEvent(row, { at: now(), kind: 'confirmed', year: row.request.year, method: row.request.method })
-    ctx.db.update(t.athletes).set({ memberYear: row.request.year, request: null, membershipHistory }).where(eq(t.athletes.id, id)).run()
+    ctx.db.update(t.athletes).set({ memberYear: row.request.year, memberMonth: new Date().getMonth() + 1, request: null, membershipHistory }).where(eq(t.athletes.id, id)).run()
     const membershipId = giveAthleteMembershipId(ctx, id)
     record(ctx.db, actor(ctx).id, 'Confirmed membership', row.name, { after: { year: row.request.year, membershipId } })
     notifyAthlete(ctx, id, { kind: 'membership_confirmed', title: `Your ${row.request.year} membership was confirmed`, detail: `Your ${row.request.method} payment was received. You are a member until December 31, ${row.request.year}.${membershipId ? ` Your membership ID is ${membershipId}.` : ''}`, link: '/athlete/membership' })

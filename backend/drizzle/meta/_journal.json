@@ -309,6 +309,13 @@
       "when": 1794113636270,
       "tag": "0043_athlete_records",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "6",
+      "when": 1794182750484,
+      "tag": "0044_athlete_member_month",
+      "breakpoints": true
     }
   ]
 }

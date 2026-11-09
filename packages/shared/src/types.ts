@@ -93,6 +93,7 @@ export interface CompetitorDetails {
   beginner: boolean
   // The year the athletes' membership was last paid for; it lasts until December
   memberYear: number | null
+  memberMonth?: number | null
 }
 
 export interface Coach {
@@ -595,6 +596,8 @@ export interface AthleteProfile {
   coachId: Id | null
   // The year the membership was last paid for; it lasts until December
   memberYear: number | null
+  // The month it was paid, when known
+  memberMonth?: number | null
   // Given once, the first time the membership fee is paid: A-00001
   membershipId?: string | null
   request: MembershipRequest | null
@@ -617,6 +620,7 @@ export interface AthleteRecord {
   teamId: Id | null
   coachId: Id | null
   memberYear: number | null
+  memberMonth?: number | null
   membershipId?: string | null
 }
 
@@ -642,6 +646,7 @@ export interface AthleteRow {
   teamName: string
   coachName: string
   memberYear: number | null
+  memberMonth?: number | null
   membershipId?: string | null
   request: MembershipRequest | null
   changeRequest: ProfileChangeRequest | null

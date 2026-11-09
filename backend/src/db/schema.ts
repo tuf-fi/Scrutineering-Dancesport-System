@@ -471,6 +471,7 @@ export const athletes = sqliteTable('athletes', {
   coachId: text('coach_id').references(() => coaches.id, { onDelete: 'set null' }),
   // The year the membership was last paid for; set when the secretariat confirms a request
   memberYear: integer('member_year'),
+  memberMonth: integer('member_month'),
   request: text('request', { mode: 'json' }).$type<MembershipRequest>(),
   // See staff_users: raising it signs the athlete out everywhere
   sessionVersion: integer('session_version').notNull().default(0),
@@ -496,6 +497,7 @@ export const athleteRecords = sqliteTable('athlete_records', {
   teamId: text('team_id').references(() => teams.id, { onDelete: 'set null' }),
   coachId: text('coach_id').references(() => coaches.id, { onDelete: 'set null' }),
   memberYear: integer('member_year'),
+  memberMonth: integer('member_month'),
   membershipId: text('membership_id').unique(),
 })
 

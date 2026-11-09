@@ -1659,6 +1659,7 @@ export const approveMemberClaim = (actorId: string, memberId: string) =>
       account.province = account.province || target.province
       account.teamId = target.teamId ?? account.teamId
       account.coachId = target.coachId ?? account.coachId
+      account.memberMonth = (target.memberYear ?? 0) >= (account.memberYear ?? 0) ? (target.memberMonth ?? null) : (account.memberMonth ?? null)
       account.memberYear = Math.max(account.memberYear ?? 0, target.memberYear ?? 0) || null
       account.membershipId = account.membershipId ?? target.membershipId ?? null
       athleteRecords.splice(athleteRecords.indexOf(target), 1)
@@ -2128,6 +2129,7 @@ export const confirmMembership = (actorId: string, id: string) =>
     athlete.history.push({ at: new Date().toISOString(), kind: 'confirmed', year: athlete.request.year, method: athlete.request.method })
     const confirmed = athlete.request
     athlete.memberYear = confirmed.year
+    athlete.memberMonth = new Date().getMonth() + 1
     athlete.membershipId ??= `A-${String(sampleAthletes.filter((a) => a.membershipId).length + 1).padStart(5, '0')}`
     athlete.request = null
     record(actorId, 'Confirmed membership', athlete.name)

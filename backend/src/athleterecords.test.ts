@@ -19,6 +19,7 @@ const input = (over: Partial<AthleteRecordInput> = {}): AthleteRecordInput => ({
   teamId: 'team-1',
   coachId: null,
   memberYear: 2026,
+  memberMonth: 3,
   ...over,
 })
 
@@ -34,7 +35,7 @@ afterAll(() => app.close())
 describe('athlete records', () => {
   it('adds a record, gives the membership ID of a paid member, and refuses a missing name', async () => {
     const saved = await app.ok<AthleteRecord>('saveAthleteRecord', [input()], secretariat)
-    expect(saved).toMatchObject({ name: 'Ana Cruz', memberYear: 2026, teamId: 'team-1' })
+    expect(saved).toMatchObject({ name: 'Ana Cruz', memberYear: 2026, memberMonth: 3, teamId: 'team-1' })
     expect(saved.membershipId).toMatch(/^A-\d{5}$/)
     expect((await app.call('saveAthleteRecord', [input({ name: ' ' })], secretariat)).status).toBe(400)
   })
@@ -53,8 +54,8 @@ describe('athlete records', () => {
     await app.ok('approveMemberClaim', [claims[0]!.memberId], secretariat)
     expect(await app.ok<MemberClaimRow[]>('getMemberClaims', [], secretariat)).toEqual([])
     expect(await app.ok<AthleteRecord[]>('getAthleteRecords', [], secretariat)).toEqual([])
-    const page = await app.ok<{ profile: { name: string; birthDate: string; teamId: string; memberYear: number; membershipId: string; claim: unknown } }>('getMyAthlete', [], athlete)
-    expect(page.profile).toMatchObject({ name: 'Ana Cruz', birthDate: '2014-03-02', teamId: 'team-1', memberYear: 2026, membershipId: target!.membershipId, claim: null })
+    const page = await app.ok<{ profile: { name: string; birthDate: string; teamId: string; memberYear: number; memberMonth: number; membershipId: string; claim: unknown } }>('getMyAthlete', [], athlete)
+    expect(page.profile).toMatchObject({ name: 'Ana Cruz', birthDate: '2014-03-02', teamId: 'team-1', memberYear: 2026, memberMonth: 3, membershipId: target!.membershipId, claim: null })
   })
 
   it('lets the athlete take back a request, and staff turn one down', async () => {

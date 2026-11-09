@@ -24,3 +24,19 @@ export const summitPaidLabel = (period: string | null | undefined, year: number)
 // Paid for this year, paid for an earlier year (expired), or never paid
 export const membershipState = (memberYear: number | null, currentYear: number): 'paid' | 'expired' | 'none' =>
   memberYear === null ? 'none' : memberYear >= currentYear ? 'paid' : 'expired'
+
+// "January 2026", "jan 2026", "1/2026" or just "2026" as a month (or none) and a year; null when it is none of those
+export function parseMonthYear(text: string): { month: number | null; year: number } | null {
+  const t = text.trim().toLowerCase().replace(/[,.]/g, ' ').replace(/\s+/g, ' ')
+  let m = /^(\d{4})$/.exec(t)
+  if (m) return { month: null, year: Number(m[1]) }
+  m = /^(\d{1,2})[\s/-](\d{4})$/.exec(t)
+  if (m) return Number(m[1]) >= 1 && Number(m[1]) <= 12 ? { month: Number(m[1]), year: Number(m[2]) } : null
+  m = /^([a-z]{3,9})\s+(\d{4})$/.exec(t)
+  if (!m) return null
+  const index = MONTH_NAMES.findIndex((name) => name.toLowerCase() === m![1] || (m![1]!.length >= 3 && name.toLowerCase().startsWith(m![1]!)))
+  return index < 0 ? null : { month: index + 1, year: Number(m[2]) }
+}
+
+// What to show in the box for a saved month and year
+export const monthYearText = (month: number | null | undefined, year: number | null | undefined): string => (year ? memberPaidLabel(month, year) : '')
