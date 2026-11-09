@@ -120,6 +120,19 @@ describe('athlete account', () => {
     expect(screen.queryByText('Link your athlete record')).not.toBeInTheDocument()
   })
 
+  it('lets staff turn a dancer known only from an entry form into an athlete record', async () => {
+    const dancer = (await getCompetitors()).flatMap((c) => c.names).find((n) => n !== 'Ana Cruz')!
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.type(await screen.findByLabelText('Search athletes'), dancer)
+    await userEvent.click(await screen.findByRole('button', { name: `Add ${dancer} as an athlete` }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
+    expect(within(dialog).getByLabelText('Full name')).toHaveValue(dancer)
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
+    expect(await screen.findByText(`Added ${dancer}`)).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: `Edit ${dancer}` })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: `Add ${dancer} as an athlete` })).not.toBeInTheDocument()
+  })
+
   it('changes the password only with the current one', async () => {
     renderApp('/athlete/password', Role.Athlete, { id: 'athlete-sample', name: 'Ana Cruz' })
     await userEvent.type(await screen.findByLabelText('Current password'), 'wrong-password')

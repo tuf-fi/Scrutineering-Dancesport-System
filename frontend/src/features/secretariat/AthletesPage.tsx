@@ -1,5 +1,5 @@
 import { membershipLabel, membershipState, type AthleteRecord, type AthleteRow } from '@bis/shared'
-import { Check, KeyRound, Pencil, Trash2, X } from 'lucide-react'
+import { Check, KeyRound, Pencil, Trash2, UserPlus, X } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
@@ -16,7 +16,7 @@ const isWaiting = (a: AthleteRow) => a.request !== null && !a.request.rejectedRe
 type Row =
   | { key: string; kind: 'account'; name: string; a: AthleteRow }
   | { key: string; kind: 'record'; name: string; r: AthleteRecord }
-  | { key: string; kind: 'dancer'; name: string; teamName: string }
+  | { key: string; kind: 'dancer'; name: string; teamName: string; prefill: Partial<AthleteRecord> }
 
 const plain = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
 
@@ -27,7 +27,7 @@ function MembershipCell({ year }: { year: number | null }) {
   if (state === 'paid') return <span>{membershipLabel(year, now)}</span>
   return (
     <span className="flex flex-col gap-0.5">
-      <Badge pill tone={state === 'expired' ? 'danger' : 'neutral'}>{state === 'expired' ? 'Membership expired' : 'Not paid'}</Badge>
+      <Badge tone={state === 'expired' ? 'danger' : 'neutral'}>{state === 'expired' ? 'Membership expired' : 'Not paid'}</Badge>
       {state === 'expired' && <span className="font-mono text-small text-neutral-600">{membershipLabel(year, now)}</span>}
     </span>
   )
@@ -38,7 +38,7 @@ function PaymentCell({ athlete, onView }: { athlete: AthleteRow; onView: (athlet
   if (!request) return <span className="text-neutral-500">–</span>
   return (
     <span className="flex flex-col gap-0.5">
-      <Badge pill tone={request.rejectedReason ? 'danger' : 'gold'}>{request.rejectedReason ? 'Not confirmed' : 'Waiting'}</Badge>
+      <Badge tone={request.rejectedReason ? 'danger' : 'gold'}>{request.rejectedReason ? 'Not confirmed' : 'Waiting'}</Badge>
       {request.receipt ? (
         <button type="button" onClick={() => onView(athlete)} className="w-fit text-left text-small text-neutral-700 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900">
           {request.method} screenshot
@@ -72,6 +72,7 @@ export function AthletesPage() {
   const [tempPassword, setTempPassword] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<AthleteRow | null>(null)
   const [editingRecord, setEditingRecord] = useState<AthleteRecord | 'new' | null>(null)
+  const [prefill, setPrefill] = useState<Partial<AthleteRecord> | null>(null)
   const [recordToDelete, setRecordToDelete] = useState<AthleteRecord | null>(null)
   const records = useAthleteRecords()
   const competitors = useCompetitorRows()
@@ -87,7 +88,16 @@ export function AthletesPage() {
   for (const c of competitors.data ?? []) {
     for (const name of c.names) {
       const key = plain(name)
-      if (!known.has(key) && !dancers.has(key)) dancers.set(key, { key: 'dancer-' + key, kind: 'dancer', name, teamName: teamName(c.teamId) })
+      if (!known.has(key) && !dancers.has(key)) {
+        const d = c.details?.dancers[c.names.indexOf(name)]
+        dancers.set(key, {
+          key: 'dancer-' + key,
+          kind: 'dancer',
+          name,
+          teamName: teamName(c.teamId),
+          prefill: { name, teamId: c.teamId, coachId: c.details?.coachId ?? null, province: c.details?.province ?? '', birthDate: d?.birthDate ?? '', phone: d?.phone ?? '', address: d?.address ?? '' },
+        })
+      }
     }
   }
   const all: Row[] = [
@@ -165,7 +175,13 @@ export function AthletesPage() {
             align: 'right',
             widthClass: 'w-44',
             cell: (row) => {
-              if (row.kind === 'dancer') return null
+              if (row.kind === 'dancer') {
+                return (
+                  <div className="flex justify-end gap-0.5">
+                    <IconButton icon={UserPlus} label={`Add ${row.name} as an athlete`} onClick={() => setPrefill(row.prefill)} />
+                  </div>
+                )
+              }
               if (row.kind === 'record') {
                 return (
                   <div className="flex justify-end gap-0.5">
@@ -213,7 +229,15 @@ export function AthletesPage() {
         ]}
       />
 
-      <AthleteRecordDialog open={editingRecord !== null} athlete={editingRecord === 'new' ? null : editingRecord} onClose={() => setEditingRecord(null)} />
+      <AthleteRecordDialog
+        open={editingRecord !== null || prefill !== null}
+        athlete={editingRecord === 'new' ? null : editingRecord}
+        prefill={prefill ?? undefined}
+        onClose={() => {
+          setEditingRecord(null)
+          setPrefill(null)
+        }}
+      />
 
       <Dialog
         open={recordToDelete !== null}

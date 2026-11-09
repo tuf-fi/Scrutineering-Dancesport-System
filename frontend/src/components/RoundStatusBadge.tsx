@@ -21,7 +21,7 @@ export const ROUND_STATUS_LABEL = LABEL
 
 export function RoundStatusBadge({ status }: { status: RoundStatus }) {
   return (
-    <Badge pill tone={TONE[status]}>
+    <Badge tone={TONE[status]}>
       {LABEL[status]}
     </Badge>
   )

@@ -5,17 +5,18 @@ import { useCoaches, useSaveAthleteRecord, useTeams } from '../../hooks/index.ts
 
 const FORM_ID = 'athlete-record-form'
 
-function AthleteRecordForm({ athlete, onDone }: { athlete: AthleteRecord | null; onDone: () => void }) {
+function AthleteRecordForm({ athlete, prefill, onDone }: { athlete: AthleteRecord | null; prefill?: Partial<AthleteRecord>; onDone: () => void }) {
+  const start = athlete ?? prefill
   const save = useSaveAthleteRecord()
   const teams = useTeams()
   const coaches = useCoaches()
-  const [name, setName] = useState(athlete?.name ?? '')
-  const [birthDate, setBirthDate] = useState(athlete?.birthDate ?? '')
-  const [phone, setPhone] = useState(athlete?.phone ?? '')
-  const [province, setProvince] = useState(athlete?.province ?? '')
-  const [address, setAddress] = useState(athlete?.address ?? '')
-  const [teamId, setTeamId] = useState(athlete?.teamId ?? '')
-  const [coachId, setCoachId] = useState(athlete?.coachId ?? '')
+  const [name, setName] = useState(start?.name ?? '')
+  const [birthDate, setBirthDate] = useState(start?.birthDate ?? '')
+  const [phone, setPhone] = useState(start?.phone ?? '')
+  const [province, setProvince] = useState(start?.province ?? '')
+  const [address, setAddress] = useState(start?.address ?? '')
+  const [teamId, setTeamId] = useState(start?.teamId ?? '')
+  const [coachId, setCoachId] = useState(start?.coachId ?? '')
   const [memberYear, setMemberYear] = useState(athlete?.memberYear ? String(athlete.memberYear) : '')
   const [errors, setErrors] = useState<{ name?: string; year?: string }>({})
   const [failure, setFailure] = useState<string | null>(null)
@@ -96,7 +97,8 @@ function AthleteRecordForm({ athlete, onDone }: { athlete: AthleteRecord | null;
 }
 
 // Adds an athlete who has no account yet, or edits the one given. They link their account to it once they sign in.
-export function AthleteRecordDialog({ open, athlete, onClose }: { open: boolean; athlete: AthleteRecord | null; onClose: () => void }) {
+// `prefill` starts a new record from what an entry form already says about the dancer
+export function AthleteRecordDialog({ open, athlete, prefill, onClose }: { open: boolean; athlete: AthleteRecord | null; prefill?: Partial<AthleteRecord>; onClose: () => void }) {
   return (
     <Dialog
       open={open}
@@ -115,7 +117,7 @@ export function AthleteRecordDialog({ open, athlete, onClose }: { open: boolean;
         </>
       }
     >
-      {open && <AthleteRecordForm key={athlete?.id ?? 'new'} athlete={athlete} onDone={onClose} />}
+      {open && <AthleteRecordForm key={athlete?.id ?? prefill?.name ?? 'new'} athlete={athlete} prefill={prefill} onDone={onClose} />}
     </Dialog>
   )
 }

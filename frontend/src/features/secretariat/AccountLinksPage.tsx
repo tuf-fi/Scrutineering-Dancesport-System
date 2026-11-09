@@ -33,7 +33,7 @@ export function AccountLinksPage() {
         empty={needle ? { title: 'No requests match', description: 'Try a different name.' } : { title: 'Nothing waiting', description: 'Requests appear here when a coach, team or athlete asks to be linked.' }}
         columns={[
           { key: 'name', header: 'Account', cell: (c) => <span className="font-medium">{c.name}</span> },
-          { key: 'kind', header: 'Type', hideBelow: 'sm', cell: (c) => <Badge pill tone="neutral">{c.role === 'team' ? 'Team' : c.role === 'athlete' ? 'Athlete' : 'Coach'}</Badge> },
+          { key: 'kind', header: 'Type', hideBelow: 'sm', cell: (c) => <Badge tone="neutral">{c.role === 'team' ? 'Team' : c.role === 'athlete' ? 'Athlete' : 'Coach'}</Badge> },
           { key: 'email', header: 'Email', muted: true, hideBelow: 'md', cell: (c) => c.email },
           { key: 'target', header: 'Wants to be', cell: (c) => c.targetName },
           {

@@ -96,7 +96,7 @@ export function EntryRequestsPage() {
             key: 'status',
             header: 'Status',
             cell: (r) => (
-              <Badge pill tone={TONE[r.status]}>{LABEL[r.status]}</Badge>
+              <Badge tone={TONE[r.status]}>{LABEL[r.status]}</Badge>
             ),
           },
           {

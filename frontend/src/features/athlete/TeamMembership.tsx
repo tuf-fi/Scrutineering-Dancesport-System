@@ -85,7 +85,7 @@ export function TeamMembership() {
                     </label>
                     <span className="flex items-center gap-3">
                       {a.status === 'paid' && a.membershipId && <span className="font-mono text-xs uppercase text-neutral-500">ID {a.membershipId}</span>}
-                      <Badge pill tone={STATUS[a.status].tone}>{STATUS[a.status].label}</Badge>
+                      <Badge tone={STATUS[a.status].tone}>{STATUS[a.status].label}</Badge>
                     </span>
                     {a.status === 'rejected' && a.reason && <span className="basis-full pl-8 text-small text-danger">Not confirmed: {a.reason}</span>}
                   </li>

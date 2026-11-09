@@ -9,33 +9,23 @@ const tones = {
   danger: 'text-danger',
 } as const
 
-const pillFills = {
-  neutral: 'bg-neutral-100',
-  gold: 'bg-gold-100',
-  success: 'bg-success/10',
-  warning: 'bg-warning/10',
-  danger: 'bg-danger/10',
-} as const
-
 export type BadgeTone = keyof typeof tones
 
-// A status is a dot and a word; `pill` puts it on a tinted capsule
+// A status is a dot and a word in the status color: no fill, no capsule
 export function Badge({
   tone = 'neutral',
   dot = true,
-  pill = false,
   children,
 }: {
   tone?: BadgeTone
   dot?: boolean
-  pill?: boolean
   children: ReactNode
 }) {
   return (
     <span
       className={cn(
         'inline-flex items-center gap-1.5 whitespace-nowrap font-medium',
-        pill ? cn('rounded-full px-2.5 py-1 text-xs', pillFills[tone]) : 'text-small',
+        'text-small',
         tones[tone],
       )}
     >

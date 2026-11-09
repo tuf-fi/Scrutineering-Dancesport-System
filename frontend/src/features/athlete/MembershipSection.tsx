@@ -21,13 +21,13 @@ export function MembershipSection({ page }: { page: AthleteData }) {
           {paid && profile.membershipId && <span className="font-mono text-xs uppercase text-neutral-500">ID {profile.membershipId}</span>}
           {paid && <span className="font-mono text-xs uppercase text-neutral-500">Valid until December 31, {year}</span>}
           {paid ? (
-            <Badge pill tone="success">Paid</Badge>
+            <Badge tone="success">Paid</Badge>
           ) : waiting ? (
-            <Badge pill tone="gold">Waiting for the secretariat</Badge>
+            <Badge tone="gold">Waiting for the secretariat</Badge>
           ) : request ? (
-            <Badge pill tone="danger">Not confirmed</Badge>
+            <Badge tone="danger">Not confirmed</Badge>
           ) : (
-            <Badge pill tone={profile.memberYear !== null ? 'danger' : 'neutral'}>{profile.memberYear !== null ? 'Membership expired' : 'Not paid'}</Badge>
+            <Badge tone={profile.memberYear !== null ? 'danger' : 'neutral'}>{profile.memberYear !== null ? 'Membership expired' : 'Not paid'}</Badge>
           )}
         </div>
       </div>

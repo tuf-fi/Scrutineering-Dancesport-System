@@ -288,7 +288,7 @@ export function EntryRequestsList() {
             header: 'Status',
             cell: (r) => (
               <span className="flex flex-col items-start gap-1">
-                <Badge pill tone={TONE[r.status]}>{LABEL[r.status]}</Badge>
+                <Badge tone={TONE[r.status]}>{LABEL[r.status]}</Badge>
                 {r.rejectedReason && <span className="text-small text-neutral-600">{r.rejectedReason}</span>}
               </span>
             ),

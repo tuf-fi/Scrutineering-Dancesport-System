@@ -11,5 +11,5 @@ const TONE: Record<PaymentStatus, BadgeTone> = {
 }
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  return <Badge pill tone={TONE[status]}>{PAYMENT_STATUS_LABEL[status]}</Badge>
+  return <Badge tone={TONE[status]}>{PAYMENT_STATUS_LABEL[status]}</Badge>
 }
