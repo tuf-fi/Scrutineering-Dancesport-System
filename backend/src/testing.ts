@@ -5,6 +5,7 @@ import { loadConfig } from './config.ts'
 import { openDatabase } from './db/client.ts'
 import { runMigrations } from './db/migrate.ts'
 import { SAMPLE_PASSWORD, seedSampleData } from './db/seed.ts'
+import type { MailMessage, Mailer } from './mail.ts'
 import { silentHub } from './realtime/hub.ts'
 
 // Every account has a picture, so the tests that make one send this
@@ -23,6 +24,8 @@ export interface TestOptions {
   backupDirs?: string[]
   // Settings as if from the environment, such as COOKIE_SECURE=true
   env?: Record<string, string>
+  // Pretend a mail provider is set: new accounts then have to confirm their email. Mail is recorded in `outbox` either way.
+  mail?: boolean
 }
 
 // Starts the whole server on an in-memory (or file) database with a silent hub, for tests
@@ -31,12 +34,15 @@ export async function startTestApp(options: TestOptions = {}) {
   runMigrations(db)
   if (options.seed !== false) seedSampleData(db)
   const hub = silentHub()
+  const outbox: MailMessage[] = []
+  const mailer: Mailer = { enabled: options.mail ?? false, send: async (message) => void outbox.push(message) }
   const backups: Backups = options.backupDirs ? createBackups(sqlite, options.backupDirs, 0) : createBackups(sqlite, [], 0)
   const app = await buildApp({
     config: loadConfig({ FRONTEND_DIR: '', ...options.env }),
     sqlite,
     db,
     hub,
+    mailer,
     backups,
     liveBoardMs: 0,
   })
@@ -88,7 +94,7 @@ export async function startTestApp(options: TestOptions = {}) {
     sqlite.close()
   }
 
-  return { app, db, sqlite, hub, backups, signIn, call, ok, me, close }
+  return { app, db, sqlite, hub, backups, outbox, signIn, call, ok, me, close }
 }
 
 export type TestApp = Awaited<ReturnType<typeof startTestApp>>

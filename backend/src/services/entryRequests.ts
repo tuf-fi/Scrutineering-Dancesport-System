@@ -1,3 +1,4 @@
+import { requireVerified } from './emailLinks.ts'
 import { PayMethod, Role, type AthleteNotification, type PaymentMethod, type EntryRequest, type EntryRequestInput, type MemberRosterRow, type RegistrationQuote } from '@bis/shared'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { record } from '../core/audit.ts'
@@ -102,6 +103,7 @@ export const entryRequests = {
   },
 
   submitEntryRequest(ctx: Ctx, input: EntryRequestInput): EntryRequest {
+    requireVerified(ctx)
     const { who, competitor } = mine(ctx, input?.competitorId)
     if (!ONLINE.includes(input.method)) return fail('Choose GCash, Maya or bank. Cash is paid at the venue.')
     const receipt = typeof input.receipt === 'string' ? input.receipt : ''

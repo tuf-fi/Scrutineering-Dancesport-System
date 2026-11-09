@@ -21,6 +21,8 @@ export interface Config {
   // Requests a minute from one address for calls that need no sign-in, such as the public pages; null means no limit.
   // Spectators on one mobile network can share an address, so this is generous.
   publicRatePerMinute: number | null
+  // Email: the provider's key (none means mail is only printed), the sender, and the address the links in it point to
+  mail: { brevoApiKey: string | null; from: string; publicUrl: string }
 }
 
 // Stands for "no secret chosen"; main.ts replaces it with a random one kept beside the database
@@ -77,5 +79,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     trustProxy: trustProxy(env.TRUST_PROXY),
     pinWindowDays: pinWindowDays(env),
     publicRatePerMinute: publicRate(env),
+    mail: {
+      brevoApiKey: env.BREVO_API_KEY || null,
+      from: env.MAIL_FROM || 'BOSS <no-reply@localhost>',
+      publicUrl: (env.PUBLIC_URL || (env.DOMAIN ? `https://${env.DOMAIN}` : 'http://localhost:5173')).replace(/\/+$/, ''),
+    },
   }
 }

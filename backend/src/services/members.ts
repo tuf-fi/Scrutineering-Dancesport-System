@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
+import { requireVerified } from './emailLinks.ts'
 import { approveAthleteClaim, athleteClaims, isAthleteAccount, rejectAthleteClaim } from './athleteRecords.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
@@ -24,7 +25,7 @@ export function createMember(ctx: Ctx, role: 'coach' | 'team', input: AthleteSig
     return fail('An account with this email already exists. Sign in instead.', 409)
   }
   const id = newId()
-  ctx.db.insert(t.memberAccounts).values({ id, role, name, email, photo, passwordHash: hashPassword(password) }).run()
+  ctx.db.insert(t.memberAccounts).values({ id, role, name, email, photo, passwordHash: hashPassword(password), emailVerified: !ctx.mailer.enabled }).run()
   record(ctx.db, id, role === 'team' ? 'Team signed up' : 'Coach signed up', name)
   return { id, name, role: role === 'team' ? Role.Team : Role.Coach }
 }
@@ -56,6 +57,7 @@ function toAccount(ctx: Ctx, row: typeof t.memberAccounts.$inferSelect): MemberA
     linked: row.linkedId && linked !== null ? { id: row.linkedId, name: linked } : null,
     claim: row.claimId && claim !== null ? { id: row.claimId, name: claim, requestedAt: row.claimedAt ?? '' } : null,
     changeRequest: row.changeRequest ?? null,
+    emailVerified: row.emailVerified,
   }
 }
 
@@ -63,6 +65,7 @@ export const getMyMember = (ctx: Ctx): MemberAccount => toAccount(ctx, mine(ctx)
 
 // Asks to be linked to a coach or team record; the secretariat decides
 export function claimRecord(ctx: Ctx, targetId: string): MemberAccount {
+  requireVerified(ctx)
   const row = mine(ctx)
   if (row.linkedId) return fail('Your account is already linked.', 409)
   const name = typeof targetId === 'string' ? recordName(ctx, row.role, targetId) : null

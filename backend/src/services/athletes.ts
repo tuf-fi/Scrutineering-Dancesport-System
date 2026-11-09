@@ -1,6 +1,6 @@
 import { DEFAULT_FEE_SCHEDULE, Role, type AthleteInput, type AthletePage, type AthleteProfile, type AthleteRow, type AthleteSignUp, type AthleteNotification, type MembershipEvent, type MyActivity, type SessionUser } from '@bis/shared'
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
-import { hashPassword, temporaryPassword, verifyPassword } from '../auth/password.ts'
+import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -35,6 +35,7 @@ const toProfile = (r: AthleteRowDb): AthleteProfile => ({
   photo: r.photo ?? null,
   history: r.membershipHistory ?? [],
   changeRequest: r.changeRequest ?? null,
+  emailVerified: r.emailVerified,
 })
 
 // A name compared without case, dots or extra spaces, so "Ana  M. Cruz" matches "ana m cruz"
@@ -68,7 +69,8 @@ export function createAthlete(ctx: Ctx, input: AthleteSignUp): SessionUser {
   if (ctx.db.select().from(t.athletes).where(eq(t.athletes.email, email)).get()) {
     return fail('An account with this email already exists. Sign in instead.', 409)
   }
-  const row = { id: newId(), name, email, photo, passwordHash: hashPassword(password) }
+  // With a mail provider the address is confirmed from the link in the email; without one it cannot be
+  const row = { id: newId(), name, email, photo, passwordHash: hashPassword(password), emailVerified: !ctx.mailer.enabled }
   ctx.db.insert(t.athletes).values(row).run()
   record(ctx.db, row.id, 'Athlete signed up', name)
   return { id: row.id, name, role: Role.Athlete }
@@ -311,15 +313,6 @@ export const athletes = {
     ctx.db.update(t.athletes).set({ name, birthDate }).where(eq(t.athletes.id, id)).run()
     record(ctx.db, actor(ctx).id, 'Corrected an athlete', name, { before: { name: row.name, birthDate: row.birthDate }, after: { name, birthDate } })
     return athletes.getAthletes(ctx).find((a) => a.id === id)!
-  },
-
-  resetAthletePassword(ctx: Ctx, id: string): { tempPassword: string } {
-    const row = found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, id)).get(), 'Athlete')
-    const tempPassword = temporaryPassword()
-    ctx.db.update(t.athletes).set({ passwordHash: hashPassword(tempPassword) }).where(eq(t.athletes.id, id)).run()
-    bumpSessionVersion(ctx, 'athlete', id)
-    record(ctx.db, actor(ctx).id, 'Reset an athlete password', row.name)
-    return { tempPassword }
   },
 
   deleteAthlete(ctx: Ctx, id: string, cascade?: boolean): void {

@@ -26,6 +26,7 @@ export function SignInPage() {
   const creating = mode === 'sign-up'
   return (
     <AuthShell title={creating ? copy.create : copy.title} description={creating ? copy.createNote : copy.signInNote}>
+      {params.get('reset') && <p role="status" className="mb-6 text-small font-medium text-success">Your password is changed. Sign in with the new one.</p>}
       <AccountForm key={kind} kind={kind} mode={mode} onMode={setMode} />
     </AuthShell>
   )

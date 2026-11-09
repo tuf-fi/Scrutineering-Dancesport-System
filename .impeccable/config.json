@@ -8,6 +8,12 @@
         "value": "manrope",
         "createdAt": "2026-11-05T05:24:20.646Z",
         "reason": "Manrope is the documented brand font in DESIGN.md (as Manrope Variable); the manual loads the same file"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "arial",
+        "createdAt": "2026-11-09T00:21:13.819Z",
+        "reason": "Email HTML body in backend/src/mail.ts: mail clients cannot load the site's web fonts, so a standard system font is required; agent judgment, not user-confirmed"
       }
     ]
   }

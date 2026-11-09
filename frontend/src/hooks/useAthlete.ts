@@ -21,6 +21,12 @@ export const useSignUpAthlete = () =>
 export const useSignInAthlete = () =>
   useMutation({ mutationFn: (v: { email: string; password: string }) => api.signInAthlete(v.email, v.password) })
 
+// Forgot password, choosing a new one from the emailed link, and confirming an address
+export const useForgotPassword = () => useMutation({ mutationFn: (v: { role: 'athlete' | 'coach' | 'team'; email: string }) => api.forgotPassword(v.role, v.email) })
+export const useResetPassword = () => useMutation({ mutationFn: (v: { token: string; password: string }) => api.resetPassword(v.token, v.password) })
+export const useVerifyEmail = () => useMutation({ mutationFn: (token: string) => api.verifyEmail(token) })
+export const useResendVerification = () => useWrite(() => api.resendVerification(actor()), [])
+
 // The signed-in athlete's own page
 // Only an athlete has an athlete record; asking as anyone else is refused
 export const useMyAthlete = () => {
@@ -83,7 +89,6 @@ export const useConfirmMembership = () => useWrite((id: string) => api.confirmMe
 export const useRejectMembership = () =>
   useWrite((v: { id: string; reason: string }) => api.rejectMembership(actor(), v.id, v.reason), ['athletes'])
 
-export const useResetAthletePassword = () => useWrite((id: string) => api.resetAthletePassword(actor(), id), [])
 
 export const useCorrectAthlete = () => useWrite((v: { id: string; name: string; birthDate: string }) => api.correctAthlete(actor(), v.id, { name: v.name, birthDate: v.birthDate }), ['athletes'])
 

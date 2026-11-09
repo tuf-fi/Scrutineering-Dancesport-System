@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { ApiError } from '../../api/http.ts'
 import { roleHome } from '../../app/nav.ts'
 import { PhotoInput } from '../../components/PhotoInput.tsx'
-import { Button, Input } from '../../components/ui/index.ts'
-import { useSignInAthlete, useSignInMember, useSignUpAthlete, useSignUpMember } from '../../hooks/index.ts'
+import type { SessionUser } from '@bis/shared'
+import { Button, Input, toast } from '../../components/ui/index.ts'
+import { useResendVerification, useSignInAthlete, useSignInMember, useSignUpAthlete, useSignUpMember } from '../../hooks/index.ts'
 import { passwordMeetsRules } from '../../lib/passwordRules.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { DevHint } from '../auth/DevHint.tsx'
@@ -38,6 +39,14 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
   const [photo, setPhoto] = useState('')
   const [photoError, setPhotoError] = useState<string | undefined>()
   const [error, setError] = useState<string | null>(null)
+  const [sentTo, setSentTo] = useState<{ session: SessionUser; email: string } | null>(null)
+  const resend = useResendVerification()
+
+  function enter(session: SessionUser) {
+    signIn(session)
+    onDone?.()
+    navigate(roleHome[session.role], { replace: true })
+  }
 
   const creating = mode === 'sign-up'
   const pending = signInMutation.isPending || signUpMutation.isPending
@@ -53,9 +62,9 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
       const session = creating
         ? await signUpMutation.mutateAsync({ name, email, password, photo })
         : await signInMutation.mutateAsync({ email, password })
-      signIn(session)
-      onDone?.()
-      navigate(roleHome[session.role], { replace: true })
+      // A new account first sees where the confirmation link went; it is signed in when they continue
+      if (creating && session.confirmEmail) return setSentTo({ session, email })
+      enter(session)
     } catch (e) {
       // A photo too big for the server, or one it did not accept, is the photo's problem
       if (creating && e instanceof ApiError && e.status === 413) return setPhotoError('The image exceeded the maximum size.')
@@ -69,6 +78,30 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
     setPhotoError(undefined)
     setConfirm('')
     onMode(creating ? 'sign-in' : 'sign-up')
+  }
+
+  if (sentTo) {
+    return (
+      <div className="flex flex-col gap-6">
+        <h2 className="text-title font-semibold text-neutral-900">Check your email</h2>
+        <p role="status" className="text-body text-neutral-800">
+          We sent a confirmation link to <span className="font-semibold">{sentTo.email}</span>. Open it to confirm your address. It works for 24 hours. Check your spam folder too.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button size="lg" onClick={() => enter(sentTo.session)}>
+            Go to my account
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            disabled={resend.isPending}
+            onClick={() => resend.mutate(undefined, { onSuccess: () => toast.success('Email sent again.'), onError: (e) => toast.error(e.message) })}
+          >
+            {resend.isPending ? 'Sending…' : 'Send it again'}
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -95,6 +128,11 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
             <Input label="Confirm password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} error={error ?? undefined} required />
             <PasswordRules password={password} matches={matches} />
           </>
+        )}
+        {!creating && (
+          <Link to={`/forgot-password?as=${kind}`} onClick={onDone} className="-mt-2 w-fit text-small font-semibold text-neutral-900 underline underline-offset-4">
+            Forgot password?
+          </Link>
         )}
         <Button type="submit" size="lg" disabled={pending || !ready} className="mt-1 w-full">
           {pending ? (creating ? 'Creating…' : 'Signing in…') : creating ? 'Create account' : 'Sign in'}

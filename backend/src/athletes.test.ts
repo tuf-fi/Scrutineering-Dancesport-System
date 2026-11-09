@@ -115,11 +115,9 @@ describe('athlete accounts', () => {
     expect((await app.ok<AthletePage>('getMyAthlete', [], other)).profile.request).toMatchObject({ receipt: SHOT })
   })
 
-  it('signs the athlete out everywhere when the password is reset', async () => {
-    const ana = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ana Cruz')
-    const { tempPassword } = await app.ok<{ tempPassword: string }>('resetAthletePassword', [ana!.id], secretariat)
-    expect(await app.me(athlete)).toBeNull()
-    expect(await app.signIn.athlete('ana@test.example', tempPassword)).toContain('=')
+  it('leaves password resets to the athlete: staff have no reset button', async () => {
+    const ana = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((x) => x.name === 'Ana Cruz')
+    expect((await app.call('resetAthletePassword', [ana!.id], secretariat)).status).toBe(404)
   })
 
   it('counts a membership paid on the account when pricing an entry', async () => {

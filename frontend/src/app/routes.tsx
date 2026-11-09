@@ -11,6 +11,7 @@ import { PrivacyPage } from '../features/public/PrivacyPage.tsx'
 import { PointsPage } from '../features/admin/PointsPage.tsx'
 import { StaffPage } from '../features/admin/StaffPage.tsx'
 import { AccountPage, AthletePage, EditAccountPage, EntriesPage, MembershipPage, NotificationsPage, PaymentsPage as MyPaymentsPage, PasswordPage, RankingsPage as MyRankingsPage, ResultsPage as MyResultsPage } from '../features/athlete/AthletePage.tsx'
+import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from '../features/auth/EmailLinkPages.tsx'
 import { AthleteSignIn, MemberSignIn, SignInPage } from '../features/athlete/AthleteSignIn.tsx'
 import { EntryRequestsPage } from '../features/secretariat/EntryRequestsPage.tsx'
 import { AccountLinksPage } from '../features/secretariat/AccountLinksPage.tsx'
@@ -102,6 +103,9 @@ export const routes: RouteObject[] = [
       // The public sign-in for athletes, coaches and teams; staff use their own address
       { path: '/login', element: <SignInPage /> },
       { path: '/sign-in', element: <Navigate to="/login" replace /> },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/verify-email', element: <VerifyEmailPage /> },
 
       {
         path: '/athlete',

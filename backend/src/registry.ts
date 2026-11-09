@@ -14,6 +14,7 @@ import { accountFunctions } from './services/accounts.ts'
 import { athletes } from './services/athletes.ts'
 import { entryRequests } from './services/entryRequests.ts'
 import { getTeamMembership, requestTeamMembership } from './services/teamMembership.ts'
+import { resendVerification } from './services/emailLinks.ts'
 import { cancelAthleteClaim, claimAthleteRecord, deleteAthleteRecord, getAthleteRecords, saveAthleteRecord } from './services/athleteRecords.ts'
 import { approveMemberChange, approveMemberClaim, correctMember, getMemberChanges, rejectMemberChange, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
 import { isStaff, toTeam } from './services/shared.ts'
@@ -65,6 +66,7 @@ const handlers: Record<string, Handler> = {
   rejectMemberChange,
   saveMyMember,
   saveMyMemberPhoto,
+  resendVerification,
   getTeamMembership,
   requestTeamMembership,
   getAthleteRecords,
@@ -242,6 +244,7 @@ const access: Record<string, Access> = {
   approveMemberClaim: ADMIN_OR_SECRETARIAT,
   rejectMemberClaim: ADMIN_OR_SECRETARIAT,
   saveMyAthlete: [Role.Athlete],
+  resendVerification: [Role.Athlete, Role.Coach, Role.Team],
   getTeamMembership: [Role.Team],
   requestTeamMembership: [Role.Team],
   changeMyPassword: [Role.Athlete, Role.Coach, Role.Team],
@@ -256,7 +259,6 @@ const access: Record<string, Access> = {
   getAthletes: ADMIN_OR_SECRETARIAT,
   confirmMembership: ADMIN_OR_SECRETARIAT,
   rejectMembership: ADMIN_OR_SECRETARIAT,
-  resetAthletePassword: ADMIN_OR_SECRETARIAT,
   deleteAthlete: ADMIN_OR_SECRETARIAT,
   correctAthlete: ADMIN,
   correctMember: ADMIN,

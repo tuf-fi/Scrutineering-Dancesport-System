@@ -4,6 +4,7 @@ import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
+import { requireVerified } from './emailLinks.ts'
 import { clean, giveAthleteMembershipId, nextMembershipId } from './shared.ts'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -72,6 +73,7 @@ export function deleteAthleteRecord(ctx: Ctx, id: string): void {
 // ---- The athlete's side
 
 export function claimAthleteRecord(ctx: Ctx, targetId: string): void {
+  requireVerified(ctx)
   const row = mine(ctx)
   const target = typeof targetId === 'string' ? recordRow(ctx, targetId) : undefined
   if (!target) return fail('Choose your name from the list of athletes.')

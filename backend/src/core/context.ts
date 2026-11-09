@@ -2,6 +2,7 @@ import type { SessionUser } from '@bis/shared'
 import type { Config } from '../config.ts'
 import type { Db, Sqlite } from '../db/client.ts'
 import type { Backups } from '../backup.ts'
+import type { Mailer } from '../mail.ts'
 import type { Hub } from '../realtime/hub.ts'
 
 // A request the API turns into a message for the user; the status is the HTTP status it is sent with
@@ -29,6 +30,7 @@ export interface Ctx {
   db: Db
   sqlite: Sqlite
   hub: Hub
+  mailer: Mailer
   backups: Backups
   config: Config
   user: SessionUser | null

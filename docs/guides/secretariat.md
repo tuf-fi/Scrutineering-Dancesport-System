@@ -15,7 +15,7 @@ Teams send the entry form by email. You enter it. Athletes, coaches and teams ca
 Athletes sign up at **Athlete sign-in** with their email and a password, fill in their details and report their membership payment (how they paid and the reference number). Open **Athletes**:
 - **Payment waiting** shows who sent a payment. Check it against the money you received, then press the tick to confirm. Their membership is then recorded for the year.
 - Press the cross to turn a payment down. You must give a reason; the athlete sees it and can send the payment again.
-- The key resets a forgotten password: give the new password to the athlete, who is signed out everywhere.
+- There is no password reset here. Athletes, coaches and teams use **Forgot password?** on the sign-in page, which emails them a link.
 - When you price an entry, a dancer whose email on the entry form matches an athlete account with a confirmed membership is not charged membership again.
 
 ## Account links

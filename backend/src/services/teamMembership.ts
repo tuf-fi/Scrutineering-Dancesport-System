@@ -5,6 +5,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
+import { requireVerified } from './emailLinks.ts'
 import { MAX_RECEIPT, PHOTO, clean } from './shared.ts'
 
 const year = () => new Date().getFullYear()
@@ -37,6 +38,7 @@ export function getTeamMembership(ctx: Ctx): TeamMembershipPage {
 
 // The team says it paid for these athletes; the secretariat checks the screenshot against the money received
 export function requestTeamMembership(ctx: Ctx, input: TeamMembershipInput): void {
+  requireVerified(ctx)
   const team = linkedTeam(ctx)
   const current = year()
   const ids = Array.isArray(input?.athleteIds) ? [...new Set(input.athleteIds.map(String))] : []

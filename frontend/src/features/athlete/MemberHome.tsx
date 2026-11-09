@@ -9,6 +9,7 @@ import { useCancelClaim, useClaimRecord, useTeams, useCoaches, useMyMember, useM
 import { competitorName, formatDate, formatPeso } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
 import { AccountNav, type NavGroup } from './AccountNav.tsx'
+import { VerifyEmailBanner } from '../../components/VerifyEmailBanner.tsx'
 import { TeamMembership } from './TeamMembership.tsx'
 import { AccountSection } from './AccountSection.tsx'
 import { EntryRequestsList, RegisterPage } from './EntryRegistration.tsx'
@@ -380,6 +381,8 @@ export function MemberHome() {
           }
         />
       )}
+
+      {account?.emailVerified === false && <VerifyEmailBanner email={account.email} />}
 
       <div className="flex flex-col gap-8">
         {account && <AccountNav groups={groupsFor(account.role)} />}

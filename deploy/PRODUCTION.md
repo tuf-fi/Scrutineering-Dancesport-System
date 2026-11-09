@@ -84,6 +84,7 @@ nano .env
 | `DATA_KEY` | The output of `openssl rand -hex 32`. **Keep a copy outside the server**; if it is lost, staff set up two-step sign-in again |
 | `COOKIE_SECRET` | Leave empty and the server makes and keeps its own |
 | `ADJUDICATOR_PIN_DAYS` | `1`: a PIN works one day either side of the competition date. Never `off` in production |
+| `BREVO_API_KEY`, `MAIL_FROM`, `PUBLIC_URL` | Email for confirming new accounts and for forgot password (see the table in README.md). Set these before opening sign-up to the public. |
 | `PUBLIC_RATE_LIMIT` | `600` requests a minute per address. Keep it generous: a venue's mobile network shares addresses |
 | `OFFSITE_REMOTE` and `RCLONE_CONFIG_OFFSITE_*` | Where the daily backup copy goes (see Backups). Leave empty to skip |
 

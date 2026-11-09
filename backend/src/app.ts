@@ -10,6 +10,8 @@ import { resolve } from 'node:path'
 import { RequestLimiter } from './auth/ratelimit.ts'
 import { adjudicatorSession, athleteSession, memberSession, AttemptLimiter, resolveSession, staffSession, startVersion } from './auth/signin.ts'
 import { createAthlete } from './services/athletes.ts'
+import { requestPasswordReset, resetPassword, sendVerification, verifyEmail } from './services/emailLinks.ts'
+import { createMailer, type Mailer } from './mail.ts'
 import { createMember } from './services/members.ts'
 import { record } from './core/audit.ts'
 import { noBackups, type Backups } from './backup.ts'
@@ -30,6 +32,8 @@ export interface AppDeps {
   db: Db
   // Tests pass a silent hub; the real server attaches Socket.IO
   hub?: Hub
+  // Tests pass one that records what would be sent; the real server sends through the provider in its settings
+  mailer?: Mailer
   backups?: Backups
   // How often the live board is checked for a phone that went quiet; 0 turns it off
   liveBoardMs?: number
@@ -40,7 +44,7 @@ const SESSION_HOURS = 12
 // When the admin was last told about a wrong PIN
 let lastPinAlert = 0
 
-export async function buildApp({ config, sqlite, db, hub: givenHub, backups = noBackups(), liveBoardMs = 3000 }: AppDeps) {
+export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = createMailer(config), backups = noBackups(), liveBoardMs = 3000 }: AppDeps) {
   const options = { logger: false, bodyLimit: 8 * 1024 * 1024, trustProxy: typeof config.trustProxy === 'number' ? (_address: string, hop: number) => hop < (config.trustProxy as number) : config.trustProxy }
   const app = Fastify(options) as unknown as FastifyInstance
   await app.register(cookie)
@@ -67,6 +71,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
     db,
     sqlite,
     hub,
+    mailer,
     backups,
     config,
     user,
@@ -160,14 +165,25 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
   app.post('/api/auth/athlete', small, (request, reply) =>
     attempt(request, reply, String(body(request).email ?? ''), (ctx) => athleteSession(ctx, String(body(request).email ?? ''), String(body(request).password ?? ''))),
   )
+  // One change made without a signed-in person, its emails sent once it is saved
+  const inTransaction = <T>(make: (ctx: Ctx) => T): T => {
+    const deferred: Array<() => void> = []
+    const result = sqlite.transaction(() => make(baseContext(null, deferred)))()
+    for (const task of deferred) task()
+    return result
+  }
   // Anyone can make an account, so a few per address per hour keeps one visitor from filling the database
   const signUps = new RequestLimiter(5, 60 * 60_000)
   app.post('/api/auth/athlete/sign-up', withPhoto, async (request, reply) => {
     if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
     try {
       const input = body(request)
-      const user = sqlite.transaction(() => createAthlete(baseContext(null), { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? ''), photo: String(input.photo ?? '') }))()
-      return startSession(reply, user, 0)
+      const user = inTransaction((ctx) => {
+        const made = createAthlete(ctx, { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? ''), photo: String(input.photo ?? '') })
+        sendVerification(ctx, 'athlete', made.id)
+        return made
+      })
+      return startSession(reply, { ...user, confirmEmail: mailer.enabled }, 0)
     } catch (error) {
       return sendError(reply, error)
     }
@@ -180,13 +196,51 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, backups = no
       if (!signUps.take(request.ip)) return reply.code(429).header('retry-after', '3600').send({ error: 'Too many new accounts from this connection. Try again later.' })
       try {
         const input = body(request)
-        const user = sqlite.transaction(() => createMember(baseContext(null), role, { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? ''), photo: String(input.photo ?? '') }))()
-        return startSession(reply, user, 0)
+        const user = inTransaction((ctx) => {
+          const made = createMember(ctx, role, { name: String(input.name ?? ''), email: String(input.email ?? ''), password: String(input.password ?? ''), photo: String(input.photo ?? '') })
+          sendVerification(ctx, 'member', made.id)
+          return made
+        })
+        return startSession(reply, { ...user, confirmEmail: mailer.enabled }, 0)
       } catch (error) {
         return sendError(reply, error)
       }
     })
   }
+  // Forgot password, for athletes, coaches and teams. The answer is the same whether or not the email has an account.
+  const resetsByAddress = new RequestLimiter(10, 15 * 60_000)
+  const resetsByEmail = new RequestLimiter(3, 60 * 60_000)
+  app.post('/api/auth/forgot', small, async (request, reply) => {
+    const input = body(request)
+    if (!resetsByAddress.take(request.ip) || !resetsByEmail.take(`${input.role}|${String(input.email ?? '').trim().toLowerCase()}`)) {
+      return reply.code(429).header('retry-after', '3600').send({ error: 'Too many requests. Try again in a while.' })
+    }
+    try {
+      inTransaction((ctx) => requestPasswordReset(ctx, input.role, input.email))
+      return { data: null }
+    } catch (error) {
+      return sendError(reply, error)
+    }
+  })
+  const links = new RequestLimiter(30, 15 * 60_000)
+  app.post('/api/auth/reset', small, async (request, reply) => {
+    if (!links.take(request.ip)) return reply.code(429).header('retry-after', '900').send({ error: 'Too many attempts. Try again in a few minutes.' })
+    try {
+      const input = body(request)
+      return { data: inTransaction((ctx) => resetPassword(ctx, String(input.token ?? ''), input.password)) }
+    } catch (error) {
+      return sendError(reply, error)
+    }
+  })
+  app.post('/api/auth/verify', small, async (request, reply) => {
+    if (!links.take(request.ip)) return reply.code(429).header('retry-after', '900').send({ error: 'Too many attempts. Try again in a few minutes.' })
+    try {
+      inTransaction((ctx) => verifyEmail(ctx, String(body(request).token ?? '')))
+      return { data: null }
+    } catch (error) {
+      return sendError(reply, error)
+    }
+  })
   app.post('/api/auth/sign-out', async (_request, reply) => {
     reply.clearCookie(SESSION_COOKIE, { path: '/' })
     return { data: null }

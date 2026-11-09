@@ -12,6 +12,10 @@ services:
       DATA_KEY: ${DATA_KEY:?Set DATA_KEY in .env}
       ADJUDICATOR_PIN_DAYS: ${ADJUDICATOR_PIN_DAYS:-1}
       PUBLIC_RATE_LIMIT: ${PUBLIC_RATE_LIMIT:-600}
+      DOMAIN: ${DOMAIN:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
     volumes:
       - bis-data:/data
 

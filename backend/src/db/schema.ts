@@ -481,9 +481,22 @@ export const athletes = sqliteTable('athletes', {
   membershipHistory: text('membership_history', { mode: 'json' }).$type<MembershipEvent[]>().notNull().default([]),
   // A team or coach change waiting for the secretariat
   changeRequest: text('change_request', { mode: 'json' }).$type<ProfileChangeRequest>(),
+  // False from sign-up until the link in the confirmation email is used; accounts from before email existed are confirmed
+  emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(true),
   // The athlete record this account asked to be linked to; the secretariat decides
   claimId: text('claim_id'),
   claimedAt: text('claimed_at'),
+})
+
+// A one-time link sent by email: to confirm an address, or to choose a new password. Only a hash of the token is kept.
+export const emailTokens = sqliteTable('email_tokens', {
+  id: id(),
+  purpose: text('purpose', { enum: ['verify', 'reset'] }).notNull(),
+  account: text('account', { enum: ['athlete', 'member'] }).notNull(),
+  accountId: text('account_id').notNull(),
+  tokenHash: text('token_hash').notNull().unique(),
+  expiresAt: text('expires_at').notNull(),
+  usedAt: text('used_at'),
 })
 
 // An athlete the secretariat added before they made an account. Linking an account merges it in, and it is gone.
@@ -515,6 +528,7 @@ export const memberAccounts = sqliteTable('member_accounts', {
   // A small picture as a data URL
   photo: text('photo'),
   sessionVersion: integer('session_version').notNull().default(0),
+  emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(true),
   // The coach or team record this account stands for, set when the secretariat approves a claim
   linkedId: text('linked_id'),
   // A coach or team the account asked to be linked to, waiting for the secretariat

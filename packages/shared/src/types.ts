@@ -334,6 +334,8 @@ export interface SessionUser {
   role: Role
   // Adjudicators only: their letter on the panel
   letter?: string
+  // Sign-up only: a confirmation link was emailed to the new account
+  confirmEmail?: boolean
 }
 
 export interface AuditEntry {
@@ -473,6 +475,7 @@ export interface MemberAccount {
   // Set once the secretariat approves the claim
   linked: { id: string; name: string } | null
   claim: { id: string; name: string; requestedAt: string } | null
+  emailVerified?: boolean
   changeRequest: MemberChangeRequest | null
 }
 
@@ -605,6 +608,8 @@ export interface AthleteProfile {
   photo: string | null
   history: MembershipEvent[]
   changeRequest: ProfileChangeRequest | null
+  // False until they open the link in the confirmation email
+  emailVerified?: boolean
   // The record they asked to be linked to, until the secretariat decides
   claim?: { id: Id; name: string; requestedAt: Timestamp } | null
 }

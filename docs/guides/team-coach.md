@@ -5,7 +5,8 @@ A team or a coach makes their own account to follow their dancers and, for a tea
 ## Making your account
 1. Press **Sign in** at the top of the public site (on a phone, open the menu first), choose **Team** or **Coach** and press **Continue**, then **Create an account**.
 2. Enter the name, add a photo (required; a team can use its logo or a team picture), an email and a password of at least 8 characters.
-3. Forgot your password? Ask the secretariat; they give you a new one.
+3. We email you a link to confirm your address. Open it before you link your account or send an entry. Not there? Check your spam folder, or press **Send it again** on your account page.
+4. Forgot your password? On the sign-in page press **Forgot password?**, enter your email, and open the link we send. It works once, for an hour.
 
 ## Link your team (or coach)
 Your account sees nothing until it is linked to the team or coach record the secretariat keeps. Open **Link your team** (or **Link your coach**), pick your record and send the request. The secretariat approves it under **Account links**. Every page that needs the link tells you while it is missing, and you can take a waiting request back.

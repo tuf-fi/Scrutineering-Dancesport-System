@@ -3,6 +3,7 @@ import { Bell, KeyRound, ListChecks, Medal, Pencil, Receipt, Trophy, UserRound, 
 import { Outlet, useLocation, useOutletContext } from 'react-router'
 import { ErrorState, Skeleton, SkeletonList } from '../../components/ui/index.ts'
 import { useMyAthlete } from '../../hooks/index.ts'
+import { VerifyEmailBanner } from '../../components/VerifyEmailBanner.tsx'
 import { Avatars } from '../../components/Avatars.tsx'
 import { HeaderStat, HeaderStats, PublicHeader } from '../public/PublicHeader.tsx'
 import { AccountInfo } from './AccountInfo.tsx'
@@ -83,6 +84,8 @@ export function AthletePage() {
           }
         />
       )}
+
+      {page?.profile.emailVerified === false && <VerifyEmailBanner email={page.profile.email} />}
 
       <div className="flex flex-col gap-8">
         <AccountNav groups={GROUPS} />

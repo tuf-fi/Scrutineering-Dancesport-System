@@ -49,6 +49,8 @@ Set in `.env`:
 | `COOKIE_SECRET` | Leave empty |
 | `ADJUDICATOR_PIN_DAYS` | `off` |
 | `PUBLIC_RATE_LIMIT` | `600` |
+| `BREVO_API_KEY`, `MAIL_FROM`, `PUBLIC_URL` | Email for confirming new accounts and for forgot password, sent through Brevo (free, 300 a day). `BREVO_API_KEY` is an API key from a Brevo account; `MAIL_FROM` is a sender Brevo has verified, such as `BOSS <no-reply@your-domain>`; `PUBLIC_URL` is where the links point (default `https://DOMAIN`). Add the SPF and DKIM records Brevo shows to your DNS so the mail is not marked as spam. With no key nothing is sent: new accounts need no confirmation, and a reset link is only printed in the server log. |
+
 | `OFFSITE_REMOTE` | Leave empty |
 
 Build and start:

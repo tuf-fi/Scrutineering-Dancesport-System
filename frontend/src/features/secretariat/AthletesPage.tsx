@@ -1,9 +1,9 @@
 import { membershipLabel, membershipState, type AthleteRecord, type AthleteRow } from '@bis/shared'
-import { Check, KeyRound, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
-import { useAthleteRecords, useAthletes, useCompetitorRows, useDeleteAthleteRecord, useTeams, useConfirmMembership, useCorrectAthlete, useDeleteAthlete, useRejectMembership, useResetAthletePassword } from '../../hooks/index.ts'
+import { useAthleteRecords, useAthletes, useCompetitorRows, useDeleteAthleteRecord, useTeams, useConfirmMembership, useCorrectAthlete, useDeleteAthlete, useRejectMembership, } from '../../hooks/index.ts'
 
 import { useAuth } from '../../stores/auth.ts'
 import { AthleteRecordDialog } from './AthleteRecordDialog.tsx'
@@ -56,7 +56,6 @@ export function AthletesPage() {
   const athletes = useAthletes()
   const confirm = useConfirmMembership()
   const reject = useRejectMembership()
-  const reset = useResetAthletePassword()
   const remove = useDeleteAthlete()
   const correct = useCorrectAthlete()
   const isAdmin = useAuth((s) => s.user?.role === 'admin')
@@ -68,8 +67,6 @@ export function AthletesPage() {
   const [filter, setFilter] = useState<Filter>('all')
   const [rejecting, setRejecting] = useState<AthleteRow | null>(null)
   const [reason, setReason] = useState('')
-  const [toReset, setToReset] = useState<AthleteRow | null>(null)
-  const [tempPassword, setTempPassword] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<AthleteRow | null>(null)
   const [editingRecord, setEditingRecord] = useState<AthleteRecord | 'new' | null>(null)
   const [recordToDelete, setRecordToDelete] = useState<AthleteRecord | null>(null)
@@ -101,11 +98,6 @@ export function AthletesPage() {
     const text = row.kind === 'account' ? [row.a.name, row.a.email, row.a.teamName, row.a.membershipId ?? ''] : row.kind === 'record' ? [row.name, teamName(row.r.teamId), row.r.membershipId ?? ''] : [row.name, row.teamName]
     return !needle || text.some((v) => v.toLowerCase().includes(needle))
   })
-
-  function closeReset() {
-    setToReset(null)
-    setTempPassword(null)
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -204,7 +196,6 @@ export function AthletesPage() {
                       }}
                     />
                   )}
-                  <IconButton icon={KeyRound} label={`Reset password of ${a.name}`} onClick={() => setToReset(a)} />
                   <IconButton icon={Trash2} tone="danger" label={`Delete ${a.name}`} onClick={() => setToDelete(a)} />
                 </div>
               )
@@ -333,41 +324,6 @@ export function AthletesPage() {
         }
       >
         {viewing?.request?.receipt && <img src={viewing.request.receipt} alt={`Payment screenshot of ${viewing.name}`} className="max-h-[60vh] w-full rounded-md border border-neutral-200 object-contain" />}
-      </Dialog>
-
-      <Dialog
-        open={toReset !== null}
-        onClose={closeReset}
-        title={tempPassword ? 'New password' : `Reset the password of ${toReset?.name ?? ''}?`}
-        description={tempPassword ? 'Give this to the athlete. It is shown once, and they are signed out everywhere.' : 'This signs them out everywhere and gives them a new password.'}
-        actions={
-          tempPassword ? (
-            <Button onClick={closeReset}>Done</Button>
-          ) : (
-            <>
-              <Button variant="ghost" onClick={closeReset}>
-                Cancel
-              </Button>
-              <Button
-                disabled={reset.isPending}
-                onClick={() =>
-                  toReset &&
-                  reset.mutate(toReset.id, {
-                    onSuccess: (r) => setTempPassword(r.tempPassword),
-                    onError: (e) => {
-                      closeReset()
-                      toast.error(e.message)
-                    },
-                  })
-                }
-              >
-                {reset.isPending ? 'Resetting…' : 'Reset password'}
-              </Button>
-            </>
-          )
-        }
-      >
-        {tempPassword && <p className="font-mono text-title text-neutral-900">{tempPassword}</p>}
       </Dialog>
 
       <DeleteDialog kind="athlete" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />

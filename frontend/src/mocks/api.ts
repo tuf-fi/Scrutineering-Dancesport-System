@@ -1914,6 +1914,26 @@ export const saveMyAthlete = (athleteId: string, input: AthleteInput) =>
     return publicAthlete(athlete)
   })
 
+// Sample mode sends no email: these only check what the server checks, so the screens can be tried
+export const forgotPassword = (role: 'athlete' | 'coach' | 'team', email: string) =>
+  settle<null>(() => {
+    if (!email.trim()) throw new Error('Enter your email address.')
+    if (role !== 'athlete' && role !== 'coach' && role !== 'team') throw new Error('Choose athlete, coach or team.')
+    return null
+  })
+export const resetPassword = (token: string, password: string) =>
+  settle<{ role: 'athlete' | 'coach' | 'team' }>(() => {
+    if (!token) throw new Error('This link is not valid. Ask for a new one.')
+    if (password.length < 8) throw new Error('Use a password of at least 8 characters.')
+    return { role: 'athlete' }
+  })
+export const verifyEmail = (token: string) =>
+  settle<null>(() => {
+    if (!token) throw new Error('This link is not valid. Ask for a new one.')
+    return null
+  })
+export const resendVerification = (_memberId: string) => settle<void>(() => undefined)
+
 export const getTeamMembership = (memberId: string) =>
   settle<TeamMembershipPage>(() => {
     const member = memberOf(memberId)
@@ -2145,14 +2165,6 @@ export const rejectMembership = (actorId: string, id: string, reason: string) =>
     athlete.request = { ...athlete.request, rejectedReason: reason.trim() }
     record(actorId, 'Turned down a membership payment', athlete.name)
     notifyAthlete(id, { kind: 'membership_rejected', title: 'Your membership payment was not confirmed', detail: reason.trim(), link: '/athlete/membership' })
-  })
-
-export const resetAthletePassword = (actorId: string, id: string) =>
-  settle<{ tempPassword: string }>(() => {
-    const athlete = athleteOf(id)
-    athlete.password = 'temp1234'
-    record(actorId, 'Reset an athlete password', athlete.name)
-    return { tempPassword: athlete.password }
   })
 
 export const correctAthlete = (actorId: string, id: string, input: { name: string; birthDate: string }) =>

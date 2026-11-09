@@ -31,6 +31,7 @@ The compose file sets these for the server; change them in `.env` or the compose
 | `BACKUP_DIRS` | Folders the database is copied to, separated by commas. Default `/data/backups`. |
 | `BACKUP_INTERVAL_MINUTES` | How often a backup is also taken, besides after every change. Default 5. |
 | `COOKIE_SECRET` | Leave empty and the server makes and keeps its own. |
+| `BREVO_API_KEY`, `MAIL_FROM`, `PUBLIC_URL` | Email for confirming new accounts and for forgot password, sent through Brevo (free, 300 a day). `BREVO_API_KEY` is an API key from a Brevo account; `MAIL_FROM` is a sender Brevo has verified, such as `BOSS <no-reply@your-domain>`; `PUBLIC_URL` is where the links point (default `https://DOMAIN`). Add the SPF and DKIM records Brevo shows to your DNS so the mail is not marked as spam. With no key nothing is sent: new accounts need no confirmation, and a reset link is only printed in the server log. |
 | `DATA_KEY` | Required. 32 or more random characters (`openssl rand -hex 32`). Encrypts authenticator secrets. Keep a copy outside the server; if it is lost, staff set up two-step sign-in again. |
 
 The old `MODE`, `CLOUD_URL`, `SYNC_TOKEN`, `SYNC_TOKENS`, `VENUE_ID`, `SYNC_DELAY_MS`, `TLS_CERT` and `TLS_KEY` no longer exist.

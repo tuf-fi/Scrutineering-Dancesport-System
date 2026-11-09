@@ -5,7 +5,8 @@ You make your own account to keep your details and see your membership, results 
 ## Making your account
 1. Open **Athlete sign-in** at the top of the public site and press **Create an account**.
 2. Enter your name, add a photo of yourself (required), enter your email and a password of at least 8 characters. Use the same email as on your entry form, so the secretariat does not charge your membership twice.
-3. Forgot your password? Ask the secretariat; they give you a new one.
+3. We email you a link to confirm your address. Open it before you link your account to a record. Not there? Check your spam folder, or press **Send it again** on your account page.
+4. Forgot your password? On the sign-in page press **Forgot password?**, enter your email, and open the link we send. It works once, for an hour.
 
 ## Your page
 - **Your details**: date of birth, contact number, province, address, team and coach. Only the secretariat sees these.
