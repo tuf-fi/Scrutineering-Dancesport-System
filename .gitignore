@@ -5,6 +5,11 @@ node_modules
 # Local settings for the online server
 deploy/.env
 
+# The venue laptop: its secret code and the database copy (every account and password hash) never go in the repository
+deploy/venue/.env
+deploy/venue/*.db
+deploy/venue/usb-backup/
+
 # Local test data, build info and scratch files
 phone-test-data
 *.tsbuildinfo

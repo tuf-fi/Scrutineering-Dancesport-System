@@ -67,7 +67,7 @@ export const admin = {
     if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
       return fail('A competition with this name and date already exists.', 409)
     }
-    const created = { id: newId(), floorRoundId: null, ...values, image, usesPoints: input?.usesPoints ?? true }
+    const created = { id: newId(), floorRoundId: null, offlineHeldAt: null, ...values, image, usesPoints: input?.usesPoints ?? true }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)

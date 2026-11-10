@@ -3,6 +3,7 @@ import { Navigate, createBrowserRouter, useLocation, type RouteObject } from 're
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CategoriesPage } from '../features/admin/CategoriesPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
+import { OfflineDayPage } from '../features/admin/OfflineDayPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
 import { SitePage } from '../features/admin/SitePage.tsx'
@@ -192,6 +193,7 @@ export const routes: RouteObject[] = [
               { path: 'points', element: <PointsPage /> },
               { path: 'payments', element: <PaymentsPage /> },
               { path: 'fees', element: <FeesPage /> },
+              { path: 'offline-day', element: <OfflineDayPage /> },
               { path: 'site', element: <SitePage /> },
               { path: 'security', element: <SecurityPage /> },
             ],

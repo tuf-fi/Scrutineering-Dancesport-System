@@ -41,6 +41,8 @@ import type {
   Announcement,
   AuditEntry,
   BackupStatus,
+  OfflineDayCounts,
+  OfflineDayInfo,
   PaymentSettings,
   Team,
   Competition,
@@ -91,7 +93,7 @@ import type {
   StaffUser,
   TieDecision,
 } from '@bis/shared'
-import { auth, call, getSessionFromServer } from './http.ts'
+import { auth, call, getSessionFromServer, upload } from './http.ts'
 
 export type { AgeGroupInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
 export { subscribeSubmissions, getSubmissionSnapshot, subscribeNotifications, subscribeAlerts } from './realtime.ts'
@@ -251,6 +253,13 @@ export const getSkatingTable = (roundId: string) => call<SkatingTable>('getSkati
 export const approveRound = (_actorId: string, roundId: string) => call<void>('approveRound', roundId)
 export const publishRound = (_actorId: string, roundId: string) => call<void>('publishRound', roundId)
 export const getBackupStatus = () => call<BackupStatus>('getBackupStatus')
+
+// The offline day: a competition run on a venue laptop with no internet
+export const getOfflineDays = () => call<OfflineDayInfo>('getOfflineDays')
+export const startOfflineDay = (_actorId: string, competitionId: string) => call<void>('startOfflineDay', competitionId)
+export const cancelOfflineDay = (_actorId: string, competitionId: string) => call<void>('cancelOfflineDay', competitionId)
+// Not server calls: the files are too big for one. The downloads are plain links (see DATABASE_COPY_URL and dayFileUrl).
+export const loadDayFile = (file: Blob, dryRun: boolean) => upload<OfflineDayCounts>(`/api/offline/day${dryRun ? '?dry=1' : ''}`, file)
 
 // ---- Compere ----
 

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BOSS offline day: a guide for the people running it</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 11.5pt; line-height: 1.5; color: #111; margin: 0; }
+  h1 { font-size: 20pt; line-height: 1.1; margin: 0 0 4mm; letter-spacing: -0.02em; }
+  h2 { font-size: 15pt; text-transform: uppercase; letter-spacing: 0.04em; border-top: 1.5px solid #111; padding-top: 3mm; margin: 9mm 0 4mm; break-after: avoid; }
+  h3 { font-size: 12pt; margin: 6mm 0 2mm; break-after: avoid; }
+  p { margin: 0 0 3mm; }
+  .lead { font-size: 13pt; max-width: 150mm; }
+  .tag { font: 600 9pt/1 "Consolas", monospace; color: #8a6a00; text-transform: uppercase; letter-spacing: 0.08em; }
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 0 0 4mm; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 4mm 12mm; break-inside: avoid; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 8mm; height: 8mm; border: 1.5px solid #111; border-radius: 50%; text-align: center; font-weight: 700; line-height: 7mm; }
+  .see { margin: 1.5mm 0 0; padding-left: 3mm; border-left: 3px solid #d4a800; color: #333; }
+  .see b { color: #111; }
+  .warn { border: 1.5px solid #111; padding: 3mm 4mm; margin: 4mm 0; break-inside: avoid; }
+  .warn > b:first-child { text-transform: uppercase; letter-spacing: 0.04em; }
+  .who { display: inline-block; border: 1px solid #111; padding: 0 2mm; font-size: 9.5pt; font-weight: 600; margin-left: 2mm; vertical-align: 1px; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 4mm; font-size: 10.5pt; }
+  th, td { text-align: left; vertical-align: top; padding: 2.2mm 3mm; border-bottom: 1px solid #bbb; }
+  th { border-bottom: 1.5px solid #111; font-size: 9.5pt; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr { break-inside: avoid; }
+  .box { display: inline-block; width: 4mm; height: 4mm; border: 1.3px solid #111; margin-right: 2mm; vertical-align: -0.8mm; }
+  ul.check { list-style: none; padding: 0; margin: 0 0 4mm; }
+  ul.check li { margin-bottom: 2mm; }
+  .page { break-before: page; }
+  code, kbd { font-family: "Consolas", monospace; font-size: 10.5pt; background: #f1f1f1; padding: 0 1.2mm; }
+  .cover { padding-top: 6mm; }
+  .small { font-size: 10pt; color: #444; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="tag">BOSS &middot; Bicol Oragon Scruteneering System</div>
+  <h1>Running BOSS offline</h1>
+  <p class="lead">A guide for the people who set up and run the venue laptop. You do not need to be technical. Follow the steps in order and tick each one.</p>
+</div>
+
+<h2>What this is</h2>
+<p>Normally everyone uses BOSS over the internet. If the venue has <b>no signal and no Wi-Fi</b>, we run the whole competition from <b>one laptop</b> and a <b>small Wi-Fi router</b> that does not need internet. Phones, staff laptops and the compere's screen all connect to the router. Everything works the same as online.</p>
+<p>When the competition is over, we save the day into <b>one file</b> and load it back on the online BOSS website. The results then show on the public site.</p>
+
+<table>
+  <tr><th>Before the event</th><th>On the day</th><th>After the event</th></tr>
+  <tr>
+    <td>Admin hands the competition to the laptop. Helper puts it on the laptop and tests it.</td>
+    <td>Everyone joins the router's Wi-Fi and uses BOSS as usual.</td>
+    <td>Admin saves the day to a file and loads it on the online website.</td>
+  </tr>
+</table>
+
+<div class="warn"><b>Practise first.</b> Do the whole thing once, a few days before, with the real router and a few real phones. The software has been tested, but this setup has not yet been tried with a real router and real phones. Your rehearsal is the first real check, so write down anything that does not match this guide.</div>
+
+<h2>What you need</h2>
+<ul class="check">
+  <li><span class="box"></span><b>One laptop (Windows)</b> with Docker Desktop installed (a one-time job for whoever sets it up). Plugged in all day, set never to sleep, with the correct date and time.</li>
+  <li><span class="box"></span><b>One Wi-Fi router.</b> It does not need internet. Ask whoever set up the laptop to reserve the same address for it, and to switch off &ldquo;client isolation&rdquo;. Without that, phones cannot reach the laptop.</li>
+  <li><span class="box"></span><b>One USB drive</b> that stays plugged into the laptop. BOSS saves a copy of every change onto it.</li>
+  <li><span class="box"></span><b>A second laptop</b> as a spare, set up the same way.</li>
+  <li><span class="box"></span><b>Printed paper:</b> heat lists, recall lists and blank mark sheets from the Printouts page. If everything fails, the competition can still go on paper.</li>
+  <li><span class="box"></span><b>The secret code</b> (called <code>DATA_KEY</code>) from the admin. The admin keeps it private and gives it only to the person setting up the laptop.</li>
+</ul>
+
+<h2 class="page">Part 1 &middot; A few days before</h2>
+
+<h3>The admin, on the online BOSS website</h3>
+<ol class="steps">
+  <li>Sign in as <b>Admin</b>. In the menu choose <b>Offline day</b>.</li>
+  <li>Find the competition. Press <b>Start offline day</b>, then <b>Hand it over</b>.
+    <div class="see"><b>You should see:</b> the competition now says &ldquo;Venue laptop, since&hellip;&rdquo; with today's time.</div>
+    <div class="warn"><b>From now on, changes to the competition are paused online.</b> Secretariat and staff cannot change entries or rounds, and teams cannot send new entry requests, until the day is loaded back. Finish registrations and payments <u>before</u> you do this.</div>
+  </li>
+  <li>Press <b>Download database copy</b> (top right). A file called <code>bis-venue-copy.db</code> is saved.
+    <div class="see"><b>Keep this file private.</b> It contains every account. Do not email it. Hand it over on a USB drive or a private folder, and delete it from anywhere else when done.</div>
+  </li>
+</ol>
+
+<h3>The helper, on the venue laptop</h3>
+<ol class="steps">
+  <li>Open <b>Docker Desktop</b> and wait until it says it is running.</li>
+  <li>Open the folder <code>deploy</code>, then <code>venue</code>. Put the file <code>bis-venue-copy.db</code> in it.</li>
+  <li>Double-click <b>setup.bat</b>. A black window opens. It asks three things, one at a time:
+    <ul>
+      <li>Type <kbd>YES</kbd> and press Enter (this puts the copy on the laptop).</li>
+      <li>Paste the <b>secret code</b> from the admin and press Enter.</li>
+      <li>Type the <b>USB drive letter</b>, for example <kbd>E</kbd>, and press Enter.</li>
+    </ul>
+    <div class="see"><b>You should see:</b> after a few minutes, &ldquo;BOSS is running&rdquo; and one or more addresses like <code>http://192.168.1.50</code>. <b>Write down the address.</b> That is what everyone will type.</div>
+  </li>
+  <li>Turn on the router. Join its Wi-Fi with a phone. In the phone's browser type the address, then <code>/api/health</code>, for example <code>http://192.168.1.50/api/health</code>.
+    <div class="see"><b>You should see:</b> words that include <code>"status":"ok"</code> and <code>"mode":"venue"</code>.</div>
+  </li>
+  <li>On the laptop, open the same address (without <code>/api/health</code>). Sign in as <b>Admin</b>. Choose <b>Adjudicators and panels</b> then <b>Print PIN cards</b> and print them <b>from this laptop</b>.
+    <div class="see">Cards printed from the online website will not work at the venue. Only cards printed from the laptop do.</div>
+  </li>
+</ol>
+
+<h3>Practice round (do not skip)</h3>
+<ul class="check">
+  <li><span class="box"></span>Run one round: start it, mark on three phones, approve it, publish it.</li>
+  <li><span class="box"></span>Check the compere's screen shows it (<code>/compere</code> after the address).</li>
+  <li><span class="box"></span>Unplug the router for one minute while marking. Plug it back in. The phones should keep their marks and send them by themselves.</li>
+</ul>
+<p class="small">After a practice, ask the admin to press <b>Take back</b> on the Offline day page so the competition is not stuck. Then start again properly when it is real.</p>
+
+<h2 class="page">Part 2 &middot; On the day</h2>
+<ol class="steps">
+  <li>Plug in the laptop and the router. Make sure the laptop does not sleep and the lid stays open.</li>
+  <li>If the laptop was restarted, double-click <b>start.bat</b>. Everything is kept exactly as it was.</li>
+  <li>Plug in the USB drive.</li>
+  <li>Tell everyone to join the router's Wi-Fi (not mobile data) and type the address. Put it on a sign.</li>
+</ol>
+
+<table>
+  <tr><th>Who</th><th>Types this (after the address)</th></tr>
+  <tr><td>Admin, secretariat, scrutineer, chairperson</td><td><code>/staff-access</code></td></tr>
+  <tr><td>Compere (the big screen)</td><td><code>/compere</code></td></tr>
+  <tr><td>Adjudicators</td><td>Scan the QR code on their PIN card, or type <code>/adjudicator</code></td></tr>
+</table>
+
+<h3>If something goes wrong</h3>
+<table>
+  <tr><th>What happens</th><th>What to do</th></tr>
+  <tr><td>A phone cannot open the address</td><td>Check it is on the router's Wi-Fi and not mobile data. Check you typed the address exactly, with <code>http://</code> at the start.</td></tr>
+  <tr><td>The router loses power</td><td>Plug it back in. Adjudicator phones keep their marks and send them again. Staff screens say &ldquo;Offline&rdquo; until it is back.</td></tr>
+  <tr><td>A staff screen says &ldquo;Offline&rdquo;</td><td>Wait a moment. If it stays, check the laptop is awake and the router is on.</td></tr>
+  <tr><td>The laptop shuts down or breaks</td><td>Use the spare laptop: plug in the USB drive, open <code>deploy\venue</code>, double-click <b>restore.bat</b>, type the drive letter. It starts from the newest backup. Then tell everyone to reload their page.</td></tr>
+  <tr><td>Nothing works at all</td><td>Use the printed paper sheets. Enter the marks into BOSS later.</td></tr>
+  <tr><td>An adjudicator's PIN is refused</td><td>Check the laptop's date and time are correct. Use a PIN card printed from the laptop.</td></tr>
+</table>
+
+<div class="warn"><b>Never</b> run <b>setup.bat</b> during the event. It erases the laptop and starts again from the copy. To restart, always use <b>start.bat</b>.</div>
+
+<h2 class="page">Part 3 &middot; After the event</h2>
+
+<h3>The admin, on the venue laptop</h3>
+<ol class="steps">
+  <li>Make sure the last round is approved and the results are final.</li>
+  <li>Open the laptop's address, sign in as <b>Admin</b>, choose <b>Offline day</b>.</li>
+  <li>Press <b>Download day file</b> next to the competition. A file with <code>bis-day</code> in its name is saved.
+    <div class="see"><b>Copy it to a USB drive</b> and keep a second copy. This file is the whole day.</div>
+  </li>
+</ol>
+
+<h3>The admin, back online</h3>
+<ol class="steps">
+  <li>Sign in to the online BOSS website as <b>Admin</b>. Choose <b>Offline day</b>.</li>
+  <li>Next to the competition press <b>Load day file</b>, then <b>Choose the file</b> and pick the file you saved.
+    <div class="see"><b>You should see:</b> &ldquo;The file is fine&rdquo; and a list of what it holds (rounds, marks, results&hellip;). Nothing has been changed yet.</div>
+  </li>
+  <li>Check the numbers look right, then press <b>Load it</b>.
+    <div class="see"><b>You should see:</b> &ldquo;The day is loaded&rdquo;, and the competition goes back to &ldquo;Online&rdquo;. The results and rankings now show on the website.</div>
+  </li>
+  <li>Check one result on the public site. Then stop the venue laptop (double-click <b>stop.bat</b>) and delete <code>bis-venue-copy.db</code> from it.</li>
+</ol>
+
+<h3>If the laptop was lost or never used</h3>
+<p>On the online website, <b>Offline day</b>, press <b>Take back</b> next to the competition and confirm. The competition goes back to normal. Nothing from the laptop is loaded.</p>
+
+<h3>If the file is refused</h3>
+<table>
+  <tr><th>The message says</th><th>What to do</th></tr>
+  <tr><td>&ldquo;This is not a BIS competition day file&rdquo;</td><td>You picked the wrong file. Choose the one with <code>bis-day</code> in its name, not <code>bis-venue-copy</code>.</td></tr>
+  <tr><td>&ldquo;Different versions of BIS&rdquo;</td><td>The laptop and the online website are not on the same version. Ask the person who set up the laptop.</td></tr>
+  <tr><td>&ldquo;This competition is not with a venue laptop&rdquo;</td><td>It was taken back. Press <b>Start offline day</b> first, then load again.</td></tr>
+</table>
+
+<h2>One-page summary</h2>
+<table>
+  <tr><th style="width:32mm">When</th><th>Do this</th></tr>
+  <tr><td><b>Days before</b></td><td>Admin: Offline day &rarr; Start offline day &rarr; Download database copy.<br>Helper: put the file in <code>deploy\venue</code> &rarr; double-click <b>setup.bat</b> &rarr; check the address on a phone &rarr; print PIN cards from the laptop &rarr; practice round.</td></tr>
+  <tr><td><b>Day</b></td><td>Laptop + router on, lid open, USB drive in. Everyone joins the router Wi-Fi and types the address.<br>Restart with <b>start.bat</b> only. Spare laptop uses <b>restore.bat</b>.</td></tr>
+  <tr><td><b>After</b></td><td>Laptop: Offline day &rarr; Download day file.<br>Online: Offline day &rarr; Load day file &rarr; check &rarr; Load it.</td></tr>
+  <tr><td><b>Gave up</b></td><td>Online: Offline day &rarr; Take back.</td></tr>
+</table>
+<p class="small">Technical version for the person who set it up: <code>docs/operations/OFFLINE_MODE.md</code>.</p>
+
+</body>
+</html>

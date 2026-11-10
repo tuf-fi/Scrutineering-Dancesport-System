@@ -5,7 +5,7 @@ The pilot runs BIS at a real competition while the current method (paper sheets 
 ## Choose the competition
 
 - A small or medium one, with the organizer's agreement, and not the biggest event of the year.
-- Venue with working power outlets and a dependable internet connection (or good mobile coverage) across the whole floor.
+- Venue with working power outlets and a dependable internet connection (or good mobile coverage) across the whole floor. If not, rehearse the [offline day](OFFLINE_MODE.md) on a laptop with a router and real phones, and bring its [guide](OFFLINE_DAY_GUIDE.pdf).
 - At least one person who has run the current method, to produce the paper result.
 
 ## Four weeks before

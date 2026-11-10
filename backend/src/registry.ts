@@ -3,6 +3,7 @@ import { fail, type Ctx } from './core/context.ts'
 import { admin } from './services/admin.ts'
 import { site } from './services/site.ts'
 import { deleteImpact } from './services/cascade.ts'
+import { offlineDay } from './services/offlineDay.ts'
 import { program } from './services/program.ts'
 import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
@@ -54,6 +55,7 @@ const handlers: Record<string, Handler> = {
   ...registration,
   ...program,
   ...security,
+  ...offlineDay,
   ...rounds,
   ...scrutiny,
   ...accountFunctions,
@@ -163,6 +165,9 @@ const access: Record<string, Access> = {
   deleteEventKind: ADMIN,
   saveAgeGroup: ADMIN,
   deleteAgeGroup: ADMIN,
+  getOfflineDays: ADMIN,
+  startOfflineDay: ADMIN,
+  cancelOfflineDay: ADMIN,
   getBackupStatus: [Role.Admin, Role.Scrutineer],
 
   // Secretariat (the admin can do all of it too)

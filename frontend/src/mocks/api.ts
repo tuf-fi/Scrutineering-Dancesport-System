@@ -66,6 +66,8 @@ import {
   type AdjudicatorPin,
   type AgeGroup,
   type BackupStatus,
+  type OfflineDayCounts,
+  type OfflineDayInfo,
   type Team,
   type TeamInput,
   type PaymentMethod,
@@ -1282,6 +1284,38 @@ export const getBackupStatus = () =>
     ],
     lastBackupAt: new Date().toISOString(),
   })
+
+// ---- Offline day ----
+
+// Competition id -> when it was handed to a venue laptop
+const heldOffline = new Map<string, string>()
+
+export const getOfflineDays = () =>
+  settle<OfflineDayInfo>(() => ({ venue: false, competitions: competitions.map((c) => ({ id: c.id, name: c.name, date: c.date, heldAt: heldOffline.get(c.id) ?? null })) }))
+export const startOfflineDay = (actorId: string, competitionId: string) =>
+  settle<void>(() => {
+    const competition = found(competitions.find((c) => c.id === competitionId), 'Competition')
+    if (heldOffline.has(competitionId)) throw new Error('This competition is already with a venue laptop.')
+    heldOffline.set(competitionId, new Date().toISOString())
+    record(actorId, 'Handed the competition to a venue laptop', competition.name)
+  })
+export const cancelOfflineDay = (actorId: string, competitionId: string) =>
+  settle<void>(() => {
+    const competition = found(competitions.find((c) => c.id === competitionId), 'Competition')
+    if (!heldOffline.delete(competitionId)) throw new Error('This competition is not with a venue laptop.')
+    record(actorId, 'Took the competition back from the venue laptop', competition.name)
+  })
+// A file whose text is "bad" is refused, so the screen's error state can be tried
+export const loadDayFile = (file: Blob, dryRun: boolean) =>
+  new Promise<OfflineDayCounts>((resolve, reject) =>
+    setTimeout(() => {
+      void file.text().then((text) => {
+        if (text.includes('bad')) return reject(new Error('This is not a BIS competition day file.'))
+        if (!dryRun) heldOffline.clear()
+        resolve({ replaced: { rounds: 4, marks: 120, results: 6 }, added: { competitors: 1 }, backNumbers: 18 })
+      })
+    }, LATENCY_MS),
+  )
 
 // ---- Scrutineer ----
 

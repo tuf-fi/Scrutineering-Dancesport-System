@@ -23,6 +23,8 @@ import { now } from './ids.ts'
 import { createSocketHub, SESSION_COOKIE } from './realtime/socket.ts'
 import type { Hub } from './realtime/hub.ts'
 import { allowed, endpoint } from './registry.ts'
+import { pauseWhileOffline } from './services/offlineDay.ts'
+import { registerOfflineRoutes } from './offlineRoutes.ts'
 import { submissionSnapshot } from './services/rounds.ts'
 import { MAX_PHOTO } from './services/shared.ts'
 
@@ -110,7 +112,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
     } catch {
       return reply.code(503).send({ status: 'error', database: false, time: now() })
     }
-    return { status: 'ok', database: true, time: now() }
+    // mode tells a phone, a person or a script which server it reached: the online one or the venue laptop
+    return { status: 'ok', database: true, mode: config.venue ? 'venue' : 'online', time: now() }
   })
 
   // ---- Sign-in ----
@@ -247,6 +250,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
   })
   app.get('/api/auth/me', async (request) => ({ data: sessionOf(request) }))
 
+  registerOfflineRoutes(app, { config, sqlite, db, hub, backups, sessionOf })
+
   // ---- Every other call: POST /api/call/<name> with { args: [...] } ----
 
   // Signed-in people are not counted: they are known, and a scrutineer's screen asks often. Everyone else shares a cap
@@ -265,6 +270,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
     const args = Array.isArray((request.body as { args?: unknown } | null)?.args) ? ((request.body as { args: unknown[] }).args) : []
     try {
       allowed(route.access, ctx)
+      if (route.write) pauseWhileOffline(ctx, name, route.access)
       const data = route.write ? sqlite.transaction(() => route.run(ctx, args))() : route.run(ctx, args)
       // Only after the change is saved do other screens hear about it
       for (const task of deferred) {

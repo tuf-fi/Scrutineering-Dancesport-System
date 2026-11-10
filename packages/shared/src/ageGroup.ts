@@ -27,9 +27,28 @@ export function ageGroupFits(eventGroup: string, bracket: string, couple: boolea
   return event !== null && own !== null && event <= own
 }
 
+const sensible = (years: number[]) => years.length > 0 && years.every((y) => Number.isInteger(y) && y >= 1900 && y <= new Date().getFullYear() - 3)
+
 // A couple dances in the group of the older partner. Years that are not sensible give null.
 export function ageGroupForBirthYears(birthYears: number[], groups: AgeGroupDef[] = DEFAULT_AGE_GROUPS): AgeGroup | null {
-  if (birthYears.length === 0) return null
-  if (birthYears.some((year) => !Number.isInteger(year) || year < 1900 || year > new Date().getFullYear() - 3)) return null
+  if (!sensible(birthYears)) return null
   return ageGroupForBirthYear(Math.min(...birthYears), groups)
+}
+
+// "2011 to 2012", "2015 and later"
+export const bornRange = (g: Pick<AgeGroupDef, 'bornFrom' | 'bornTo'>) =>
+  g.bornFrom === null ? `${g.bornTo} and earlier` : g.bornTo === null ? `${g.bornFrom} and later` : g.bornFrom === g.bornTo ? String(g.bornFrom) : `${g.bornFrom} to ${g.bornTo}`
+
+// Whether the dancers' birth years fit the event's own years, so groups that overlap or share years cannot disagree.
+// A solo must be born in the group's years; a couple's older partner may not be born before them. Null when there
+// is nothing to judge (unknown group, or years that are not sensible).
+export function birthYearsFit(eventGroup: string, birthYears: number[], couple: boolean, groups: AgeGroupDef[] = DEFAULT_AGE_GROUPS): { fits: boolean; message: string } | null {
+  const def = groups.find((g) => g.id === eventGroup)
+  if (!def || !sensible(birthYears)) return null
+  const year = Math.min(...birthYears)
+  const fits = couple
+    ? def.bornFrom === null || year >= def.bornFrom
+    : (def.bornFrom === null || year >= def.bornFrom) && (def.bornTo === null || year <= def.bornTo)
+  const who = couple ? `the older partner was born in ${year}` : `this dancer was born in ${year}`
+  return { fits, message: `${def.name} is for ${bornRange(def)}, but ${who}.` }
 }

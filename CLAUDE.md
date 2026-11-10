@@ -10,7 +10,7 @@ Read these first:
 
 ## Current phase
 
-**Phases 1 to 3 are built, plus registration and payments:** the screens, the scoring engine (`packages/scoring`) and the backend (`backend/`, Fastify + SQLite). There is no offline mode: the venue server and the sync with the cloud were removed. See [ROADMAP.md](docs/build/ROADMAP.md) for what is next (testing and the pilot) and [deploy/README.md](deploy/README.md) for running the server.
+**Phases 1 to 3 are built, plus registration and payments:** the screens, the scoring engine (`packages/scoring`) and the backend (`backend/`, Fastify + SQLite). Online is the normal way. The only offline mode is a rehearsed fallback: the admin hands one competition to a venue laptop (the Offline day page), the laptop runs the day with no internet, and the day goes back online as one file. There is no live sync; see [OFFLINE_MODE.md](docs/operations/OFFLINE_MODE.md). The old venue server and sync were removed. See [ROADMAP.md](docs/build/ROADMAP.md) for what is next (testing and the pilot) and [deploy/README.md](deploy/README.md) for running the server.
 
 Screens and hooks get all data through `frontend/src/api/`, which talks to the server. `frontend/src/mocks/` is sample data only: it runs the frontend tests and `pnpm dev:sample` / `pnpm build:sample` (the client preview). Never import from `mocks/` in a screen or hook, and never import `@bis/scoring` in a screen or hook; scoring runs on the server (only the sample data in `mocks/` uses it).
 

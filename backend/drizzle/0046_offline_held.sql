@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `offline_held_at` text;

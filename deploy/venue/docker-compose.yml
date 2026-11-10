@@ -1,0 +1,31 @@
+# The venue laptop on a competition day: BIS on the venue Wi-Fi, with no internet needed.
+# Nothing here faces the internet, so there is no Caddy and no HTTPS. Read docs/operations/OFFLINE_MODE.md first.
+# Copy .env.example to .env here, then:  docker compose up -d --build
+
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    environment:
+      BIS_VENUE: "true"
+      # Phones open the site over plain http on the venue network, and drop Secure cookies there
+      COOKIE_SECURE: "false"
+      TRUST_PROXY: "false"
+      # The same key as the online server, or the staff's two-step codes will not work here
+      DATA_KEY: "${DATA_KEY:?Set DATA_KEY in .env, copying it from the online server}"
+      ADJUDICATOR_PIN_DAYS: ${ADJUDICATOR_PIN_DAYS:-1}
+      # Everyone is on the venue Wi-Fi, often from one address: no limit on the public pages
+      PUBLIC_RATE_LIMIT: "off"
+      # Two copies of every change: inside the container, and on a USB drive plugged into the laptop
+      BACKUP_DIRS: /data/backups,/usb-backup
+      BACKUP_INTERVAL_MINUTES: "2"
+    ports:
+      - "${VENUE_PORT:-80}:4000"
+    volumes:
+      - bis-data:/data
+      - ${USB_BACKUP:-./usb-backup}:/usb-backup
+
+volumes:
+  bis-data:

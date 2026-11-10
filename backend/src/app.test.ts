@@ -8,6 +8,7 @@ import { loadConfig } from './config.ts'
 import { openDatabase } from './db/client.ts'
 import { silentHub } from './realtime/hub.ts'
 import { runMigrations } from './db/migrate.ts'
+import { startTestApp } from './testing.ts'
 
 const closers: Array<() => unknown> = []
 afterEach(async () => {
@@ -156,6 +157,19 @@ describe('config', () => {
   it('needs a real DATA_KEY on a deployed server', () => {
     expect(() => loadConfig({ BIS_DEPLOYED: 'true' })).toThrow(/DATA_KEY/)
     expect(loadConfig({ BIS_DEPLOYED: 'true', DATA_KEY: 'k'.repeat(32) }).dataKey).toBe('k'.repeat(32))
+  })
+
+  it('is a venue server when told so: plain HTTP cookies, and the health check says so', async () => {
+    const venue = loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'long-random-value', BIS_VENUE: 'true' })
+    expect(venue.venue).toBe(true)
+    expect(venue.cookieSecure).toBe(false)
+    expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'long-random-value' }).cookieSecure).toBe(true)
+    const app = await startTestApp({ seed: false, env: { BIS_VENUE: 'true' } })
+    expect((await app.app.inject({ method: 'GET', url: '/api/health' })).json()).toMatchObject({ status: 'ok', mode: 'venue' })
+    await app.close()
+    const online = await startTestApp({ seed: false })
+    expect((await online.app.inject({ method: 'GET', url: '/api/health' })).json()).toMatchObject({ mode: 'online' })
+    await online.close()
   })
 
   it('refuses the development secret in production', () => {

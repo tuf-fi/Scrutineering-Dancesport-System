@@ -1,5 +1,5 @@
-import { ageGroupFits, ageGroupForBirthYears } from './ageGroup.ts'
-import { DEFAULT_CATALOG, FeeMode, KIND_FIELD_LABEL, KindField, ageGroupName, eventKindName, kindOf, type Catalog } from './catalog.ts'
+import { birthYearsFit } from './ageGroup.ts'
+import { DEFAULT_CATALOG, FeeMode, KIND_FIELD_LABEL, KindField, eventKindName, kindOf, type Catalog } from './catalog.ts'
 import type { CompetitorDetails, Event, FeeLine, FeeSchedule, FeeTier } from './types.ts'
 
 // The organizer's 2026 entry form (Bicol Grassroots). Used until the organizer saves a schedule of their own.
@@ -84,7 +84,6 @@ export function registrationWarnings(
 ): string[] {
   const warnings: string[] = []
   const birthYears = (details?.dancers ?? []).map((d) => Number(d.birthDate.slice(0, 4))).filter((y) => y > 0)
-  const bornIn = birthYears.length === names ? ageGroupForBirthYears(birthYears, catalog.ageGroups) : null
   const missing = (field: KindField) => {
     if (field === KindField.Membership) return details !== undefined && newMembers > 0
     const key = { [KindField.BirthDate]: 'birthDate', [KindField.Address]: 'address', [KindField.Email]: 'email', [KindField.Phone]: 'phone' }[field]
@@ -105,9 +104,8 @@ export function registrationWarnings(
     for (const field of kind?.requires ?? []) {
       if (missing(field)) warnings.push(`${code} (${eventKindName(catalog.kinds, event.kind ?? '')}) needs the ${KIND_FIELD_LABEL[field]} of every dancer.`)
     }
-    if (bornIn && !ageGroupFits(event.ageGroup, bornIn, names > 1, catalog.ageGroups)) {
-      warnings.push(`${code} is ${ageGroupName(catalog.ageGroups, event.ageGroup)}, but the birth dates make this ${ageGroupName(catalog.ageGroups, bornIn)}.`)
-    }
+    const age = birthYears.length === names ? birthYearsFit(event.ageGroup, birthYears, names > 1, catalog.ageGroups) : null
+    if (age && !age.fits) warnings.push(`${code}: ${age.message}`)
   }
   return warnings
 }

@@ -2,8 +2,7 @@ import {
   DISCIPLINE_DANCES,
   Role,
   ageGroupFits,
-  ageGroupForBirthYears,
-  ageGroupName,
+  birthYearsFit,
   kindOf,
   PaymentStatus,
   parseCompetitorCsv,
@@ -83,15 +82,10 @@ export function checkEligible(ctx: Ctx, competitorId: string, event: { competiti
   const catalog = catalogOf(ctx)
   // The age that counts is the older partner's birth year
   const birthYears = (competitor.details?.dancers ?? []).map((d) => Number(d.birthDate?.slice(0, 4))).filter((y) => y > 0)
-  const bornIn = birthYears.length === competitor.names.length ? ageGroupForBirthYears(birthYears, catalog.ageGroups) : null
-  if (bornIn && !ageGroupFits(event.ageGroup, bornIn, couple, catalog.ageGroups)) {
-    return fail(
-      `E${event.number} is ${ageGroupName(catalog.ageGroups, event.ageGroup)}. The age of this entry doesn't match the event's age requirement (the birth dates make it ${ageGroupName(catalog.ageGroups, bornIn)}).`,
-      409,
-    )
-  }
+  const age = birthYears.length === competitor.names.length ? birthYearsFit(event.ageGroup, birthYears, couple, catalog.ageGroups) : null
+  if (age && !age.fits) return fail(`E${event.number}: ${age.message}`, 409)
   // Without usable birth dates, the age group kept on the competitor is all there is to go by
-  if (!bornIn && competitor.ageGroup && !ageGroupFits(event.ageGroup, competitor.ageGroup, couple, catalog.ageGroups)) return fail('This competitor is in a different age group.')
+  if (!age && competitor.ageGroup && !ageGroupFits(event.ageGroup, competitor.ageGroup, couple, catalog.ageGroups)) return fail('This competitor is in a different age group.')
   if (kindOf(catalog.kinds, event.kind)?.closedToProvince && !sameProvince(competitor.details?.province, event.province)) {
     return fail(`E${event.number} is closed to ${event.province}. This entry is from ${competitor.details?.province?.trim() || 'no province'}.`, 409)
   }

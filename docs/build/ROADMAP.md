@@ -9,7 +9,7 @@ Where the build stands and what is left. [STATUS.md](STATUS.md) has the short, c
 | 1 | Screens with sample data | Done | n/a |
 | 2 | Scoring engine | Done, except real result sheets as fixtures | [PHASE2_README.md](PHASE2_README.md) |
 | 3 | Backend | Built | [deploy/README.md](../../deploy/README.md) |
-| 4 | Offline safety | Removed: online only | n/a |
+| 4 | Offline safety | Fallback built: offline day on a venue laptop, one file back. Not yet rehearsed on real devices | n/a |
 | 5 | Cloud backend and sync | Removed: online only; the server is built but not yet on a real host | [deploy/README.md](../../deploy/README.md) |
 | 6 | Registration and payments | Built, then changed: the secretariat registers teams from the entry forms. Coach, team and athlete accounts can also send an entry with a payment screenshot, which the secretariat approves. Messenger was removed | n/a |
 | 7 | Testing and pilot | Tools and tests built; the pilot itself is not done | [PHASE7_README.md](PHASE7_README.md), [PILOT.md](../operations/PILOT.md) |
@@ -50,7 +50,7 @@ Open from Phase 3 (all since built): age group from birth year, the unbreakable-
 
 Built, then removed in commit `6d286f2`. It gave the venue laptop an offline copy of the app (PWA with HTTPS), backup drives with a takeover and `restore` command for a second laptop, and a rehearsal of those. BIS is now online only. What stayed because it also helps on mobile data: the phone saves marks first and resends them after a dropped connection, the scrutineer's board shows quiet phones and phones holding unsent marks, backups, and the paper fallback.
 
-Offline mode comes back only if the client asks. It would involve a venue server on a laptop, change capture and sync with the cloud, an offline copy of the app, and takeover and restore tooling. All of it can be recovered from git history (`git show 6d286f2^:VENUE.md` for the old running guide).
+A smaller offline fallback came back: the **offline day** (see [OFFLINE_MODE.md](../operations/OFFLINE_MODE.md)). The admin hands one competition to a venue laptop, the laptop runs the day on its own router, and the day returns as one file. There is no live sync. The full venue server below would only return if the client asks. It would involve a venue server on a laptop, change capture and sync with the cloud, an offline copy of the app, and takeover and restore tooling. All of it can be recovered from git history (`git show 6d286f2^:VENUE.md` for the old running guide).
 
 ## Phase 5: Cloud backend and sync (removed: online only)
 

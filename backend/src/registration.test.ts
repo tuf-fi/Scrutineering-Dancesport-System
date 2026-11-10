@@ -69,14 +69,14 @@ describe('registering a team from the entry form', () => {
     // A ranking event is one fixed price; an older solo event starts its own tier
     const mixed = await app.ok<RegistrationQuote>('quoteRegistration', [ana.id, [events.ranking, events.junior]], secretariat)
     expect(mixed.lines.map((l) => l.amount)).toEqual([600, 1000, 500])
-    expect(mixed.warnings.join(' ')).toMatch(/E3 is Junior I, but the birth dates make this Juvenile 1/)
+    expect(mixed.warnings.join(' ')).toMatch(/E3: Junior I is for 2013 to 2014, but this dancer was born in \d{4}/)
   })
 
   it('refuses an event whose age requirement the birth date does not meet', async () => {
     const ana = (await app.ok<Array<{ id: string }>>('getCompetitorRows', [], secretariat))[0]!
     const refused = await app.call('registerCompetitor', [{ competitorId: ana.id, eventIds: [events.junior], method: 'cash' }], secretariat)
     expect(refused.status).toBe(409)
-    expect(refused.error).toMatch(/E3 is Junior I.*doesn't match the event's age requirement/)
+    expect(refused.error).toMatch(/E3: Junior I is for 2013 to 2014, but this dancer was born in \d{4}/)
   })
 
   it('enters the events with one payment, and does not charge membership again', async () => {

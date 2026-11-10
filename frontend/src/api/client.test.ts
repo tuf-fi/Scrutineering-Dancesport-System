@@ -60,6 +60,7 @@ const OTHER = new Set([
   'getDemoRounds',
   'startDemoRoundOnFloor',
   'getSampleCredentials',
+  'loadDayFile',
 ])
 
 describe('the client and the server agree', () => {

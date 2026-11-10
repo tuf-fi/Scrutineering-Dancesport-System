@@ -24,6 +24,7 @@ import {
   Users,
   Megaphone,
   Wallet,
+  WifiOff,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -79,6 +80,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/points', label: 'Points table', icon: ListOrdered, group: 'Scoring and fees' },
     { to: '/admin/payments', label: 'Payments', icon: Wallet, group: 'Scoring and fees' },
     { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote, group: 'Scoring and fees' },
+    { to: '/admin/offline-day', label: 'Offline day', icon: WifiOff, group: 'System' },
     { to: '/admin/site', label: 'Home page', icon: ImageIcon, group: 'System' },
     { to: '/admin/staff', label: 'Staff accounts', icon: Users, group: 'System' },
     { to: '/admin/security', label: 'Security', icon: ShieldCheck, group: 'System' },

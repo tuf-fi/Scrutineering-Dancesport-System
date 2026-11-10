@@ -184,7 +184,7 @@ describe('rules follow the catalog', () => {
     expect(ageGroupFits('junior_1', 'youth', true)).toBe(false)
     expect(ageGroupFits('adult', 'youth', false)).toBe(false)
     expect(ageGroupFits('senior', 'adult', true)).toBe(true)
-    expect(registrationWarnings({ province: '', coachId: null, dancers: [{ birthDate: '2013-01-01', address: '', email: '', phone: '' }, { birthDate: '2008-01-01', address: '', email: '', phone: '' }], beginner: false, memberYear: null }, 2, [{ number: 1, ageGroup: 'junior_1', kind: 'standard', province: '' }, { number: 2, ageGroup: 'adult', kind: 'standard', province: '' }]).filter((w) => w.includes('birth dates'))).toHaveLength(1)
+    expect(registrationWarnings({ province: '', coachId: null, dancers: [{ birthDate: '2013-01-01', address: '', email: '', phone: '' }, { birthDate: '2008-01-01', address: '', email: '', phone: '' }], beginner: false, memberYear: null }, 2, [{ number: 1, ageGroup: 'junior_1', kind: 'standard', province: '' }, { number: 2, ageGroup: 'adult', kind: 'standard', province: '' }]).filter((w) => w.includes('was born in'))).toHaveLength(1)
   })
 
   it('works out the age group from birth years with the groups it is given', () => {
@@ -199,7 +199,7 @@ describe('rules follow the catalog', () => {
     expect(warn(1)).toEqual([
       'E4 (School cup) needs the email of every dancer.',
       'E4 (School cup) needs the paid membership of every dancer.',
-      'E4 is Tiny, but the birth dates make this Rest.',
+      'E4: Tiny is for 2018 and later, but this dancer was born in 2016.',
     ])
     expect(warn(0)).toContain('E4 (School cup) needs the email of every dancer.')
     expect(warn(0).some((w) => w.includes('membership'))).toBe(false)

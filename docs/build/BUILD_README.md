@@ -23,7 +23,7 @@
 
 ## One online server
 
-BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: team registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, compere) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network.
+BIS is one web app on one online server. The server runs behind Caddy over HTTPS in Docker (see `deploy/`) and does everything: team registration and payments, the public pages, and running the rounds. Staff (secretariat, scrutineer, chairperson, compere) use laptops with a browser and internet; adjudicators sign in on their phones with a PIN over the internet, on mobile data or any Wi-Fi with internet. There is no venue server and no separate venue network, except the offline-day fallback: one competition can be run from a laptop on its own router and loaded back as one file ([OFFLINE_MODE.md](../operations/OFFLINE_MODE.md)).
 
 There is one database, a SQLite file on the server. Adjudicators' phones hold only a temporary copy of their own marks until the server has them; this is not a separate database.
 

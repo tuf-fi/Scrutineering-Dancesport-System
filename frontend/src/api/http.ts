@@ -29,9 +29,12 @@ const SERVER_DOWN = 'Cannot reach the server. Check your connection.'
 // phone says so and its held marks are tried again instead of waiting for ever.
 export const REQUEST_TIMEOUT_MS = 12_000
 
-async function send<T>(method: 'GET' | 'POST', url: string, body?: unknown, signingIn = false): Promise<T> {
+// A file takes far longer than a call to send over a weak connection, so it gets its own, longer wait
+export const UPLOAD_TIMEOUT_MS = 10 * 60_000
+
+async function send<T>(method: 'GET' | 'POST', url: string, body?: unknown, signingIn = false, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
   let res: Response
   let payload: { data?: T; error?: string } = {}
   try {
@@ -39,7 +42,7 @@ async function send<T>(method: 'GET' | 'POST', url: string, body?: unknown, sign
       method,
       credentials: 'same-origin',
       headers: body === undefined ? undefined : { 'content-type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: body === undefined ? undefined : body instanceof Blob ? body : JSON.stringify(body),
       signal: controller.signal,
     })
     reachability(true)
@@ -81,5 +84,8 @@ export const call = <T>(name: ApiFunction, ...args: unknown[]): Promise<T> => {
 }
 
 export const auth = <T>(path: string, body: unknown): Promise<T> => send<T>('POST', `/api/auth/${path}`, body, true)
+
+// Sends a file as it is, such as a competition day file
+export const upload = <T>(url: string, file: Blob): Promise<T> => send<T>('POST', url, file, false, UPLOAD_TIMEOUT_MS)
 
 export const getSessionFromServer = <T>(): Promise<T> => send<T>('GET', '/api/auth/me')

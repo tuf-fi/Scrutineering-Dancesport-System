@@ -35,6 +35,28 @@ export interface Competition {
   usesPoints: boolean
 }
 
+// A competition that can be run on a venue laptop with no internet, and whether a laptop has it now
+export interface OfflineDayCompetition {
+  id: Id
+  name: string
+  date: string
+  // When it was handed to a venue laptop; null while it is run online
+  heldAt: Timestamp | null
+}
+
+export interface OfflineDayInfo {
+  // True when this server is the venue laptop rather than the online server
+  venue: boolean
+  competitions: OfflineDayCompetition[]
+}
+
+// What loading a day file changed, or would change: rows by table
+export interface OfflineDayCounts {
+  replaced: Record<string, number>
+  added: Record<string, number>
+  backNumbers: number
+}
+
 export interface Event {
   id: Id
   competitionId: Id

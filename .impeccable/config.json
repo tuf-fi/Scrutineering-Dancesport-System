@@ -14,6 +14,12 @@
         "value": "arial",
         "createdAt": "2026-11-09T00:21:13.819Z",
         "reason": "Email HTML body in backend/src/mail.ts: mail clients cannot load the site's web fonts, so a standard system font is required; agent judgment, not user-confirmed"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "consolas",
+        "createdAt": "2026-11-09T08:32:26.691Z",
+        "reason": "agent decision, not user confirmed: monospace for typed addresses and button names in a printed guide, not product UI"
       }
     ]
   }

@@ -119,7 +119,7 @@ export function ProgramPage() {
         }}
         columns={[
           { key: 'time', header: 'Time', cell: (r) => formatClock(r.startTime), mono: true, widthClass: 'w-28' },
-          { key: 'seq', header: 'Line', cell: (r) => r.sequence, mono: true, muted: true, widthClass: 'w-16', hideBelow: 'sm' },
+          { key: 'seq', header: 'Sequence no.', cell: (r) => r.sequence, mono: true, muted: true, widthClass: 'w-28', hideBelow: 'sm' },
           {
             key: 'what',
             header: 'Event',

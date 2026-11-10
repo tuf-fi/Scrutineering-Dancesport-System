@@ -27,6 +27,8 @@ export const competitions = sqliteTable('competitions', {
   usesPoints: integer('uses_points', { mode: 'boolean' }).notNull().default(true),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
+  // Set while a venue laptop runs this competition offline: its day data is not changed online until the day is loaded back
+  offlineHeldAt: text('offline_held_at'),
 })
 
 // A team the secretariat enters dancers for; teams have no sign-in
