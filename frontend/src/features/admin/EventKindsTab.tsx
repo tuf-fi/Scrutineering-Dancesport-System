@@ -54,7 +54,7 @@ export function EventKindsTab() {
           { key: 'name', header: 'Kind', cell: (k) => <span className="font-medium text-neutral-900">{k.name}</span> },
           { key: 'disciplines', header: 'Disciplines', cell: (k) => k.disciplines.map((d) => DISCIPLINE_LABEL[d]).join(', '), muted: true, hideBelow: 'sm' },
           { key: 'rules', header: 'Rules', cell: rules, muted: true, hideBelow: 'md' },
-          { key: 'events', header: 'Events', cell: (k) => eventCount(k.id) ?? '–', mono: true, align: 'right', hideBelow: 'sm' },
+          { key: 'events', header: 'Events', cell: (k) => eventCount(k.id) ?? '–', mono: true, align: 'center', hideBelow: 'sm' },
           {
             key: 'actions',
             header: '',

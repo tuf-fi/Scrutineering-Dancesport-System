@@ -1,4 +1,4 @@
-import { membershipLabel, membershipState, type AthleteRecord, type AthleteRow } from '@bis/shared'
+import { membershipPaidText, type AthleteRecord, type AthleteRow } from '@bis/shared'
 import { Check, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
@@ -20,17 +20,10 @@ type Row =
 
 const plain = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
 
-// The paid-until date, or a label when it was never paid or has run out
-function MembershipCell({ year, month }: { year: number | null; month?: number | null }) {
-  const now = new Date().getFullYear()
-  const state = membershipState(year, now)
-  if (state === 'paid') return <span>{membershipLabel(year, now, month)}</span>
-  return (
-    <span className="flex flex-col gap-0.5">
-      <Badge tone={state === 'expired' ? 'danger' : 'neutral'}>{state === 'expired' ? 'Membership expired' : 'Not paid'}</Badge>
-      {state === 'expired' && <span className="font-mono text-small text-neutral-600">{membershipLabel(year, now, month)}</span>}
-    </span>
-  )
+// Paid for this year, or not
+function MembershipCell({ year }: { year: number | null }) {
+  const text = membershipPaidText(year, new Date().getFullYear())
+  return <span>{text}</span>
 }
 
 function PaymentCell({ athlete, onView }: { athlete: AthleteRow; onView: (athlete: AthleteRow) => void }) {
@@ -141,7 +134,7 @@ export function AthletesPage() {
           {
             key: 'member',
             header: 'Membership',
-            cell: (row) => <MembershipCell year={row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear} month={row.kind === 'account' ? row.a.memberMonth : row.kind === 'record' ? row.r.memberMonth : null} />,
+            cell: (row) => <MembershipCell year={row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear} />,
             mono: true,
             muted: true,
             hideBelow: 'sm',

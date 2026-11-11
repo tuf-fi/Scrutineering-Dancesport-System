@@ -97,7 +97,7 @@ export function EventsPage() {
           { key: 'class', header: 'Class', cell: (e) => e.class, muted: true, hideBelow: 'md' },
           { key: 'discipline', header: 'Discipline', cell: (e) => DISCIPLINE_LABEL[e.discipline], muted: true, hideBelow: 'md' },
           { key: 'type', header: 'Type', cell: (e) => (e.isSolo ? 'Solo' : 'Couple'), muted: true, hideBelow: 'sm' },
-          { key: 'entries', header: 'Entries', cell: (e) => counts.get(e.id) ?? 0, mono: true, align: 'right' },
+          { key: 'entries', header: 'Entries', cell: (e) => counts.get(e.id) ?? 0, mono: true, align: 'center' },
           {
             key: 'actions',
             header: '',

@@ -21,6 +21,10 @@ export const memberPaidLabel = (month: number | null | undefined, year: number):
 // "4th Quarter 2026" or "Bicol Open 2026"
 export const summitPaidLabel = (period: string | null | undefined, year: number): string => (period ? `${period} ${year}` : String(year))
 
+// What staff tables show: paid for this year, or not (never paid and expired both read Not paid)
+export const membershipPaidText = (memberYear: number | null, currentYear: number): 'Paid' | 'Not paid' =>
+  memberYear !== null && memberYear >= currentYear ? 'Paid' : 'Not paid'
+
 // Paid for this year, paid for an earlier year (expired), or never paid
 export const membershipState = (memberYear: number | null, currentYear: number): 'paid' | 'expired' | 'none' =>
   memberYear === null ? 'none' : memberYear >= currentYear ? 'paid' : 'expired'

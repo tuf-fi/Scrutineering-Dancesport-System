@@ -177,9 +177,9 @@ export function RoundsPage() {
               ),
             },
             { key: 'round', header: 'Round', cell: (r) => ROUND_TYPE_LABEL[r.type], muted: true },
-            { key: 'recall', header: 'Recall', cell: (r) => r.recallNumber ?? 'Final', mono: true, align: 'right', hideBelow: 'sm' },
-            { key: 'entries', header: 'Entries', cell: (r) => r.entryCount, mono: true, align: 'right', hideBelow: 'md' },
-            { key: 'heats', header: 'Heats', cell: (r) => r.heatCount || '–', mono: true, align: 'right', hideBelow: 'md' },
+            { key: 'recall', header: 'Recall', cell: (r) => r.recallNumber ?? 'Final', mono: true, align: 'center', hideBelow: 'sm' },
+            { key: 'entries', header: 'Entries', cell: (r) => r.entryCount, mono: true, align: 'center', hideBelow: 'md' },
+            { key: 'heats', header: 'Heats', cell: (r) => r.heatCount || '–', mono: true, align: 'center', hideBelow: 'md' },
             { key: 'status', header: 'Status', cell: (r) => <RoundStatusBadge status={r.status} /> },
             ...(readOnly
               ? []

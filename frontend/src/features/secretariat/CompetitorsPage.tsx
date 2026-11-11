@@ -200,7 +200,7 @@ export function CompetitorsPage() {
             },
               ]
             : []),
-          { key: 'entries', header: 'Entries', cell: (c) => c.entryCount, mono: true, align: 'right', hideBelow: 'sm' },
+          { key: 'entries', header: 'Entries', cell: (c) => c.entryCount, mono: true, align: 'center', hideBelow: 'sm' },
           {
             key: 'actions',
             header: '',

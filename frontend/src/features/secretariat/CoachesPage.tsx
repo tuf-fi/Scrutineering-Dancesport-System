@@ -1,4 +1,4 @@
-import { membershipLabel, summitPaidLabel, type Coach } from '@bis/shared'
+import { membershipPaidText, summitPaidLabel, type Coach } from '@bis/shared'
 import { formatDate } from '../../lib/format.ts'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -48,8 +48,8 @@ export function CoachesPage() {
           { key: 'name', header: 'Coach', cell: (c) => <span className="font-medium">{c.name}</span> },
           { key: 'id', header: 'Membership ID', cell: (c) => c.membershipId ?? '–', mono: true, muted: true, hideBelow: 'sm' },
           { key: 'phone', header: 'Contact no.', cell: (c) => c.phone || '–', mono: true, muted: true, hideBelow: 'md' },
-          { key: 'teams', header: 'Competitors', cell: (c) => teams.get(c.id) ?? 0, mono: true, align: 'right', hideBelow: 'sm' },
-          { key: 'member', header: 'Membership', cell: (c) => membershipLabel(c.memberYear, new Date().getFullYear(), c.memberMonth), mono: true, muted: true },
+          { key: 'teams', header: 'Competitors', cell: (c) => teams.get(c.id) ?? 0, mono: true, align: 'center', hideBelow: 'sm' },
+          { key: 'member', header: 'Membership', cell: (c) => membershipPaidText(c.memberYear, new Date().getFullYear()), mono: true, muted: true },
           { key: 'summit', header: 'Summit', cell: (c) => (c.summitYear ? summitPaidLabel(c.summitPeriod, c.summitYear) : 'Not paid'), mono: true, muted: true, hideBelow: 'md' },
           { key: 'attended', header: 'Attended', cell: (c) => (c.summits?.length ? `${c.summits.length} (last ${formatDate(c.summits[0]!)})` : '–'), mono: true, muted: true, hideBelow: '2xl' },
           {

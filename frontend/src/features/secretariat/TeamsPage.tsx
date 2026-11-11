@@ -52,7 +52,7 @@ export function TeamsPage() {
             key: 'dancers',
             header: 'Competitors',
             mono: true,
-            align: 'right',
+            align: 'center',
             cell: (c) =>
               (dancers.get(c.id) ?? 0) === 0 ? (
                 <span className="text-neutral-500">0</span>
