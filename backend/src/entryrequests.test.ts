@@ -130,3 +130,18 @@ describe('entering a competition online', () => {
     await app.ok('submitEntryRequest', [request(mine.competitorId, [events.couple])], team)
   })
 })
+
+describe('entering a free competition online', () => {
+  it('needs no payment method or screenshot, and approving it makes entries with no payment', async () => {
+    const free = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Free Cup', date: '2099-12-20', venue: 'Gym', organizer: 'BGDT', image: SHOT, paymentRequired: false }], admin)).id
+    const eventId = (await app.ok<{ id: string }>('saveEvent', [free, event(1)], secretariat)).id
+    const ana = (await entrantsOf(team)).find((r) => r.names.length === 1)!
+    const sent = await app.ok<EntryRequest>('submitEntryRequest', [{ competitorId: ana.competitorId, eventIds: [eventId], method: 'unpaid', reference: '', receipt: '' }], team)
+    expect(sent.total).toBe(0)
+    const [waiting] = (await app.ok<EntryRequest[]>('getEntryRequests', [], secretariat)).filter((r) => r.id === sent.id)
+    expect(waiting?.status).toBe('waiting')
+    await app.ok('approveEntryRequest', [sent.id], secretariat)
+    const entry = app.db.select().from(t.entries).all().find((e) => e.eventId === eventId)
+    expect(entry?.paymentId).toBeNull()
+  })
+})

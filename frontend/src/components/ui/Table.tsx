@@ -1,5 +1,5 @@
-import { IdCard, type LucideIcon } from 'lucide-react'
-import { useState, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react'
+import { GripVertical, IdCard, type LucideIcon } from 'lucide-react'
+import { useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import { Drawer } from './Drawer.tsx'
@@ -28,8 +28,10 @@ export interface Column<T> {
   muted?: boolean
   // Bold header and values, for the column a table is read by
   bold?: boolean
+  // Lets long text break onto more lines; cells otherwise stay on one line so names, numbers and dates never split
+  wrap?: boolean
   // Hides the column on screens narrower than this breakpoint
-  hideBelow?: 'sm' | 'md' | 'lg'
+  hideBelow?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   // Fixed width class for narrow columns such as a rank
   widthClass?: string
   // In the row detail modal: leave out a column that repeats the title
@@ -56,6 +58,12 @@ interface TableProps<T> {
   detailExtra?: (row: T) => ReactNode
   // Further parts of the panel, each its own place in a side menu (Details first), like the fees page: entries, history and so on
   detailSections?: (row: T) => DetailSection[]
+  // Adds a handle in front of each row: drag a row onto another (mouse or finger) to move it there, or press the arrow keys on the handle to move it one place
+  onReorder?: (row: T, target: T) => void
+  // Rows that stay where they are (their handle is dimmed)
+  canReorder?: (row: T) => boolean
+  // Names a row's handle for screen readers
+  reorderLabel?: (row: T) => string
   // Below this width the table scrolls sideways inside its card instead of squeezing its columns
   minWidthClass?: string
   // Names the pager for screen readers when a page has more than one table
@@ -64,7 +72,13 @@ interface TableProps<T> {
 }
 
 const align = { left: 'text-left', right: 'text-right', center: 'text-center' } as const
-const hide = { sm: 'hidden sm:table-cell', md: 'hidden md:table-cell', lg: 'hidden lg:table-cell' } as const
+const hide = {
+  sm: 'hidden sm:table-cell',
+  md: 'hidden md:table-cell',
+  lg: 'hidden lg:table-cell',
+  xl: 'hidden xl:table-cell',
+  '2xl': 'hidden 2xl:table-cell',
+} as const
 
 // Shows 10 rows at a time with a pager underneath
 export function Table<T>({
@@ -78,6 +92,9 @@ export function Table<T>({
   detailTitle,
   detailExtra,
   detailSections,
+  onReorder,
+  canReorder,
+  reorderLabel,
   minWidthClass = 'min-w-[34rem]',
   paginationLabel,
   className,
@@ -88,11 +105,45 @@ export function Table<T>({
   const [detail, setDetail] = useState<T | null>(null)
   const visible = columns.filter((c) => !c.detailOnly)
   const [section, setSection] = useState('details')
+  // The row being dragged and the one it is over
+  const [dragKey, setDragKey] = useState<string | null>(null)
+  const [overKey, setOverKey] = useState<string | null>(null)
   const open = onRowClick ?? (detailTitle ? (row: T) => (setSection('details'), setDetail(row)) : undefined)
 
   // Buttons, links and fields inside a row do their own thing
   const fromControl = (e: MouseEvent | KeyboardEvent) =>
     (e.target as HTMLElement).closest('a,button,input,select,textarea,label') !== null
+
+  const indexOf = (key: string) => rows.findIndex((r) => rowKey(r) === key)
+  // Dragging uses pointer events so a finger works like a mouse; the handle captures the pointer until it is released
+  const startDrag = (e: PointerEvent<HTMLElement>, key: string) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+    setDragKey(key)
+    setOverKey(null)
+  }
+  const moveDrag = (e: PointerEvent<HTMLElement>) => {
+    if (dragKey === null) return
+    const under = document.elementFromPoint?.(e.clientX, e.clientY)?.closest('tr[data-row-key]')
+    const key = under?.getAttribute('data-row-key') ?? null
+    setOverKey(key && key !== dragKey ? key : null)
+    // Near the top or bottom of the screen the page follows the finger
+    if (e.clientY < 90) window.scrollBy(0, -14)
+    else if (e.clientY > window.innerHeight - 90) window.scrollBy(0, 14)
+  }
+  const endDrag = (drop: boolean) => {
+    const dragged = drop ? rows.find((r) => rowKey(r) === dragKey) : undefined
+    const target = drop && overKey !== null ? rows.find((r) => rowKey(r) === overKey) : undefined
+    setDragKey(null)
+    setOverKey(null)
+    if (dragged && target && onReorder) onReorder(dragged, target)
+  }
+  const nudge = (e: KeyboardEvent<HTMLElement>, row: T) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+    e.preventDefault()
+    const target = rows[rows.indexOf(row) + (e.key === 'ArrowUp' ? -1 : 1)]
+    if (target && onReorder) onReorder(row, target)
+  }
 
   if (!loading && rows.length === 0) {
     return <EmptyState {...empty} />
@@ -105,12 +156,17 @@ export function Table<T>({
         <table className={cn('w-full border-collapse text-small', minWidthClass)}>
           <thead>
             <tr>
+              {onReorder && (
+                <th scope="col" className="sticky top-0 z-10 w-10 border-b border-neutral-200 bg-neutral-50 pl-4">
+                  <span className="sr-only">Reorder</span>
+                </th>
+              )}
               {visible.map((c) => (
                 <th
                   key={c.key}
                   scope="col"
                   className={cn(
-                    'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200 bg-neutral-50 px-5 py-3.5',
+                    'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200 bg-neutral-50 px-4 py-3.5',
                     'text-xs font-medium uppercase tracking-wider text-neutral-500 first:pl-6 last:pr-6',
                     c.bold && 'font-bold text-neutral-900',
                     align[c.align ?? 'left'],
@@ -127,6 +183,7 @@ export function Table<T>({
             {loading
               ? Array.from({ length: 5 }, (_, i) => (
                   <tr key={i}>
+                    {onReorder && <td />}
                     {visible.map((c) => (
                       <td
                         key={c.key}
@@ -154,17 +211,41 @@ export function Table<T>({
                       })
                     }
                     tabIndex={open ? 0 : undefined}
+                    data-row-key={rowKey(row)}
                     className={cn(
                       'transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-50',
                       open && 'cursor-pointer',
+                      dragKey === rowKey(row) && 'opacity-40',
+                      // A gold line marks where the row will land: under the target when moving down, above it when moving up
+                      overKey === rowKey(row) &&
+                        dragKey !== null &&
+                        (indexOf(dragKey) < indexOf(rowKey(row)) ? '[box-shadow:inset_0_-2px_0_0_var(--color-gold-400)]' : '[box-shadow:inset_0_2px_0_0_var(--color-gold-400)]'),
                       rowClassName?.(row),
                     )}
                   >
+                    {onReorder && (
+                      <td className="w-10 pl-4 pr-0">
+                        <button
+                          type="button"
+                          disabled={canReorder?.(row) === false}
+                          aria-label={reorderLabel ? reorderLabel(row) : 'Move row'}
+                          onPointerDown={(e) => startDrag(e, rowKey(row))}
+                          onPointerMove={moveDrag}
+                          onPointerUp={() => endDrag(true)}
+                          onPointerCancel={() => endDrag(false)}
+                          onKeyDown={(e) => nudge(e, row)}
+                          className="grid size-9 touch-none cursor-grab select-none place-items-center rounded-md text-neutral-400 hover:text-neutral-900 focus-visible:text-neutral-900 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          <GripVertical aria-hidden className="size-4" />
+                        </button>
+                      </td>
+                    )}
                     {visible.map((c) => (
                       <td
                         key={c.key}
                         className={cn(
-                          'px-5 py-4 first:pl-6 last:pr-6',
+                          'px-4 py-4 first:pl-6 last:pr-6',
+                          !c.wrap && 'sm:whitespace-nowrap',
                           c.muted ? 'text-neutral-600' : 'text-neutral-900',
                           align[c.align ?? 'left'],
                           c.mono && 'font-mono tabular-nums',

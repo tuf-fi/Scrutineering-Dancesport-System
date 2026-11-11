@@ -1,6 +1,6 @@
 import { PayMethod, type Event } from '@bis/shared'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { Badge, Button, EmptyState, Pagination, Select, Skeleton, SkeletonList, Table, toast } from '../../components/ui/index.ts'
 import {
   useCancelEntryRequest,
@@ -29,6 +29,7 @@ const payMethodOf = (name: string): PayMethod => (/gcash/i.test(name) ? PayMetho
 // Choose a competition, a dancer or couple and the events, see the fee, pay, and send it for the secretariat to approve
 export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
   const { eventGrade } = useCatalog()
+  const [params] = useSearchParams()
   const entrants = useMyEntrants()
   const competitions = useCompetitions()
   const methods = useEntryPaymentMethods()
@@ -42,7 +43,9 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
   const picker = useRef<HTMLInputElement>(null)
 
   const open = useMemo(() => (competitions.data ?? []).filter((c) => c.date >= todayIso()).sort((a, b) => a.date.localeCompare(b.date)), [competitions.data])
-  const activeCompetition = competitionId || open[0]?.id || ''
+  // A link from a competition's page names the one to enter (?competition=)
+  const wanted = params.get('competition')
+  const activeCompetition = competitionId || (open.some((c) => c.id === wanted) ? wanted : open[0]?.id) || ''
   const list = entrants.data ?? []
   const dancer = list.find((r) => r.competitorId === competitorId) ?? list[0]
   const events = useEvents(activeCompetition || undefined)
@@ -50,6 +53,8 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
   const ids = chosen.filter((id) => eligible.some((e) => e.id === id))
   const quote = useQuoteMyEntries(dancer?.competitorId ?? '', ids)
   const { page, setPage, pageSize, total, pageItems } = usePagination(eligible, `${activeCompetition}|${dancer?.competitorId}`)
+  // A free competition asks for no fee, payment method or screenshot
+  const pays = open.find((c) => c.id === activeCompetition)?.paymentRequired !== false
   const payWith = method || methods.data?.[0]?.name || ''
   const selectedMethod = (methods.data ?? []).find((m) => m.name === payWith)
 
@@ -89,10 +94,10 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
     event.preventDefault()
     if (!dancer) return
     if (ids.length === 0) return setError('Choose at least one event.')
-    if (!receipt) return setError('Send a screenshot of your payment.')
+    if (pays && !receipt) return setError('Send a screenshot of your payment.')
     setError(undefined)
     submit.mutate(
-      { competitorId: dancer.competitorId, eventIds: ids, method: payMethodOf(payWith), reference: '', receipt },
+      { competitorId: dancer.competitorId, eventIds: ids, method: pays ? payMethodOf(payWith) : PayMethod.Unpaid, reference: '', receipt: pays ? (receipt ?? '') : '' },
       {
         onSuccess: () => {
           toast.success('Sent to the secretariat')
@@ -178,9 +183,20 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
           <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-5 lg:p-6">
             <div className="flex items-baseline justify-between gap-4">
               <h3 className="font-mono text-xs uppercase text-neutral-500">Fee</h3>
-              {quote.data && ids.length > 0 && <span className="font-mono text-body font-semibold tabular-nums text-neutral-900">{formatPeso(quote.data.total)}</span>}
+              {pays && quote.data && ids.length > 0 && <span className="font-mono text-body font-semibold tabular-nums text-neutral-900">{formatPeso(quote.data.total)}</span>}
             </div>
-            {ids.length === 0 ? (
+            {!pays ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-neutral-600">No payment is needed for this competition.</p>
+                {ids.length > 0 && quote.data && quote.data.warnings.length > 0 && (
+                  <ul className="flex flex-col gap-1 border-t border-neutral-200 pt-2 text-xs text-neutral-600">
+                    {quote.data.warnings.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : ids.length === 0 ? (
               <p className="text-neutral-600">Choose events to see the fee.</p>
             ) : quote.isLoading ? (
               <Skeleton className="h-10 w-full" />
@@ -208,6 +224,7 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
               </p>
             )}
 
+            {pays && (
             <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4">
               <Select label="Pay with" required value={payWith} onChange={(e) => setMethod(e.target.value)}>
                 {(methods.data ?? []).map((m) => (
@@ -233,8 +250,9 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
               </div>
               <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" aria-label="Payment screenshot" className="sr-only" onChange={(e) => void choose(e.target.files?.[0])} />
             </div>
+            )}
             <p className="text-xs text-neutral-500">
-              The secretariat checks your payment, then enters you. Follow it under{' '}
+              {pays ? 'The secretariat checks your payment, then enters you.' : 'The secretariat checks your entry, then enters you.'} Follow it under{' '}
               <Link to={`/${who}/requests`} className="font-semibold text-neutral-900 underline decoration-gold-500 decoration-2 underline-offset-4">
                 My requests
               </Link>
@@ -279,7 +297,7 @@ export function EntryRequestsList() {
         columns={[
           { key: 'who', header: 'Dancers', bold: true, cell: (r) => competitorName(r.names) },
           { key: 'competition', header: 'Competition', muted: true, hideBelow: 'md', cell: (r) => r.competitionName },
-          { key: 'events', header: 'Events', mono: true, cell: (r) => r.eventNumbers.map((n) => `E${n}`).join(', ') },
+          { key: 'events', header: 'Events', wrap: true, mono: true, cell: (r) => r.eventNumbers.map((n) => `E${n}`).join(', ') },
           { key: 'sent', header: 'Sent', detailOnly: true, cell: (r) => formatDateTime(r.createdAt) },
           { key: 'decided', header: 'Decided', detailOnly: true, cell: (r) => (r.decidedAt ? formatDateTime(r.decidedAt) : '–') },
           { key: 'total', header: 'Total', align: 'right', mono: true, hideBelow: 'sm', cell: (r) => formatPeso(r.total) },

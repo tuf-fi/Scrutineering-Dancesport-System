@@ -1,3 +1,4 @@
+import { Role } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
@@ -6,8 +7,10 @@ import { useCompetition, useEvents, useResultEventIds, useCatalog } from '../../
 import { usePagination } from '../../hooks/usePagination.ts'
 import { useRevealRow } from '../../hooks/useRevealRow.ts'
 import { cn } from '../../lib/cn.ts'
+import { registerPath } from '../../app/nav.ts'
+import { useAuth } from '../../stores/auth.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
-import { DISCIPLINE_LABEL, eventCode, eventDances, formatDate } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventCode, eventDances, formatDate, todayIso } from '../../lib/format.ts'
 
 const COLS = 'lg:grid-cols-[5rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_1.5rem]'
 
@@ -15,6 +18,7 @@ const COLS = 'lg:grid-cols-[5rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_1.5rem]'
 export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean } = {}) {
   const { ageGroups, ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
+  const user = useAuth((s) => s.user)
   const competition = useCompetition(competitionId)
   const events = useEvents(competitionId)
   const withResults = useResultEventIds(competitionId)
@@ -43,6 +47,9 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
   const allEvents = events.data ?? []
   const publishedCount = allEvents.filter((e) => withResults.data?.includes(e.id)).length
   const loading = events.isLoading || withResults.isLoading
+  // Teams enter online; someone signed out is asked to sign in first and then lands on the entry page for this competition
+  const registerTo = registerPath(c.id, !!user)
+  const canRegister = !resultsOnly && c.date >= todayIso() && (!user || user.role === Role.Team)
 
   return (
     <div className="flex flex-col gap-8">
@@ -58,9 +65,12 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
         }
         meta={
           resultsOnly ? undefined : (
-            <ButtonLink to={`/competitions/${competitionId}/program`}>
-              Program and running order
-            </ButtonLink>
+            <div className="flex flex-wrap gap-3">
+              {canRegister && <ButtonLink to={registerTo}>Register</ButtonLink>}
+              <ButtonLink to={`/competitions/${competitionId}/program`} variant={canRegister ? 'secondary' : 'primary'}>
+                Program and running order
+              </ButtonLink>
+            </div>
           )
         }
         aside={

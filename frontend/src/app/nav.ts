@@ -46,6 +46,7 @@ export type StaffRole = typeof Role.Admin | typeof Role.Secretariat | typeof Rol
 const scrutineerNav: NavItem[] = [
   { to: '/scrutineer', label: 'Rounds', end: true, icon: Layers },
   { to: '/scrutineer/heats', label: 'Heats', icon: LayoutGrid },
+  { to: '/scrutineer/schedule', label: 'Schedule', icon: CalendarClock },
   { to: '/scrutineer/live', label: 'Live board', icon: Activity },
   { to: '/scrutineer/paper-marks', label: 'Paper marks', icon: FileText },
   { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
@@ -73,7 +74,7 @@ const dayNav: NavItem[] = [
 export const staffNav: Record<StaffRole, NavItem[]> = {
   admin: [
     { to: '/admin/competitions', label: 'Competitions', icon: Trophy, group: 'Setup' },
-    { to: '/admin/categories', label: 'Kinds and age groups', icon: Layers, group: 'Setup' },
+    { to: '/admin/categories', label: 'Kinds, classes and age groups', icon: Layers, group: 'Setup' },
     { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Setup' },
     ...entriesNav,
     ...dayNav,
@@ -88,7 +89,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
   secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
   scrutineer: scrutineerNav,
   // The chairperson watches and confirms ties; starting rounds and setting heats are the scrutineer's
-  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/paper-marks'].includes(item.to)),
+  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/schedule', '/scrutineer/paper-marks'].includes(item.to)),
 }
 
 export const publicNav: NavItem[] = [
@@ -108,6 +109,15 @@ export const barkerNav: NavItem[] = [{ to: '/barker', label: 'Barker', icon: Meg
 
 // Staff and adjudicators sign in here; it is not linked from any public page
 export const STAFF_SIGN_IN = '/staff-access'
+
+// A page to return to after signing in; only a path on this site counts
+export const safeNext = (value: string | null | undefined) => (value && /^\/(?!\/)/.test(value) ? value : null)
+
+// The entry page for one competition; someone signed out signs in first and then lands on it
+export function registerPath(competitionId: string, signedIn: boolean) {
+  const enter = `/team/register?competition=${competitionId}`
+  return signedIn ? enter : `/login?as=team&next=${encodeURIComponent(enter)}`
+}
 
 // Where each role lands after signing in
 export const roleHome: Record<Role, string> = {

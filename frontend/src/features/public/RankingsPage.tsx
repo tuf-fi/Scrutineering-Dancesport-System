@@ -27,14 +27,14 @@ function parse<T extends string>(value: string | null, allowed: readonly T[], fa
 }
 
 export function RankingsPage() {
-  const { catalog, ageGroups: allGroups, eventGrade } = useCatalog()
+  const { catalog, classes: classDefs, ageGroups: allGroups, eventGrade } = useCatalog()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState('')
   const points = useRankingPoints()
   const competitors = useCompetitors()
   const teams = useTeams()
 
-  const classes = useMemo(() => availableClasses(points.data ?? []), [points.data])
+  const classes = useMemo(() => availableClasses(points.data ?? [], classDefs.map((c) => c.name)), [points.data, classDefs])
   // Only the age groups that have standings are offered; a retired version counts as its family
   const ageGroups = useMemo(() => {
     // Until the points arrive every group is listed, so the filter does not jump when they do
@@ -45,7 +45,8 @@ export function RankingsPage() {
   }, [points.data, allGroups, catalog.ageGroups])
   const discipline = parse(params.get('discipline'), Object.values(Discipline), Discipline.Latin)
   const ageGroup = parse(params.get('age'), ageGroups.map((g) => g.id), ageGroups.find((g) => g.id === AgeGroup.Junior1)?.id ?? ageGroups[0]?.id ?? allGroups[0]?.id ?? '')
-  const cls = parse(params.get('class'), classes.length ? classes : [Class.E1], Class.E1)
+  const firstClass = classDefs[0]?.name ?? Class.E1
+  const cls = parse(params.get('class'), classes.length ? classes : [firstClass], firstClass)
 
   const set = (key: string) => (value: string) =>
     setParams(
@@ -125,7 +126,7 @@ export function RankingsPage() {
           ))}
         </Select>
         <Select label="Class" value={cls} onChange={(e) => set('class')(e.target.value)}>
-          {(classes.length ? classes : [Class.E1]).map((c) => (
+          {(classes.length ? classes : [firstClass]).map((c) => (
             <option key={c} value={c}>
               {c}
             </option>

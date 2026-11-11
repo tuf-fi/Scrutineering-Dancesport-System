@@ -167,6 +167,7 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
     const rows = result.rows.map<SkatingRow>((r) => ({
       ...base(r.competitorId),
       majority: [],
+      majoritySums: [],
       place: r.rank,
       shared: false,
       dancePlaces: [],
@@ -197,6 +198,7 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
     ...base(r.competitorId),
     // The column counts are the Skating System working; a multi-dance final shows dance places instead
     majority: single ? (final.dances[0]?.result.columns[r.competitorId] ?? []).map((c) => c.count) : [],
+    majoritySums: single ? (final.dances[0]?.result.columns[r.competitorId] ?? []).map((c) => c.sum) : [],
     place: r.announcedPlace,
     shared: r.shared,
     dancePlaces: single ? [] : final.dances.map((d) => ({ dance: d.dance, place: r.dancePlaces[d.dance] ?? 0 })),

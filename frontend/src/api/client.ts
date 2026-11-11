@@ -14,6 +14,9 @@ import type {
   AdjudicatorSubmission,
   AgeGroupDef,
   AgeGroupInput,
+  RoundPlanInput,
+  ClassDef,
+  ClassInput,
   AthleteInput,
   AthleteRecord,
   AthleteRecordInput,
@@ -95,7 +98,7 @@ import type {
 } from '@bis/shared'
 import { auth, call, getSessionFromServer, upload } from './http.ts'
 
-export type { AgeGroupInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
+export type { AgeGroupInput, ClassInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
 export { subscribeSubmissions, getSubmissionSnapshot, subscribeNotifications, subscribeAlerts } from './realtime.ts'
 
 // ---- Reading ----
@@ -140,6 +143,8 @@ export const saveEventKind = (_actorId: string, input: EventKindInput, id?: stri
 export const deleteEventKind = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteEventKind', id, cascade)
 export const saveAgeGroup = (_actorId: string, input: AgeGroupInput, id?: string) => call<AgeGroupDef>('saveAgeGroup', input, id)
 export const deleteAgeGroup = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteAgeGroup', id, cascade)
+export const saveClass = (_actorId: string, input: ClassInput, id?: string) => call<ClassDef>('saveClass', input, id)
+export const deleteClass = (_actorId: string, id: string, cascade?: boolean) => call<{ id: string }>('deleteClass', id, cascade)
 export const createStaffUser = (_actorId: string, input: { name: string; username: string; role: Role; photo: string }) =>
   call<{ user: StaffUser; tempPassword: string }>('createStaffUser', input)
 export const updateStaffUser = (_actorId: string, id: string, input: { name: string; role: Role; photo?: string }) =>
@@ -186,6 +191,9 @@ export const markPaidAtVenue = (_actorId: string, paymentId: string) => call<Pay
 export const getSchedule = (competitionId: string) => call<ScheduleItem[]>('getSchedule', competitionId)
 export const moveScheduledEvent = (_actorId: string, competitionId: string, eventId: string, direction: 'up' | 'down') =>
   call<ScheduleItem[]>('moveScheduledEvent', competitionId, eventId, direction)
+export const moveScheduledEventTo = (_actorId: string, competitionId: string, eventId: string, to: number) =>
+  call<ScheduleItem[]>('moveScheduledEventTo', competitionId, eventId, to)
+export const setEventRounds = (_actorId: string, eventId: string, plan: RoundPlanInput[]) => call<void>('setEventRounds', eventId, plan)
 export const getProgram = (competitionId: string) => call<Program>('getProgram', competitionId)
 export const getEntriesByBackNumber = (competitionId: string, backNumber: number) =>
   call<string[]>('getEntriesByBackNumber', competitionId, backNumber)
@@ -201,6 +209,7 @@ export const updateProgramSlot = (_actorId: string, slotId: string, input: Progr
   call<Program>('updateProgramSlot', slotId, input)
 export const moveProgramSlot = (_actorId: string, slotId: string, direction: 'up' | 'down') =>
   call<Program>('moveProgramSlot', slotId, direction)
+export const moveProgramSlotTo = (_actorId: string, slotId: string, to: number) => call<Program>('moveProgramSlotTo', slotId, to)
 export const removeProgramSlot = (_actorId: string, slotId: string) => call<Program>('removeProgramSlot', slotId)
 export const updateCompetitor = (_actorId: string, id: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('updateCompetitor', id, input)

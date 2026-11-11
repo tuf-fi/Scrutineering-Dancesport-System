@@ -55,10 +55,11 @@ export function ProfileChangesPage() {
         columns={[
           { key: 'name', header: 'Athlete', cell: (a) => <span className="font-medium">{a.name}</span> },
           { key: 'email', header: 'Email', muted: true, hideBelow: 'lg', cell: (a) => a.email },
-          { key: 'now', header: 'Now', hideBelow: 'sm', cell: (a) => <Pair first={a.name} second={[a.birthDate, a.teamName || 'No team', a.coachName || 'No coach'].filter(Boolean).join(' / ')} /> },
+          { key: 'now', header: 'Now', wrap: true, hideBelow: 'sm', cell: (a) => <Pair first={a.name} second={[a.birthDate, a.teamName || 'No team', a.coachName || 'No coach'].filter(Boolean).join(' / ')} /> },
           {
             key: 'wants',
             header: 'Wants',
+            wrap: true,
             cell: (a) => (
               <Pair
                 first={a.requestedName || a.name}

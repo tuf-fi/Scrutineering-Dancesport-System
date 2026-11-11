@@ -28,7 +28,9 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
   const entered = new Set((entries.data ?? []).filter((e) => e.competitorId === competitor.id && !e.scratched).map((e) => e.eventId))
   // Solo dancers take solo events and couples take couple events; the age group is a warning, not a filter
   const options = [...(events.data ?? [])].filter((e) => e.isSolo === solo).sort((a, b) => a.number - b.number)
-  const pay = method !== PayMethod.Unpaid && method !== PayMethod.Cash
+  // A free competition takes no fee, payment or method
+  const pays = competitions.data?.find((c) => c.id === competitionId)?.paymentRequired !== false
+  const pay = pays && method !== PayMethod.Unpaid && method !== PayMethod.Cash
 
   const toggle = (id: string) => setChosen((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))
 
@@ -37,10 +39,10 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
     if (chosen.length === 0) return setFailure('Choose at least one event.')
     setFailure(null)
     register.mutate(
-      { competitorId: competitor.id, eventIds: chosen, method, reference: pay ? reference : undefined, coachFees },
+      { competitorId: competitor.id, eventIds: chosen, method: pays ? method : PayMethod.Unpaid, reference: pay ? reference : undefined, coachFees },
       {
         onSuccess: (r) => {
-          toast.success(`Entered in ${chosen.length} event${chosen.length === 1 ? '' : 's'}, ${peso(r.total)}`)
+          toast.success(`Entered in ${chosen.length} event${chosen.length === 1 ? '' : 's'}${pays ? `, ${peso(r.total)}` : ''}`)
           onDone()
         },
         onError: (err) => setFailure(err.message),
@@ -107,18 +109,22 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
               <Skeleton className="h-16 w-full" />
             ) : (
               <>
-                <dl className="flex flex-col">
-                  {quote.data.lines.map((l) => (
-                    <div key={l.label} className="flex justify-between border-b border-neutral-100 py-1.5">
-                      <dt className="text-neutral-600">{l.label}</dt>
-                      <dd className="font-mono tabular-nums">{peso(l.amount)}</dd>
+                {pays ? (
+                  <dl className="flex flex-col">
+                    {quote.data.lines.map((l) => (
+                      <div key={l.label} className="flex justify-between border-b border-neutral-100 py-1.5">
+                        <dt className="text-neutral-600">{l.label}</dt>
+                        <dd className="font-mono tabular-nums">{peso(l.amount)}</dd>
+                      </div>
+                    ))}
+                    <div className="flex justify-between py-2 font-semibold text-neutral-900">
+                      <dt>Total</dt>
+                      <dd className="font-mono tabular-nums">{peso(quote.data.total)}</dd>
                     </div>
-                  ))}
-                  <div className="flex justify-between py-2 font-semibold text-neutral-900">
-                    <dt>Total</dt>
-                    <dd className="font-mono tabular-nums">{peso(quote.data.total)}</dd>
-                  </div>
-                </dl>
+                  </dl>
+                ) : (
+                  <p className="text-neutral-600">No payment is needed for this competition.</p>
+                )}
                 {quote.data.warnings.map((w) => (
                   <p key={w} role="status" className="text-danger">
                     {w}
@@ -147,16 +153,18 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
           </fieldset>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Select label="Payment" required value={method} onChange={(e) => setMethod(e.target.value as PayMethod)}>
-            {Object.values(PayMethod).map((m) => (
-              <option key={m} value={m}>
-                {PAY_METHOD_LABEL[m]}
-              </option>
-            ))}
-          </Select>
-          {pay && <Input label="Reference no." value={reference} onChange={(e) => setReference(e.target.value)} className="font-mono" />}
-        </div>
+        {pays && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Select label="Payment" required value={method} onChange={(e) => setMethod(e.target.value as PayMethod)}>
+              {Object.values(PayMethod).map((m) => (
+                <option key={m} value={m}>
+                  {PAY_METHOD_LABEL[m]}
+                </option>
+              ))}
+            </Select>
+            {pay && <Input label="Reference no." value={reference} onChange={(e) => setReference(e.target.value)} className="font-mono" />}
+          </div>
+        )}
       </form>
       {failure && (
         <p role="alert" className="mt-4 text-small text-danger">

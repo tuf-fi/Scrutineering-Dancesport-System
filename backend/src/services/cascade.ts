@@ -6,7 +6,7 @@ import { actor, fail, type Ctx } from '../core/context.ts'
 // People (dancers, adjudicators, athletes) and competitions are never deleted as a side effect:
 // they are only taken off the event or competition that goes.
 
-const ADMIN_ONLY: DeleteKind[] = ['competition', 'ageGroup', 'eventKind', 'adjudicator', 'staff']
+const ADMIN_ONLY: DeleteKind[] = ['competition', 'ageGroup', 'eventKind', 'class', 'adjudicator', 'staff']
 const MAX_LINES = 300
 
 const inList = (ids: string[]) => ids.map(() => '?').join(', ')
@@ -41,6 +41,7 @@ function eventIdsOf(ctx: Ctx, kind: DeleteKind, id: string): string[] {
   if (kind === 'competition') return column(ctx, 'SELECT id FROM events WHERE competition_id = ? ORDER BY number', id)
   if (kind === 'ageGroup') return column(ctx, 'SELECT id FROM events WHERE age_group = ? ORDER BY number', id)
   if (kind === 'eventKind') return column(ctx, 'SELECT id FROM events WHERE kind = ? ORDER BY number', id)
+  if (kind === 'class') return column(ctx, 'SELECT id FROM events WHERE class = ? ORDER BY number', id)
   return []
 }
 
@@ -157,6 +158,10 @@ export function deleteImpact(ctx: Ctx, kind: DeleteKind, id: string): DeleteImpa
       ],
     }
   }
+  if (kind === 'class') {
+    if (!one('SELECT name FROM event_classes WHERE name = ?')) return fail('Class not found.', 404)
+    return { ...base, name: id, items: underEvents(ctx, eventIdsOf(ctx, kind, id), true) }
+  }
   if (kind === 'ageGroup' || kind === 'eventKind') {
     const table = kind === 'ageGroup' ? 'age_groups' : 'event_kinds'
     const row = one(`SELECT name FROM ${table} WHERE id = ?`)
@@ -266,6 +271,10 @@ export function removeCascade(ctx: Ctx, kind: DeleteKind, id: string) {
   if (kind === 'eventKind') {
     removeEvents(ctx, eventIdsOf(ctx, kind, id))
     return void ctx.sqlite.prepare('DELETE FROM event_kinds WHERE id = ?').run(id)
+  }
+  if (kind === 'class') {
+    removeEvents(ctx, eventIdsOf(ctx, kind, id))
+    return void ctx.sqlite.prepare('DELETE FROM event_classes WHERE name = ?').run(id)
   }
   if (kind === 'team') {
     ctx.sqlite.prepare('DELETE FROM payments WHERE team_id = ?').run(id)

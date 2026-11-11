@@ -49,10 +49,10 @@ export function rankCategory(points: RankingPoint[], filter: CategoryFilter): Ra
   })
 }
 
-// Classes that have any ranking data, in the usual order (E1, D, C, B, A)
-export function availableClasses(points: RankingPoint[]): Class[] {
+// Classes that have any ranking data, in the order given (the usual E1, D, C, B, A unless the admin changed them)
+export function availableClasses(points: RankingPoint[], order: Class[] = Object.values(Class)): Class[] {
   const present = new Set(points.map((p) => p.class))
-  return Object.values(Class).filter((c) => present.has(c))
+  return order.filter((c) => present.has(c))
 }
 
 // Every category a competitor has points in

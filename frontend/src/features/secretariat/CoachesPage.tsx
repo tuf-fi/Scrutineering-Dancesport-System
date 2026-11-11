@@ -51,7 +51,7 @@ export function CoachesPage() {
           { key: 'teams', header: 'Competitors', cell: (c) => teams.get(c.id) ?? 0, mono: true, align: 'right', hideBelow: 'sm' },
           { key: 'member', header: 'Membership', cell: (c) => membershipLabel(c.memberYear, new Date().getFullYear(), c.memberMonth), mono: true, muted: true },
           { key: 'summit', header: 'Summit', cell: (c) => (c.summitYear ? summitPaidLabel(c.summitPeriod, c.summitYear) : 'Not paid'), mono: true, muted: true, hideBelow: 'md' },
-          { key: 'attended', header: 'Attended', cell: (c) => (c.summits?.length ? `${c.summits.length} (last ${formatDate(c.summits[0]!)})` : '–'), mono: true, muted: true, hideBelow: 'lg' },
+          { key: 'attended', header: 'Attended', cell: (c) => (c.summits?.length ? `${c.summits.length} (last ${formatDate(c.summits[0]!)})` : '–'), mono: true, muted: true, hideBelow: '2xl' },
           {
             key: 'actions',
             header: '',

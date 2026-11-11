@@ -25,7 +25,7 @@ export function ScoresPage() {
             competition={competition}
             adjudicators={adjudicators}
             footer={
-              placing ? 'Placings are 1 for best. A shared place is read at its best place.' : 'An X is 1; the total is the number of X marks.'
+              placing ? 'Placings are 1 for best. Each column shows the count of marks at that place or better, with their sum in brackets. A shared place is read at its best place.' : 'An X is 1; the total is the number of X marks.'
             }
           >
             <table className="w-full border-collapse text-[9pt]">
@@ -45,7 +45,7 @@ export function ScoresPage() {
                         {i === 0 ? '1' : `1-${i + 1}`}
                       </th>
                     ))}
-                  <th className={`${th} text-right ${placing ? '' : 'font-bold'}`}>{placing ? 'Total' : 'X'}</th>
+                  {!placing && <th className={`${th} text-right font-bold`}>X</th>}
                 </tr>
               </thead>
               <tbody>
@@ -59,8 +59,8 @@ export function ScoresPage() {
                         {r.marks[a.id] ?? ''}
                       </td>
                     ))}
-                    {placing && r.majority.map((m, i) => <td key={i} className={`${td} ${num} text-right`}>{m}</td>)}
-                    <td className={`${td} ${num} text-right font-bold`}>{r.total}</td>
+                    {placing && r.majority.map((m, i) => <td key={i} className={`${td} ${num} text-right`}>{m ? `${m} (${r.majoritySums[i] ?? 0})` : m}</td>)}
+                    {!placing && <td className={`${td} ${num} text-right font-bold`}>{r.total}</td>}
                   </tr>
                 ))}
               </tbody>

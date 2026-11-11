@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router'
-import { roleHome } from '../../app/nav.ts'
+import { roleHome, safeNext } from '../../app/nav.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { AuthShell } from '../auth/AuthShell.tsx'
 import { ACCOUNT_COPY, AccountForm, type AccountKind, type AccountMode } from './AccountForm.tsx'
@@ -20,7 +20,7 @@ export function SignInPage() {
   const asked = params.get('as')
   const kind: AccountKind = asked === 'coach' || asked === 'team' ? asked : 'athlete'
   const [mode, setMode] = useState<AccountMode>('sign-in')
-  if (user) return <Navigate to={roleHome[user.role]} replace />
+  if (user) return <Navigate to={safeNext(params.get('next')) ?? roleHome[user.role]} replace />
 
   const copy = ACCOUNT_COPY[kind]
   const creating = mode === 'sign-up'

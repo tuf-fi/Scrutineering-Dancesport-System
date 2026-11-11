@@ -25,6 +25,7 @@ import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import {
+  activeEntryRows,
   catalogOf,
   clean,
   cleanDetails,
@@ -98,6 +99,9 @@ export function checkNotStarted(ctx: Ctx, eventId: string) {
   }
 }
 
+// A free competition charges nothing, so it has no fee to set and no payment to take
+const needsPayment = (ctx: Ctx, competitionId: string) => ctx.db.select({ p: t.competitions.paymentRequired }).from(t.competitions).where(eq(t.competitions.id, competitionId)).get()?.p !== false
+
 function lateRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): LateEntryRow {
   const event = getEventRow(ctx, entry.eventId)
   return {
@@ -105,7 +109,7 @@ function lateRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): LateEntryRow {
     eventId: event.id,
     eventNumber: event.number,
     dances: event.dances,
-    fee: feeFor(ctx, event),
+    fee: needsPayment(ctx, event.competitionId) ? feeFor(ctx, event) : 0,
     paymentId: entry.paymentId ?? '',
   }
 }
@@ -126,7 +130,8 @@ function scheduleOf(ctx: Ctx, competitionId: string): ScheduleItem[] {
       discipline: event.discipline,
       dances: event.dances,
       isSolo: event.isSolo,
-      rounds: roundsOfEvent(ctx, event.id).map((r) => ({ type: r.type, status: r.status })),
+      entryCount: activeEntryRows(ctx, event.id).length,
+      rounds: roundsOfEvent(ctx, event.id).map((r) => ({ type: r.type, status: r.status, recall: r.recallNumber })),
     }))
 }
 
@@ -147,6 +152,7 @@ function checkEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: str
   if (!kind) return fail('Choose a kind.')
   if (!kind.disciplines.includes(input.discipline)) return fail(`${kind.name} events are not danced in ${input.discipline}.`)
   if (!catalog.ageGroups.some((g) => g.id === input.ageGroup && !g.retired)) return fail('Choose an age group.')
+  if (!catalog.classes.some((c) => c.name === input.class)) return fail('Choose a class.')
   if (kind.closedToProvince && !clean(input.province)) return fail('Enter the province this event is closed to.')
 }
 
@@ -285,7 +291,8 @@ export const secretariat = {
   // A late entry gets its own payment, either paid in cash now or left unpaid
   createLateEntry(ctx: Ctx, input: { competitorId: string; eventId: string; paidInCash: boolean }): LateEntryRow {
     const event = getEventRow(ctx, input?.eventId)
-    assertFeesSet(ctx)
+    const pays = needsPayment(ctx, event.competitionId)
+    if (pays) assertFeesSet(ctx)
     const competitor = getCompetitorRow(ctx, input.competitorId)
     checkEligible(ctx, competitor.id, event)
     if (ctx.db.select().from(t.entries).where(and(eq(t.entries.eventId, event.id), eq(t.entries.competitorId, competitor.id))).get()) {
@@ -293,6 +300,12 @@ export const secretariat = {
     }
     checkNotStarted(ctx, event.id)
     const user = actor(ctx)
+    if (!pays) {
+      const free = { id: newId(), eventId: event.id, competitorId: competitor.id, scratched: false, paymentId: null, late: true }
+      ctx.db.insert(t.entries).values(free).run()
+      record(ctx.db, user.id, 'Added late entry', `Event ${event.number}, ${competitor.names.join(' & ')}`, { after: { payment: 'not required' } })
+      return lateRow(ctx, free)
+    }
     const fee = feeFor(ctx, event)
     const paid = Boolean(input.paidInCash)
     const paymentId = newId()
@@ -344,6 +357,23 @@ export const secretariat = {
     ctx.db.update(t.events).set({ position: b.position }).where(eq(t.events.id, a.id)).run()
     ctx.db.update(t.events).set({ position: a.position }).where(eq(t.events.id, b.id)).run()
     record(ctx.db, actor(ctx).id, 'Moved event in schedule', `Event ${a.number}`, { before: { position: a.position }, after: { position: b.position } })
+    return scheduleOf(ctx, competitionId)
+  },
+
+  // Drops an event at a place in the order (1 is first), as dragging does
+  moveScheduledEventTo(ctx: Ctx, competitionId: string, eventId: string, to: number): ScheduleItem[] {
+    const order = ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).orderBy(asc(t.events.position)).all()
+    const from = order.findIndex((e) => e.id === eventId)
+    if (from < 0) return fail('Event not found.', 404)
+    if (!Number.isInteger(to) || to < 1 || to > order.length) return fail('That place is not in the schedule.')
+    if (to - 1 !== from) {
+      const [moved] = order.splice(from, 1)
+      order.splice(to - 1, 0, moved!)
+      order.forEach((e, i) => {
+        if (e.position !== i + 1) ctx.db.update(t.events).set({ position: i + 1 }).where(eq(t.events.id, e.id)).run()
+      })
+      record(ctx.db, actor(ctx).id, 'Moved event in schedule', `Event ${moved!.number}`, { before: { position: from + 1 }, after: { position: to } })
+    }
     return scheduleOf(ctx, competitionId)
   },
 

@@ -45,6 +45,12 @@ export const useSaveAgeGroup = () =>
 export const useDeleteAgeGroup = () =>
   useWrite((v: { id: string; cascade?: boolean }) => api.deleteAgeGroup(actor(), v.id, v.cascade), () => [['catalog']])
 
+export const useSaveClass = () =>
+  useWrite((v: { input: api.ClassInput; id?: string }) => api.saveClass(actor(), v.input, v.id), () => [['catalog'], ['events'], ['ranking-points']])
+
+export const useDeleteClass = () =>
+  useWrite((v: { id: string; cascade?: boolean }) => api.deleteClass(actor(), v.id, v.cascade), () => [['catalog'], ['events'], ['ranking-points']])
+
 export const useCreateStaff = () =>
   useWrite(
     (v: { name: string; username: string; role: Role; photo: string }) => api.createStaffUser(actor(), v),

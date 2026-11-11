@@ -136,7 +136,7 @@ export function AthletesPage() {
         columns={[
           { key: 'name', header: 'Athlete', cell: (row) => <span className="font-medium">{row.name}</span> },
           { key: 'id', header: 'Membership ID', cell: (row) => (row.kind === 'account' ? row.a.membershipId : row.kind === 'record' ? row.r.membershipId : null) ?? '–', mono: true, muted: true, hideBelow: 'sm' },
-          { key: 'email', header: 'Email', cell: (row) => (row.kind === 'account' ? row.a.email : '–'), muted: true, hideBelow: 'md' },
+          { key: 'email', header: 'Email', cell: (row) => (row.kind === 'account' ? row.a.email : '–'), muted: true, hideBelow: '2xl' },
           { key: 'team', header: 'Team', cell: (row) => (row.kind === 'account' ? row.a.teamName : row.kind === 'record' ? teamName(row.r.teamId) : row.teamName) || '–', muted: true, hideBelow: 'md' },
           {
             key: 'member',

@@ -33,6 +33,8 @@ export interface Competition {
   image?: string | null
   // Whether its results count towards the rankings; a competition without points awards none
   usesPoints: boolean
+  // Whether entering costs money. Off: no entry fee or membership is asked, and no payment or screenshot is needed
+  paymentRequired: boolean
 }
 
 // A competition that can be run on a venue laptop with no internet, and whether a laptop has it now
@@ -406,7 +408,9 @@ export interface ScheduleItem {
   discipline: Discipline
   dances: Dance[]
   isSolo: boolean
-  rounds: Array<{ type: RoundType; status: RoundStatus }>
+  // Couples entered, and the rounds with how many each recalls
+  entryCount: number
+  rounds: Array<{ type: RoundType; status: RoundStatus; recall: number | null }>
 }
 
 // One line of the running order: a round, a break or the awarding
@@ -865,6 +869,8 @@ export interface SkatingRow {
   marks: Record<Id, number | null>
   // Single-dance final: how many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
   majority: number[]
+  // The sum of those marks, per column; read with the count, e.g. 4 (6)
+  majoritySums: number[]
   total: number
   // The place as the compere reads it; a shared place shows its best place, e.g. 2 for a tie for 2nd and 3rd
   place: number
@@ -946,8 +952,8 @@ export interface PaymentMethod {
 // What the secretariat keeps about a team
 export type TeamInput = Omit<Team, 'id'>
 
-// Leaving usesPoints out keeps what is saved, or turns points on for a new competition
-export type CompetitionInput = Omit<Competition, 'id' | 'usesPoints'> & { usesPoints?: boolean }
+// Leaving usesPoints or paymentRequired out keeps what is saved, or turns it on for a new competition
+export type CompetitionInput = Omit<Competition, 'id' | 'usesPoints' | 'paymentRequired'> & { usesPoints?: boolean; paymentRequired?: boolean }
 
 export type EventInput = Omit<Event, 'id' | 'competitionId'>
 
@@ -1028,7 +1034,7 @@ export interface AlertNote {
 }
 
 // What a delete would take with it, so a screen can show it before the person confirms
-export type DeleteKind = 'event' | 'competition' | 'ageGroup' | 'eventKind' | 'team' | 'coach' | 'competitor' | 'adjudicator' | 'staff' | 'athlete'
+export type DeleteKind = 'event' | 'competition' | 'ageGroup' | 'eventKind' | 'class' | 'team' | 'coach' | 'competitor' | 'adjudicator' | 'staff' | 'athlete'
 
 export interface DeleteImpactItem {
   label: string

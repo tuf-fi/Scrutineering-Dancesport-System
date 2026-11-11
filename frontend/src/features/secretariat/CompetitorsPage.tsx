@@ -188,6 +188,7 @@ export function CompetitorsPage() {
             {
               key: 'events',
               header: 'Events',
+              wrap: true,
               cell: (c: CompetitorRow) =>
                 (enteredIn.get(c.id) ?? [])
                   .sort((a, b) => a - b)

@@ -1,4 +1,4 @@
-import { FeeMode, PIN_LENGTH, Role, checkAgeGroup, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
+import { FeeMode, PIN_LENGTH, Role, checkAgeGroup, checkClass, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type ClassDef, type ClassInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray, ne } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -41,6 +41,7 @@ export const admin = {
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) return fail('Fill in every field.')
     if (input?.usesPoints !== undefined && typeof input.usesPoints !== 'boolean') return fail('Choose whether the competition uses points.')
+    if (input?.paymentRequired !== undefined && typeof input.paymentRequired !== 'boolean') return fail('Choose whether the competition needs payment.')
     // A missing image keeps the one already there; a competition always has one
     const image = input?.image === undefined ? undefined : typeof input.image === 'string' && input.image ? input.image : null
     if (image && (!PHOTO.test(image) || image.length > MAX_PHOTO)) return fail('Send the photo as a JPEG, PNG or WebP picture under 400 KB.')
@@ -55,7 +56,12 @@ export const admin = {
       const before = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
       if (values.date < today && values.date !== before.date) return fail(PAST)
       if (!(image === undefined ? before.image : image)) return fail('Add the photo for its card.')
-      const changes = { ...values, ...(image === undefined ? {} : { image }), ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }) }
+      const changes = {
+        ...values,
+        ...(image === undefined ? {} : { image }),
+        ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }),
+        ...(input.paymentRequired === undefined ? {} : { paymentRequired: input.paymentRequired }),
+      }
       ctx.db.update(t.competitions).set(changes).where(eq(t.competitions.id, id)).run()
       // Turning points off removes what its events awarded; turning them on awards them from the results already approved
       if (changes.usesPoints !== undefined && changes.usesPoints !== before.usesPoints) recomputeCompetitionPoints(ctx, id)
@@ -67,7 +73,7 @@ export const admin = {
     if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
       return fail('A competition with this name and date already exists.', 409)
     }
-    const created = { id: newId(), floorRoundId: null, offlineHeldAt: null, ...values, image, usesPoints: input?.usesPoints ?? true }
+    const created = { id: newId(), floorRoundId: null, offlineHeldAt: null, ...values, image, usesPoints: input?.usesPoints ?? true, paymentRequired: input?.paymentRequired ?? true }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)
@@ -97,6 +103,37 @@ export const admin = {
     const impact = confirmCascade(ctx, 'eventKind', id, cascade)
     removeCascade(ctx, 'eventKind', id)
     record(ctx.db, actor(ctx).id, 'Deleted event kind', row.name, { before: { id, removed: impactSummary(impact) } })
+    return { id }
+  },
+
+  // A class is named by its name, so renaming one updates the events and ranking points that use it
+  saveClass(ctx: Ctx, input: ClassInput, id?: string): ClassDef {
+    const classes = catalogOf(ctx).classes
+    const checked = checkClass(input, classes.filter((c) => c.name !== id))
+    if ('error' in checked) return fail(checked.error, checked.status)
+    const { name } = checked.values
+    const user = actor(ctx)
+    if (id) {
+      found(classes.find((c) => c.name === id), 'Class')
+      if (id === name) return { name }
+      ctx.db.transaction((tx) => {
+        tx.update(t.eventClasses).set({ name }).where(eq(t.eventClasses.name, id)).run()
+        tx.update(t.events).set({ class: name }).where(eq(t.events.class, id)).run()
+        tx.update(t.rankingPoints).set({ class: name }).where(eq(t.rankingPoints.class, id)).run()
+      })
+      record(ctx.db, user.id, 'Renamed class', name, { before: { name: id }, after: { name } })
+      return { name }
+    }
+    ctx.db.insert(t.eventClasses).values({ name, sortOrder: classes.length }).run()
+    record(ctx.db, user.id, 'Created class', name, { after: { name } })
+    return { name }
+  },
+
+  deleteClass(ctx: Ctx, id: string, cascade?: boolean): { id: string } {
+    found(ctx.db.select().from(t.eventClasses).where(eq(t.eventClasses.name, id)).get(), 'Class')
+    const impact = confirmCascade(ctx, 'class', id, cascade)
+    removeCascade(ctx, 'class', id)
+    record(ctx.db, actor(ctx).id, 'Deleted class', id, { before: { id, removed: impactSummary(impact) } })
     return { id }
   },
 

@@ -299,15 +299,33 @@ describe('late entries', () => {
 })
 
 describe('schedule', () => {
-  it('moves an event down and keeps the first event from moving up', async () => {
+  it('moves an event with the keyboard, drags it back, and opens its rounds', async () => {
     renderApp('/secretariat/schedule', Role.Secretariat)
-    expect(await screen.findByRole('button', { name: 'Move E1 up' })).toBeDisabled()
-    const first = bodyRows()[0]
-    expect(within(first).getByText('E1')).toBeInTheDocument()
+    const grip = await screen.findByRole('button', { name: /^Drag E1 to move it/ })
+    expect(within(bodyRows()[0]).getByText('E1')).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'Move E1 down' }))
+    grip.focus()
+    await userEvent.keyboard('{ArrowDown}')
     await waitFor(() => expect(within(bodyRows()[1]).getByText('E1')).toBeInTheDocument())
     expect(within(bodyRows()[0]).getByText('E2')).toBeInTheDocument()
+
+    // A press on the handle, a move over the first row and a release drops it there (a finger does the same)
+    const handle = screen.getByRole('button', { name: /^Drag E1 to move it/ })
+    document.elementFromPoint = () => bodyRows()[0]!
+    fireEvent.pointerDown(handle, { pointerId: 1 })
+    fireEvent.pointerMove(handle, { pointerId: 1 })
+    fireEvent.pointerUp(handle, { pointerId: 1 })
+    await waitFor(() => expect(within(bodyRows()[0]).getByText('E1')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Move E1 to a position' }))
+    const place = await screen.findByRole('dialog', { name: 'Move E1' })
+    await userEvent.clear(within(place).getByLabelText(/Position/))
+    await userEvent.type(within(place).getByLabelText(/Position/), '3')
+    await userEvent.click(within(place).getByRole('button', { name: 'Move' }))
+    await waitFor(() => expect(within(bodyRows()[2]).getByText('E1')).toBeInTheDocument())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Set the rounds of E1' }))
+    expect(await screen.findByRole('dialog', { name: /^Rounds for E1/ })).toBeInTheDocument()
   })
 })
 
@@ -336,9 +354,12 @@ describe('program', () => {
     expect(await screen.findByText('Added Lunch')).toBeInTheDocument()
     await waitFor(() => expect(within(bodyRows()[1]).getByText(/Lunch/)).toBeInTheDocument())
 
-    await userEvent.click(screen.getByRole('button', { name: 'Move Lunch up' }))
+    screen.getByRole('button', { name: /^Drag Lunch to move it/ }).focus()
+    await userEvent.keyboard('{ArrowUp}')
     await waitFor(() => expect(within(bodyRows()[0]).getByText(/Lunch/)).toBeInTheDocument())
-    expect(screen.getByRole('button', { name: 'Move Lunch up' })).toBeDisabled()
+    // Nothing is above the first line, so another press changes nothing
+    await userEvent.keyboard('{ArrowUp}')
+    expect(within(bodyRows()[0]).getByText(/Lunch/)).toBeInTheDocument()
   })
 
   it('refuses a break with no name and keeps the dialog open', async () => {

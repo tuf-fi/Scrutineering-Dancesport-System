@@ -3,7 +3,7 @@ import { placeDance, ScoringError, validateDance, type DanceInput } from './inde
 
 // couple -> placings from adjudicators A, B, C... in order
 function build(table: Record<string, number[]>): DanceInput {
-  const adjudicatorIds = 'ABCDEFG'.slice(0, Object.values(table)[0]!.length).split('')
+  const adjudicatorIds = 'ABCDEFGHIJ'.slice(0, Object.values(table)[0]!.length).split('')
   const marks = Object.entries(table).flatMap(([competitorId, placings]) =>
     placings.map((placing, i) => ({ adjudicatorId: adjudicatorIds[i]!, competitorId, placing })),
   )
@@ -167,5 +167,76 @@ describe('single dance edge cases', () => {
       { count: 0, sum: 0 },
       { count: 3, sum: 6 },
     ])
+  })
+})
+
+describe('place by place', () => {
+  it('a runner-up holder is weighed again for the next place (Rule 6)', () => {
+    // 8 adjudicators: C2 and C3 both hold a majority for 3rd, but C1 beats C2 for 4th (7 v 6)
+    expect(
+      placesOf({
+        C0: [2, 1, 2, 1, 4, 1, 5, 4],
+        C1: [4, 2, 4, 2, 2, 3, 4, 5],
+        C2: [5, 4, 3, 3, 1, 5, 3, 3],
+        C3: [3, 5, 1, 4, 3, 4, 2, 1],
+        C4: [1, 3, 5, 5, 5, 2, 1, 2],
+      }),
+    ).toEqual({ C0: 1, C4: 2, C3: 3, C1: 4, C2: 5 })
+  })
+})
+
+describe('worked checks from the WDSF review', () => {
+  it('four 1st places from 7 adjudicators is a majority, however bad the other marks', () => {
+    const places = placesOf({
+      Z: [1, 1, 1, 1, 5, 5, 5],
+      A: [2, 2, 2, 2, 1, 1, 1],
+      B: [3, 3, 3, 3, 2, 2, 2],
+      C: [4, 4, 4, 4, 3, 3, 3],
+      D: [5, 5, 5, 5, 4, 4, 4],
+    })
+    expect(places.Z).toBe(1)
+  })
+
+  it('three couples equal in count and sum in every column share the places', () => {
+    // 6 adjudicators, majority 4: A, B and C each hold four marks in 1-2 with sum 6, and again in 1-3 and 1-4
+    expect(
+      placesOf({
+        A: [1, 1, 3, 4, 2, 2],
+        B: [2, 2, 1, 1, 3, 4],
+        C: [3, 4, 2, 2, 1, 1],
+        D: [4, 3, 4, 3, 4, 3],
+        E: [5, 5, 5, 5, 5, 5],
+        F: [6, 6, 6, 6, 6, 6],
+      }),
+    ).toEqual({ A: 2, B: 2, C: 2, D: 4, E: 5, F: 6 })
+  })
+})
+
+describe('Rule 7 with a valid 7-adjudicator panel (the test-case-3 idea)', () => {
+  it('equal majority in 1-2 is split by the lower sum, and a bigger majority beats a lower sum', () => {
+    // Majority is 4. X and Y both hold 5 marks in 1-2: X sums 7, Y sums 8, so X wins 1st.
+    // Z has the lowest sum (6) but only 4 marks, so Y takes 2nd and Z 3rd
+    expect(
+      placesOf({
+        X: [1, 1, 1, 2, 3, 2, 3],
+        Y: [2, 2, 3, 1, 1, 3, 2],
+        Z: [3, 3, 2, 3, 2, 1, 1],
+        W: [4, 4, 4, 4, 4, 4, 4],
+      }),
+    ).toEqual({ X: 1, Y: 2, Z: 3, W: 4 })
+  })
+
+  it('our Waltz final: 117, 114, 118, 113, 112, 111', () => {
+    // 5 adjudicators, majority 3. 117 has 4 in 1-2 against 114's 3; 114 has 5 in 1-3 against 118's 3
+    expect(
+      placesOf({
+        '117': [6, 2, 1, 1, 2],
+        '114': [2, 3, 2, 2, 3],
+        '118': [3, 1, 6, 6, 1],
+        '113': [4, 4, 3, 4, 4],
+        '111': [1, 6, 5, 3, 6],
+        '112': [5, 5, 4, 5, 5],
+      }),
+    ).toEqual({ '117': 1, '114': 2, '118': 3, '113': 4, '112': 5, '111': 6 })
   })
 })

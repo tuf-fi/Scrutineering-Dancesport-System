@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '../../api/http.ts'
-import { roleHome } from '../../app/nav.ts'
+import { roleHome, safeNext } from '../../app/nav.ts'
 import { PhotoInput } from '../../components/PhotoInput.tsx'
 import type { SessionUser } from '@bis/shared'
 import { Button, Input, toast } from '../../components/ui/index.ts'
@@ -26,6 +26,7 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
   const member = kind === 'athlete' ? 'coach' : kind
   const signIn = useAuth((s) => s.signIn)
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const memberIn = useSignInMember(member)
   const memberUp = useSignUpMember(member)
   const athleteIn = useSignInAthlete()
@@ -45,7 +46,7 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
   function enter(session: SessionUser) {
     signIn(session)
     onDone?.()
-    navigate(roleHome[session.role], { replace: true })
+    navigate(safeNext(params.get('next')) ?? roleHome[session.role], { replace: true })
   }
 
   const creating = mode === 'sign-up'

@@ -123,7 +123,7 @@ describe('results', () => {
     const final = within(select).getAllByRole('option').find((o) => /Final/.test(o.textContent ?? '') && /E12/.test(o.textContent ?? ''))!
     await userEvent.selectOptions(select, final)
     expect(await screen.findByRole('columnheader', { name: '1–6' })).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Total' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /results$/ })).not.toBeInTheDocument()
   })
 })

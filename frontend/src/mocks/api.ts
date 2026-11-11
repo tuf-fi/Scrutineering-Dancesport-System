@@ -9,6 +9,8 @@ import {
   PIN_LENGTH,
   PayMethod,
   checkAgeGroup,
+  checkClass,
+  checkRoundPlan,
   FeeMode,
   byAge,
   checkEventKind,
@@ -21,6 +23,9 @@ import {
   type AccountKind,
   type AgeGroupDef,
   type AgeGroupInput,
+  type RoundPlanInput,
+  type ClassDef,
+  type ClassInput,
   type EventKindDef,
   type EventKindInput,
   type TotpSetup,
@@ -102,7 +107,7 @@ import { competitions, currentCompetitionId } from './data/competitions.ts'
 import { ageGroupOf, competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
-import { ageGroups, eventKinds } from './data/catalog.ts'
+import { ageGroups, classes, eventKinds } from './data/catalog.ts'
 import { feeFor, paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
 import { announcements } from './announcing.ts'
@@ -125,7 +130,7 @@ import { auditLog, staffUsers } from './data/staff.ts'
 import { isLiveRound, liveRoundComplete, visibleMarks } from './realtime.ts'
 import * as sampleProgram from './program.ts'
 
-export type { AgeGroupInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
+export type { AgeGroupInput, ClassInput, CompetitionInput, EventInput, EventKindInput, RankingFilter } from '@bis/shared'
 export { getSubmissionSnapshot, resetLiveRound, subscribeSubmissions } from './realtime.ts'
 
 const LATENCY_MS = 250
@@ -180,7 +185,7 @@ export const getPayments = (status?: PaymentStatus) =>
 export const getPointsTable = () => reply(pointsTable)
 
 // The kinds in the admin's order and the age groups from the youngest to the oldest
-const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort(byAge) })
+const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort(byAge), classes })
 export const getCatalog = () => reply(catalog())
 
 let heroImage: string | null = null
@@ -312,6 +317,7 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       feeDeadline: input.feeDeadline || null,
       ...(input.image === undefined ? {} : { image: input.image || null }),
       ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }),
+      ...(input.paymentRequired === undefined ? {} : { paymentRequired: input.paymentRequired }),
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) {
       throw new Error('Fill in every field.')
@@ -330,6 +336,7 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       id: `comp-${competitions.length + 1}-${Date.now().toString(36)}`,
       ...values,
       usesPoints: input.usesPoints ?? true,
+      paymentRequired: input.paymentRequired ?? true,
     }
     competitions.push(created)
     record(actorId, 'Created competition', values.name)
@@ -527,6 +534,36 @@ export const deleteEventKind = (actorId: string, id: string, cascade?: boolean) 
     dropEvents(eventsOf('eventKind', id))
     eventKinds.splice(eventKinds.indexOf(kind), 1)
     record(actorId, 'Deleted event kind', kind.name)
+    return { id }
+  })
+
+export const saveClass = (actorId: string, input: ClassInput, id?: string) =>
+  settle<ClassDef>(() => {
+    const checked = checkClass(input, classes.filter((c) => c.name !== id))
+    if ('error' in checked) throw new Error(checked.error)
+    const { name } = checked.values
+    if (id) {
+      const found = classes.find((c) => c.name === id)
+      if (!found) throw new Error('Class not found.')
+      for (const e of events) if (e.class === id) e.class = name
+      for (const p of rankingPoints) if (p.class === id) p.class = name
+      found.name = name
+      record(actorId, 'Renamed class', name)
+      return found
+    }
+    const created = { name }
+    classes.push(created)
+    record(actorId, 'Created class', name)
+    return created
+  })
+
+export const deleteClass = (actorId: string, id: string, cascade?: boolean) =>
+  settle<{ id: string }>(() => {
+    const row = found(classes.find((c) => c.name === id), 'Class')
+    confirmCascade('class', id, cascade)
+    dropEvents(eventsOf('class', id))
+    classes.splice(classes.indexOf(row), 1)
+    record(actorId, 'Deleted class', id)
     return { id }
   })
 
@@ -1058,7 +1095,8 @@ function scheduleOf(competitionId: string): ScheduleItem[] {
       discipline: event.discipline,
       dances: event.dances,
       isSolo: event.isSolo,
-      rounds: rounds.filter((r) => r.eventId === eventId).map((r) => ({ type: r.type, status: r.status })),
+      entryCount: entries.filter((e) => e.eventId === eventId && !e.scratched).length,
+      rounds: rounds.filter((r) => r.eventId === eventId).map((r) => ({ type: r.type, status: r.status, recall: r.recallNumber })),
     }
   })
 }
@@ -1080,6 +1118,31 @@ export const moveScheduledEvent = (
     const event = found(events.find((e) => e.id === eventId), 'Event')
     record(actorId, 'Moved event in schedule', `Event ${event.number}`)
     return scheduleOf(competitionId)
+  })
+
+export const moveScheduledEventTo = (actorId: string, competitionId: string, eventId: string, to: number) =>
+  settle<ScheduleItem[]>(() => {
+    const order = orderFor(competitionId)
+    const from = order.indexOf(eventId)
+    if (from < 0 || !Number.isInteger(to) || to < 1 || to > order.length) throw new Error('That place is not in the schedule.')
+    order.splice(from, 1)
+    order.splice(to - 1, 0, eventId)
+    const event = found(events.find((e) => e.id === eventId), 'Event')
+    record(actorId, 'Moved event in schedule', `Event ${event.number}`)
+    return scheduleOf(competitionId)
+  })
+
+export const setEventRounds = (actorId: string, eventId: string, plan: RoundPlanInput[]) =>
+  settle<void>(() => {
+    const event = found(events.find((e) => e.id === eventId), 'Event')
+    const checked = checkRoundPlan(plan)
+    if ('error' in checked) throw new Error(checked.error)
+    const mine = rounds.filter((r) => r.eventId === eventId)
+    if (mine.some((r) => r.status !== RoundStatus.Pending)) throw new Error('The rounds cannot change after the event has started.')
+    for (let i = rounds.length - 1; i >= 0; i--) if (rounds[i]!.eventId === eventId) rounds.splice(i, 1)
+    for (const p of checked.values) rounds.push({ id: `${eventId}:${p.type}`, eventId, type: p.type, recallNumber: p.recall, status: RoundStatus.Pending })
+    sampleProgram.syncEvent(eventId, checked.values.map((p) => p.type))
+    record(actorId, 'Set rounds', `Event ${event.number}`)
   })
 
 export const getProgram = (competitionId: string) => reply(sampleProgram.programOf(competitionId))
@@ -1122,6 +1185,11 @@ export const moveProgramSlot = (actorId: string, slotId: string, direction: 'up'
   settle<Program>(() => {
     record(actorId, 'Moved program line', slotId)
     return sampleProgram.moveSlot(slotId, direction)
+  })
+export const moveProgramSlotTo = (actorId: string, slotId: string, to: number) =>
+  settle<Program>(() => {
+    record(actorId, 'Moved program line', slotId)
+    return sampleProgram.moveSlotTo(slotId, to)
   })
 export const removeProgramSlot = (actorId: string, slotId: string) =>
   settle<Program>(() => {
@@ -2298,7 +2366,7 @@ export const deleteTeam = (actorId: string, id: string, cascade?: boolean) =>
 
 function eventsOf(kind: DeleteKind, id: string): string[] {
   const match = (e: (typeof events)[number]) =>
-    kind === 'event' ? e.id === id : kind === 'competition' ? e.competitionId === id : kind === 'ageGroup' ? e.ageGroup === id : (e.kind ?? 'standard') === id
+    kind === 'event' ? e.id === id : kind === 'competition' ? e.competitionId === id : kind === 'ageGroup' ? e.ageGroup === id : kind === 'class' ? e.class === id : (e.kind ?? 'standard') === id
   return events.filter(match).map((e) => e.id)
 }
 
@@ -2360,13 +2428,15 @@ function deleteImpactOf(kind: DeleteKind, id: string): DeleteImpact {
     const event = found(events.find((e) => e.id === id), 'Event')
     return { ...base, name: `E${event.number}`, items: underEvents([id]) }
   }
-  if (kind === 'competition' || kind === 'ageGroup' || kind === 'eventKind') {
+  if (kind === 'competition' || kind === 'ageGroup' || kind === 'eventKind' || kind === 'class') {
     const name =
       kind === 'competition'
         ? found(competitions.find((c) => c.id === id), 'Competition').name
         : kind === 'ageGroup'
           ? found(ageGroups.find((g) => g.id === id), 'Age group').name
-          : found(eventKinds.find((k) => k.id === id), 'Kind').name
+          : kind === 'class'
+            ? found(classes.find((c) => c.name === id), 'Class').name
+            : found(eventKinds.find((k) => k.id === id), 'Kind').name
     return { ...base, name, items: underEvents(eventsOf(kind, id), true) }
   }
   if (kind === 'team') {

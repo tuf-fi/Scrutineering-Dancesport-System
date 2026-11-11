@@ -1,4 +1,4 @@
-import { Class, Dance, Discipline, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
+import { Dance, Discipline, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
 import type { AthleteNotification, CompetitorDetails, FeeMode, KindField, MembershipEvent, MemberChangeRequest, MembershipRequest, ProfileChangeRequest } from '@bis/shared'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
@@ -25,6 +25,8 @@ export const competitions = sqliteTable('competitions', {
   image: text('image'),
   // Whether its results count towards the rankings
   usesPoints: integer('uses_points', { mode: 'boolean' }).notNull().default(true),
+  // Whether entering costs money: fees and membership are asked, and an entry is paid. Off for a free competition
+  paymentRequired: integer('payment_required', { mode: 'boolean' }).notNull().default(true),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
   // Set while a venue laptop runs this competition offline: its day data is not changed online until the day is loaded back
@@ -52,7 +54,7 @@ export const events = sqliteTable(
     // 1 is first on the floor
     position: integer('position').notNull(),
     ageGroup: text('age_group').notNull(),
-    class: text('class', { enum: oneOf(Class) }).notNull(),
+    class: text('class').notNull(),
     discipline: text('discipline', { enum: oneOf(Discipline) }).notNull(),
     dances: text('dances', { mode: 'json' }).$type<Dance[]>().notNull(),
     isSolo: integer('is_solo', { mode: 'boolean' }).notNull(),
@@ -387,6 +389,12 @@ export const eventKinds = sqliteTable('event_kinds', {
   sortOrder: integer('sort_order').notNull(),
 })
 
+// The classes, lowest first. Events and ranking points name a class by its name, so a rename updates them.
+export const eventClasses = sqliteTable('event_classes', {
+  name: text('name').primaryKey(),
+  sortOrder: integer('sort_order').notNull(),
+})
+
 export const ageGroups = sqliteTable('age_groups', {
   id: id(),
   name: text('name').notNull(),
@@ -420,7 +428,7 @@ export const rankingPoints = sqliteTable(
       .notNull()
       .references(() => competitors.id),
     ageGroup: text('age_group').notNull(),
-    class: text('class', { enum: oneOf(Class) }).notNull(),
+    class: text('class').notNull(),
     discipline: text('discipline', { enum: oneOf(Discipline) }).notNull(),
     competitionId: text('competition_id')
       .notNull()

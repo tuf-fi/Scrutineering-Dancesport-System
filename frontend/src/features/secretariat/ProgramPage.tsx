@@ -1,5 +1,5 @@
 import { ProgramKind, type ProgramRow } from '@bis/shared'
-import { ArrowDown, ArrowUp, Pencil, Trash2 } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
@@ -18,7 +18,7 @@ import {
 } from '../../components/ui/index.ts'
 import {
   useGenerateProgram,
-  useMoveProgramSlot,
+  useMoveProgramSlotTo,
   useProgram,
   useRemoveProgramSlot,
   useSetProgramStart,
@@ -34,6 +34,7 @@ import {
   programLineName,
 } from '../../lib/format.ts'
 import { programPrintPath } from '../../lib/programFilter.ts'
+import { MovePositionDialog } from './MovePositionDialog.tsx'
 import { ProgramLineDialog } from './ProgramLineDialog.tsx'
 
 const fail = { onError: (e: Error) => toast.error(e.message) }
@@ -63,12 +64,16 @@ export function ProgramPage() {
   const program = useProgram(competitionId ?? '')
   const generate = useGenerateProgram(competitionId ?? '')
   const setStart = useSetProgramStart(competitionId ?? '')
-  const move = useMoveProgramSlot(competitionId ?? '')
+  const move = useMoveProgramSlotTo(competitionId ?? '')
   const remove = useRemoveProgramSlot(competitionId ?? '')
   // The line being edited, or 'new' while adding a break
   const [editing, setEditing] = useState<ProgramRow | 'new' | null>(null)
   const [toRemove, setToRemove] = useState<ProgramRow | null>(null)
+  const [placing, setPlacing] = useState<ProgramRow | null>(null)
   if (program.isError) return <ErrorState onRetry={() => void program.refetch()} />
+
+  const moveTo = (row: ProgramRow, to: number) =>
+    move.mutate({ slotId: row.slotId, to }, { onSuccess: () => toast.success(`Moved ${programLineName(row)} to line ${to}`), onError: fail.onError })
 
   const rows = program.data?.rows ?? []
 
@@ -76,7 +81,7 @@ export function ProgramPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Program"
-        description="The running order: every round, break and the awarding, with the time each starts."
+        description="The running order: every round, break and the awarding, with the time each starts. Drag a line to move it."
       />
 
       <Toolbar>
@@ -112,6 +117,9 @@ export function ProgramPage() {
         rowKey={(r) => r.slotId}
         minWidthClass="min-w-0"
         paginationLabel="Program pagination"
+        onReorder={(row, target) => moveTo(row, target.sequence)}
+        canReorder={() => !move.isPending}
+        reorderLabel={(r) => `Drag ${programLineName(r)} to move it. Arrow keys move it one place.`}
         detailTitle={programLineName}
         empty={{
           title: 'No program yet',
@@ -147,21 +155,10 @@ export function ProgramPage() {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-36',
+            widthClass: 'w-32',
             cell: (r) => (
               <div className="flex justify-end gap-0.5">
-                <IconButton
-                  icon={ArrowUp}
-                  label={`Move ${programLineName(r)} up`}
-                  disabled={r.sequence === 1 || move.isPending}
-                  onClick={() => move.mutate({ slotId: r.slotId, direction: 'up' }, fail)}
-                />
-                <IconButton
-                  icon={ArrowDown}
-                  label={`Move ${programLineName(r)} down`}
-                  disabled={r.sequence === rows.length || move.isPending}
-                  onClick={() => move.mutate({ slotId: r.slotId, direction: 'down' }, fail)}
-                />
+                <IconButton icon={ArrowUpDown} label={`Move ${programLineName(r)} to a position`} disabled={move.isPending} onClick={() => setPlacing(r)} />
                 <IconButton icon={Pencil} label={`Edit ${programLineName(r)}`} onClick={() => setEditing(r)} />
                 <IconButton icon={Trash2} tone="danger" label={`Remove ${programLineName(r)}`} onClick={() => setToRemove(r)} />
               </div>
@@ -179,6 +176,14 @@ export function ProgramPage() {
           onClose={() => setEditing(null)}
         />
       )}
+
+      <MovePositionDialog
+        title={placing ? programLineName(placing) : null}
+        current={placing?.sequence ?? 1}
+        total={rows.length}
+        onMove={(to) => placing && moveTo(placing, to)}
+        onClose={() => setPlacing(null)}
+      />
 
       <Dialog
         open={toRemove !== null}

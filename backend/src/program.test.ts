@@ -81,6 +81,33 @@ describe('the program', () => {
     expect(removed.rows.map((r) => r.sequence)).toEqual(removed.rows.map((_, i) => i + 1))
   })
 
+  it('drops a line at a place, as dragging does', async () => {
+    const before = await read()
+    const last = before.rows.length
+    const moved = await app.ok<Program>('moveProgramSlotTo', [before.rows[0]!.slotId, last], secretariat)
+    expect(moved.rows[last - 1]!.slotId).toBe(before.rows[0]!.slotId)
+    expect(moved.rows[0]!.slotId).toBe(before.rows[1]!.slotId)
+    expect(moved.rows.map((r) => r.sequence)).toEqual(moved.rows.map((_, i) => i + 1))
+    expect((await app.call('moveProgramSlotTo', [before.rows[0]!.slotId, 0], secretariat)).status).toBe(400)
+    expect((await app.call('moveProgramSlotTo', [before.rows[0]!.slotId, last + 1], secretariat)).status).toBe(400)
+    expect((await app.call('moveProgramSlotTo', [before.rows[0]!.slotId, 1], scrutineer)).status).toBe(403)
+    await app.ok('moveProgramSlotTo', [before.rows[0]!.slotId, 1], secretariat)
+  })
+
+  it('follows the rounds an event is given: lines go, and new ones wait at the end', async () => {
+    const before = await app.ok<Program>('generateProgram', [COMP], secretariat)
+    const eventId = roundSlots(before).find((r) => r.roundType === 'final')!.eventId!
+    await app.ok('setEventRounds', [eventId, [{ type: 'final', recall: null }]], secretariat)
+    const alone = await read()
+    expect(roundSlots(alone).filter((r) => r.eventId === eventId).map((r) => r.roundType)).toEqual(['final'])
+
+    await app.ok('setEventRounds', [eventId, [{ type: 'semi_final', recall: 6 }, { type: 'final', recall: null }]], secretariat)
+    const back = await read()
+    expect(roundSlots(back).filter((r) => r.eventId === eventId).map((r) => r.roundType).sort()).toEqual(['final', 'semi_final'])
+    expect(back.rows.at(-1)).toMatchObject({ eventId, roundType: 'semi_final' })
+    expect(back.rows.map((r) => r.sequence)).toEqual(back.rows.map((_, i) => i + 1))
+  })
+
   it('refuses bad input', async () => {
     expect((await app.call('setProgramStart', [COMP, '25:00'], secretariat)).status).toBe(400)
     expect((await app.call('addProgramBreak', [COMP, { kind: 'break', label: ' ', minutes: 10 }], secretariat)).status).toBe(400)

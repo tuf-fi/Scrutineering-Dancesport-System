@@ -19,7 +19,8 @@ function CompetitorForm({ competitor, onDone, onAdded }: { competitor: Competito
   const [teamId, setTeamId] = useState(competitor?.teamId ?? '')
   const [province, setProvince] = useState(saved?.province ?? '')
   const [coachId, setCoachId] = useState(saved?.coachId ?? '')
-  const [beginner, setBeginner] = useState(saved?.beginner ?? false)
+  // No longer asked on the form; a saved value is kept as it is
+  const beginner = saved?.beginner ?? false
   const [memberYear, setMemberYear] = useState(monthYearText(saved?.memberMonth, saved?.memberYear))
   const [dancers, setDancers] = useState<DancerDetails[]>([saved?.dancers[0] ?? BLANK, saved?.dancers[1] ?? BLANK])
   const [errors, setErrors] = useState<{ first?: string; team?: string; year?: string }>({})
@@ -116,10 +117,6 @@ function CompetitorForm({ competitor, onDone, onAdded }: { competitor: Competito
             />
           </div>
           <p className="text-small text-neutral-500">Membership ends December 31 of the year it was paid in, whenever in the year that was.</p>
-          <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
-            <input type="checkbox" checked={beginner} onChange={(e) => setBeginner(e.target.checked)} className="size-5 accent-neutral-900" />
-            Beginner (BGB): no regional or national experience
-          </label>
         </section>
 
         {names.map((name, i) => (

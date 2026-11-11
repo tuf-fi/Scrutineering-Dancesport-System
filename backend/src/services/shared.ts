@@ -41,6 +41,7 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
   ...(r.image ? { image: r.image } : {}),
   usesPoints: r.usesPoints,
+  paymentRequired: r.paymentRequired,
 })
 
 export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
@@ -380,6 +381,7 @@ const toAgeGroup = (r: typeof t.ageGroups.$inferSelect): AgeGroupDef => ({
 // The kinds in the order the admin keeps them, and the age groups from the youngest to the oldest
 export const catalogOf = (ctx: Ctx): Catalog => ({
   kinds: ctx.db.select().from(t.eventKinds).orderBy(asc(t.eventKinds.sortOrder)).all().map(toKind),
+  classes: ctx.db.select().from(t.eventClasses).orderBy(asc(t.eventClasses.sortOrder)).all().map((c) => ({ name: c.name })),
   ageGroups: ctx.db
     .select()
     .from(t.ageGroups)

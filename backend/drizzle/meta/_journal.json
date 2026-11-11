@@ -330,6 +330,20 @@
       "when": 1794212243663,
       "tag": "0046_offline_held",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "6",
+      "when": 1794360757721,
+      "tag": "0047_competition_payment_required",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "6",
+      "when": 1794402245803,
+      "tag": "0048_event_classes",
+      "breakpoints": true
     }
   ]
 }

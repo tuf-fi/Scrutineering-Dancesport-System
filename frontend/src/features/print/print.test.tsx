@@ -42,7 +42,7 @@ describe('printouts', () => {
       expect(await screen.findByRole('columnheader', { name: letter })).toBeInTheDocument()
     }
     expect(screen.getByRole('columnheader', { name: '1-6' })).toBeInTheDocument()
-    expect(screen.getByRole('columnheader', { name: 'Total' })).toBeInTheDocument()
+    expect(screen.queryByRole('columnheader', { name: 'Total' })).not.toBeInTheDocument()
     await waitFor(() => expect(sheetRows()).toHaveLength(6))
   })
 

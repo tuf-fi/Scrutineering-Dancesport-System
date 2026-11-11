@@ -1,4 +1,4 @@
-import { AgeGroup, Discipline, EventKind } from './enums.ts'
+import { AgeGroup, Class, Discipline, EventKind } from './enums.ts'
 
 // How an event's entry is priced from the fee schedule: by age group and solo or couple, at the couple price of the
 // younger or older tier, or at the one fixed price
@@ -60,9 +60,17 @@ export interface AgeGroupDef {
   family?: string
 }
 
+// A class, from the beginners' E1 up. Its name is what events and result sheets show, and the list keeps the order.
+export interface ClassDef {
+  name: string
+}
+export type ClassInput = ClassDef
+
 export interface Catalog {
   kinds: EventKindDef[]
   ageGroups: AgeGroupDef[]
+  // From the lowest class to the highest
+  classes: ClassDef[]
 }
 
 // What the admin sends for a kind. The price is kept when left out (a new kind starts at the standard price).
@@ -115,7 +123,9 @@ const compare = (x: number, y: number) => (x === y ? 0 : x > y ? 1 : -1)
 export const byAge = (a: Pick<AgeGroupDef, 'bornFrom' | 'bornTo'>, b: Pick<AgeGroupDef, 'bornFrom' | 'bornTo'>) =>
   compare(b.bornFrom ?? -Infinity, a.bornFrom ?? -Infinity) || compare(b.bornTo ?? Infinity, a.bornTo ?? Infinity)
 
-export const DEFAULT_CATALOG: Catalog = { kinds: DEFAULT_EVENT_KINDS, ageGroups: DEFAULT_AGE_GROUPS }
+export const DEFAULT_CLASSES: ClassDef[] = Object.values(Class).map((name) => ({ name }))
+
+export const DEFAULT_CATALOG: Catalog = { kinds: DEFAULT_EVENT_KINDS, ageGroups: DEFAULT_AGE_GROUPS, classes: DEFAULT_CLASSES }
 
 // A group or kind that was deleted after an event used it cannot happen (the server refuses), but a label is
 // still readable from the id if one is ever missing
@@ -167,6 +177,15 @@ export function checkEventKind(input: EventKindInput | undefined, others: EventK
       requires: [...new Set(input.requires)],
     },
   }
+}
+
+// others are the classes apart from the one being edited
+export function checkClass(input: ClassInput | undefined, others: ClassDef[]): Checked<ClassInput> {
+  const name = trimmed(input?.name)
+  if (!name) return { error: 'Enter the name of the class.', status: 400 }
+  if (name.length > 20) return { error: 'The name is too long. Use up to 20 characters.', status: 400 }
+  if (others.some((c) => c.name.toLowerCase() === name.toLowerCase())) return { error: 'A class with this name already exists.', status: 409 }
+  return { values: { name } }
 }
 
 const MIN_YEAR = 1900

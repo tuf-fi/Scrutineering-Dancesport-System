@@ -19,6 +19,10 @@ const RULE_LABEL: Record<NonNullable<SkatingRow['decidedBy']>, string> = {
   shared: 'Shared',
 }
 
+// Count of marks at this place or better, with their sum, e.g. 4 (6)
+const majorityCell = (r: SkatingRow, i: number) =>
+  r.majority[i] ? `${r.majority[i]} (${r.majoritySums[i] ?? 0})` : (r.majority[i] ?? '')
+
 function columnsFor(table: SkatingTable) {
   const isPlacing = table.kind === 'placing'
   const dances = table.rows[0]?.dancePlaces ?? []
@@ -39,7 +43,7 @@ function columnsFor(table: SkatingTable) {
       ? Array.from({ length: table.places }, (_, i) => ({
           key: `maj-${i + 1}`,
           header: placeRange(i + 1),
-          cell: (r: SkatingRow) => r.majority[i] ?? '',
+          cell: (r: SkatingRow) => majorityCell(r, i),
           mono: true,
           muted: true,
           align: 'right' as const,
@@ -56,7 +60,16 @@ function columnsFor(table: SkatingTable) {
       hideBelow: 'md' as const,
       group: 'Dance places',
     })),
-    { key: 'total', header: isPlacing ? 'Total' : 'X', cell: (r: SkatingRow) => r.total, mono: true, bold: !isPlacing, align: 'right' as const },
+    ...(!isPlacing || dances.length > 0
+      ? [{
+          key: 'total',
+          header: isPlacing ? 'Total' : 'X',
+          cell: (r: SkatingRow) => (isPlacing ? r.dancePlaces.reduce((sum, d) => sum + d.place, 0) : r.total),
+          mono: true,
+          bold: !isPlacing,
+          align: 'right' as const,
+        }]
+      : []),
     ...(showRule
       ? [{ key: 'rule', header: 'Rule', cell: (r: SkatingRow) => (r.decidedBy ? RULE_LABEL[r.decidedBy] : ''), hideBelow: 'md' as const }]
       : []),

@@ -1,5 +1,6 @@
 import type { EntryRow } from '@bis/shared'
 import { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge.tsx'
 import { Button, ButtonLink, Dialog, ErrorState, PageHeader, Skeleton, Table, toast } from '../../components/ui/index.ts'
@@ -37,7 +38,8 @@ export function EventPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to="/secretariat" className="w-fit text-small text-neutral-600 hover:text-neutral-900">
+      <Link to="/secretariat" className="group flex w-fit items-center gap-2 text-small text-neutral-600 hover:text-neutral-900">
+        <ArrowLeft aria-hidden className="size-4 transition-transform group-hover:-translate-x-1" strokeWidth={1.75} />
         All events
       </Link>
       <PageHeader
@@ -51,7 +53,7 @@ export function EventPage() {
             <ButtonLink variant="secondary" to={`/print/recall/${eventId}`} target="_blank">
               Recall list
             </ButtonLink>
-            <ButtonLink variant="ghost" to={`/print?event=${eventId}`} target="_blank">
+            <ButtonLink to={`/print?event=${eventId}`} target="_blank">
               All printouts
             </ButtonLink>
           </>

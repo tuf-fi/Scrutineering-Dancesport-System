@@ -105,13 +105,15 @@ export const entryRequests = {
   submitEntryRequest(ctx: Ctx, input: EntryRequestInput): EntryRequest {
     requireVerified(ctx)
     const { who, competitor } = mine(ctx, input?.competitorId)
-    if (!ONLINE.includes(input.method)) return fail('Choose GCash, Maya or bank. Cash is paid at the venue.')
-    const receipt = typeof input.receipt === 'string' ? input.receipt : ''
-    if (!receipt) return fail('Send a screenshot of your payment.')
-    if (!PHOTO.test(receipt) || receipt.length > MAX_RECEIPT) return fail('Send the screenshot as a JPEG, PNG or WebP picture.')
-    const reference = clean(input.reference).slice(0, 60)
     const eventIds = [...new Set(Array.isArray(input.eventIds) ? input.eventIds.map(String) : [])]
     const priced = quote(ctx, competitor.id, eventIds)
+    // A free competition needs no payment method or screenshot
+    const paying = priced.paymentRequired
+    if (paying && !ONLINE.includes(input.method)) return fail('Choose GCash, Maya or bank. Cash is paid at the venue.')
+    const receipt = paying && typeof input.receipt === 'string' ? input.receipt : ''
+    if (paying && !receipt) return fail('Send a screenshot of your payment.')
+    if (paying && (!PHOTO.test(receipt) || receipt.length > MAX_RECEIPT)) return fail('Send the screenshot as a JPEG, PNG or WebP picture.')
+    const reference = paying ? clean(input.reference).slice(0, 60) : ''
     for (const id of eventIds) {
       const event = getEventRow(ctx, id)
       checkEligible(ctx, competitor.id, event)
@@ -133,7 +135,7 @@ export const entryRequests = {
       eventIds,
       total: priced.total,
       warnings: priced.warnings,
-      method: input.method,
+      method: paying ? input.method : PayMethod.Unpaid,
       reference,
       receipt,
       status: 'waiting',
@@ -186,7 +188,7 @@ export const entryRequests = {
     const result = enterCompetitor(ctx, { competitorId: row.competitorId, eventIds: row.eventIds, method: row.method, reference: row.reference }, row.receipt)
     ctx.db.update(t.entryRequests).set({ status: 'approved', decidedAt: now(), decidedBy: actor(ctx).id }).where(eq(t.entryRequests.id, row.id)).run()
     record(ctx.db, actor(ctx).id, 'Approved an entry request', row.requesterName, { after: { paymentId: result.paymentId, total: result.total } })
-    tell(ctx, row, { kind: 'entry_approved', title: 'Your entry was approved', detail: `${row.eventIds.length} ${row.eventIds.length === 1 ? 'event' : 'events'} entered. Your payment was received.`, link: `${base(row)}/entries` })
+    tell(ctx, row, { kind: 'entry_approved', title: 'Your entry was approved', detail: `${row.eventIds.length} ${row.eventIds.length === 1 ? 'event' : 'events'} entered.${result.paymentId ? ' Your payment was received.' : ''}`, link: `${base(row)}/entries` })
     return entryRequests.getEntryRequests(ctx)
   },
 

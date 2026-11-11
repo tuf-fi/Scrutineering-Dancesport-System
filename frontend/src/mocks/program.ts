@@ -153,6 +153,32 @@ export function moveSlot(slotId: string, direction: 'up' | 'down'): Program {
   return programOf(competitionId)
 }
 
+export function moveSlotTo(slotId: string, to: number): Program {
+  const { competitionId, list, slot } = find(slotId)
+  if (!Number.isInteger(to) || to < 1 || to > list.length) throw new Error('That place is not in the program.')
+  list.splice(list.indexOf(slot), 1)
+  list.splice(to - 1, 0, slot)
+  return programOf(competitionId)
+}
+
+// After an event's rounds change: lines of rounds that are gone leave, new rounds wait at the end
+export function syncEvent(eventId: string, types: RoundType[]) {
+  const event = events.find((e) => e.id === eventId)
+  if (!event) return
+  const list = slotsOf(event.competitionId)
+  if (list.length === 0) return
+  for (let i = list.length - 1; i >= 0; i--) {
+    const s = list[i]!
+    if (s.kind === ProgramKind.Round && s.eventId === eventId && !types.includes(s.roundType as RoundType)) list.splice(i, 1)
+  }
+  const couples = entries.filter((e) => e.eventId === eventId && !e.scratched).length
+  for (const type of types) {
+    if (!list.some((s) => s.kind === ProgramKind.Round && s.eventId === eventId && s.roundType === type)) {
+      list.push({ id: `slot-${eventId}-${type}`, kind: ProgramKind.Round, eventId, roundType: type, label: null, minutes: defaultMinutes(type, event.dances.length, couples) })
+    }
+  }
+}
+
 export function removeSlot(slotId: string): Program {
   const { competitionId, list, slot } = find(slotId)
   list.splice(list.indexOf(slot), 1)

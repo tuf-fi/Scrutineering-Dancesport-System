@@ -81,7 +81,8 @@ export const Class = {
   B: 'B',
   A: 'A',
 } as const
-export type Class = (typeof Class)[keyof typeof Class]
+// The classes the database starts with; the admin can add, rename and delete classes, so a class is any string
+export type Class = string
 
 export const Discipline = {
   Latin: 'latin',

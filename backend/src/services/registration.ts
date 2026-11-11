@@ -101,6 +101,14 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   const competitionYear = Number(competition.date.slice(0, 4))
 
   const details = competitor.details
+  // A free competition asks for no fee, membership or payment: only the warnings about who may enter remain
+  if (!competition.paymentRequired) {
+    const catalog = catalogOf(ctx)
+    const warnings = [...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, 0), ...medalWarnings(ctx, competitor.id, competition, events, catalog)]
+    const day = today()
+    if (competition.entryDeadline && day > competition.entryDeadline) warnings.push(`Entries closed on ${competition.entryDeadline}. This is a late entry.`)
+    return { lines: [], total: 0, warnings, year: competitionYear, newMembers: 0, collect: { membership: false, summit: false }, coachId: undefined, paymentRequired: false }
+  }
   // A dancer is covered by the entry form's membership year, or by a membership paid on their own account (matched by email)
   const paidOnAccount = (email: string | undefined) =>
     Boolean(email) && ctx.db.select({ year: t.athletes.memberYear }).from(t.athletes).where(eq(t.athletes.email, email!.trim().toLowerCase())).get()?.year === competitionYear
@@ -139,14 +147,14 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   if (competition.feeDeadline && day > competition.feeDeadline) {
     warnings.push(`Fees were due on ${competition.feeDeadline}. An entry still unpaid is subject to disqualification.`)
   }
-  return { lines, total, warnings, ...(coach ? { coach } : {}), year: competitionYear, newMembers, collect, coachId: coachRow?.id }
+  return { lines, total, warnings, ...(coach ? { coach } : {}), year: competitionYear, newMembers, collect, coachId: coachRow?.id, paymentRequired: true }
 }
 
 // Enters one dancer or couple in several events at once, with one payment; a receipt is kept when it was sent online
 export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: string): RegistrationResult {
   const competitor = getCompetitorRow(ctx, input?.competitorId)
-  if (!Object.values(PayMethod).includes(input.method)) return fail('Choose how it was paid.')
   const priced = quote(ctx, competitor.id, input.eventIds, input.coachFees)
+  if (priced.paymentRequired && !Object.values(PayMethod).includes(input.method)) return fail('Choose how it was paid.')
   for (const id of new Set(input.eventIds)) {
     const event = getEventRow(ctx, id)
     checkEligible(ctx, competitor.id, event)
@@ -157,6 +165,13 @@ export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: st
   }
 
   const user = actor(ctx)
+  if (!priced.paymentRequired) {
+    for (const eventId of new Set(input.eventIds)) {
+      ctx.db.insert(t.entries).values({ id: newId(), eventId, competitorId: competitor.id, scratched: false, paymentId: null, late: false }).run()
+    }
+    record(ctx.db, user.id, 'Registered entries', competitor.names.join(' & '), { after: { events: input.eventIds.length, payment: 'not required' } })
+    return { lines: [], total: 0, warnings: priced.warnings, paymentId: '' }
+  }
   const paid = input.method !== PayMethod.Unpaid
   const paymentId = newId()
   // What the payment settles once it is paid, now or later

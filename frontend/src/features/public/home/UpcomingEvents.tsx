@@ -1,7 +1,9 @@
 import type { Competition } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router'
+import { registerPath } from '../../../app/nav.ts'
 import { Skeleton } from '../../../components/ui/index.ts'
+import { useAuth } from '../../../stores/auth.ts'
 import { dateParts, todayIso } from '../../../lib/format.ts'
 import { HERO_IMAGE } from '../../../lib/hero.ts'
 import { EmptyNote } from './EmptyNote.tsx'
@@ -11,6 +13,7 @@ const daysUntil = (iso: string) => Math.round((Date.parse(iso) - Date.parse(toda
 
 // One photo card per competition: the date and countdown on top, the name and venue at the foot
 export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undefined; upcoming: boolean }) {
+  const user = useAuth((s) => s.user)
   const shown = upcoming ? (list ?? []).slice(0, 6) : []
 
   return (
@@ -56,7 +59,7 @@ export function UpcomingEvents({ list, upcoming }: { list: Competition[] | undef
                     <ArrowUpRight aria-hidden className="size-6 shrink-0 transition-opacity duration-300 group-hover:opacity-0" strokeWidth={1.5} />
                   </span>
                   <Link
-                    to="/athlete"
+                    to={registerPath(c.id, !!user)}
                     className="group/register absolute inset-x-0 bottom-0 z-10 hidden h-14 translate-y-full items-center lg:flex justify-between bg-gold-400 px-6 text-small font-semibold text-black transition duration-500 ease-out hover:bg-gold-300 lg:group-hover:translate-y-0 focus-visible:translate-y-0"
                   >
                     Register

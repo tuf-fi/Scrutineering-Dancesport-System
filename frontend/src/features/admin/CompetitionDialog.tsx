@@ -15,6 +15,7 @@ interface Values {
   feeDeadline: string
   image: string
   usesPoints: boolean
+  paymentRequired: boolean
 }
 
 type Errors = Partial<Record<keyof Values, string>>
@@ -26,7 +27,7 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
   const [errors, setErrors] = useState<Errors>({})
   const picker = useRef<HTMLInputElement>(null)
 
-  const set = (key: Exclude<keyof Values, 'usesPoints'>) => (e: { target: { value: string } }) =>
+  const set = (key: Exclude<keyof Values, 'usesPoints' | 'paymentRequired'>) => (e: { target: { value: string } }) =>
     setValues((v) => ({ ...v, [key]: e.target.value }))
 
   async function choose(file: File | undefined) {
@@ -88,8 +89,29 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
           <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" aria-label="Card photo" className="sr-only" onChange={(e) => void choose(e.target.files?.[0])} />
         </div>
       </div>
+      <fieldset className="flex flex-col gap-2 sm:col-span-2">
+        <legend className="mb-1 text-small font-medium text-neutral-600">Payment</legend>
+        {[
+          { value: true, label: 'Payment and membership fee required', note: 'Entries are priced, and each one is paid before it counts.' },
+          { value: false, label: 'Payment not required', note: 'Free to enter: no fee, membership, payment method or screenshot.' },
+        ].map((o) => (
+          <label key={o.label} className="flex cursor-pointer items-start gap-3 text-small text-neutral-900">
+            <input
+              type="radio"
+              name="payment-required"
+              checked={values.paymentRequired === o.value}
+              onChange={() => setValues((v) => ({ ...v, paymentRequired: o.value, ...(o.value ? {} : { feeDeadline: '' }) }))}
+              className="mt-0.5 size-5 shrink-0 accent-neutral-900"
+            />
+            <span className="flex flex-col">
+              {o.label}
+              <span className="text-neutral-600">{o.note}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
       <Input label="Entries close" hint="Optional. Later entries are flagged." type="date" value={values.entryDeadline} onChange={set('entryDeadline')} />
-      <Input label="Fees due" hint="Optional. Later unpaid entries are flagged." type="date" value={values.feeDeadline} onChange={set('feeDeadline')} />
+      {values.paymentRequired && <Input label="Fees due" hint="Optional. Later unpaid entries are flagged." type="date" value={values.feeDeadline} onChange={set('feeDeadline')} />}
       <div className="flex flex-col gap-1.5 sm:col-span-2">
         <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
           <input
@@ -171,8 +193,9 @@ export function CompetitionDialog({
                 feeDeadline: competition.feeDeadline ?? '',
                 image: competition.image ?? '',
                 usesPoints: competition.usesPoints,
+                paymentRequired: competition.paymentRequired,
               }
-            : { name: '', date: '', venue: '', organizer: '', executor: '', entryDeadline: '', feeDeadline: '', image: '', usesPoints: true }
+            : { name: '', date: '', venue: '', organizer: '', executor: '', entryDeadline: '', feeDeadline: '', image: '', usesPoints: true, paymentRequired: true }
         }
         onSubmit={submit}
       />

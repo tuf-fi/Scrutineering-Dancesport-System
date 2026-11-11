@@ -86,7 +86,7 @@ export function EventsPage() {
             key: 'number',
             header: 'Event',
             cell: (e) => (
-              <Link to={`/secretariat/events/${e.id}`} className="font-medium text-neutral-900 hover:underline">
+              <Link to={`/secretariat/events/${e.id}`} className="font-medium text-neutral-900 underline decoration-neutral-400 underline-offset-4 hover:decoration-gold-500">
                 {eventCode(e)}
               </Link>
             ),

@@ -1,6 +1,9 @@
 import {
   Role,
+  RoundStatus,
   SubmissionStatus,
+  checkRoundPlan,
+  type RoundPlanInput,
   type AdjudicatorState,
   type AdjudicatorSubmission,
   type HeatAssignment,
@@ -15,6 +18,7 @@ import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { QUIET_MS } from '../realtime/hub.ts'
+import { syncEventSlots } from './program.ts'
 import {
   activeEntryRows,
   backNumbers,
@@ -66,6 +70,30 @@ export const rounds = {
     }
     record(ctx.db, actor(ctx).id, 'Planned rounds', `${planned} events`)
     return planned
+  },
+
+  // The secretariat or the scrutineer chooses an event's rounds and how many each recalls, until its first round starts
+  setEventRounds(ctx: Ctx, eventId: string, plan: RoundPlanInput[]): void {
+    const event = getEventRow(ctx, eventId)
+    const checked = checkRoundPlan(plan)
+    if ('error' in checked) return fail(checked.error, checked.status)
+    const existing = roundsOfEvent(ctx, eventId)
+    if (existing.some((r) => r.status !== RoundStatus.Pending)) return fail('The rounds cannot change after the event has started.', 409)
+    const types = checked.values.map((p) => p.type)
+    ctx.db.transaction((tx) => {
+      const gone = existing.filter((r) => !types.includes(r.type)).map((r) => r.id)
+      if (gone.length > 0) tx.delete(t.rounds).where(inArray(t.rounds.id, gone)).run()
+      checked.values.forEach((p, i) => {
+        const kept = existing.find((r) => r.type === p.type)
+        if (kept) tx.update(t.rounds).set({ position: i + 1, recallNumber: p.recall }).where(eq(t.rounds.id, kept.id)).run()
+        else tx.insert(t.rounds).values({ id: newId(), eventId, type: p.type, position: i + 1, recallNumber: p.recall, status: RoundStatus.Pending }).run()
+      })
+    })
+    syncEventSlots(ctx, event, types)
+    record(ctx.db, actor(ctx).id, 'Set rounds', `Event ${event.number}`, {
+      before: existing.map((r) => ({ type: r.type, recall: r.recallNumber })),
+      after: checked.values,
+    })
   },
 
   getCompetitionRounds(ctx: Ctx, competitionId: string): RoundRow[] {

@@ -54,6 +54,32 @@ function renumber(ctx: Ctx, ordered: Slot[]) {
   })
 }
 
+// After the rounds of an event change: lines of rounds that are gone leave the program, and a round without a line
+// gets one at the end, to be dragged where it belongs. A competition with no program yet is left for Generate.
+export function syncEventSlots(ctx: Ctx, event: typeof t.events.$inferSelect, types: RoundType[]) {
+  const all = slotsOf(ctx, event.competitionId)
+  if (all.length === 0) return
+  const stale = all.filter((s) => s.kind === ProgramKind.Round && s.eventId === event.id && !types.includes(s.roundType as RoundType))
+  if (stale.length > 0) ctx.db.delete(t.programSlots).where(inArray(t.programSlots.id, stale.map((s) => s.id))).run()
+  const kept = all.filter((s) => !stale.includes(s))
+  const couples = activeEntryRows(ctx, event.id).length
+  const added: Slot[] = types
+    .filter((type) => !kept.some((s) => s.kind === ProgramKind.Round && s.eventId === event.id && s.roundType === type))
+    .map((type, i) => ({
+      id: newId(),
+      competitionId: event.competitionId,
+      sequence: kept.length + i + 1,
+      kind: ProgramKind.Round,
+      eventId: event.id,
+      roundType: type,
+      label: null,
+      minutes: defaultMinutes(type, event.dances.length, couples),
+    }))
+  if (added.length > 0) ctx.db.insert(t.programSlots).values(added).run()
+  renumber(ctx, [...kept, ...added])
+  changed(ctx)
+}
+
 const panelLetters = (ctx: Ctx, eventId: string): string[] =>
   ctx.db
     .select({ letter: t.adjudicators.letter })
@@ -299,6 +325,22 @@ export const program = {
     renumber(ctx, order)
     record(ctx.db, actor(ctx).id, 'Moved program line', slot.label ?? `Line ${slot.sequence}`, { before: { sequence: from + 1 }, after: { sequence: to + 1 } })
     changed(ctx)
+    return build(ctx, slot.competitionId)
+  },
+
+  // Drops a line at a place in the running order (1 is first), as dragging does
+  moveProgramSlotTo(ctx: Ctx, slotId: string, to: number): Program {
+    const slot = slotRow(ctx, slotId)
+    const order = slotsOf(ctx, slot.competitionId)
+    const from = order.findIndex((s) => s.id === slotId)
+    if (!Number.isInteger(to) || to < 1 || to > order.length) return fail('That place is not in the program.')
+    if (to - 1 !== from) {
+      order.splice(from, 1)
+      order.splice(to - 1, 0, slot)
+      renumber(ctx, order)
+      record(ctx.db, actor(ctx).id, 'Moved program line', slot.label ?? `Line ${slot.sequence}`, { before: { sequence: from + 1 }, after: { sequence: to } })
+      changed(ctx)
+    }
     return build(ctx, slot.competitionId)
   },
 

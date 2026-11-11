@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `payment_required` integer DEFAULT true NOT NULL;

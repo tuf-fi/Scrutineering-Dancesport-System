@@ -54,5 +54,8 @@ export const useMoveProgramSlot = (competitionId: string) =>
     api.moveProgramSlot(actor(), v.slotId, v.direction),
   )
 
+export const useMoveProgramSlotTo = (competitionId: string) =>
+  useProgramWrite(competitionId, (v: { slotId: string; to: number }) => api.moveProgramSlotTo(actor(), v.slotId, v.to))
+
 export const useRemoveProgramSlot = (competitionId: string) =>
   useProgramWrite(competitionId, (slotId: string) => api.removeProgramSlot(actor(), slotId))

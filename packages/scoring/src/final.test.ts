@@ -51,6 +51,11 @@ describe('final summary (Rules 9 and 10)', () => {
     ).toEqual({ '101': 1, '102': 2, '103': 3, '104': 4, '105': 5, '106': 6 })
   })
 
+  it('Rule 10 counts the place under review or better, not the most 1sts first', () => {
+    // X and Y total 12 and fight for 2nd. Y has two 1sts, but X has three marks of 2nd or better to Y's two
+    expect(summary({ W: [1, 1, 1, 1], X: [2, 2, 2, 6], Y: [1, 1, 5, 5], Z: [8, 8, 8, 8] })).toEqual({ W: 1, X: 2, Y: 3, Z: 4 })
+  })
+
   it('leaves a Rule 11 tie shared when there are no marks to break it', () => {
     expect(summary({ a: [1, 2], b: [2, 1], c: [3, 3] })).toEqual({ a: 1.5, b: 1.5, c: 3 })
   })
@@ -81,6 +86,26 @@ describe('multi-dance final', () => {
       ['C', 3, 'total'],
     ])
     expect(result.rows[0]!.dancePlaces).toEqual({ waltz: 1, tango: 2 })
+  })
+
+  it('test case 4: equal totals of 6 and equal 1st places go to Rule 11, not to counting more places', () => {
+    const result = placeFinal({
+      competitorIds: ['P', 'Q'],
+      adjudicatorIds: ['A', 'B', 'C'],
+      dances: [
+        dance(Dance.Waltz, { P: [1, 1, 2], Q: [2, 2, 1] }),
+        dance(Dance.Tango, { P: [2, 2, 1], Q: [1, 1, 2] }),
+        dance(Dance.Foxtrot, { P: [1, 1, 1], Q: [2, 2, 2] }),
+        dance(Dance.Quickstep, { P: [2, 2, 1], Q: [1, 1, 2] }),
+      ],
+    })
+    // P: 1, 2, 1, 2 and Q: 2, 1, 2, 1, so both total 6 with two 1sts each. Rule 11 over all 12 marks:
+    // P has seven 1sts (a majority of 12), Q five, so P wins
+    expect(result.rows[0]!.dancePlaces).toEqual({ waltz: 1, tango: 2, foxtrot: 1, quickstep: 2 })
+    expect(result.rows.map((r) => [r.competitorId, r.total, r.place, r.decidedBy])).toEqual([
+      ['P', 6, 1, 'rule11'],
+      ['Q', 6, 2, 'rule10'],
+    ])
   })
 
   it('shares the place when Rule 11 cannot split the tie either', () => {
@@ -186,5 +211,14 @@ describe('multi-dance edge cases', () => {
   it('rejects a repeated dance', () => {
     const d = dance(Dance.Waltz, { a: [1, 1, 1] })
     expect(() => placeFinal({ competitorIds: ['a'], adjudicatorIds: ['A', 'B', 'C'], dances: [d, d] })).toThrow(/more than once/)
+  })
+})
+
+describe('half places in Rule 10', () => {
+  it('a shared 2.5 adds as 2.5 but does not count as a 2nd place when counting', () => {
+    // X and Y both total 7.5. For 2nd, X has one mark of 2nd or better and Y has none (2.5 is 3rd)
+    expect(
+      summary({ W: [1, 1, 1], X: [2, 2.5, 3], Y: [2.5, 2.5, 2.5], Z: [4, 4, 4] }),
+    ).toEqual({ W: 1, X: 2, Y: 3, Z: 4 })
   })
 })

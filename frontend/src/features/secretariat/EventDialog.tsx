@@ -1,4 +1,4 @@
-import { Class, DISCIPLINE_DANCES, Discipline, type Event } from '@bis/shared'
+import { DISCIPLINE_DANCES, Discipline, type Event } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, Textarea, toast } from '../../components/ui/index.ts'
 import { useSaveEvent, useCatalog } from '../../hooks/index.ts'
@@ -19,10 +19,10 @@ function EventForm({
   onDone: () => void
 }) {
   const save = useSaveEvent()
-  const { kinds, ageGroups } = useCatalog()
+  const { kinds, classes, ageGroups } = useCatalog()
   const [number, setNumber] = useState(String(event?.number ?? nextNumber))
   const [ageGroup, setAgeGroup] = useState(event?.ageGroup ?? ageGroups[0]?.id ?? '')
-  const [cls, setCls] = useState(event?.class ?? Class.E1)
+  const [cls, setCls] = useState(event?.class ?? classes[0]?.name ?? '')
   const [discipline, setDiscipline] = useState(event?.discipline ?? Discipline.Latin)
   const [dances, setDances] = useState(event?.dances ?? [])
   const [type, setType] = useState(event?.isSolo === false ? 'couple' : 'solo')
@@ -106,10 +106,10 @@ function EventForm({
             </option>
           ))}
         </Select>
-        <Select label="Class" required value={cls} onChange={(e) => setCls(e.target.value as Class)}>
-          {Object.values(Class).map((c) => (
-            <option key={c} value={c}>
-              {c}
+        <Select label="Class" required value={cls} onChange={(e) => setCls(e.target.value)}>
+          {classes.map((c) => (
+            <option key={c.name} value={c.name}>
+              {c.name}
             </option>
           ))}
         </Select>

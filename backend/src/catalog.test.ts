@@ -23,6 +23,30 @@ beforeAll(async () => {
 })
 afterAll(() => app.close())
 
+describe('classes', () => {
+  it('starts with E1 to A, and only the admin can add, rename and delete', async () => {
+    expect((await app.ok<Catalog>('getCatalog', [])).classes.map((c) => c.name)).toEqual(['E1', 'D', 'C', 'B', 'A'])
+    expect((await app.call('saveClass', [{ name: 'Open' }], secretariat)).status).toBe(403)
+    expect((await app.call('saveClass', [{ name: ' ' }], admin)).error).toMatch(/name/)
+    expect((await app.call('saveClass', [{ name: 'a' }], admin)).error).toMatch(/already exists/)
+    await app.ok('saveClass', [{ name: 'Open' }], admin)
+    expect((await app.ok<Catalog>('getCatalog', [])).classes.at(-1)).toEqual({ name: 'Open' })
+  })
+
+  it('refuses an event in a class that does not exist, renames the class on its events, and deletes with its events only when told to', async () => {
+    expect((await app.call('saveEvent', [competitionId, { ...eventInput, class: 'Z' }], secretariat)).error).toMatch(/Choose a class/)
+    const event = await app.ok<Event>('saveEvent', [competitionId, { ...eventInput, number: 902, class: 'Open' }], secretariat)
+    await app.ok('saveClass', [{ name: 'Masters open' }, 'Open'], admin)
+    expect((await app.ok<Event[]>('getEvents', [competitionId])).find((e) => e.id === event.id)?.class).toBe('Masters open')
+
+    const refusal = await app.call('deleteClass', ['Masters open'], admin)
+    expect(refusal.status).toBe(409)
+    await app.ok('deleteClass', ['Masters open', true], admin)
+    expect((await app.ok<Event[]>('getEvents', [competitionId])).some((e) => e.id === event.id)).toBe(false)
+    expect((await app.ok<Catalog>('getCatalog', [])).classes.map((c) => c.name)).toEqual(['E1', 'D', 'C', 'B', 'A'])
+  })
+})
+
 describe('event kinds', () => {
   it('starts with the built-in kinds and age groups, readable without signing in', async () => {
     const catalog = await app.ok<Catalog>('getCatalog', [])
@@ -156,6 +180,7 @@ describe('age groups', () => {
 
 describe('rules follow the catalog', () => {
   const catalog: Catalog = {
+    classes: [{ name: 'E1' }, { name: 'D' }],
     kinds: [
       { id: 'standard', name: 'Standard', feeMode: 'standard', beginnersOnly: false, closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
       { id: 'school', name: 'School cup', feeMode: 'couple_older', beginnersOnly: false, closedToProvince: false, disciplines: ['latin', 'standard'], requires: ['email', 'membership'] },

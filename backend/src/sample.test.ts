@@ -127,6 +127,33 @@ describe('secretariat', () => {
     expect((await app.call('moveScheduledEvent', [COMP, after[0]!.eventId, 'up'], secretariat)).status).toBe(400)
   })
 
+  it('drops an event at a place in the schedule', async () => {
+    const before = await app.ok<ScheduleItem[]>('getSchedule', [COMP], secretariat)
+    const last = before.length
+    const after = await app.ok<ScheduleItem[]>('moveScheduledEventTo', [COMP, before[0]!.eventId, last], secretariat)
+    expect(after[last - 1]!.eventId).toBe(before[0]!.eventId)
+    expect(after.map((i) => i.position)).toEqual(after.map((_, i) => i + 1))
+    expect((await app.call('moveScheduledEventTo', [COMP, before[0]!.eventId, 0], secretariat)).status).toBe(400)
+    const restored = await app.ok<ScheduleItem[]>('moveScheduledEventTo', [COMP, before[0]!.eventId, 1], secretariat)
+    expect(restored.map((i) => i.eventId)).toEqual(before.map((i) => i.eventId))
+  })
+
+  it('lets the secretariat and the scrutineer choose an event’s rounds until it starts', async () => {
+    const [event] = await app.ok<ScheduleItem[]>('getSchedule', [COMP], secretariat)
+    const plan = [{ type: 'round_1', recall: 12 }, { type: 'semi_final', recall: 6 }, { type: 'final', recall: null }]
+    await app.ok('setEventRounds', [event!.eventId, plan], secretariat)
+    const set = (await app.ok<ScheduleItem[]>('getSchedule', [COMP], secretariat)).find((i) => i.eventId === event!.eventId)!
+    expect(set.rounds.map((r) => [r.type, r.recall])).toEqual([['round_1', 12], ['semi_final', 6], ['final', null]])
+    await app.ok('setEventRounds', [event!.eventId, [{ type: 'final', recall: null }]], scrutineer)
+    const again = (await app.ok<ScheduleItem[]>('getSchedule', [COMP], secretariat)).find((i) => i.eventId === event!.eventId)!
+    expect(again.rounds.map((r) => r.type)).toEqual(['final'])
+
+    for (const bad of [[], [{ type: 'semi_final', recall: 6 }], [{ type: 'final', recall: null }, { type: 'semi_final', recall: 6 }], [{ type: 'semi_final', recall: 0 }, { type: 'final', recall: null }], [{ type: 'round_1', recall: 6 }, { type: 'semi_final', recall: 6 }, { type: 'final', recall: null }], [{ type: 'bogus', recall: 1 }, { type: 'final', recall: null }]]) {
+      expect((await app.call('setEventRounds', [event!.eventId, bad], secretariat)).status).toBe(400)
+    }
+    expect((await app.call('setEventRounds', [event!.eventId, plan], 'nobody')).status).toBe(401)
+  })
+
   it('validates events', async () => {
     const input = { number: 1, ageGroup: 'adult', class: 'A', discipline: 'latin', dances: ['samba'], isSolo: false }
     expect((await app.call('saveEvent', [COMP, input], secretariat)).error).toMatch(/already exists/)

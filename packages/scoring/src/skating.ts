@@ -131,14 +131,14 @@ export function placeDance(input: DanceInput): DanceResult {
   let next = 1
   while (remaining.size > 0) {
     const { column, groups } = rankHolders(placingsOf, [...remaining], next, n, majority)
-    for (const group of groups) {
-      const average = next + (group.length - 1) / 2
-      for (const competitorId of group) {
-        places.push({ competitorId, place: average, announcedPlace: next, shared: group.length > 1, column })
-        remaining.delete(competitorId)
-      }
-      next += group.length
+    // Only the best holder takes this place; the rest are weighed again for the next place
+    const group = groups[0]!
+    const average = next + (group.length - 1) / 2
+    for (const competitorId of group) {
+      places.push({ competitorId, place: average, announcedPlace: next, shared: group.length > 1, column })
+      remaining.delete(competitorId)
     }
+    next += group.length
   }
 
   const columns: Record<Id, DanceColumn[]> = {}

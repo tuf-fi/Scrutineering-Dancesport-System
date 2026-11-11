@@ -1,4 +1,4 @@
-import type { DeleteKind, TeamInput, CoachInput, CompetitorDetails, RegistrationInput } from '@bis/shared'
+import type { DeleteKind, TeamInput, CoachInput, CompetitorDetails, RegistrationInput, RoundPlanInput } from '@bis/shared'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
@@ -69,6 +69,15 @@ export const useMoveScheduledEvent = () =>
       api.moveScheduledEvent(actor(), v.competitionId, v.eventId, v.direction),
     ['schedule'],
   )
+
+export const useMoveScheduledEventTo = () =>
+  useWrite(
+    (v: { competitionId: string; eventId: string; to: number }) => api.moveScheduledEventTo(actor(), v.competitionId, v.eventId, v.to),
+    ['schedule'],
+  )
+
+export const useSetEventRounds = () =>
+  useWrite((v: { eventId: string; plan: RoundPlanInput[] }) => api.setEventRounds(actor(), v.eventId, v.plan), ['schedule', 'program', 'rounds'])
 
 export const useUpdateCompetitor = () =>
   useWrite(

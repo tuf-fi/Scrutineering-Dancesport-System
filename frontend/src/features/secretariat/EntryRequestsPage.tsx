@@ -82,7 +82,7 @@ export function EntryRequestsPage() {
         columns={[
           { key: 'who', header: 'Dancers', bold: true, cell: (r) => competitorName(r.names) },
           { key: 'from', header: 'Sent by', muted: true, hideBelow: 'md', cell: (r) => `${r.requesterName} (${r.requesterRole === 'team' ? 'team' : 'athlete'})` },
-          { key: 'events', header: 'Events', mono: true, cell: (r) => r.eventNumbers.map((n) => `E${n}`).join(', ') },
+          { key: 'events', header: 'Events', wrap: true, mono: true, cell: (r) => r.eventNumbers.map((n) => `E${n}`).join(', ') },
           { key: 'competition', header: 'Competition', detailOnly: true, cell: (r) => r.competitionName },
           { key: 'sent', header: 'Sent', detailOnly: true, cell: (r) => formatDateTime(r.createdAt) },
           { key: 'total', header: 'Total', align: 'right', mono: true, cell: (r) => formatPeso(r.total) },

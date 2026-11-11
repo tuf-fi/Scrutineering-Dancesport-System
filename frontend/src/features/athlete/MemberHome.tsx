@@ -195,7 +195,7 @@ function Dancers() {
                 header: 'Dancers',
                 bold: true,
                 cell: (r) => (
-                  <Link to={`/competitors/${r.competitorId}`} className="hover:underline">
+                  <Link to={`/competitors/${r.competitorId}`} className="underline decoration-neutral-400 underline-offset-4 hover:decoration-gold-500">
                     {competitorName(r.names)}
                   </Link>
                 ),

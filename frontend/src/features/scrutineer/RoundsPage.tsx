@@ -171,7 +171,7 @@ export function RoundsPage() {
               key: 'event',
               header: 'Event',
               cell: (r) => (
-                <Link to={`/scrutineer/live?round=${r.roundId}`} className="font-medium text-neutral-900 hover:underline">
+                <Link to={`/scrutineer/live?round=${r.roundId}`} className="font-medium text-neutral-900 underline decoration-neutral-400 underline-offset-4 hover:decoration-gold-500">
                   <span className="font-mono tabular-nums">{eventCode({ number: r.eventNumber })}</span> {eventDances(r)}
                 </Link>
               ),
