@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
 import { useCompetition, useEvent, useRecallTable, useRounds, useCatalog } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, eventCode, eventDances, formatDate } from '../../lib/format.ts'
+import { FinalMarks } from './FinalMarks.tsx'
 import { PublicHeader } from './PublicHeader.tsx'
 import { ResultsTable } from './ResultsTable.tsx'
 
@@ -35,6 +36,7 @@ export function EventResultsPage() {
 
   const earlier = (rounds.data ?? []).filter((r) => r.recallNumber !== null && r.status === RoundStatus.Published)
   const all = rounds.data ?? []
+  const published = all.find((r) => r.recallNumber === null && r.status === RoundStatus.Published)
 
   return (
     <div className="flex flex-col gap-8">
@@ -51,6 +53,8 @@ export function EventResultsPage() {
       />
 
       <ResultsTable eventId={eventId} />
+
+      {published && <FinalMarks roundId={published.id} />}
 
       {earlier.length > 0 && (
         <section aria-labelledby="earlier" className="flex flex-col gap-4">

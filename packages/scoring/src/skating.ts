@@ -149,3 +149,34 @@ export function placeDance(input: DanceInput): DanceResult {
 
   return { majority, places, columns }
 }
+
+export interface DanceCheck {
+  // The column ("1" to "1-n") ticked on the sheet: where this competitor's place was decided
+  column: number
+  note: string
+}
+
+// The tick and the reason beside each place on the Skating System sheet
+export function explainDance(result: DanceResult): Record<Id, DanceCheck> {
+  const n = result.places.length
+  const out: Record<Id, DanceCheck> = {}
+  for (const p of result.places) {
+    const label = p.column === 1 ? '1' : `1-${p.column}`
+    const mine = result.columns[p.competitorId]![p.column - 1]!
+    // Everyone still unplaced when this place was given, or sharing it
+    const rivals = result.places.filter((o) => o.competitorId !== p.competitorId && o.announcedPlace >= p.announcedPlace)
+    const holders = rivals.filter((o) => result.columns[o.competitorId]![p.column - 1]!.count >= result.majority)
+    const level = holders.filter((o) => result.columns[o.competitorId]![p.column - 1]!.count === mine.count)
+    let note: string
+    if (p.shared) note = 'Shared place'
+    else if (p.announcedPlace === n) note = 'Remaining'
+    else if (holders.length === 0) note = `Majority at ${label}`
+    else if (level.length === 0) note = `Greater majority at ${label}`
+    else if (level.some((o) => result.columns[o.competitorId]![p.column - 1]!.sum === mine.sum)) note = `Equal sums, next column decides`
+    else note = `Lower sum wins`
+    // Show the working: the marks counted at the ticked column and their sum
+    if (p.announcedPlace !== n) note += ` (${mine.count} marks, sum ${mine.sum})`
+    out[p.competitorId] = { column: p.column, note }
+  }
+  return out
+}

@@ -871,8 +871,9 @@ export interface SkatingRow {
   marks: Record<Id, number | null>
   // Single-dance final: how many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
   majority: number[]
-  // The sum of those marks, per column; read with the count, e.g. 4 (6)
-  majoritySums: number[]
+  // Single-dance final: the column (1 to n) ticked on the sheet, and why the place went this way
+  placedColumn: number | null
+  check: string
   total: number
   // The place as the compere reads it; a shared place shows its best place, e.g. 2 for a tie for 2nd and 3rd
   place: number

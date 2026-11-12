@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { placeDance, ScoringError, validateDance, type DanceInput } from './index.ts'
+import { explainDance, placeDance, ScoringError, validateDance, type DanceInput } from './index.ts'
 
 // couple -> placings from adjudicators A, B, C... in order
 function build(table: Record<string, number[]>): DanceInput {
@@ -238,5 +238,34 @@ describe('Rule 7 with a valid 7-adjudicator panel (the test-case-3 idea)', () =>
         '112': [5, 5, 4, 5, 5],
       }),
     ).toEqual({ '117': 1, '114': 2, '118': 3, '113': 4, '112': 5, '111': 6 })
+  })
+})
+
+describe('the tick and the reason on the sheet', () => {
+  it('says where each place was decided and why', () => {
+    const result = placeDance(
+      build({
+        '117': [6, 2, 1, 1, 2],
+        '114': [2, 3, 2, 2, 3],
+        '118': [3, 1, 6, 6, 1],
+        '113': [4, 4, 3, 4, 4],
+        '111': [1, 6, 5, 3, 6],
+        '112': [5, 5, 4, 5, 5],
+      }),
+    )
+    const checks = explainDance(result)
+    expect(Object.fromEntries(Object.entries(checks).map(([id, c]) => [id, [c.column, c.note]]))).toEqual({
+      '117': [2, 'Greater majority at 1-2 (4 marks, sum 6)'],
+      '114': [2, 'Majority at 1-2 (3 marks, sum 6)'],
+      '118': [3, 'Majority at 1-3 (3 marks, sum 5)'],
+      '113': [4, 'Majority at 1-4 (5 marks, sum 19)'],
+      '112': [5, 'Greater majority at 1-5 (5 marks, sum 24)'],
+      '111': [6, 'Remaining'],
+    })
+  })
+
+  it('names the sum when equal majorities are split by it', () => {
+    const result = placeDance(build({ X: [1, 1, 1, 2, 3, 2, 3], Y: [2, 2, 3, 1, 1, 3, 2], Z: [3, 3, 2, 3, 2, 1, 1], W: [4, 4, 4, 4, 4, 4, 4] }))
+    expect(explainDance(result).X!.note).toBe('Lower sum wins (5 marks, sum 7)')
   })
 })

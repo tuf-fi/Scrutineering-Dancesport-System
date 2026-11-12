@@ -1,80 +1,15 @@
-import { RoundStatus, type SkatingRow, type SkatingTable } from '@bis/shared'
+import { RoundStatus, type SkatingRow } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
+import { skatingColumns } from '../../components/skatingColumns.tsx'
 import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
 import { Button, ButtonLink, Dialog, ErrorState, PageHeader, SkeletonList, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
-import { DANCE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
+import { competitorName } from '../../lib/format.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
 import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
-
-const placeRange = (k: number) => (k === 1 ? '1' : `1–${k}`)
-
-const RULE_LABEL: Record<NonNullable<SkatingRow['decidedBy']>, string> = {
-  total: '',
-  rule10: 'Rule 10',
-  rule11: 'Rule 11',
-  shared: 'Shared',
-}
-
-// Count of marks at this place or better, with their sum, e.g. 4 (6)
-const majorityCell = (r: SkatingRow, i: number) =>
-  r.majority[i] ? `${r.majority[i]} (${r.majoritySums[i] ?? 0})` : (r.majority[i] ?? '')
-
-function columnsFor(table: SkatingTable) {
-  const isPlacing = table.kind === 'placing'
-  const dances = table.rows[0]?.dancePlaces ?? []
-  const showRule = table.rows.some((r) => r.decidedBy !== null && r.decidedBy !== 'total')
-  return [
-    { key: 'place', header: 'Place', cell: (r: SkatingRow) => (isPlacing ? ordinal(r.place) : r.place), widthClass: 'w-20', mono: true },
-    { key: 'back', header: 'Back no.', cell: (r: SkatingRow) => r.backNumber ?? '–', mono: true },
-    { key: 'who', header: 'Competitor', cell: (r: SkatingRow) => <span className="font-medium">{competitorName(r.names)}</span>, hideBelow: 'md' as const, detail: false as const },
-    ...table.adjudicators.map((a) => ({
-      key: `adj-${a.id}`,
-      header: a.letter,
-      cell: (r: SkatingRow) => r.marks[a.id] ?? '–',
-      mono: true,
-      align: 'right' as const,
-      group: isPlacing ? 'Placings' : 'X marks',
-    })),
-    ...(isPlacing
-      ? Array.from({ length: table.places }, (_, i) => ({
-          key: `maj-${i + 1}`,
-          header: placeRange(i + 1),
-          cell: (r: SkatingRow) => majorityCell(r, i),
-          mono: true,
-          muted: true,
-          align: 'right' as const,
-          hideBelow: 'md' as const,
-          group: 'Majority',
-        }))
-      : []),
-    ...dances.map((d, i) => ({
-      key: `dance-${d.dance}`,
-      header: DANCE_LABEL[d.dance],
-      cell: (r: SkatingRow) => r.dancePlaces[i]?.place ?? '',
-      mono: true,
-      align: 'right' as const,
-      hideBelow: 'md' as const,
-      group: 'Dance places',
-    })),
-    ...(!isPlacing || dances.length > 0
-      ? [{
-          key: 'total',
-          header: isPlacing ? 'Total' : 'X',
-          cell: (r: SkatingRow) => (isPlacing ? r.dancePlaces.reduce((sum, d) => sum + d.place, 0) : r.total),
-          mono: true,
-          bold: !isPlacing,
-          align: 'right' as const,
-        }]
-      : []),
-    ...(showRule
-      ? [{ key: 'rule', header: 'Rule', cell: (r: SkatingRow) => (r.decidedBy ? RULE_LABEL[r.decidedBy] : ''), hideBelow: 'md' as const }]
-      : []),
-  ]
-}
 
 export function ResultsPage() {
   const { rounds, list, roundId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice()
@@ -159,7 +94,7 @@ export function ResultsPage() {
             paginationLabel="Results pagination"
             detailTitle={(r) => competitorName(r.names)}
             empty={{ title: 'No marks yet', description: 'The table fills in as adjudicators submit.' }}
-            columns={columnsFor(skating.data)}
+            columns={skatingColumns(skating.data)}
           />
           {!skating.data.complete && (
             <p className="text-xs text-neutral-500">Provisional until every adjudicator has submitted.</p>

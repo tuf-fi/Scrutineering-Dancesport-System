@@ -1,4 +1,6 @@
 import {
+  explainDance,
+  xCheck,
   placeEliminated,
   placeFinal,
   recalledIds,
@@ -167,7 +169,8 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
     const rows = result.rows.map<SkatingRow>((r) => ({
       ...base(r.competitorId),
       majority: [],
-      majoritySums: [],
+      placedColumn: null,
+      check: xCheck(r.outcome, r.xCount),
       place: r.rank,
       shared: false,
       dancePlaces: [],
@@ -179,7 +182,8 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
 
   const placings = roundMarks.filter((m) => m.kind === 'placing')
   const finalists = [...new Set(placings.map((m) => m.competitorId))]
-  if (finalists.length === 0) return { roundId, kind: 'placing', complete, adjudicators: adjudicatorList, places: 0, rows: [] }
+  // Before any marks, still show the 1, 1-2 ... columns for the field
+  if (finalists.length === 0) return { roundId, kind: 'placing', complete, adjudicators: adjudicatorList, places: fieldOf(ctx, round).length, rows: [] }
 
   const dances = dancesIn(placings)
   const final = placeFinal({
@@ -193,12 +197,14 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
     })),
   })
   const single = dances.length === 1
+  const checks = single && final.dances[0] ? explainDance(final.dances[0].result) : null
 
   const rows = final.rows.map<SkatingRow>((r) => ({
     ...base(r.competitorId),
     // The column counts are the Skating System working; a multi-dance final shows dance places instead
     majority: single ? (final.dances[0]?.result.columns[r.competitorId] ?? []).map((c) => c.count) : [],
-    majoritySums: single ? (final.dances[0]?.result.columns[r.competitorId] ?? []).map((c) => c.sum) : [],
+    placedColumn: single ? (checks?.[r.competitorId]?.column ?? null) : null,
+    check: single ? (checks?.[r.competitorId]?.note ?? '') : '',
     place: r.announcedPlace,
     shared: r.shared,
     dancePlaces: single ? [] : final.dances.map((d) => ({ dance: d.dance, place: r.dancePlaces[d.dance] ?? 0 })),
