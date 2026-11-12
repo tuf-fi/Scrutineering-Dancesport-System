@@ -95,28 +95,14 @@ export function tallyCallback(input: CallbackInput): CallbackResult {
 
   const sorted = [...competitorIds].sort((a, b) => counts.get(b)! - counts.get(a)! || a.localeCompare(b))
   const cutoff = counts.get(sorted[recallNumber - 1]!)!
-  const above = sorted.filter((id) => counts.get(id)! > cutoff)
-  const onCutoff = sorted.filter((id) => counts.get(id)! === cutoff)
-  const tie: CallbackTie | null =
-    above.length + onCutoff.length === recallNumber
-      ? null
-      : {
-          xCount: cutoff,
-          competitorIds: onCutoff,
-          fewerCount: above.length,
-          moreCount: above.length + onCutoff.length,
-        }
-
+  // Everyone level with the recall-th couple goes through, so the recalled count follows the X totals and no tie is left to decide
   const rows = sorted.map<CallbackRow>((competitorId) => {
     const xCount = counts.get(competitorId)!
-    let outcome: CallbackRow['outcome']
-    if (xCount > cutoff) outcome = 'recalled'
-    else if (xCount === cutoff) outcome = tie ? 'tied' : 'recalled'
-    else outcome = 'out'
+    const outcome: CallbackRow['outcome'] = xCount >= cutoff ? 'recalled' : 'out'
     return { competitorId, xCount, rank: 1 + sorted.filter((id) => counts.get(id)! > xCount).length, outcome }
   })
 
-  return { recallNumber, rows, tie }
+  return { recallNumber, rows, tie: null }
 }
 
 // Competitors going to the next round; a tie needs the chairperson's choice first

@@ -233,7 +233,7 @@ export function skatingTable(roundId: string): SkatingTable {
 
   const placings = roundMarks.filter((m) => m.kind === 'placing')
   const finalists = [...new Set(placings.map((m) => m.competitorId))]
-  if (finalists.length === 0) return { roundId, kind: 'placing', complete, adjudicators: adjudicatorList, places: ids.length, rows: [] }
+  if (finalists.length === 0) return { roundId, kind: 'placing', complete, adjudicators: adjudicatorList, places: entries.filter((e) => e.eventId === round.eventId && !e.scratched).length, rows: [] }
 
   const dances = dancesIn(placings)
   const final = placeFinal({

@@ -72,8 +72,8 @@ describe('entering a competition online', () => {
   })
 
   it('says so when the account is not linked yet', async () => {
-    renderApp('/coach/register', Role.Coach, { id: 'member-sample-coach' })
-    expect(await screen.findByText('Page not found')).toBeInTheDocument()
+    const router = renderApp('/coach/register', Role.Coach, { id: 'member-sample-coach' })
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
   })
 
   it('does not let an athlete enter events: only the team does', async () => {

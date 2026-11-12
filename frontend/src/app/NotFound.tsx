@@ -1,19 +1,12 @@
-import { useNavigate } from 'react-router'
-import { Button, EmptyState } from '../components/ui/index.ts'
+import { Navigate, useLocation } from 'react-router'
+import { STAFF_SIGN_IN } from './nav.ts'
 
+const STAFF_AREAS = ['/admin', '/secretariat', '/scrutineer', '/print', '/compere', '/barker', '/account']
+const inArea = (path: string, area: string) => path === area || path.startsWith(`${area}/`)
+
+// An address that matches no screen: staff areas go to the staff sign-in, everything else to the home page
 export function NotFound() {
-  const navigate = useNavigate()
-  return (
-    <main className="mx-auto max-w-xl px-4 py-24">
-      <EmptyState
-        title="Page not found"
-        description="That address doesn't match a screen."
-        action={
-          <Button variant="secondary" onClick={() => navigate('/')}>
-            Go to the home page
-          </Button>
-        }
-      />
-    </main>
-  )
+  const { pathname } = useLocation()
+  if (inArea(pathname, '/adjudicator')) return <Navigate to="/adjudicator" replace />
+  return <Navigate to={STAFF_AREAS.some((a) => inArea(pathname, a)) ? STAFF_SIGN_IN : '/'} replace />
 }

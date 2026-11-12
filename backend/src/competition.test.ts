@@ -14,7 +14,6 @@ const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 let admin: string
 let secretariat: string
 let scrutineer: string
-let chairperson: string
 let competitionId = ''
 let eventId = ''
 let adjudicatorIds: string[] = []
@@ -45,7 +44,7 @@ beforeAll(async () => {
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   scrutineer = await app.signIn.staff('scrutineer', 'pw-scrutineer')
-  chairperson = await app.signIn.staff('chairperson', 'pw-chairperson')
+  await app.signIn.staff('chairperson', 'pw-chairperson')
 })
 afterAll(() => app.close())
 
@@ -190,35 +189,23 @@ describe('the semi-final', () => {
     expect((await app.ok<{ status: string }>('getAdjudicatorState', [], phones[0])).status).toBe('submitted')
   })
 
-  it('finds the tie, needs the chairperson, and recalls the chosen number', async () => {
+  it('recalls everyone level with the cutoff, so seven go through when six were requested', async () => {
     const table = await app.ok<RecallTable>('getRecallTable', [semiId], scrutineer)
     expect(table.submittedCount).toBe(5)
-    expect(table.tie).toMatchObject({ xCount: 3, count: 3, decision: null })
+    expect(table.tie).toBeNull()
     expect(table.rows.map((r) => r.xCount)).toEqual([5, 5, 5, 4, 3, 3, 3, 1, 1, 0])
-    expect(table.rows.filter((r) => r.outcome === 'tied')).toHaveLength(3)
-
-    expect((await app.call('approveRound', [semiId], scrutineer)).error).toMatch(/Resolve the tie/)
-    expect((await app.call('proposeTieDecision', [semiId, 'sideways'], scrutineer)).status).toBe(400)
-    expect((await app.call('proposeTieDecision', [semiId, 'fewer'], chairperson)).status).toBe(403)
-    await app.ok('proposeTieDecision', [semiId, 'fewer'], scrutineer)
-    // Proposed but not confirmed is not enough
-    expect((await app.call('approveRound', [semiId], scrutineer)).error).toMatch(/chairperson to confirm/)
-    expect((await app.call('confirmTieDecision', [semiId], scrutineer)).status).toBe(403)
-    await app.ok('confirmTieDecision', [semiId], chairperson)
-
-    const decided = await app.ok<RecallTable>('getRecallTable', [semiId], scrutineer)
-    expect(decided.tie?.decision?.confirmedByName ?? 'settled').toBeTruthy()
-    expect(decided.recalled).toBe(4)
-    expect(decided.rows.filter((r) => r.outcome === 'recalled')).toHaveLength(4)
+    expect(table.rows.filter((r) => r.outcome === 'recalled')).toHaveLength(7)
+    expect(table.recalled).toBe(7)
+    expect((await app.call('proposeTieDecision', [semiId, 'fewer'], scrutineer)).status).toBe(409)
   })
 
-  it('approving recalls four dancers, takes the round off the floor and makes the final\'s field', async () => {
+  it('approving recalls seven dancers, takes the round off the floor and makes the final\'s field', async () => {
     await app.ok('approveRound', [semiId], scrutineer)
     // Every approval copies the database to the backup folders
     expect(backupRuns).toHaveBeenCalledTimes(1)
     expect(await app.ok<string>('getCurrentRoundId', [], scrutineer)).toBe('')
     const field = await app.ok<Array<{ competitorId: string }>>('getHeatAssignments', [finalId], scrutineer)
-    expect(field.map((f) => f.competitorId).sort()).toEqual(byNumber.slice(0, 4).sort())
+    expect(field.map((f) => f.competitorId).sort()).toEqual(byNumber.slice(0, 7).sort())
     // Approved is final: heats and ties cannot change
     expect((await app.call('saveHeats', [semiId, []], scrutineer)).status).toBe(409)
     expect((await app.call('proposeTieDecision', [semiId, 'more'], scrutineer)).status).toBe(409)
@@ -234,7 +221,7 @@ describe('the final', () => {
   it('starts with only the recalled dancers', async () => {
     await app.ok('startRound', [finalId], scrutineer)
     const state = await app.ok<{ status: string; task: { competitors: Array<{ id: string; heat: number | null }> } }>('getAdjudicatorState', [], phones[0])
-    expect(state.task.competitors).toHaveLength(4)
+    expect(state.task.competitors).toHaveLength(7)
     expect(state.task.competitors.every((c) => c.heat === null)).toBe(true)
   })
 
@@ -245,8 +232,8 @@ describe('the final', () => {
 
   it('places the finalists; the scrutineer can type in a phone that failed', async () => {
     const c = byNumber
-    const order = [c[0]!, c[1]!, c[2]!, c[3]!]
-    const swapped = [c[0]!, c[1]!, c[3]!, c[2]!]
+    const order = c.slice(0, 7) as string[]
+    const swapped = [c[0]!, c[1]!, c[3]!, c[2]!, c[4]!, c[5]!, c[6]!] as string[]
     for (let i = 0; i < 3; i++) await app.ok('submitAdjudicatorMarks', [finalId, x(...order)], phones[i])
     // Adjudicator D's phone died: the scrutineer enters their paper sheet
     expect((await app.call('enterAdjudicatorMarks', [adjudicatorIds[3], finalId, x(...order)], secretariat)).status).toBe(403)
@@ -257,8 +244,8 @@ describe('the final', () => {
 
     const table = await app.ok<SkatingTable>('getSkatingTable', [finalId], scrutineer)
     expect(table.complete).toBe(true)
-    expect(table.rows.map((r) => r.place)).toEqual([1, 2, 3, 4])
-    expect(table.rows.map((r) => r.backNumber)).toEqual([1, 2, 3, 4])
+    expect(table.rows.map((r) => r.place)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(table.rows.map((r) => r.backNumber)).toEqual([1, 2, 3, 4, 5, 6, 7])
   })
 
   it('approving stores results and ranking points', async () => {
@@ -268,12 +255,12 @@ describe('the final', () => {
     const place = Object.fromEntries(results.map((r) => [r.competitorId, [r.place, r.placeFrom, r.placeTo]]))
     expect(place[byNumber[0]!]).toEqual([1, 1, 1])
     expect(place[byNumber[3]!]).toEqual([4, 4, 4])
-    // Dancers 5 to 10 were cut in the semi-final: best X count first, and a range only between equal counts
+    // Dancers 8 to 10 were cut in the semi-final: best X count first, and a range only between equal counts
     const xs = app.sqlite.prepare('select competitor_id as id, count(*) as n from marks where round_id = ? group by competitor_id').all(semiId) as Array<{ id: string; n: number }>
     const xOf = (id: string) => xs.find((r) => r.id === id)?.n ?? 0
-    const cut = byNumber.slice(4)
+    const cut = byNumber.slice(7)
     for (const id of cut) {
-      expect(place[id]![1]).toBeGreaterThanOrEqual(5)
+      expect(place[id]![1]).toBeGreaterThanOrEqual(8)
       expect(place[id]![2]).toBeLessThanOrEqual(10)
       expect(place[id]![2]! - place[id]![1]! + 1).toBe(cut.filter((o) => xOf(o) === xOf(id)).length)
       for (const other of cut) {
@@ -285,7 +272,7 @@ describe('the final', () => {
     const points = await app.ok<Array<{ competitorId: string; points: number }>>('getRankingPoints', [{ ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin' }], scrutineer)
     const earned = Object.fromEntries(points.map((p) => [p.competitorId, p.points]))
     expect([earned[byNumber[0]!], earned[byNumber[1]!], earned[byNumber[2]!], earned[byNumber[3]!]]).toEqual([200, 180, 160, 140])
-    expect(byNumber.slice(4).every((id) => earned[id] === 70)).toBe(true)
+    expect(byNumber.slice(7).every((id) => earned[id] === 70)).toBe(true)
   })
 
   it('shows guests nothing until it is published, then the results and a compere list', async () => {
@@ -305,9 +292,9 @@ describe('the final', () => {
 
     // The compere reads the recall, then the finalists, then a slide that says it is time for the results, then them from last place up
     const list = await app.ok<Announcement[]>('getAnnouncements', [], scrutineer)
-    expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'results', 'result', 'result', 'result', 'result'])
-    expect(list.filter((a) => a.kind === 'result').map((a) => a.result!.place)).toEqual([4, 3, 2, 1])
-    expect(list[0]!.numbers).toEqual([1, 2, 3, 4])
+    expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'results', ...Array(7).fill('result')])
+    expect(list.filter((a) => a.kind === 'result').map((a) => a.result!.place)).toEqual([7, 6, 5, 4, 3, 2, 1])
+    expect(list[0]!.numbers).toEqual([1, 2, 3, 4, 5, 6, 7])
   })
 
   it('records who did every step in the audit log', async () => {
@@ -315,8 +302,6 @@ describe('the final', () => {
     const by = (action: string) => log.filter((l) => l.action === action).map((l) => l.actorId)
     expect(by('Started round')).toEqual(['staff-scr', 'staff-scr'])
     expect(by('Approved round')).toEqual(['staff-scr', 'staff-scr'])
-    expect(by('Proposed tie decision')).toEqual(['staff-scr'])
-    expect(by('Confirmed tie decision')).toEqual(['staff-chair'])
     expect(by('Registered entries')).toHaveLength(9)
     expect(by('Entered marks from paper')).toEqual(['staff-scr'])
     expect(log.filter((l) => l.action === 'Submitted marks')).toHaveLength(9)

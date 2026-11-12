@@ -27,21 +27,11 @@ const rule1 = {
 }
 
 describe('callback counting (Rule 1)', () => {
-  it('flags the tie when the cutoff falls inside three equal totals', () => {
+  it('recalls everyone level with the cutoff, so seven go through when six were requested', () => {
     const result = tallyCallback(build(rule1, 6))
-    expect(result.tie).toMatchObject({ xCount: 4, fewerCount: 4, moreCount: 7 })
-    expect(result.tie?.competitorIds.sort()).toEqual(['10', '12', '14'])
-    expect(result.rows.filter((r) => r.outcome === 'tied')).toHaveLength(3)
-  })
-
-  it('recalls the chairperson\'s choice of fewer or more', () => {
-    const result = tallyCallback(build(rule1, 6))
-    expect(recalledIds(result, 'fewer').sort()).toEqual(['11', '15', '17', '18'])
-    expect(recalledIds(result, 'more')).toHaveLength(7)
-  })
-
-  it('refuses to recall before the tie is decided', () => {
-    expect(() => recalledIds(tallyCallback(build(rule1, 6)))).toThrow(ScoringError)
+    expect(result.tie).toBeNull()
+    expect(recalledIds(result).sort()).toEqual(['10', '11', '12', '14', '15', '17', '18'])
+    expect(result.rows.filter((r) => r.outcome === 'out')).toHaveLength(3)
   })
 
   it('has no tie when the cutoff falls between totals', () => {
@@ -51,11 +41,15 @@ describe('callback counting (Rule 1)', () => {
     expect(recalledIds(result)).toEqual(['a', 'b'])
   })
 
-  it('refuses to recall nobody when the tie starts at the top', () => {
+  it('recalls every couple when all of the needed ones have every X', () => {
+    const result = tallyCallback(build({ a: 'ABCDEFG', b: 'ABCDEFG', c: '' }, 2))
+    expect(recalledIds(result).sort()).toEqual(['a', 'b'])
+  })
+
+  it('recalls everyone on the top total when more than requested share it', () => {
     const result = tallyCallback(build({ a: 'ABC', b: 'DEF', c: 'G' }, 1))
-    expect(result.tie).toMatchObject({ fewerCount: 0, moreCount: 2 })
-    expect(() => recalledIds(result, 'fewer')).toThrow(ScoringError)
-    expect(recalledIds(result, 'more')).toHaveLength(2)
+    expect(result.tie).toBeNull()
+    expect(recalledIds(result).sort()).toEqual(['a', 'b'])
   })
 
   it('ranks equal totals together', () => {

@@ -66,9 +66,14 @@ describe('route guards', () => {
     expect(await screen.findByRole('heading', { name: 'Standings' })).toBeInTheDocument()
   })
 
-  it('shows a not-found page for an unknown address', async () => {
-    renderAt('/nope')
-    expect(await screen.findByText('Page not found')).toBeInTheDocument()
+  it.each(['/nope', '/athlete/nope', '/coach/nope', '/team/nope', '/competitions/a/b/c/d'])('sends an unknown address %s to the home page', async (path) => {
+    const router = renderAt(path)
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'))
+  })
+
+  it.each(['/admin/nope', '/secretariat/nope', '/scrutineer/nope', '/print/nope/x/y'])('sends an unknown staff address %s to the staff sign-in', async (path) => {
+    const router = renderAt(path)
+    await waitFor(() => expect(router.state.location.pathname).toBe('/staff-access'))
   })
 })
 

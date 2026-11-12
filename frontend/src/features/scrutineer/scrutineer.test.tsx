@@ -48,27 +48,11 @@ describe('heats', () => {
 })
 
 describe('recall', () => {
-  it('flags the tie at the cutoff, lets the scrutineer propose and the chairperson confirm', async () => {
+  it('recalls everyone level with the cutoff, so there is no tie to decide', async () => {
     renderApp('/scrutineer/recall', Role.Scrutineer, scrutineer)
-    const tie = await screen.findByRole('region', { name: 'Tie at the cutoff' })
-    expect(screen.getByRole('status')).toHaveTextContent('Recall 12')
-    expect(screen.getAllByText('Recalled').length).toBeGreaterThan(0)
-    // The tied competitors sit on the cutoff, which falls on the second page
-    await userEvent.click(screen.getByRole('button', { name: 'Next page' }))
-    expect((await screen.findAllByText('Tied')).length).toBeGreaterThan(0)
-
-    await userEvent.click(within(tie).getByRole('button', { name: 'Propose decision' }))
-    expect(await screen.findByText('Decision proposed')).toBeInTheDocument()
-    expect(await within(tie).findByText(/Waiting for the chairperson to confirm/)).toBeInTheDocument()
-    expect(within(tie).queryByRole('button', { name: 'Confirm tie decision' })).not.toBeInTheDocument()
-
-    cleanup()
-    renderApp('/scrutineer/recall', Role.Chairperson, chairperson)
-    const seen = await screen.findByRole('region', { name: 'Tie at the cutoff' })
-    expect(within(seen).queryByRole('button', { name: 'Propose decision' })).not.toBeInTheDocument()
-    await userEvent.click(await within(seen).findByRole('button', { name: 'Confirm tie decision' }))
-    expect(await screen.findByText('Tie decision confirmed')).toBeInTheDocument()
-    expect(await within(seen).findByText(/Confirmed by Gregorio Almazan/)).toBeInTheDocument()
+    expect((await screen.findAllByText('Recalled')).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('region', { name: 'Tie at the cutoff' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Tied')).not.toBeInTheDocument()
   })
 })
 
