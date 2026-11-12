@@ -1,4 +1,5 @@
 import {
+  buildEventReport,
   explainDance,
   xCheck,
   placeEliminated,
@@ -11,6 +12,7 @@ import {
   RoundStatus,
   type Announcement,
   type Event,
+  type EventReport,
   type FinalTie,
   type Mark,
   type RecallRow,
@@ -219,6 +221,8 @@ export const scrutiny = {
 
   getSkatingTable: (ctx: Ctx, roundId: string) => assertCanView(ctx, roundId, () => skatingTable(ctx, roundId)),
 
+  getEventReport: (ctx: Ctx, eventId: string) => eventReport(ctx, eventId),
+
   proposeTieDecision(ctx: Ctx, roundId: string, choice: TieDecision['choice']): void {
     const round = getRoundRow(ctx, roundId)
     if (round.recallNumber === null) return fail('A final has no recall to decide.', 409)
@@ -333,6 +337,54 @@ export const scrutiny = {
   },
 
   getAnnouncements: (ctx: Ctx) => announcements(ctx),
+}
+
+// The public sheet of an event once its final is published: who judged, the placings, and every adjudicator's marks
+function eventReport(ctx: Ctx, eventId: string): EventReport {
+  const event = getEventRow(ctx, eventId)
+  const all = roundsOfEvent(ctx, eventId)
+  const final = all.find((r) => r.recallNumber === null)
+  if (!final || final.status !== RoundStatus.Published) return fail('These results are not published yet.', 403)
+  const rounds = all.filter((r) => r.status === RoundStatus.Published)
+
+  const letters = new Map(ctx.db.select().from(t.adjudicators).all().map((a) => [a.id, a]))
+  const roundInputs = rounds.map((round) => {
+    const marks = marksOf(ctx, round.id)
+    const markedBy = new Set(marks.map((m) => m.adjudicatorId))
+    return {
+      type: round.type,
+      isFinal: round.recallNumber === null,
+      adjudicators: panelAdjudicatorIds(ctx, eventId)
+        .filter((id) => markedBy.has(id))
+        .map((id) => ({ id, letter: letters.get(id)?.letter ?? '?' }))
+        .sort((a, b) => a.letter.localeCompare(b.letter)),
+      field: round.recallNumber === null ? [...new Set(marks.map((m) => m.competitorId))] : fieldOf(ctx, round),
+      marks: marks.map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, dance: m.dance, kind: m.kind, placing: m.kind === 'placing' ? m.placing : null })),
+    }
+  })
+
+  const ids = [...new Set(roundInputs.flatMap((r) => r.field))]
+  const numbers = backNumbers(ctx, ids)
+  const teams = new Map(ctx.db.select().from(t.teams).all().map((team) => [team.id, team.name]))
+  const people = new Map(
+    [...peopleOf(ctx, ids).values()].map((c) => [c.id, { competitorId: c.id, backNumber: numbers.get(c.id) ?? null, names: c.names, team: teams.get(c.teamId) ?? '' }]),
+  )
+  const results = ctx.db.select().from(t.results).where(eq(t.results.eventId, eventId)).all()
+  const competition = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, event.competitionId)).get(), 'Competition')
+
+  return {
+    competition: { name: competition.name, date: competition.date, venue: competition.venue, organizer: competition.organizer, executor: competition.executor || competition.organizer },
+    scrutineer: staffName(ctx, results[0]?.approvedBy ?? null) ?? '',
+    adjudicators: panelAdjudicatorIds(ctx, eventId)
+      .map((id) => letters.get(id))
+      .flatMap((a) => (a ? [{ letter: a.letter, name: a.name }] : []))
+      .sort((a, b) => a.letter.localeCompare(b.letter)),
+    ...buildEventReport({
+      rounds: roundInputs,
+      people,
+      results: results.map((r) => ({ competitorId: r.competitorId, place: r.place, placeFrom: r.placeFrom, placeTo: r.placeTo })),
+    }),
+  }
 }
 
 // Guests see a round's tables once it is published; everyone else who may call this is staff

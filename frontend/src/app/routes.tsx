@@ -238,6 +238,7 @@ export const routes: RouteObject[] = [
                   { path: 'heats', element: <HeatsPage /> },
                   { path: 'paper-marks', element: <PaperMarksPage /> },
                   { path: 'schedule', element: <SchedulePage /> },
+                  { path: 'program', element: <ProgramPage /> },
                 ],
               },
               { path: 'live', element: <LivePage /> },

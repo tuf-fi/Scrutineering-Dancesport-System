@@ -1,4 +1,4 @@
-import type { Announcement, MarkSubmission, RecallTable, RoundRow, SkatingTable } from '@bis/shared'
+import type { Announcement, EventReport, MarkSubmission, RecallTable, RoundRow, SkatingTable } from '@bis/shared'
 import { writePaymentSettings } from './paymentSettings.ts'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { hashPassword } from './auth/password.ts'
@@ -296,6 +296,7 @@ describe('the final', () => {
   it('shows guests nothing until it is published, then the results and a compere list', async () => {
     expect(await app.ok<unknown[]>('getResults', [eventId])).toEqual([])
     expect((await app.call('getSkatingTable', [finalId])).status).toBe(403)
+    expect((await app.call('getEventReport', [eventId])).status).toBe(403)
     expect(await app.ok<string[]>('getResultEventIds', [competitionId])).toEqual([])
 
     await app.ok('publishRound', [finalId], scrutineer)
@@ -313,6 +314,19 @@ describe('the final', () => {
     expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'results', ...Array(7).fill('result')])
     expect(list.filter((a) => a.kind === 'result').map((a) => a.result!.place)).toEqual([7, 6, 5, 4, 3, 2, 1])
     expect(list[0]!.numbers).toEqual([1, 2, 3, 4, 5, 6, 7])
+  })
+
+  it('gives guests the event report: who judged, the placings and every adjudicator marks', async () => {
+    const report = await app.ok<EventReport>('getEventReport', [eventId])
+    expect(report.competition.name).toBeTruthy()
+    expect(report.adjudicators.map((a) => a.letter)).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(report.scrutineer).toBe('Scrutineer One')
+    expect(report.rounds.map((r) => [r.roundType, r.isFinal, r.rows.length])).toEqual([['final', true, 7], ['semi_final', false, 10]])
+    expect(report.rounds[0]!.rows.map((r) => r.place)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(report.rounds[0]!.rows[0]!.perDance[0]!.marks).toHaveLength(5)
+    expect(report.listing.map((l) => [l.roundType, l.rows.length])).toEqual([['final', 7], ['semi_final', 3]])
+    expect(report.ranking).toHaveLength(10)
+    expect(report.ranking[0]!.rounds.map((r) => r.roundType)).toEqual(['final', 'semi_final'])
   })
 
   it('records who did every step in the audit log', async () => {

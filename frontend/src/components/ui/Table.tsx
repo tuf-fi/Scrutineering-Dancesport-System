@@ -68,6 +68,8 @@ interface TableProps<T> {
   minWidthClass?: string
   // Names the pager for screen readers when a page has more than one table
   paginationLabel?: string
+  // plain: no box around the table, mono column labels and hairline rows, like the public lists
+  variant?: 'card' | 'plain'
   className?: string
 }
 
@@ -97,8 +99,10 @@ export function Table<T>({
   reorderLabel,
   minWidthClass = 'min-w-[34rem]',
   paginationLabel,
+  variant = 'card',
   className,
 }: TableProps<T>) {
+  const plain = variant === 'plain'
   // Go back to the first page whenever the rows change because of a filter or a search
   const resetKey = `${rows.length}|${rows[0] ? rowKey(rows[0]) : ''}|${rows.length ? rowKey(rows[rows.length - 1]) : ''}`
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, resetKey)
@@ -151,7 +155,7 @@ export function Table<T>({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+      <div className={cn(!plain && 'overflow-hidden rounded-2xl border border-neutral-200 bg-white')}>
       <div className={cn('no-scrollbar overflow-auto', className)}>
         <table className={cn('w-full border-collapse text-small', minWidthClass)}>
           <thead>
@@ -166,8 +170,8 @@ export function Table<T>({
                   key={c.key}
                   scope="col"
                   className={cn(
-                    'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200 bg-neutral-50 px-4 py-3.5',
-                    'text-xs font-medium uppercase tracking-wider text-neutral-500 first:pl-6 last:pr-6',
+                    'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200',
+                    plain ? 'bg-white px-3 py-3 font-mono text-xs font-normal uppercase text-neutral-500' : 'bg-neutral-50 px-4 py-3.5 text-xs font-medium uppercase tracking-wider text-neutral-500 first:pl-6 last:pr-6',
                     c.bold && 'font-bold text-neutral-900',
                     align[c.align ?? 'left'],
                     c.hideBelow && hide[c.hideBelow],
@@ -179,7 +183,7 @@ export function Table<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100/80">
+          <tbody className={plain ? 'divide-y divide-neutral-200' : 'divide-y divide-neutral-100/80'}>
             {loading
               ? Array.from({ length: 5 }, (_, i) => (
                   <tr key={i}>
@@ -213,7 +217,7 @@ export function Table<T>({
                     tabIndex={open ? 0 : undefined}
                     data-row-key={rowKey(row)}
                     className={cn(
-                      'transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-50',
+                      plain ? 'transition-colors hover:bg-gold-50 focus-visible:bg-gold-50' : 'transition-colors hover:bg-neutral-50 focus-visible:bg-neutral-50',
                       open && 'cursor-pointer',
                       dragKey === rowKey(row) && 'opacity-40',
                       // A gold line marks where the row will land: under the target when moving down, above it when moving up
@@ -244,7 +248,7 @@ export function Table<T>({
                       <td
                         key={c.key}
                         className={cn(
-                          'px-4 py-4 first:pl-6 last:pr-6',
+                          plain ? 'px-3 py-4' : 'px-4 py-4 first:pl-6 last:pr-6',
                           !c.wrap && 'sm:whitespace-nowrap',
                           c.muted ? 'text-neutral-600' : 'text-neutral-900',
                           align[c.align ?? 'left'],
@@ -261,10 +265,10 @@ export function Table<T>({
           </tbody>
         </table>
       </div>
-      {!loading && <Showing page={page} pageSize={pageSize} total={total} />}
+      {!loading && !plain && <Showing page={page} pageSize={pageSize} total={total} />}
       </div>
-      {!loading && (
-        <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label={paginationLabel} showSummary={false} />
+      {!loading && (!plain || total > pageSize) && (
+        <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label={paginationLabel} showSummary={plain} />
       )}
       {detailTitle && (
         <Drawer

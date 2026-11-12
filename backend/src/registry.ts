@@ -29,6 +29,8 @@ const STAFF: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chair
 const OFFICIALS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
 const ADMIN: Role[] = [Role.Admin]
 const ADMIN_OR_SECRETARIAT: Role[] = [Role.Admin, Role.Secretariat]
+// The running order is edited by the secretariat and the scrutineer, on the same copy
+const PROGRAM_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
 const SCRUTINEER: Role[] = [Role.Scrutineer]
 const SCORING: Role[] = [Role.Scrutineer, Role.Chairperson]
 
@@ -113,6 +115,7 @@ const access: Record<string, Access> = {
   // Public only once the round is published; staff see them as the round runs
   getRecallTable: 'public',
   getSkatingTable: 'public',
+  getEventReport: 'public',
   getFinalTie: [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson],
   getCurrentRoundId: 'signedIn',
 
@@ -184,15 +187,15 @@ const access: Record<string, Access> = {
   createLateEntry: ADMIN_OR_SECRETARIAT,
   markPaidAtVenue: ADMIN_OR_SECRETARIAT,
   moveScheduledEvent: ADMIN_OR_SECRETARIAT,
-  setProgramStart: ADMIN_OR_SECRETARIAT,
-  generateProgram: ADMIN_OR_SECRETARIAT,
-  addProgramBreak: ADMIN_OR_SECRETARIAT,
-  updateProgramSlot: ADMIN_OR_SECRETARIAT,
-  moveProgramSlot: ADMIN_OR_SECRETARIAT,
-  moveProgramSlotTo: ADMIN_OR_SECRETARIAT,
+  setProgramStart: PROGRAM_EDITORS,
+  generateProgram: PROGRAM_EDITORS,
+  addProgramBreak: PROGRAM_EDITORS,
+  updateProgramSlot: PROGRAM_EDITORS,
+  moveProgramSlot: PROGRAM_EDITORS,
+  moveProgramSlotTo: PROGRAM_EDITORS,
   moveScheduledEventTo: ADMIN_OR_SECRETARIAT,
   setEventRounds: [Role.Admin, Role.Secretariat, Role.Scrutineer],
-  removeProgramSlot: ADMIN_OR_SECRETARIAT,
+  removeProgramSlot: PROGRAM_EDITORS,
   updateCompetitor: ADMIN_OR_SECRETARIAT,
   deleteCompetitor: ADMIN_OR_SECRETARIAT,
   deleteLateEntry: ADMIN_OR_SECRETARIAT,

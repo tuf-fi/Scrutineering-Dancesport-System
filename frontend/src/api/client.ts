@@ -93,6 +93,7 @@ import type {
   ScheduleItem,
   SessionUser,
   SkatingTable,
+  EventReport,
   StaffUser,
   TieDecision,
 } from '@bis/shared'
@@ -259,6 +260,7 @@ export const proposeFinalTie = (_actorId: string, roundId: string, mode: 'keep' 
   call<void>('proposeFinalTie', roundId, mode, order)
 export const confirmFinalTie = (_actorId: string, roundId: string) => call<void>('confirmFinalTie', roundId)
 export const getSkatingTable = (roundId: string) => call<SkatingTable>('getSkatingTable', roundId)
+export const getEventReport = (eventId: string) => call<EventReport>('getEventReport', eventId)
 export const approveRound = (_actorId: string, roundId: string) => call<void>('approveRound', roundId)
 export const publishRound = (_actorId: string, roundId: string) => call<void>('publishRound', roundId)
 export const getBackupStatus = () => call<BackupStatus>('getBackupStatus')

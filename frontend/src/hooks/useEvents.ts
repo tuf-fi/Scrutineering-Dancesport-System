@@ -18,3 +18,6 @@ export const usePanel = (eventId: string) =>
 
 export const useResults = (eventId: string) =>
   useQuery({ queryKey: ['results', eventId], queryFn: () => api.getResults(eventId) })
+
+export const useEventReport = (eventId: string) =>
+  useQuery({ queryKey: ['event-report', eventId], queryFn: () => api.getEventReport(eventId), enabled: eventId !== '' })

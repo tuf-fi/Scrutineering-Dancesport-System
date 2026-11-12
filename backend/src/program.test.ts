@@ -90,7 +90,6 @@ describe('the program', () => {
     expect(moved.rows.map((r) => r.sequence)).toEqual(moved.rows.map((_, i) => i + 1))
     expect((await app.call('moveProgramSlotTo', [before.rows[0]!.slotId, 0], secretariat)).status).toBe(400)
     expect((await app.call('moveProgramSlotTo', [before.rows[0]!.slotId, last + 1], secretariat)).status).toBe(400)
-    expect((await app.call('moveProgramSlotTo', [before.rows[0]!.slotId, 1], scrutineer)).status).toBe(403)
     await app.ok('moveProgramSlotTo', [before.rows[0]!.slotId, 1], secretariat)
   })
 
@@ -117,9 +116,13 @@ describe('the program', () => {
     expect((await app.call('updateProgramSlot', [first!.slotId, { label: 'Renamed' }], secretariat)).status).toBe(400)
   })
 
-  it('is edited by the secretariat only', async () => {
+  it('is edited by the secretariat and the scrutineer, on the same copy, and by no one else', async () => {
     expect((await app.call('generateProgram', [COMP])).status).toBe(401)
-    expect((await app.call('generateProgram', [COMP], scrutineer)).status).toBe(403)
+    expect((await app.call('generateProgram', [COMP], await app.signIn.staff('compere'))).status).toBe(403)
+    await app.ok('setProgramStart', [COMP, '09:15'], scrutineer)
+    expect((await read()).start).toBe('09:15')
+    await app.ok('setProgramStart', [COMP, '09:30'], secretariat)
+    expect((await read()).start).toBe('09:30')
   })
 
   it('tells the public screens when it changes', async () => {

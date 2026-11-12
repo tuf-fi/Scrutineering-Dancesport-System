@@ -88,6 +88,7 @@ import {
   type Entry,
   type EntryRow,
   type Event,
+  type EventReport,
   type ImportResult,
   type LateEntryRow,
   type ScheduleItem,
@@ -122,6 +123,7 @@ import {
   roundRows,
   saveHeatAssignments,
   skatingTable,
+  eventReport,
 } from './scrutinizing.ts'
 import { adjudicatorState, demoRounds, startDemoRound, submitMarks, taskFor } from './adjudicating.ts'
 import { heats, marks, rounds } from './data/progress.ts'
@@ -1417,6 +1419,7 @@ export const proposeFinalTie = (_actorId: string, _roundId: string, _mode: 'keep
 export const confirmFinalTie = (_actorId: string, _roundId: string) => settle<void>(() => undefined)
 
 export const getSkatingTable = (roundId: string) => reply(skatingTable(roundId))
+export const getEventReport = (eventId: string) => settle<EventReport>(() => eventReport(eventId))
 // TODO: the sample keeps no signatures; the real server stores them
 export const getSignatures = (_roundId: string) => reply<RoundSignature[]>([])
 

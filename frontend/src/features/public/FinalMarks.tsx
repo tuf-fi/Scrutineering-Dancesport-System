@@ -10,14 +10,15 @@ export function FinalMarks({ roundId }: { roundId: string }) {
   if (table.isError) return <ErrorState onRetry={() => void table.refetch()} />
 
   return (
-    <section aria-labelledby="marks" className="flex flex-col gap-4">
-      <h2 id="marks" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-        Adjudicators’ marks
-      </h2>
+    <section aria-labelledby="marks" className="flex flex-col gap-3">
+      <h3 id="marks" className="text-small font-bold uppercase tracking-wide text-neutral-900">
+        Skating System working
+      </h3>
       {!table.data ? (
         <SkeletonList rows={5} />
       ) : (
         <Table<SkatingRow>
+          variant="plain"
           rows={table.data.rows}
           rowKey={(r) => r.competitorId}
           minWidthClass="min-w-[36rem]"

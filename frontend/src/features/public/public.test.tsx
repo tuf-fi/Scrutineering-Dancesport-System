@@ -167,11 +167,11 @@ describe('public site', () => {
     await userEvent.click(await screen.findByRole('link', { name: /E12/ }))
 
     expect(await screen.findByRole('heading', { name: /^E12 Rumba/ })).toBeInTheDocument()
-    const list = await screen.findByRole('list', { name: 'Results' })
-    await within(list).findAllByRole('link')
-    const rows = within(list).getAllByRole('listitem')
-    expect(within(rows[0]).getByText('1st')).toBeInTheDocument()
-    expect((await screen.findAllByText(/back numbers through to/)).length).toBe(2)
+    // The sheet's parts, with the placings in the first
+    for (const part of ['Competition report', 'Competition listing', 'Ranking report', 'Report of final round']) {
+      expect(await screen.findByText(part)).toBeInTheDocument()
+    }
+    expect((await screen.findAllByText('1st')).length).toBeGreaterThan(0)
   })
 
   it('goes from Results to a competition and then to the results of an event', async () => {
@@ -221,9 +221,9 @@ describe('public site', () => {
 
   it('opens a competitor profile from the results', async () => {
     renderApp('/competitions/comp-sorsogon-2026/events/comp-sorsogon-2026:e12')
-    const list = await screen.findByRole('list', { name: 'Results' })
-    const [first] = await within(list).findAllByRole('link')
-    await userEvent.click(first)
+    await screen.findByText('Competition report')
+    await waitFor(() => expect(document.querySelector('a[href^="/competitors/"]')).not.toBeNull())
+    await userEvent.click(document.querySelector('a[href^="/competitors/"]')!)
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
   })
 })

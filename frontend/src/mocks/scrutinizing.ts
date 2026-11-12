@@ -1,7 +1,8 @@
-import { explainDance, placeFinal, tallyCallback, xCheck } from '@bis/scoring'
+import { buildEventReport, explainDance, placeFinal, tallyCallback, xCheck } from '@bis/scoring'
 import {
   Role,
   RoundStatus,
+  type EventReport,
   type HeatAssignment,
   type Mark,
   type RecallRow,
@@ -14,11 +15,14 @@ import {
 } from '@bis/shared'
 import { roundField } from './adjudicating.ts'
 import { adjudicators, panels } from './data/adjudicators.ts'
+import { competitions } from './data/competitions.ts'
 import { competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
 import { heats, liveRoundId, rounds } from './data/progress.ts'
+import { results } from './data/results.ts'
 import { staffUsers } from './data/staff.ts'
+import { teams } from './data/teams.ts'
 import { isLiveRound, liveRoundComplete, visibleMarks } from './realtime.ts'
 
 const found = <T>(value: T | undefined, what: string): T => {
@@ -280,4 +284,51 @@ export function publishRoundResults(actorId: string, roundId: string): void {
   const round = roundOf(roundId)
   if (round.status !== RoundStatus.Approved) throw new Error('Approve the round before publishing it.')
   round.status = RoundStatus.Published
+}
+
+// The public sheet of a published event, as the server builds it
+export function eventReport(eventId: string): EventReport {
+  const event = found(events.find((e) => e.id === eventId), 'Event')
+  const all = rounds.filter((r) => r.eventId === eventId).sort((a, b) => (b.recallNumber ?? 0) - (a.recallNumber ?? 0))
+  const final = all.find((r) => r.recallNumber === null)
+  if (!final || statusOf(final) !== RoundStatus.Published) throw new Error('These results are not published yet.')
+  const competition = found(competitions.find((c) => c.id === event.competitionId), 'Competition')
+
+  const roundInputs = all
+    .filter((r) => statusOf(r) === RoundStatus.Published)
+    .map((round) => {
+      const list = visibleMarks(round.id)
+      const markedBy = new Set(list.map((m) => m.adjudicatorId))
+      return {
+        type: round.type,
+        isFinal: round.recallNumber === null,
+        adjudicators: panelOf(round)
+          .filter((id) => markedBy.has(id))
+          .map((id) => ({ id, letter: adjudicators.find((a) => a.id === id)?.letter ?? '?' }))
+          .sort((a, b) => a.letter.localeCompare(b.letter)),
+        field: round.recallNumber === null ? [...new Set(list.map((m) => m.competitorId))] : roundField(round.id).map((c) => c.id),
+        marks: list.map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, dance: m.dance, kind: m.kind, placing: m.kind === 'placing' ? m.placing : null })),
+      }
+    })
+  const ids = [...new Set(roundInputs.flatMap((r) => r.field))]
+  const people = new Map(
+    ids.flatMap((id) => {
+      const c = person(id)
+      return c ? [[id, { competitorId: id, backNumber: c.backNumber ?? null, names: c.names, team: teams.find((t) => t.id === c.teamId)?.name ?? '' }] as const] : []
+    }),
+  )
+  const mine = results.filter((r) => r.eventId === eventId)
+  return {
+    competition: { name: competition.name, date: competition.date, venue: competition.venue, organizer: competition.organizer, executor: competition.executor || competition.organizer },
+    scrutineer: staffUsers.find((u) => u.id === mine[0]?.approvedBy)?.name ?? '',
+    adjudicators: panelOf(final)
+      .flatMap((id) => adjudicators.filter((a) => a.id === id))
+      .map((a) => ({ letter: a.letter, name: a.name }))
+      .sort((a, b) => a.letter.localeCompare(b.letter)),
+    ...buildEventReport({
+      rounds: roundInputs,
+      people,
+      results: mine.map((r) => ({ competitorId: r.competitorId, place: r.place, placeFrom: r.placeFrom ?? r.place, placeTo: r.placeTo ?? r.place })),
+    }),
+  }
 }

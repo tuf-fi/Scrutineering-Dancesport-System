@@ -1062,3 +1062,49 @@ export interface SiteSettings {
   // A data URL, or null for the built-in picture
   heroImage: string | null
 }
+
+// ---- The public report of one event, in the order of the printed result sheet ----
+
+export interface EventReportPerson {
+  competitorId: Id
+  backNumber: number | null
+  names: string[]
+  team: string
+}
+
+export interface EventReportPlaced extends EventReportPerson {
+  place: number
+  placeFrom: number
+  placeTo: number
+}
+
+// One round's marks, one row per competitor; a final lists placings, an earlier round the X marks (1) given
+export interface EventReportRound {
+  roundType: RoundType
+  isFinal: boolean
+  dances: Dance[]
+  // Letters in the order of every marks array below
+  letters: string[]
+  rows: Array<
+    EventReportPerson & {
+      perDance: Array<{ dance: Dance; marks: Array<number | null>; place: number | null }>
+      // A final: the place it was given; an earlier round: not used
+      place: number | null
+      // A final: the dance places added up; an earlier round: the X marks received
+      total: number
+      recalled: boolean | null
+    }
+  >
+}
+
+export interface EventReport {
+  competition: { name: string; date: string; venue: string; organizer: string; executor: string }
+  scrutineer: string
+  adjudicators: Array<{ letter: string; name: string }>
+  // The final first, then each earlier round from the latest back: who was placed or cut in it
+  listing: Array<{ roundType: RoundType; isFinal: boolean; rows: EventReportPlaced[] }>
+  // Every competitor, best first, with what they got in each round they danced
+  ranking: Array<EventReportPlaced & { rounds: Array<{ roundType: RoundType; isFinal: boolean; value: number }> }>
+  // The final first, then each earlier round from the latest back
+  rounds: EventReportRound[]
+}

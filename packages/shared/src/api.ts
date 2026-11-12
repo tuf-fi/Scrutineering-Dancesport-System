@@ -77,6 +77,7 @@ export const API_FUNCTIONS = [
   'getRounds',
   'getSchedule',
   'getSkatingTable',
+  'getEventReport',
   'getFinalTie',
   'proposeFinalTie',
   'confirmFinalTie',

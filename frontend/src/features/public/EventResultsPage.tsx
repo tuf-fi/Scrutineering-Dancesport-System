@@ -1,28 +1,10 @@
 import { RoundStatus } from '@bis/shared'
 import { useParams } from 'react-router'
-import { ErrorState, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEvent, useRecallTable, useRounds, useCatalog } from '../../hooks/index.ts'
-import { ROUND_TYPE_LABEL, eventCode, eventDances, formatDate } from '../../lib/format.ts'
-import { FinalMarks } from './FinalMarks.tsx'
+import { EmptyState, ErrorState, Skeleton } from '../../components/ui/index.ts'
+import { useCompetition, useEvent, useRounds, useCatalog } from '../../hooks/index.ts'
+import { eventCode, eventDances, formatDate } from '../../lib/format.ts'
+import { EventReportView } from './EventReport.tsx'
 import { PublicHeader } from './PublicHeader.tsx'
-import { ResultsTable } from './ResultsTable.tsx'
-
-// Who went through a published round, by back number
-function Qualified({ roundId, label }: { roundId: string; label: string }) {
-  const recall = useRecallTable(roundId)
-  const numbers = (recall.data?.rows ?? [])
-    .filter((r) => r.outcome === 'recalled')
-    .map((r) => r.backNumber)
-    .filter((n): n is number => n !== null)
-    .sort((a, b) => a - b)
-
-  return (
-    <section aria-label={label} className="flex flex-col gap-2 border-t border-neutral-200 py-5 sm:px-3">
-      <h3 className="text-small font-medium text-neutral-900">{label}</h3>
-      <p className="font-mono text-small tabular-nums leading-relaxed text-neutral-600">{numbers.join('  ')}</p>
-    </section>
-  )
-}
 
 export function EventResultsPage() {
   const { eventGrade } = useCatalog()
@@ -34,9 +16,7 @@ export function EventResultsPage() {
   if (event.isError) return <ErrorState onRetry={() => void event.refetch()} />
   if (!event.data || !competition.data) return <Skeleton className="h-24 w-full max-w-xl" />
 
-  const earlier = (rounds.data ?? []).filter((r) => r.recallNumber !== null && r.status === RoundStatus.Published)
-  const all = rounds.data ?? []
-  const published = all.find((r) => r.recallNumber === null && r.status === RoundStatus.Published)
+  const published = (rounds.data ?? []).find((r) => r.recallNumber === null && r.status === RoundStatus.Published)
 
   return (
     <div className="flex flex-col gap-8">
@@ -52,26 +32,12 @@ export function EventResultsPage() {
         }
       />
 
-      <ResultsTable eventId={eventId} />
-
-      {published && <FinalMarks roundId={published.id} />}
-
-      {earlier.length > 0 && (
-        <section aria-labelledby="earlier" className="flex flex-col gap-4">
-          <h2 id="earlier" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-            Earlier rounds
-          </h2>
-          {earlier.map((r) => {
-            const next = all[all.indexOf(r) + 1]
-            return (
-              <Qualified
-                key={r.id}
-                roundId={r.id}
-                label={`${ROUND_TYPE_LABEL[r.type]}: back numbers through to ${next ? ROUND_TYPE_LABEL[next.type].toLowerCase() : 'the next round'}`}
-              />
-            )
-          })}
-        </section>
+      {published ? (
+        <EventReportView eventId={eventId} finalRoundId={published.id} />
+      ) : rounds.isLoading ? (
+        <Skeleton className="h-40 w-full" />
+      ) : (
+        <EmptyState title="No results yet" description="The results appear here once the scrutineer publishes the final." />
       )}
     </div>
   )

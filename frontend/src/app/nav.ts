@@ -47,6 +47,7 @@ const scrutineerNav: NavItem[] = [
   { to: '/scrutineer', label: 'Rounds', end: true, icon: Layers },
   { to: '/scrutineer/heats', label: 'Heats', icon: LayoutGrid },
   { to: '/scrutineer/schedule', label: 'Schedule', icon: CalendarClock },
+  { to: '/scrutineer/program', label: 'Program', icon: ListOrdered },
   { to: '/scrutineer/live', label: 'Live board', icon: Activity },
   { to: '/scrutineer/paper-marks', label: 'Paper marks', icon: FileText },
   { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
@@ -89,7 +90,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
   secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
   scrutineer: scrutineerNav,
   // The chairperson watches and confirms ties; starting rounds and setting heats are the scrutineer's
-  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/schedule', '/scrutineer/paper-marks'].includes(item.to)),
+  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/schedule', '/scrutineer/program', '/scrutineer/paper-marks'].includes(item.to)),
 }
 
 export const publicNav: NavItem[] = [
