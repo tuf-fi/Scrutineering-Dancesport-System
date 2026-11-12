@@ -807,6 +807,8 @@ export interface RoundRow {
   status: RoundStatus
   heatCount: number
   entryCount: number
+  // The round's line number in the program, null when it has no line yet
+  sequence: number | null
 }
 
 export interface HeatAssignment {

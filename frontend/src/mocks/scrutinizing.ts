@@ -55,6 +55,7 @@ export function roundRows(competitionId: string): RoundRow[] {
         status: statusOf(round),
         heatCount: heats.filter((h) => h.roundId === round.id).length,
         entryCount: entries.filter((e) => e.eventId === event.id && !e.scratched).length,
+        sequence: null,
       },
     ]
   })

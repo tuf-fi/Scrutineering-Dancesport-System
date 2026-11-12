@@ -112,7 +112,7 @@ export function RoundsPage() {
 
   const needle = query.trim().toLowerCase()
   const rows = [...list]
-    .sort((a, b) => a.eventNumber - b.eventNumber)
+    .sort((a, b) => (a.sequence ?? Infinity) - (b.sequence ?? Infinity) || a.eventNumber - b.eventNumber)
     .filter(
       (r) =>
         (status === 'all' || r.status === status) &&
@@ -167,6 +167,7 @@ export function RoundsPage() {
           detailTitle={(r) => `${eventCode({ number: r.eventNumber })} ${eventDances(r)} · ${ROUND_TYPE_LABEL[r.type]}`}
           empty={{ title: 'No rounds match', description: 'Try a different status or search.' }}
           columns={[
+            { key: 'sequence', header: 'Sequence', cell: (r) => r.sequence ?? '–', mono: true, muted: true, align: 'center', widthClass: 'w-28' },
             {
               key: 'event',
               header: 'Event',

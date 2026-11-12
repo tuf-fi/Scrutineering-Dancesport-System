@@ -98,7 +98,12 @@ export const rounds = {
 
   getCompetitionRounds(ctx: Ctx, competitionId: string): RoundRow[] {
     const events = ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).orderBy(asc(t.events.number)).all()
-    return events.flatMap((event) => {
+    const lines = new Map(
+      ctx.db.select().from(t.programSlots).where(eq(t.programSlots.competitionId, competitionId)).all()
+        .filter((s) => s.eventId && s.roundType)
+        .map((s) => [`${s.eventId}:${s.roundType}`, s.sequence] as const),
+    )
+    const rows = events.flatMap((event) => {
       const entryCount = activeEntryRows(ctx, event.id).length
       return roundsOfEvent(ctx, event.id).map<RoundRow>((round) => ({
         roundId: round.id,
@@ -113,8 +118,11 @@ export const rounds = {
         status: round.status,
         heatCount: round.type === 'final' ? 0 : heatsOfRound(ctx, round.id).length,
         entryCount,
+        sequence: lines.get(`${event.id}:${round.type}`) ?? null,
       }))
     })
+    // Program order, the same as the secretariat sees; rounds without a line follow by event number
+    return rows.sort((a, b) => (a.sequence ?? Infinity) - (b.sequence ?? Infinity) || a.eventNumber - b.eventNumber)
   },
 
   getHeatAssignments(ctx: Ctx, roundId: string): HeatAssignment[] {
