@@ -45,7 +45,7 @@ export function ScoresPage() {
                         {i === 0 ? '1' : `1-${i + 1}`}
                       </th>
                     ))}
-                  {placing && (data?.places ?? 0) > 0 && <th className={th}>Check</th>}
+                  {placing && (data?.places ?? 0) > 0 && <th className={th} />}
                   {!placing && <th className={`${th} text-right font-bold`}>X</th>}
                 </tr>
               </thead>

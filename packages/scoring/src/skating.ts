@@ -174,8 +174,6 @@ export function explainDance(result: DanceResult): Record<Id, DanceCheck> {
     else if (level.length === 0) note = `Greater majority at ${label}`
     else if (level.some((o) => result.columns[o.competitorId]![p.column - 1]!.sum === mine.sum)) note = `Equal sums, next column decides`
     else note = `Lower sum wins`
-    // Show the working: the marks counted at the ticked column and their sum
-    if (p.announcedPlace !== n) note += ` (${mine.count} marks, sum ${mine.sum})`
     out[p.competitorId] = { column: p.column, note }
   }
   return out

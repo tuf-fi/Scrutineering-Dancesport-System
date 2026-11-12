@@ -137,6 +137,24 @@ describe('the semi-final', () => {
     expect((await app.call('startRound', [finalId], scrutineer)).status).toBe(409)
   })
 
+  it('shows only a round that is open, and the newest when two are', async () => {
+    const adjudicator = adjudicatorIds[0]!
+    const shown = async () => (await app.ok<{ status: string; task: { round: { id: string } } }>('getAdjudicatorState', [], phones[0])).task.round.id
+    app.sqlite.prepare("insert into competitions (id, name, date, venue, organizer, floor_round_id) values ('old-comp', 'Old test', '2026-01-01', 'Old', 'Old', ?)").run(finalId)
+    app.sqlite.prepare("insert into adjudicator_pins (competition_id, adjudicator_id, pin) values ('old-comp', ?, '999999')").run(adjudicator)
+    // The old competition's round was never started, so it is not shown
+    expect(await shown()).toBe(semiId)
+    // Both open: the one started last wins
+    app.sqlite.prepare("update rounds set status = 'marking' where id = ?").run(finalId)
+    app.sqlite.prepare("update competitions set floor_started_at = '2020-01-01T00:00:00.000Z' where id = 'old-comp'").run()
+    expect(await shown()).toBe(semiId)
+    app.sqlite.prepare("update competitions set floor_started_at = '2999-01-01T00:00:00.000Z' where id = 'old-comp'").run()
+    expect(await shown()).toBe(finalId)
+    app.sqlite.prepare("update rounds set status = 'pending' where id = ?").run(finalId)
+    app.sqlite.prepare("delete from adjudicator_pins where competition_id = 'old-comp'").run()
+    app.sqlite.prepare("delete from competitions where id = 'old-comp'").run()
+  })
+
   it('refuses marks that break the rules', async () => {
     const c = byNumber
     expect((await app.call('submitAdjudicatorMarks', [semiId, x(c[0]!, c[1]!)], phones[0])).error).toMatch(/exactly 6/)

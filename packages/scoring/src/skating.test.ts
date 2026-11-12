@@ -255,17 +255,17 @@ describe('the tick and the reason on the sheet', () => {
     )
     const checks = explainDance(result)
     expect(Object.fromEntries(Object.entries(checks).map(([id, c]) => [id, [c.column, c.note]]))).toEqual({
-      '117': [2, 'Greater majority at 1-2 (4 marks, sum 6)'],
-      '114': [2, 'Majority at 1-2 (3 marks, sum 6)'],
-      '118': [3, 'Majority at 1-3 (3 marks, sum 5)'],
-      '113': [4, 'Majority at 1-4 (5 marks, sum 19)'],
-      '112': [5, 'Greater majority at 1-5 (5 marks, sum 24)'],
+      '117': [2, 'Greater majority at 1-2'],
+      '114': [2, 'Majority at 1-2'],
+      '118': [3, 'Majority at 1-3'],
+      '113': [4, 'Majority at 1-4'],
+      '112': [5, 'Greater majority at 1-5'],
       '111': [6, 'Remaining'],
     })
   })
 
   it('names the sum when equal majorities are split by it', () => {
     const result = placeDance(build({ X: [1, 1, 1, 2, 3, 2, 3], Y: [2, 2, 3, 1, 1, 3, 2], Z: [3, 3, 2, 3, 2, 1, 1], W: [4, 4, 4, 4, 4, 4, 4] }))
-    expect(explainDance(result).X!.note).toBe('Lower sum wins (5 marks, sum 7)')
+    expect(explainDance(result).X!.note).toBe('Lower sum wins')
   })
 })

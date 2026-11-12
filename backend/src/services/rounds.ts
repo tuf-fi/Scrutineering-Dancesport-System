@@ -184,7 +184,7 @@ export const rounds = {
     if (heatsOfRound(ctx, roundId).length === 0) saveHeats(ctx, roundId, groupsFor(ctx, round, field))
 
     ctx.db.update(t.rounds).set({ status: 'marking' }).where(eq(t.rounds.id, roundId)).run()
-    ctx.db.update(t.competitions).set({ floorRoundId: roundId }).where(eq(t.competitions.id, competition.id)).run()
+    ctx.db.update(t.competitions).set({ floorRoundId: roundId, floorStartedAt: now() }).where(eq(t.competitions.id, competition.id)).run()
     record(ctx.db, actor(ctx).id, 'Started round', `Event ${event.number}, ${round.type}`, { before: { status: round.status }, after: { status: 'marking' } })
     ctx.defer(() => {
       ctx.hub.floor(roundId)
@@ -203,7 +203,7 @@ export const rounds = {
       const hasMarks = round ? ctx.db.select().from(t.submissions).where(eq(t.submissions.roundId, round.id)).get() : undefined
       if (round?.status === 'marking' && hasMarks) return fail('Adjudicators have already submitted this round, so it cannot be taken off the floor.', 409)
       if (round?.status === 'marking') ctx.db.update(t.rounds).set({ status: 'pending' }).where(eq(t.rounds.id, round.id)).run()
-      ctx.db.update(t.competitions).set({ floorRoundId: null }).where(eq(t.competitions.id, competition.id)).run()
+      ctx.db.update(t.competitions).set({ floorRoundId: null, floorStartedAt: null }).where(eq(t.competitions.id, competition.id)).run()
       record(ctx.db, actor(ctx).id, 'Cleared the floor', competition.name, { before: { floorRoundId: competition.floorRoundId } })
     }
     ctx.defer(() => ctx.hub.floor(null))
@@ -224,26 +224,32 @@ export const rounds = {
 
   getAdjudicatorState(ctx: Ctx): AdjudicatorState {
     const user = actor(ctx)
-    const competition = ctx.db
+    // Only a round that has started and is not decided counts, so a finished round or an old competition never shows
+    const open = ctx.db
       .select()
       .from(t.competitions)
       .innerJoin(t.adjudicatorPins, eq(t.adjudicatorPins.competitionId, t.competitions.id))
       .where(eq(t.adjudicatorPins.adjudicatorId, user.id))
       .all()
-      .map((r) => r.competitions)
-      .find((c) => c.floorRoundId)
-    if (!competition?.floorRoundId) return { status: 'waiting' }
-    const round = ctx.db.select().from(t.rounds).where(eq(t.rounds.id, competition.floorRoundId)).get()
-    if (!round || round.status === 'pending') return { status: 'waiting' }
-    if (!panelAdjudicatorIds(ctx, round.eventId).includes(user.id)) return { status: 'waiting' }
+      .flatMap((r) => {
+        if (!r.competitions.floorRoundId) return []
+        const round = ctx.db.select().from(t.rounds).where(eq(t.rounds.id, r.competitions.floorRoundId)).get()
+        if (!round || (round.status !== 'marking' && round.status !== 'review')) return []
+        if (!panelAdjudicatorIds(ctx, round.eventId).includes(user.id)) return []
+        const submitted = ctx.db
+          .select()
+          .from(t.submissions)
+          .where(and(eq(t.submissions.roundId, round.id), eq(t.submissions.adjudicatorId, user.id)))
+          .get()
+        return [{ round, submitted: Boolean(submitted), startedAt: r.competitions.floorStartedAt ?? '' }]
+      })
+    // The most recently started round first; one still waiting for this adjudicator's marks comes before one they have sent
+    open.sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    const current = open.find((o) => o.round.status === 'marking' && !o.submitted) ?? open[0]
+    if (!current) return { status: 'waiting' }
     ctx.hub.seen(user.id)
-    const submitted = ctx.db
-      .select()
-      .from(t.submissions)
-      .where(and(eq(t.submissions.roundId, round.id), eq(t.submissions.adjudicatorId, user.id)))
-      .get()
-    const task = markingTask(ctx, round)
-    return submitted ? { status: 'submitted', task } : { status: 'marking', task }
+    const task = markingTask(ctx, current.round)
+    return current.submitted ? { status: 'submitted', task } : { status: 'marking', task }
   },
 
   submitAdjudicatorMarks(ctx: Ctx, roundId: string, submissions: MarkSubmission[], signature?: string | null): void {

@@ -29,6 +29,8 @@ export const competitions = sqliteTable('competitions', {
   paymentRequired: integer('payment_required', { mode: 'boolean' }).notNull().default(true),
   // The round on the floor now; the scrutineer sets it
   floorRoundId: text('floor_round_id'),
+  // When that round was put on the floor; the newest one is what a phone shows if two are open
+  floorStartedAt: text('floor_started_at'),
   // Set while a venue laptop runs this competition offline: its day data is not changed online until the day is loaded back
   offlineHeldAt: text('offline_held_at'),
 })

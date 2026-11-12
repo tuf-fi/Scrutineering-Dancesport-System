@@ -51,7 +51,7 @@ export function skatingColumns(table: SkatingTable) {
         }))
       : []),
     ...((isPlacing && table.places > 0) || table.rows.some((r) => r.check)
-      ? [{ key: 'check', header: 'Check', cell: (r: SkatingRow) => r.check, muted: true, hideBelow: 'md' as const, ...(isPlacing ? { group: 'Majority' } : {}) }]
+      ? [{ key: 'check', header: '', cell: (r: SkatingRow) => r.check, muted: true, hideBelow: 'md' as const, ...(isPlacing ? { group: 'Majority' } : {}) }]
       : []),
     ...dances.map((d, i) => ({
       key: `dance-${d.dance}`,

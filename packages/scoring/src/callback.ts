@@ -28,10 +28,10 @@ export interface CallbackRow {
 }
 
 // The reason beside a couple on the recall sheet
-export function xCheck(outcome: CallbackRow['outcome'], xCount: number): string {
-  if (outcome === 'recalled') return `Recalled (${xCount} X)`
-  if (outcome === 'tied') return `Tied at the cut-off (${xCount} X)`
-  return `Not recalled (${xCount} X)`
+export function xCheck(outcome: CallbackRow['outcome']): string {
+  if (outcome === 'recalled') return 'Recalled'
+  if (outcome === 'tied') return 'Tied at the cut-off'
+  return 'Not recalled'
 }
 
 export interface CallbackTie {

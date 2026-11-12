@@ -1,0 +1,1 @@
+ALTER TABLE `competitions` ADD `floor_started_at` text;

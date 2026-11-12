@@ -221,7 +221,7 @@ export function skatingTable(roundId: string): SkatingTable {
       ...base(r.competitorId),
       majority: [],
       placedColumn: null,
-      check: xCheck(r.outcome, r.xCount),
+      check: xCheck(r.outcome),
       place: r.rank,
       shared: false,
       dancePlaces: [],
