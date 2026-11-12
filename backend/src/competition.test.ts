@@ -268,8 +268,19 @@ describe('the final', () => {
     const place = Object.fromEntries(results.map((r) => [r.competitorId, [r.place, r.placeFrom, r.placeTo]]))
     expect(place[byNumber[0]!]).toEqual([1, 1, 1])
     expect(place[byNumber[3]!]).toEqual([4, 4, 4])
-    // Dancers 5 to 10 were cut in the semi-final and share 5th to 10th
-    for (const id of byNumber.slice(4)) expect(place[id]).toEqual([5, 5, 10])
+    // Dancers 5 to 10 were cut in the semi-final: best X count first, and a range only between equal counts
+    const xs = app.sqlite.prepare('select competitor_id as id, count(*) as n from marks where round_id = ? group by competitor_id').all(semiId) as Array<{ id: string; n: number }>
+    const xOf = (id: string) => xs.find((r) => r.id === id)?.n ?? 0
+    const cut = byNumber.slice(4)
+    for (const id of cut) {
+      expect(place[id]![1]).toBeGreaterThanOrEqual(5)
+      expect(place[id]![2]).toBeLessThanOrEqual(10)
+      expect(place[id]![2]! - place[id]![1]! + 1).toBe(cut.filter((o) => xOf(o) === xOf(id)).length)
+      for (const other of cut) {
+        if (xOf(id) > xOf(other)) expect(place[id]![2]!).toBeLessThan(place[other]![1]!)
+        if (xOf(id) === xOf(other)) expect(place[id]).toEqual(place[other])
+      }
+    }
 
     const points = await app.ok<Array<{ competitorId: string; points: number }>>('getRankingPoints', [{ ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin' }], scrutineer)
     const earned = Object.fromEntries(points.map((p) => [p.competitorId, p.points]))

@@ -27,12 +27,21 @@ describe('places for competitors cut before the final', () => {
     expect(placed.some((p) => ['c1', 'c6'].includes(p.competitorId))).toBe(false)
   })
 
-  it('keeps X counts for the printout without letting them reorder the range', () => {
-    const withCounts = placeEliminated([
-      { ...rounds[3]!, xCounts: { c7: 3, c8: 5 } },
-    ].map((r) => ({ ...r, competitorIds: ids(1, 12) })))
-    expect(withCounts.find((p) => p.competitorId === 'c7')).toMatchObject({ xCount: 3, from: 7, to: 12 })
-    expect(withCounts.find((p) => p.competitorId === 'c8')).toMatchObject({ xCount: 5, from: 7, to: 12 })
+  it('orders the cut by X count and shares a range only between equal counts', () => {
+    const counts = { c7: 3, c8: 5, c9: 5, c10: 4, c11: 3, c12: 1 }
+    const result = placeEliminated([{ ...rounds[3]!, xCounts: counts }])
+    const at = (id: string) => result.find((p) => p.competitorId === id)!
+    expect(at('c8')).toMatchObject({ from: 7, to: 8, xCount: 5 })
+    expect(at('c9')).toMatchObject({ from: 7, to: 8 })
+    expect(at('c10')).toMatchObject({ from: 9, to: 9, announcedPlace: 9 })
+    expect(at('c7')).toMatchObject({ from: 10, to: 11, place: 10.5 })
+    expect(at('c11')).toMatchObject({ from: 10, to: 11 })
+    expect(at('c12')).toMatchObject({ from: 12, to: 12 })
+  })
+
+  it('treats a competitor with no X marks as having none', () => {
+    const result = placeEliminated([{ roundType: 'semi_final', competitorIds: ids(1, 8), recalledIds: ids(1, 6), xCounts: { c7: 2 } }])
+    expect(result.map((p) => [p.competitorId, p.from, p.to])).toEqual([['c7', 7, 7], ['c8', 8, 8]])
   })
 
   it('skips a round where nobody was cut', () => {

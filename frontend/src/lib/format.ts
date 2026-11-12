@@ -163,16 +163,12 @@ export function ordinal(n: number): string {
   return `${n}${['th', 'st', 'nd', 'rd'][n % 10 > 3 ? 0 : n % 10]}`
 }
 
-// Shared places are stored as the lowest place number of the group: 7 is the semi-final, 13 and up earlier rounds
-export function placeLabel(place: number): string {
-  if (place <= 6) return ordinal(place)
-  if (place === 7) return 'Semi-final'
-  return 'Earlier round'
-}
+// Shared places are stored as the lowest place number of the group
+export const placeLabel = ordinal
 
-// A tie in a final as a range, "3rd–4th"; null when the place is not shared, or is from an earlier round
+// A shared place as a range, "7th–8th"; null when the place is not shared
 export function placeRange(r: { placeFrom?: number; placeTo?: number }): string | null {
-  if (r.placeFrom === undefined || r.placeTo === undefined || r.placeTo <= r.placeFrom || r.placeFrom > 6) return null
+  if (r.placeFrom === undefined || r.placeTo === undefined || r.placeTo <= r.placeFrom) return null
   return `${ordinal(r.placeFrom)}–${ordinal(r.placeTo)}`
 }
 

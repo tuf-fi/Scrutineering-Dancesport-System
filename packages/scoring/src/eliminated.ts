@@ -1,16 +1,17 @@
 import type { Id, RoundType } from '@bis/shared'
 import { ScoringError } from './errors.ts'
 
-// Places for competitors cut before the final. Everyone cut in the same round shares the range of
-// places just below everyone who went further: 30 start, 24 / 18 / 12 / 6 recalled, so the cut
-// are 25th-30th, 19th-24th, 13th-18th and 7th-12th. Their X counts are shown but do not order them.
+// Places for competitors cut before the final. The ones cut in a round take the places just below everyone
+// who went further (30 start, 24 / 18 / 12 / 6 recalled: the cut fill 25-30, 19-24, 13-18 and 7-12), best X
+// count first. Competitors with the same X count share a range, such as 7th-8th; when X counts are not given,
+// everyone cut in the round shares the whole range.
 
 export interface RoundOutcome {
   roundType: RoundType
   // Everyone who danced the round, and the ones recalled to the next
   competitorIds: Id[]
   recalledIds: Id[]
-  // Total X marks per competitor, kept for the printout only
+  // Total X marks per competitor; a competitor missing from it has none
   xCounts?: Record<Id, number>
 }
 
@@ -54,19 +55,28 @@ export function placeEliminated(rounds: RoundOutcome[]): EliminatedPlace[] {
     const recalled = new Set(round.recalledIds)
     const out = round.competitorIds.filter((id) => !recalled.has(id))
     if (out.length === 0) continue
-    const to = from + out.length - 1
-    for (const competitorId of out) {
-      placed.push({
-        competitorId,
-        roundType: round.roundType,
-        from,
-        to,
-        announcedPlace: from,
-        place: (from + to) / 2,
-        xCount: round.xCounts?.[competitorId] ?? null,
-      })
+    const count = (id: Id) => (round.xCounts ? (round.xCounts[id] ?? 0) : null)
+    // Best X count first; with no counts everyone is level
+    const ordered = [...out].sort((a, b) => (count(b) ?? 0) - (count(a) ?? 0))
+    for (let k = 0; k < ordered.length; ) {
+      let end = k
+      while (end + 1 < ordered.length && count(ordered[end + 1]!) === count(ordered[k]!)) end++
+      const groupFrom = from + k
+      const groupTo = from + end
+      for (const competitorId of ordered.slice(k, end + 1)) {
+        placed.push({
+          competitorId,
+          roundType: round.roundType,
+          from: groupFrom,
+          to: groupTo,
+          announcedPlace: groupFrom,
+          place: (groupFrom + groupTo) / 2,
+          xCount: count(competitorId),
+        })
+      }
+      k = end + 1
     }
-    from = to + 1
+    from += out.length
   }
 
   return placed.sort((a, b) => a.from - b.from || a.competitorId.localeCompare(b.competitorId))

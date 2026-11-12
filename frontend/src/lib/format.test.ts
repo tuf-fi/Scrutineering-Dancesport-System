@@ -7,9 +7,10 @@ describe('placeRange', () => {
     expect(placeRange({ placeFrom: 1, placeTo: 2 })).toBe('1st–2nd')
   })
 
-  it('is null for an unshared place, an earlier round, or nothing stored', () => {
+  it('is null for an unshared place or nothing stored', () => {
     expect(placeRange({ placeFrom: 3, placeTo: 3 })).toBeNull()
-    expect(placeRange({ placeFrom: 13, placeTo: 18 })).toBeNull()
+    expect(placeRange({ placeFrom: 7, placeTo: 8 })).toBe('7th–8th')
+    expect(placeRange({ placeFrom: 13, placeTo: 18 })).toBe('13th–18th')
     expect(placeRange({})).toBeNull()
   })
 })
