@@ -10,7 +10,6 @@ const FORM_ID = 'coach-form'
 function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void }) {
   const save = useSaveCoach()
   const [name, setName] = useState(coach?.name ?? '')
-  const [email, setEmail] = useState(coach?.email ?? '')
   const [phone, setPhone] = useState(coach?.phone ?? '')
   const [memberYear, setMemberYear] = useState(coach?.memberYear ? String(coach.memberYear) : '')
   const [memberMonth, setMemberMonth] = useState(coach?.memberMonth ? String(coach.memberMonth) : '')
@@ -46,7 +45,7 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
         id: coach?.id,
         input: {
           name,
-          email,
+          email: coach?.email ?? '',
           phone,
           memberYear: memberYear.trim() ? Number(memberYear) : null,
           memberMonth: memberYear.trim() && memberMonth ? Number(memberMonth) : null,
@@ -73,9 +72,6 @@ function CoachForm({ coach, onDone }: { coach: Coach | null; onDone: () => void 
         </div>
         <div className="sm:col-span-2">
           <Input label="Contact no." inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </div>
-        <div className="sm:col-span-2">
-          <Input label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <Select label="Membership paid for" value={memberMonth} onChange={(e) => setMemberMonth(e.target.value)}>
           <option value="">Not paid</option>

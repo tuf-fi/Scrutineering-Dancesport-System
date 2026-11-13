@@ -17,7 +17,7 @@ function MajorityCell({ row, column }: { row: SkatingRow; column: number }) {
   return (
     <span className={ticked ? 'inline-flex items-center gap-1 font-semibold text-neutral-900' : undefined}>
       {row.majority[column - 1] ?? ''}
-      {ticked && <Check aria-label="Place decided here" className="size-4" strokeWidth={2.5} />}
+      {ticked && <Check aria-label="Place decided here" className="size-4 text-success" strokeWidth={2.5} />}
     </span>
   )
 }
@@ -49,9 +49,6 @@ export function skatingColumns(table: SkatingTable) {
           hideBelow: 'md' as const,
           group: 'Majority',
         }))
-      : []),
-    ...((isPlacing && table.places > 0) || table.rows.some((r) => r.check)
-      ? [{ key: 'check', header: '', cell: (r: SkatingRow) => r.check, muted: true, hideBelow: 'md' as const, ...(isPlacing ? { group: 'Majority' } : {}) }]
       : []),
     ...dances.map((d, i) => ({
       key: `dance-${d.dance}`,

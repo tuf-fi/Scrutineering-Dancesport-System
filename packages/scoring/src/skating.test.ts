@@ -242,7 +242,7 @@ describe('Rule 7 with a valid 7-adjudicator panel (the test-case-3 idea)', () =>
 })
 
 describe('the tick and the reason on the sheet', () => {
-  it('says where each place was decided and why', () => {
+  it('ticks the first column where each couple holds a majority, and says why the place went that way', () => {
     const result = placeDance(
       build({
         '117': [6, 2, 1, 1, 2],
@@ -260,7 +260,7 @@ describe('the tick and the reason on the sheet', () => {
       '118': [3, 'Majority at 1-3'],
       '113': [4, 'Majority at 1-4'],
       '112': [5, 'Greater majority at 1-5'],
-      '111': [6, 'Remaining'],
+      '111': [5, 'Remaining'],
     })
   })
 

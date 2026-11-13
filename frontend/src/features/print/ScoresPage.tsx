@@ -45,7 +45,6 @@ export function ScoresPage() {
                         {i === 0 ? '1' : `1-${i + 1}`}
                       </th>
                     ))}
-                  {placing && (data?.places ?? 0) > 0 && <th className={th} />}
                   {!placing && <th className={`${th} text-right font-bold`}>X</th>}
                 </tr>
               </thead>
@@ -61,7 +60,6 @@ export function ScoresPage() {
                       </td>
                     ))}
                     {placing && r.majority.map((m, i) => <td key={i} className={`${td} ${num} text-right`}>{m}{r.placedColumn === i + 1 ? ' ✓' : ''}</td>)}
-                    {placing && data.places > 0 && <td className={td}>{r.check}</td>}
                     {!placing && <td className={`${td} ${num} text-right font-bold`}>{r.total}</td>}
                   </tr>
                 ))}

@@ -151,7 +151,7 @@ export function placeDance(input: DanceInput): DanceResult {
 }
 
 export interface DanceCheck {
-  // The column ("1" to "1-n") ticked on the sheet: where this competitor's place was decided
+  // The column ("1" to "1-n") ticked on the sheet: the first one where this competitor holds a majority
   column: number
   note: string
 }
@@ -174,7 +174,9 @@ export function explainDance(result: DanceResult): Record<Id, DanceCheck> {
     else if (level.length === 0) note = `Greater majority at ${label}`
     else if (level.some((o) => result.columns[o.competitorId]![p.column - 1]!.sum === mine.sum)) note = `Equal sums, next column decides`
     else note = `Lower sum wins`
-    out[p.competitorId] = { column: p.column, note }
+    // The tick is the first majority, which can come before the place is given: a couple that loses the place to a greater majority is still ticked there
+    const first = result.columns[p.competitorId]!.findIndex((c) => c.count >= result.majority) + 1
+    out[p.competitorId] = { column: first || p.column, note }
   }
   return out
 }

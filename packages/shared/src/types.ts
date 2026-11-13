@@ -871,7 +871,7 @@ export interface SkatingRow {
   marks: Record<Id, number | null>
   // Single-dance final: how many adjudicators placed this competitor at or above 1st, 2nd, 3rd...
   majority: number[]
-  // Single-dance final: the column (1 to n) ticked on the sheet, and why the place went this way
+  // Single-dance final: the column (1 to n) ticked on the sheet, the first one where the couple holds a majority
   placedColumn: number | null
   check: string
   total: number

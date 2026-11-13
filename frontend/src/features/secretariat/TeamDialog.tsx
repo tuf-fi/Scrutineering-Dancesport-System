@@ -10,7 +10,6 @@ function TeamForm({ team, onDone }: { team: Team | null; onDone: () => void }) {
   const [name, setName] = useState(team?.name ?? '')
   const [contactName, setContactName] = useState(team?.contactName ?? '')
   const [contactPhone, setContactPhone] = useState(team?.contactPhone ?? '')
-  const [contactEmail, setContactEmail] = useState(team?.contactEmail ?? '')
   const [error, setError] = useState<string | undefined>()
   const [failure, setFailure] = useState<string | null>(null)
 
@@ -20,7 +19,7 @@ function TeamForm({ team, onDone }: { team: Team | null; onDone: () => void }) {
     setError(undefined)
     setFailure(null)
     save.mutate(
-      { id: team?.id, input: { name, contactName, contactEmail, contactPhone } },
+      { id: team?.id, input: { name, contactName, contactEmail: team?.contactEmail ?? '', contactPhone } },
       {
         onSuccess: (c) => {
           toast.success(`${team ? 'Saved' : 'Added'} ${c.name}`)
@@ -39,9 +38,6 @@ function TeamForm({ team, onDone }: { team: Team | null; onDone: () => void }) {
         </div>
         <Input label="Contact person" value={contactName} onChange={(e) => setContactName(e.target.value)} />
         <Input label="Contact no." inputMode="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
-        <div className="sm:col-span-2">
-          <Input label="Email" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
-        </div>
       </form>
       {failure && (
         <p role="alert" className="mt-4 text-small text-danger">
