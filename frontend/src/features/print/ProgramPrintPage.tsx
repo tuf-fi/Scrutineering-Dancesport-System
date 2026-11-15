@@ -64,7 +64,7 @@ export function ProgramPrintPage() {
     .join(', ')
 
   return (
-    <article className="program-page border-2 border-neutral-900 text-[10pt] leading-snug text-neutral-900">
+    <article className="border-2 border-neutral-900 text-[10pt] leading-snug text-neutral-900">
       <h1 className="print-exact border-b-2 border-neutral-900 bg-neutral-200 px-3 py-1.5 text-[15pt] font-bold">
         Program: {competition.data.name}
       </h1>
