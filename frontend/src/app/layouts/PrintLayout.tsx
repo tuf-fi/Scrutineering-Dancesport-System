@@ -4,8 +4,8 @@ import { Button } from '../../components/ui/index.ts'
 // Print pages are plain documents. On screen a slim bar offers Print; on paper only the sheet shows.
 export function PrintLayout() {
   const navigate = useNavigate()
-  // Certificates are landscape, so their sheet is as wide as an A4 turned on its side
-  const landscape = useMatch('/print/certificates/:eventId') !== null
+  // Certificates and the program are landscape, so their sheet is as wide as an A4 turned on its side
+  const landscape = useMatch('/print/certificates/:eventId') !== null || useMatch('/competitions/:competitionId/program/print') !== null
 
   return (
     <div className="min-h-dvh bg-neutral-100 print:bg-white">

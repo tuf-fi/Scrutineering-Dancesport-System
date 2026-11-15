@@ -3,7 +3,7 @@ import { useCompetitorRows, useHeatAssignments } from '../../hooks/index.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, ordinal } from '../../lib/format.ts'
 import { PrintSheet } from './PrintSheet.tsx'
 import { PrintState } from './PrintState.tsx'
-import { num, td, th } from './tableStyles.ts'
+import { num, td, th, thCenter } from './tableStyles.ts'
 import { usePrintContext } from './usePrintContext.ts'
 
 const box = 'inline-block size-5 border border-neutral-900 align-middle'
@@ -55,7 +55,7 @@ export function BlankSheetsPage() {
                         <tr>
                           <th className={`${th} w-24`}>Place</th>
                           {event.dances.map((d) => (
-                            <th key={d} className={`${th} text-center`}>
+                            <th key={d} className={`${thCenter}`}>
                               {DANCE_LABEL[d]}
                             </th>
                           ))}
@@ -80,7 +80,7 @@ export function BlankSheetsPage() {
                         <tr>
                           <th className={`${th} w-20`}>No.</th>
                           {event.dances.map((d) => (
-                            <th key={d} className={`${th} text-center`}>
+                            <th key={d} className={`${thCenter}`}>
                               {DANCE_LABEL[d]}
                             </th>
                           ))}

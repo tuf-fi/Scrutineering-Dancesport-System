@@ -3,7 +3,7 @@ import { useSignatures, useSkatingTable } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, competitorName, ordinal } from '../../lib/format.ts'
 import { PrintSheet } from './PrintSheet.tsx'
 import { PrintState } from './PrintState.tsx'
-import { num, td, th } from './tableStyles.ts'
+import { num, td, th, thRight } from './tableStyles.ts'
 import { usePrintContext } from './usePrintContext.ts'
 
 // Every adjudicator's marks for a round, one row per competitor
@@ -35,17 +35,17 @@ export function ScoresPage() {
                   <th className={th}>No.</th>
                   <th className={th}>{event.isSolo ? 'Solo' : 'Couple'}</th>
                   {data?.adjudicators.map((a) => (
-                    <th key={a.id} className={`${th} text-right`}>
+                    <th key={a.id} className={`${thRight}`}>
                       {a.letter}
                     </th>
                   ))}
                   {placing &&
                     Array.from({ length: data?.places ?? 0 }, (_, i) => (
-                      <th key={i} className={`${th} text-right font-normal`}>
+                      <th key={i} className={`${thRight} font-normal`}>
                         {i === 0 ? '1' : `1-${i + 1}`}
                       </th>
                     ))}
-                  {!placing && <th className={`${th} text-right font-bold`}>X</th>}
+                  {!placing && <th className={`${thRight} font-bold`}>X</th>}
                 </tr>
               </thead>
               <tbody>

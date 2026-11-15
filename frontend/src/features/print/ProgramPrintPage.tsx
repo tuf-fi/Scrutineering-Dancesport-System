@@ -14,7 +14,7 @@ import {
 } from '../../lib/format.ts'
 import { HeatSplit } from '../../components/HeatSplit.tsx'
 import { filterProgram } from '../../lib/programFilter.ts'
-import { num, td, th } from './tableStyles.ts'
+import { num, td, th, thCenter } from './tableStyles.ts'
 
 const keep = 'whitespace-nowrap'
 
@@ -64,7 +64,7 @@ export function ProgramPrintPage() {
     .join(', ')
 
   return (
-    <article className="border-2 border-neutral-900 text-[10pt] leading-snug text-neutral-900">
+    <article className="program-page border-2 border-neutral-900 text-[10pt] leading-snug text-neutral-900">
       <h1 className="print-exact border-b-2 border-neutral-900 bg-neutral-200 px-3 py-1.5 text-[15pt] font-bold">
         Program: {competition.data.name}
       </h1>
@@ -98,7 +98,7 @@ export function ProgramPrintPage() {
                 <th className={`${th} ${keep}`}>Evt</th>
                 <th className={th}>Category</th>
                 <th className={`${th} ${keep}`}>Round</th>
-                <th className={`${th} ${keep} text-center`}>No. of Entries</th>
+                <th className={`${thCenter} ${keep}`}>No. of Entries</th>
                 <th className={`${th} ${keep}`}>Action</th>
                 <th className={`${th} ${keep}`}>Adj.</th>
               </tr>
@@ -111,7 +111,10 @@ export function ProgramPrintPage() {
                     <td className={`${td} ${num} ${keep}`}>{formatClock(r.startTime)}</td>
                     <td className={`${td} ${num} ${keep}`}>{eventCode({ number: r.eventNumber })}</td>
                     <td className={td}>
-                      {eventDances(r)} <span className="text-neutral-600">· {ageGroupLabel(r.ageGroup)} {r.class}</span>
+                      {eventDances(r)}
+                      <span className="block text-neutral-600">
+                        {ageGroupLabel(r.ageGroup)} · {r.class}
+                      </span>
                     </td>
                     <td className={`${td} ${keep}`}>{ROUND_TYPE_LABEL[r.roundType]}</td>
                     <td className={`${td} ${num} ${keep} text-center`}>{r.entryCount}

@@ -247,6 +247,15 @@
   page: certificate;
 }
 
+/* The program has many columns, so it prints landscape too */
+@page program {
+  size: A4 landscape;
+  margin: 12mm;
+}
+.program-page {
+  page: program;
+}
+
 @media print {
   html,
   body {
