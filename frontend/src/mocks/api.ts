@@ -97,6 +97,10 @@ import {
   type ProgramSlotInput,
   type CompetitorHistoryLine,
   type Panel,
+  type PanelsResult,
+  type Redance,
+  type RoundType,
+  type SheetSignatures,
   type PaymentDetail,
   type PointsRow,
   type SessionUser,
@@ -125,7 +129,7 @@ import {
   skatingTable,
   eventReport,
 } from './scrutinizing.ts'
-import { adjudicatorState, demoRounds, startDemoRound, submitMarks, taskFor } from './adjudicating.ts'
+import { adjudicatorState, demoRounds, getSampleRedances, startDemoRound, startSampleRedance, submitMarks, submitSampleRedance, taskFor } from './adjudicating.ts'
 import { heats, marks, rounds } from './data/progress.ts'
 import { pointsTable, rankingPoints, results } from './data/results.ts'
 import { auditLog, staffUsers } from './data/staff.ts'
@@ -318,7 +322,6 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
       entryDeadline: input.entryDeadline || null,
       feeDeadline: input.feeDeadline || null,
       ...(input.image === undefined ? {} : { image: input.image || null }),
-      ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }),
       ...(input.paymentRequired === undefined ? {} : { paymentRequired: input.paymentRequired }),
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) {
@@ -337,7 +340,6 @@ export const saveCompetition = (actorId: string, input: CompetitionInput, id?: s
     const created: Competition = {
       id: `comp-${competitions.length + 1}-${Date.now().toString(36)}`,
       ...values,
-      usesPoints: input.usesPoints ?? true,
       paymentRequired: input.paymentRequired ?? true,
     }
     competitions.push(created)
@@ -510,6 +512,26 @@ export const setPanel = (actorId: string, eventId: string, adjudicatorIds: strin
     }
     record(actorId, 'Changed panel', `Event ${event.number}`)
     return panel
+  })
+
+export const setPanels = (actorId: string, competitionId: string, eventIds: string[], adjudicatorIds: string[], mode: 'replace' | 'add') =>
+  settle<PanelsResult>(() => {
+    const ids = adjudicators.filter((a) => adjudicatorIds.includes(a.id)).map((a) => a.id)
+    if (ids.length === 0) throw new Error('Choose at least one adjudicator.')
+    const chosen = events.filter((e) => e.competitionId === competitionId && eventIds.includes(e.id))
+    if (chosen.length === 0) throw new Error('Choose at least one event.')
+    const changed: string[] = []
+    for (const event of chosen) {
+      let panel = panels.find((p) => p.eventId === event.id)
+      if (!panel) {
+        panel = { id: `panel-${event.id}`, eventId: event.id, adjudicatorIds: [] }
+        panels.push(panel)
+      }
+      panel.adjudicatorIds = mode === 'add' ? [...new Set([...panel.adjudicatorIds, ...ids])] : ids
+      record(actorId, 'Changed panel', `Event ${event.number}`)
+      changed.push(event.id)
+    }
+    return { changed, skipped: [] }
   })
 
 // TODO: ranking points already computed from the old table are not recalculated in the sample
@@ -800,6 +822,38 @@ export const createCompetitor = (actorId: string, input: { names: string[]; team
     }
     competitors.push(competitor)
     record(actorId, 'Added competitor', names.join(' & '))
+    return competitorRow(competitor)
+  })
+
+export const addAthlete = (actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
+  settle<CompetitorRow>(() => {
+    const names = cleanNames(input.names)
+    found(teams.find((c) => c.id === input.teamId), 'Team')
+    const competitor: Competitor = {
+      id: `c-${String(competitors.length + 1).padStart(3, '0')}`,
+      names,
+      backNumber: null,
+      teamId: input.teamId,
+      ...(input.details ? { details: input.details } : {}),
+    }
+    competitors.push(competitor)
+    const plain = (n: string) => n.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+    if (!athleteRecords.some((r) => plain(r.name) === plain(names[0]!))) {
+      const dancer = input.details?.dancers[0]
+      athleteRecords.push({
+        id: `ar-${athleteRecords.length + 1}`,
+        name: names[0]!,
+        birthDate: dancer?.birthDate ?? '',
+        phone: dancer?.phone ?? '',
+        address: dancer?.address ?? '',
+        province: input.details?.province ?? '',
+        teamId: input.teamId,
+        coachId: input.details?.coachId ?? null,
+        memberYear: input.details?.memberYear ?? null,
+        memberMonth: input.details?.memberMonth ?? null,
+      })
+    }
+    record(actorId, 'Added athlete', names.join(' & '))
     return competitorRow(competitor)
   })
 
@@ -1148,6 +1202,18 @@ export const setEventRounds = (actorId: string, eventId: string, plan: RoundPlan
   })
 
 export const getProgram = (competitionId: string) => reply(sampleProgram.programOf(competitionId))
+export const getRoundSets = (competitionId: string) => reply(sampleProgram.sampleRoundSets(competitionId))
+export const getRoundSet = (roundId: string) => reply(sampleProgram.sampleRoundSet(roundId))
+export const setRoundSet = (actorId: string, eventId: string, roundType: RoundType, adjudicatorIds: string[] | null) =>
+  settle<void>(() => {
+    sampleProgram.setSampleRoundSet(eventId, roundType, adjudicatorIds)
+    record(actorId, 'Changed the adjudicators of a round', `${eventId} ${roundType}`)
+  })
+export const rotateRoundSets = (actorId: string, competitionId: string, setSize: number) =>
+  settle<number>(() => {
+    record(actorId, 'Rotated the adjudicators of the rounds', competitionId)
+    return sampleProgram.rotateSampleSets(competitionId, setSize)
+  })
 export const getEntriesByBackNumber = (competitionId: string, backNumber: number) =>
   reply(
     entries
@@ -1324,6 +1390,18 @@ export const submitAdjudicatorMarks = (adjudicatorId: string, roundId: string, s
     emitAlert([Role.Scrutineer, Role.Chairperson], { title: `Adjudicator ${letter} submitted`.replace('  ', ' '), detail: 'Marks are in for the round on the floor', link: '/scrutineer/live' })
   })
 
+export const getRedances = (roundId: string) => reply(getSampleRedances(roundId))
+export const startRedance = (actorId: string, roundId: string, heat: number, reason: string) =>
+  settle<Redance>(() => {
+    const made = startSampleRedance(roundId, heat, reason)
+    record(actorId, 'Started a redance', `Heat ${heat}`)
+    return made
+  })
+export const submitRedanceMarks = (adjudicatorId: string, roundId: string, submissions: MarkSubmission[], _signature?: string) =>
+  settle<void>(() => submitSampleRedance(adjudicatorId, roundId, submissions))
+export const enterRedanceMarks = (_actorId: string, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
+  settle<void>(() => submitSampleRedance(adjudicatorId, roundId, submissions))
+
 // TODO: dev-only controls that stand in for the scrutineer starting a round
 export const getDemoRounds = () => reply(demoRounds())
 export const startDemoRoundOnFloor = (roundId: string | null) => settle<void>(() => startDemoRound(roundId))
@@ -1422,6 +1500,39 @@ export const getSkatingTable = (roundId: string) => reply(skatingTable(roundId))
 export const getEventReport = (eventId: string) => settle<EventReport>(() => eventReport(eventId))
 // TODO: the sample keeps no signatures; the real server stores them
 export const getSignatures = (_roundId: string) => reply<RoundSignature[]>([])
+
+// Staff keep one signature on their account; the sheet prints the scrutineer's and the chairperson's
+const staffSignatures = new Map<string, string>()
+
+// A sample signature stands in for each account until it is removed, so screens behind the sign-in gate open
+const unsigned = new Set<string>()
+const SAMPLE_SIGNATURE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+
+export const getMySignature = (actorId: string) => reply<string | null>(staffSignatures.get(actorId) ?? (unsigned.has(actorId) ? null : SAMPLE_SIGNATURE))
+
+export const saveMyStaffSignature = (actorId: string, signature: string | null) =>
+  settle<string | null>(() => {
+    if (signature !== null && !signature.startsWith('data:image/png;base64,')) throw new Error('Send the signature as a PNG picture under 150 KB.')
+    if (signature === null) {
+      staffSignatures.delete(actorId)
+      unsigned.add(actorId)
+    } else {
+      staffSignatures.set(actorId, signature)
+      unsigned.delete(actorId)
+    }
+    return signature
+  })
+
+export const getSheetSignatures = (_eventId: string) =>
+  reply<SheetSignatures>({
+    scrutineer: pickSigner(Role.Scrutineer),
+    chairperson: pickSigner(Role.Chairperson),
+  })
+
+function pickSigner(role: Role): { name: string; signature: string | null } | null {
+  const user = staffUsers.find((s) => s.role === role)
+  return user ? { name: user.name, signature: staffSignatures.get(user.id) ?? null } : null
+}
 
 export const approveRound = (actorId: string, roundId: string) =>
   settle<void>(() => {

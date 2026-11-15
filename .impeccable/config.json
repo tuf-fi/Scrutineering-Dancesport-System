@@ -20,6 +20,11 @@
         "value": "consolas",
         "createdAt": "2026-11-09T08:32:26.691Z",
         "reason": "agent decision, not user confirmed: monospace for typed addresses and button names in a printed guide, not product UI"
+      },
+      {
+        "rule": "overused-font",
+        "value": "arial",
+        "createdAt": "2026-11-15T03:57:14.392Z"
       }
     ]
   }

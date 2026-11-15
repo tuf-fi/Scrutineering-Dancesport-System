@@ -1,10 +1,11 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { Brand } from '../../components/Brand.tsx'
 import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
+import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { cn } from '../../lib/cn.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useConnection } from '../../stores/connection.ts'
@@ -18,6 +19,9 @@ export function MobileNav({ items }: { items: NavItem[] }) {
   const signOut = useSignOut(STAFF_SIGN_IN)
   const [open, setOpen] = useState(false)
   const online = useConnection((s) => s.online)
+  const { pathname } = useLocation()
+  // The drawer opens at the top of a long list, so the current section is scrolled into view each time
+  const navRef = useScrollActive<HTMLElement>(open, pathname)
   if (!user) return null
 
   const groups = items.reduce<Array<{ label: string; items: NavItem[] }>>((all, item) => {
@@ -60,7 +64,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
                 <span className="truncate text-xs text-neutral-500">{ROLE_LABEL[user.role]}</span>
               </span>
             </Link>
-            <nav aria-label="Sections" className="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
+            <nav ref={navRef} aria-label="Sections" className="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
               {groups.map((group, i) => (
                 <div key={group.label || i} role="group" aria-label={group.label || undefined} className="flex flex-col gap-0.5">
                   {group.label && <p aria-hidden className={cn('px-3 pb-1 font-mono text-[0.6875rem] uppercase tracking-wide text-neutral-400', i === 0 ? 'pt-0' : 'pt-5')}>{group.label}</p>}

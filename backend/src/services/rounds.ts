@@ -26,7 +26,9 @@ import {
   getEventRow,
   getRoundRow,
   heatsOfRound,
-  panelAdjudicatorIds,
+  openRedance,
+  owedRedance,
+  roundAdjudicatorIds,
   planFor,
   roundAdvanced,
   roundsOfEvent,
@@ -35,11 +37,10 @@ import {
   toEvent,
   toRound,
   unpaidEntries,
+  MAX_SIGNATURE,
+  PNG_PREFIX,
 } from './shared.ts'
 
-// A drawn signature is a small PNG sent as a data URL
-const PNG_PREFIX = 'data:image/png;base64,'
-const MAX_SIGNATURE = 150_000
 
 const competitionRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
@@ -136,6 +137,7 @@ export const rounds = {
   saveHeats(ctx: Ctx, roundId: string, assignments: HeatAssignment[]): void {
     const round = getRoundRow(ctx, roundId)
     if (roundAdvanced(round.status)) return fail('Heats cannot change after the round is approved.', 409)
+    if (openRedance(ctx, roundId)) return fail('A redance is waiting for its marks, so the heats cannot change.', 409)
     const field = new Set(fieldOf(ctx, round))
     if (field.size === 0) return fail('This round has no competitors yet. Approve the previous round first.', 409)
     const list = Array.isArray(assignments) ? assignments : []
@@ -162,7 +164,7 @@ export const rounds = {
     const round = getRoundRow(ctx, roundId)
     const event = getEventRow(ctx, round.eventId)
     if (round.status !== 'pending') return fail(`This round is already ${round.status}.`, 409)
-    if (panelAdjudicatorIds(ctx, event.id).length === 0) return fail('Choose the adjudicators for this event first.', 409)
+    if (roundAdjudicatorIds(ctx, round).length === 0) return fail('Choose the adjudicators for this event first.', 409)
     const previous = roundsOfEvent(ctx, event.id).find((r) => r.position === round.position - 1)
     if (previous && !roundAdvanced(previous.status)) return fail('Approve the previous round first.', 409)
 
@@ -235,13 +237,13 @@ export const rounds = {
         if (!r.competitions.floorRoundId) return []
         const round = ctx.db.select().from(t.rounds).where(eq(t.rounds.id, r.competitions.floorRoundId)).get()
         if (!round || (round.status !== 'marking' && round.status !== 'review')) return []
-        if (!panelAdjudicatorIds(ctx, round.eventId).includes(user.id)) return []
+        if (!roundAdjudicatorIds(ctx, round).includes(user.id)) return []
         const submitted = ctx.db
           .select()
           .from(t.submissions)
           .where(and(eq(t.submissions.roundId, round.id), eq(t.submissions.adjudicatorId, user.id)))
           .get()
-        return [{ round, submitted: Boolean(submitted), startedAt: r.competitions.floorStartedAt ?? '' }]
+        return [{ round, submitted: Boolean(submitted), owed: owedRedance(ctx, round.id, user.id), startedAt: r.competitions.floorStartedAt ?? '' }]
       })
     // The most recently started round first; one still waiting for this adjudicator's marks comes before one they have sent
     open.sort((a, b) => b.startedAt.localeCompare(a.startedAt))
@@ -249,7 +251,11 @@ export const rounds = {
     if (!current) return { status: 'waiting' }
     ctx.hub.seen(user.id)
     const task = markingTask(ctx, current.round)
-    return current.submitted ? { status: 'submitted', task } : { status: 'marking', task }
+    if (current.submitted) return { status: 'submitted', task }
+    const owed = current.owed
+    if (!owed) return { status: 'marking', task }
+    const members = heatsOfRound(ctx, current.round.id).find((h) => h.number === owed.heat)?.competitorIds ?? []
+    return { status: 'marking', task, redance: { seq: owed.seq, heat: owed.heat, competitorIds: members, counts: owed.required[user.id] ?? {} } }
   },
 
   submitAdjudicatorMarks(ctx: Ctx, roundId: string, submissions: MarkSubmission[], signature?: string | null): void {
@@ -292,7 +298,7 @@ function markingTask(ctx: Ctx, round: typeof t.rounds.$inferSelect): MarkingTask
 // Each adjudicator on the panel: submitted, marking (phone heard from recently), or waiting
 export function submissionSnapshot(ctx: Ctx, roundId: string): AdjudicatorSubmission[] {
   const round = getRoundRow(ctx, roundId)
-  const panel = panelAdjudicatorIds(ctx, round.eventId)
+  const panel = roundAdjudicatorIds(ctx, round)
   const done = new Map(
     ctx.db.select().from(t.submissions).where(eq(t.submissions.roundId, roundId)).all().map((s) => [s.adjudicatorId, s.submittedAt]),
   )
@@ -335,8 +341,10 @@ function storeMarks(
   }
   const round = getRoundRow(ctx, roundId)
   const event = getEventRow(ctx, round.eventId)
-  if (!panelAdjudicatorIds(ctx, event.id).includes(adjudicatorId)) return fail('This adjudicator is not on the panel for this event.', 403)
+  if (!roundAdjudicatorIds(ctx, round).includes(adjudicatorId)) return fail('This adjudicator is not judging this round.', 403)
   if (round.status !== 'marking' && round.status !== 'review') return fail('This round is not open for marking.', 409)
+  // A phone's old copy of the whole sheet must not undo a redance: that heat is marked first
+  if (owedRedance(ctx, roundId, adjudicatorId)) return fail('A redance is waiting. Mark that heat first.', 409)
 
   const list = Array.isArray(submissions) ? submissions : []
   const field = new Set(fieldOf(ctx, round))
@@ -392,7 +400,7 @@ function storeMarks(
   // Any tie decision was made on fewer marks
   ctx.db.delete(t.tieDecisions).where(eq(t.tieDecisions.roundId, roundId)).run()
 
-  const panel = panelAdjudicatorIds(ctx, event.id)
+  const panel = roundAdjudicatorIds(ctx, round)
   const submitted = ctx.db.select().from(t.submissions).where(eq(t.submissions.roundId, roundId)).all().length
   if (submitted >= panel.length && round.status === 'marking') {
     ctx.db.update(t.rounds).set({ status: 'review' }).where(and(eq(t.rounds.id, roundId), inArray(t.rounds.status, ['marking']))).run()

@@ -2,19 +2,23 @@ import { monthYearText, parseMonthYear } from '@bis/shared'
 import type { CompetitorDetails, CompetitorRow, DancerDetails, Gender } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
-import { useTeams, useCoaches, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
+import { useTeams, useCoaches, useAddAthlete, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
 
 const FORM_ID = 'competitor-form'
 
 const BLANK: DancerDetails = { birthDate: '', gender: '', address: '', email: '', phone: '' }
 
-function CompetitorForm({ competitor, onDone, onAdded }: { competitor: CompetitorRow | null; onDone: () => void; onAdded?: () => void }) {
+// 'athlete': a new athlete and their entry together; 'entry': entry details for an athlete already on the list
+export type EntryIntent = 'athlete' | 'entry'
+
+function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { competitor: CompetitorRow | null; intent: EntryIntent; prefillName?: string; onDone: () => void; onAdded?: () => void }) {
   const teams = useTeams()
   const coaches = useCoaches()
   const create = useCreateCompetitor()
+  const addAthlete = useAddAthlete()
   const update = useUpdateCompetitor()
   const saved = competitor?.details
-  const [first, setFirst] = useState(competitor?.names[0] ?? '')
+  const [first, setFirst] = useState(competitor?.names[0] ?? prefillName ?? '')
   const [second, setSecond] = useState(competitor?.names[1] ?? '')
   const [teamId, setTeamId] = useState(competitor?.teamId ?? '')
   const [province, setProvince] = useState(saved?.province ?? '')
@@ -72,7 +76,7 @@ function CompetitorForm({ competitor, onDone, onAdded }: { competitor: Competito
       onError: (e: Error) => setFailure(e.message),
     }
     if (competitor) update.mutate({ id: competitor.id, names, teamId, details }, handlers)
-    else create.mutate({ names, teamId, details }, handlers)
+    else (intent === 'athlete' ? addAthlete : create).mutate({ names, teamId, details }, handlers)
   }
 
   return (
@@ -147,25 +151,37 @@ function CompetitorForm({ competitor, onDone, onAdded }: { competitor: Competito
   )
 }
 
-// Adds a competitor, or edits the one given
+// Adds an athlete with their entry, or entry details for one already listed, or edits the entry given
 export function CompetitorDialog({
   open,
   competitor,
+  intent = 'athlete',
+  prefillName,
   onClose,
   onAdded,
 }: {
   open: boolean
   competitor: CompetitorRow | null
+  intent?: EntryIntent
+  prefillName?: string
   onClose: () => void
   onAdded?: () => void
 }) {
   const editing = competitor !== null
+  const title = editing ? 'Edit entry' : intent === 'athlete' ? 'Add athlete' : 'Add entry details'
+  const action = editing ? 'Save changes' : intent === 'athlete' ? 'Add athlete' : 'Add entry details'
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      title={editing ? 'Edit competitor' : 'Add competitor'}
-      description={editing ? 'Correct the entry form details.' : 'From the entry form. Back numbers are assigned afterwards.'}
+      title={title}
+      description={
+        editing
+          ? 'Correct the entry form details.'
+          : intent === 'athlete'
+            ? 'Their details from the entry form. They are added to the list and can be entered in events. Back numbers are assigned afterwards.'
+            : 'What the entry form asks, so this athlete can be entered in events.'
+      }
       className="max-w-2xl"
       actions={
         <>
@@ -173,12 +189,12 @@ export function CompetitorDialog({
             Cancel
           </Button>
           <Button type="submit" form={FORM_ID}>
-            {editing ? 'Save changes' : 'Add competitor'}
+            {action}
           </Button>
         </>
       }
     >
-      {open && <CompetitorForm key={competitor?.id ?? 'new'} competitor={competitor} onDone={onClose} onAdded={onAdded} />}
+      {open && <CompetitorForm key={competitor?.id ?? `new-${prefillName ?? ''}`} competitor={competitor} intent={intent} prefillName={prefillName} onDone={onClose} onAdded={onAdded} />}
     </Dialog>
   )
 }

@@ -37,6 +37,7 @@ import {
   getRoundRow,
   heatsOfRound,
   panelAdjudicatorIds,
+  roundAdjudicatorIds,
   roundAdvanced,
   roundsOfEvent,
   saveHeats,
@@ -77,7 +78,7 @@ function callbackFor(ctx: Ctx, round: typeof t.rounds.$inferSelect, recall: numb
   const field = fieldOf(ctx, round)
   const result = tallyCallback({
     competitorIds: field,
-    adjudicatorIds: panelAdjudicatorIds(ctx, round.eventId).filter((id) => roundMarks.some((m) => m.adjudicatorId === id)),
+    adjudicatorIds: roundAdjudicatorIds(ctx, round).filter((id) => roundMarks.some((m) => m.adjudicatorId === id)),
     dances: dancesIn(roundMarks),
     recallNumber: recall,
     marks: roundMarks.map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, dance: m.dance })),
@@ -90,7 +91,7 @@ function recallTable(ctx: Ctx, roundId: string): RecallTable {
   if (round.recallNumber === null) return fail('A final is placed, not recalled.', 409)
   const recall = round.recallNumber
   const { result, field } = callbackFor(ctx, round, recall)
-  const panel = panelAdjudicatorIds(ctx, round.eventId)
+  const panel = roundAdjudicatorIds(ctx, round)
   const submitted = new Set(marksOf(ctx, roundId).map((m) => m.adjudicatorId))
   const numbers = backNumbers(ctx, field)
   const people = peopleOf(ctx, field)
@@ -139,7 +140,7 @@ function recallTable(ctx: Ctx, roundId: string): RecallTable {
 
 function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
   const round = getRoundRow(ctx, roundId)
-  const panel = panelAdjudicatorIds(ctx, round.eventId)
+  const panel = roundAdjudicatorIds(ctx, round)
   const roundMarks = marksOf(ctx, roundId)
   const isPlacing = roundMarks.some((m) => m.kind === 'placing') || round.recallNumber === null
   const letters = new Map(ctx.db.select().from(t.adjudicators).all().map((a) => [a.id, a.letter]))
@@ -354,7 +355,7 @@ function eventReport(ctx: Ctx, eventId: string): EventReport {
     return {
       type: round.type,
       isFinal: round.recallNumber === null,
-      adjudicators: panelAdjudicatorIds(ctx, eventId)
+      adjudicators: roundAdjudicatorIds(ctx, round)
         .filter((id) => markedBy.has(id))
         .map((id) => ({ id, letter: letters.get(id)?.letter ?? '?' }))
         .sort((a, b) => a.letter.localeCompare(b.letter)),
@@ -375,7 +376,8 @@ function eventReport(ctx: Ctx, eventId: string): EventReport {
   return {
     competition: { name: competition.name, date: competition.date, venue: competition.venue, organizer: competition.organizer, executor: competition.executor || competition.organizer },
     scrutineer: staffName(ctx, results[0]?.approvedBy ?? null) ?? '',
-    adjudicators: panelAdjudicatorIds(ctx, eventId)
+    // Everyone who judged any round of the event
+    adjudicators: (rounds.length > 0 ? [...new Set(rounds.flatMap((r) => roundAdjudicatorIds(ctx, r)))] : panelAdjudicatorIds(ctx, eventId))
       .map((id) => letters.get(id))
       .flatMap((a) => (a ? [{ letter: a.letter, name: a.name }] : []))
       .sort((a, b) => a.letter.localeCompare(b.letter)),
@@ -401,7 +403,7 @@ function finalDecisionOf(ctx: Ctx, roundId: string) {
 
 // The final's places by the Skating System, before any tie decision
 function finalOf(ctx: Ctx, round: typeof t.rounds.$inferSelect) {
-  const panel = panelAdjudicatorIds(ctx, round.eventId)
+  const panel = roundAdjudicatorIds(ctx, round)
   const placings = marksOf(ctx, round.id).filter((m) => m.kind === 'placing')
   return placeFinal({
     competitorIds: [...new Set(placings.map((m) => m.competitorId))],
@@ -543,6 +545,10 @@ function announcements(ctx: Ctx): Announcement[] {
     if (round && row && round.status !== 'pending') {
       for (const heat of heatsOfRound(ctx, round.id)) {
         call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}`, kind: 'call', heat: heat.number, numbers: numbersOf(heat.competitorIds) })
+        // A heat danced again is called again
+        for (const again of ctx.db.select().from(t.redances).where(and(eq(t.redances.roundId, round.id), eq(t.redances.heat, heat.number))).orderBy(asc(t.redances.seq)).all()) {
+          call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}:redance${again.seq}`, kind: 'call', heat: heat.number, redance: true, numbers: numbersOf(heat.competitorIds) })
+        }
       }
     }
   }

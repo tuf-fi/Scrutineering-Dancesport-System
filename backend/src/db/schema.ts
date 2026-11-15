@@ -23,8 +23,6 @@ export const competitions = sqliteTable('competitions', {
   feeDeadline: text('fee_deadline'),
   // The photo on its home page card, as a data URL
   image: text('image'),
-  // Whether its results count towards the rankings
-  usesPoints: integer('uses_points', { mode: 'boolean' }).notNull().default(true),
   // Whether entering costs money: fees and membership are asked, and an entry is paid. Off for a free competition
   paymentRequired: integer('payment_required', { mode: 'boolean' }).notNull().default(true),
   // The round on the floor now; the scrutineer sets it
@@ -65,6 +63,8 @@ export const events = sqliteTable(
     province: text('province').notNull().default(''),
     // What the adjudicators may use in this event; empty uses the standard text for the age group
     syllabus: text('syllabus').notNull().default(''),
+    // Whether its results count towards the rankings
+    usesPoints: integer('uses_points', { mode: 'boolean' }).notNull().default(true),
   },
   (t) => [uniqueIndex('events_number_per_competition').on(t.competitionId, t.number)],
 )
@@ -198,6 +198,22 @@ export const panels = sqliteTable('panels', {
     .references(() => events.id, { onDelete: 'cascade' }),
 })
 
+// The adjudicators who judge one round when it is not the whole panel (a pool of 7 where 5 judge each round). It is keyed
+// by event and round type, as program lines are, so a set can be chosen before the round exists. No rows: the whole panel.
+export const roundSets = sqliteTable(
+  'round_sets',
+  {
+    eventId: text('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    roundType: text('round_type', { enum: oneOf(RoundType) }).notNull(),
+    adjudicatorId: text('adjudicator_id')
+      .notNull()
+      .references(() => adjudicators.id, { onDelete: 'cascade' }),
+  },
+  (t) => [primaryKey({ columns: [t.eventId, t.roundType, t.adjudicatorId] })],
+)
+
 export const panelMembers = sqliteTable(
   'panel_members',
   {
@@ -302,6 +318,27 @@ export const submissions = sqliteTable(
     signature: text('signature'),
   },
   (t) => [primaryKey({ columns: [t.roundId, t.adjudicatorId] })],
+)
+
+// A heat danced again because adjudicators asked. 'required' says who must re-mark the heat and how many X per dance
+// (what they gave it before); 'redone' lists those who have. It is open until doneAt is set.
+export const redances = sqliteTable(
+  'redances',
+  {
+    id: id(),
+    roundId: text('round_id')
+      .notNull()
+      .references(() => rounds.id, { onDelete: 'cascade' }),
+    seq: integer('seq').notNull(),
+    heat: integer('heat').notNull(),
+    reason: text('reason').notNull(),
+    startedBy: text('started_by').notNull(),
+    startedAt: text('started_at').notNull(),
+    doneAt: text('done_at'),
+    required: text('required', { mode: 'json' }).$type<Record<string, Record<string, number>>>().notNull(),
+    redone: text('redone', { mode: 'json' }).$type<string[]>().notNull().default([]),
+  },
+  (t) => [uniqueIndex('redances_seq_per_round').on(t.roundId, t.seq)],
 )
 
 export const marks = sqliteTable(
@@ -453,6 +490,8 @@ export const staffUsers = sqliteTable('staff_users', {
   role: text('role', { enum: oneOf(Role) }).notNull(),
   // A picture of the person, as a data URL
   photo: text('photo'),
+  // Their signature as a PNG data URL, printed on the results they approve or confirm
+  signature: text('signature'),
   passwordHash: text('password_hash').notNull(),
   disabled: integer('disabled', { mode: 'boolean' }).notNull().default(false),
   // A signed token carries the version it was made at; raising it signs the person out everywhere

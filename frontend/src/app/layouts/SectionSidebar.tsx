@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
+import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { cn } from '../../lib/cn.ts'
 import { useUi } from '../../stores/ui.ts'
 
@@ -23,6 +24,8 @@ export function SectionSidebar({ title, label, sections, current }: { title: str
   const desktop = useMediaQuery('(min-width: 1024px)')
   const collapsed = useUi((s) => s.sidebarCollapsed)
   const first = sections[0]!.id
+  // On a phone the sections are a strip that can scroll sideways: the open one is brought into view
+  const strip = useScrollActive<HTMLElement>(current, desktop)
   const link = (x: SectionItem) => ({
     to: { search: x.id === first ? '' : `?section=${x.id}` },
     replace: true,
@@ -31,7 +34,7 @@ export function SectionSidebar({ title, label, sections, current }: { title: str
 
   if (!desktop) {
     return (
-      <nav aria-label={label} className="no-scrollbar -mx-4 flex gap-6 overflow-x-auto border-b border-neutral-200 px-4 sm:-mx-8 sm:px-8">
+      <nav ref={strip} aria-label={label} className="no-scrollbar -mx-4 flex gap-6 overflow-x-auto border-b border-neutral-200 px-4 sm:-mx-8 sm:px-8">
         {sections.map((x) => (
           <Link
             key={x.id}

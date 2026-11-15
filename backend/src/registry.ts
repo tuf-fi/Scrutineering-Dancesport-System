@@ -4,6 +4,9 @@ import { admin } from './services/admin.ts'
 import { site } from './services/site.ts'
 import { deleteImpact } from './services/cascade.ts'
 import { offlineDay } from './services/offlineDay.ts'
+import { redance } from './services/redance.ts'
+import { roundSets } from './services/roundSets.ts'
+import { signatures } from './services/signatures.ts'
 import { program } from './services/program.ts'
 import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
@@ -31,6 +34,10 @@ const ADMIN: Role[] = [Role.Admin]
 const ADMIN_OR_SECRETARIAT: Role[] = [Role.Admin, Role.Secretariat]
 // The running order is edited by the secretariat and the scrutineer, on the same copy
 const PROGRAM_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
+// Who marks each event is set by the secretariat and the scrutineer
+const PANEL_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
+// Heats are set by the secretariat and the scrutineer; a redance is the scrutineer's alone
+const HEAT_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
 const SCRUTINEER: Role[] = [Role.Scrutineer]
 const SCORING: Role[] = [Role.Scrutineer, Role.Chairperson]
 
@@ -58,6 +65,9 @@ const handlers: Record<string, Handler> = {
   ...program,
   ...security,
   ...offlineDay,
+  ...signatures,
+  ...redance,
+  ...roundSets,
   ...rounds,
   ...scrutiny,
   ...accountFunctions,
@@ -109,6 +119,10 @@ const access: Record<string, Access> = {
   getResultEventIds: 'public',
   getCompetitionRounds: 'public',
   getProgram: 'public',
+  getRoundSets: OFFICIALS,
+  getRoundSet: OFFICIALS,
+  setRoundSet: PROGRAM_EDITORS,
+  rotateRoundSets: PROGRAM_EDITORS,
   // The barker lines the competitors up; the officials can see the same board
   getBarkerBoard: [Role.Barker, ...OFFICIALS],
   getEntriesByBackNumber: 'public',
@@ -135,6 +149,10 @@ const access: Record<string, Access> = {
   getAnnouncements: STAFF,
   getSignatures: OFFICIALS,
   getSubmissions: OFFICIALS,
+  getRedances: OFFICIALS,
+  startRedance: SCRUTINEER,
+  enterRedanceMarks: SCRUTINEER,
+  submitRedanceMarks: [Role.Adjudicator],
   getHeatAssignments: OFFICIALS,
   getMarks: SCORING,
   getMarkingTask: SCORING,
@@ -152,6 +170,9 @@ const access: Record<string, Access> = {
   resetTotp: ADMIN,
   changeMyStaffPassword: STAFF,
   saveMyStaffName: STAFF,
+  getMySignature: STAFF,
+  saveMyStaffSignature: STAFF,
+  getSheetSignatures: OFFICIALS,
   getTotpStatus: STAFF,
   startTotpSetup: STAFF,
   confirmTotpSetup: STAFF,
@@ -162,7 +183,8 @@ const access: Record<string, Access> = {
   deleteAdjudicator: ADMIN,
   generatePins: ADMIN,
   getDeleteImpact: ADMIN_OR_SECRETARIAT,
-  setPanel: ADMIN,
+  setPanel: PANEL_EDITORS,
+  setPanels: PANEL_EDITORS,
   savePointsTable: ADMIN,
   saveEventKind: ADMIN,
   deleteEventKind: ADMIN,
@@ -180,6 +202,7 @@ const access: Record<string, Access> = {
   getPaymentDetails: ADMIN_OR_SECRETARIAT,
   setEntryScratched: ADMIN_OR_SECRETARIAT,
   createCompetitor: ADMIN_OR_SECRETARIAT,
+  addAthlete: ADMIN_OR_SECRETARIAT,
   setBackNumber: ADMIN_OR_SECRETARIAT,
   assignBackNumbers: ADMIN_OR_SECRETARIAT,
   importCompetitors: ADMIN_OR_SECRETARIAT,
@@ -212,7 +235,7 @@ const access: Record<string, Access> = {
 
   // Scrutineer and chairperson
   planRounds: SCRUTINEER,
-  saveHeats: SCRUTINEER,
+  saveHeats: HEAT_EDITORS,
   startRound: SCRUTINEER,
   clearFloor: SCRUTINEER,
   enterAdjudicatorMarks: SCRUTINEER,

@@ -100,7 +100,7 @@ describe('competitions', () => {
     }
   })
 
-  it('puts the search first, then the year select, and the new button on the right of the same row', async () => {
+  it('puts the search first, then the year select, and the new button under them in the same toolbar', async () => {
     renderApp('/admin/competitions', Role.Admin)
     const search = await screen.findByLabelText('Search')
     const year = screen.getByLabelText('Year')
@@ -108,8 +108,10 @@ describe('competitions', () => {
     const order = (a: Element, b: Element) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING
     expect(order(search, year)).toBeTruthy()
     expect(order(year, newButton)).toBeTruthy()
-    // All three share one toolbar
-    expect(search.closest('[class*="justify-between"]')?.contains(newButton)).toBe(true)
+    // All three share one toolbar: the filters fill a grid, the button sits below it
+    const toolbar = search.closest('.grid')?.parentElement
+    expect(toolbar?.contains(year)).toBe(true)
+    expect(toolbar?.contains(newButton)).toBe(true)
   })
 
   it('filters by year with a select and by a search', async () => {
@@ -420,6 +422,20 @@ describe('adjudicators and panels', () => {
     // Taking one off again works while others stay; the last one cannot be taken off
     await userEvent.click(screen.getByRole('button', { name: /^E11 Helena/ }))
     await waitFor(() => expect(screen.getByRole('button', { name: /^E11 Helena/ })).toHaveAttribute('aria-pressed', 'false'))
+  })
+
+  it('puts every adjudicator on one event, or one list on every event, from the Panels page', async () => {
+    renderApp('/secretariat/panels', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: /^Put every adjudicator on E1\b/ }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Put every adjudicator on E1\b/ })).toBeDisabled())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Set all events' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Set the panel for all events' })
+    expect(within(dialog).getByRole('button', { name: 'Apply to all events' })).toBeDisabled()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Select all' }))
+    expect(within(dialog).getByRole('button', { name: 'Clear' })).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Apply to all events' }))
+    expect(await screen.findByText(/Panels set for \d+ events?/)).toBeInTheDocument()
   })
 })
 

@@ -196,7 +196,7 @@ export function addTestData(db: Db): TestDataReport {
         const c = field[(i + round + n) % field.length]!
         const place = i + 1
         db.insert(t.results)
-          .values({ id: `${eventId}-r${place}`, eventId, competitorId: c.id, place, placeFrom: place, placeTo: place, stage: 'final', approvedBy: 'td-seed', approvedAt: at(comp.date) })
+          .values({ id: `${eventId}-r${place}`, eventId, competitorId: c.id, place, placeFrom: place, placeTo: place, stage: 'final', approvedBy: approver, approvedAt: at(comp.date) })
           .onConflictDoNothing()
           .run()
         db.insert(t.rankingPoints)
@@ -206,6 +206,8 @@ export function addTestData(db: Db): TestDataReport {
       })
     })
   }
+  // The results are signed off by a scrutineer account when there is one, so their signature prints on the certificates
+  const approver = db.select().from(t.staffUsers).where(eq(t.staffUsers.role, 'scrutineer')).get()?.id ?? 'td-seed'
   PAST.forEach((c, i) => make(c, `past-${i + 1}`, true, i + 1))
   UPCOMING.forEach((c, i) => make(c, `upcoming-${i + 1}`, false, i + 1))
 

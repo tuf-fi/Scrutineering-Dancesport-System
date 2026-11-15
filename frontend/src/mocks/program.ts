@@ -55,6 +55,54 @@ function fieldFor(eventId: string, type: RoundType) {
   return { entryCount: i === 0 ? entered : (list[i - 1]!.recall ?? 0), recallNumber: list[i]!.recall }
 }
 
+// The sample's round sets, by event and round type; no entry means the whole panel
+const roundSets = new Map<string, string[]>()
+const setKey = (eventId: string, roundType: string) => `${eventId}:${roundType}`
+const poolOf = (eventId: string) => adjudicators.filter((a) => (panels.find((p) => p.eventId === eventId)?.adjudicatorIds ?? []).includes(a.id)).sort((a, b) => a.letter.localeCompare(b.letter))
+const setOf = (eventId: string, roundType: string | null) => {
+  const chosen = roundType ? roundSets.get(setKey(eventId, roundType)) : undefined
+  return chosen ? poolOf(eventId).filter((a) => chosen.includes(a.id)) : poolOf(eventId)
+}
+const started = (eventId: string, roundType: string) => rounds.some((r) => r.eventId === eventId && r.type === roundType && r.status !== RoundStatus.Pending)
+
+export const sampleRoundSets = (competitionId: string) =>
+  [...roundSets]
+    .map(([key, adjudicatorIds]) => ({ eventId: key.split(':').slice(0, -1).join(':'), roundType: key.split(':').at(-1) as RoundType, adjudicatorIds }))
+    .filter((r) => events.find((e) => e.id === r.eventId)?.competitionId === competitionId)
+
+export const sampleRoundSet = (roundId: string) => {
+  const round = rounds.find((r) => r.id === roundId)
+  return round ? setOf(round.eventId, round.type).map((a) => a.id) : []
+}
+
+export function setSampleRoundSet(eventId: string, roundType: RoundType, ids: string[] | null) {
+  if (started(eventId, roundType)) throw new Error('This round has started, so its adjudicators can no longer change.')
+  const pool = poolOf(eventId).map((a) => a.id)
+  if (ids === null) return void roundSets.delete(setKey(eventId, roundType))
+  const list = [...new Set(ids)]
+  if (list.length === 0) throw new Error('Choose at least one adjudicator.')
+  if (list.some((id) => !pool.includes(id))) throw new Error("Choose from the adjudicators on the event's panel.")
+  if (list.length === pool.length) roundSets.delete(setKey(eventId, roundType))
+  else roundSets.set(setKey(eventId, roundType), list)
+}
+
+export function rotateSampleSets(competitionId: string, size: number): number {
+  if (!Number.isInteger(size) || size < 1) throw new Error('Say how many adjudicators judge each round.')
+  let turn = 0
+  let done = 0
+  for (const slot of slotsOf(competitionId)) {
+    if (slot.kind !== ProgramKind.Round || !slot.eventId || !slot.roundType || started(slot.eventId, slot.roundType)) continue
+    const pool = poolOf(slot.eventId).map((a) => a.id)
+    if (pool.length === 0) continue
+    const n = Math.min(size, pool.length)
+    if (n === pool.length) roundSets.delete(setKey(slot.eventId, slot.roundType))
+    else roundSets.set(setKey(slot.eventId, slot.roundType), Array.from({ length: n }, (_, i) => pool[(turn + i) % pool.length]!))
+    turn += 1
+    done += 1
+  }
+  return done
+}
+
 export function programOf(competitionId: string): Program {
   const start = starts.get(competitionId) ?? null
   const list = slotsOf(competitionId)
@@ -89,7 +137,10 @@ export function programOf(competitionId: string): Program {
       roundType: slot.roundType,
       recallNumber: field?.recallNumber ?? null,
       entryCount: field?.entryCount ?? 0,
+      heats: [],
       panel: adjudicators.filter((a) => panel.includes(a.id)).map((a) => a.letter).sort(),
+      adjudicators: event ? setOf(event.id, slot.roundType).map((a) => a.letter) : [],
+      customSet: Boolean(event && slot.roundType && roundSets.has(setKey(event.id, slot.roundType))),
       status: status[i]!,
     }
     elapsed += slot.minutes

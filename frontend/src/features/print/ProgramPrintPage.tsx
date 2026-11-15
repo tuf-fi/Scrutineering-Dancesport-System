@@ -10,6 +10,8 @@ import {
   formatClock,
   letterRanges,
   programAction,
+  programHeatCount,
+  programHeatSplit,
   sheetDate,
 } from '../../lib/format.ts'
 import { filterProgram } from '../../lib/programFilter.ts'
@@ -92,11 +94,12 @@ export function ProgramPrintPage() {
           <table className="w-full border-collapse">
             <thead>
               <tr>
+                <th className={`${th} ${keep}`}>No.</th>
                 <th className={`${th} ${keep}`}>Time</th>
                 <th className={`${th} ${keep}`}>Evt</th>
                 <th className={th}>Category</th>
                 <th className={`${th} ${keep}`}>Round</th>
-                <th className={`${th} ${keep} text-right`}>Dancing</th>
+                <th className={`${th} ${keep} text-center`}>Dancing</th>
                 <th className={`${th} ${keep}`}>Action</th>
                 <th className={`${th} ${keep}`}>Adj.</th>
               </tr>
@@ -105,18 +108,24 @@ export function ProgramPrintPage() {
               {rows.map((r) =>
                 r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.roundType ? (
                   <tr key={r.slotId} className="break-inside-avoid border-b border-neutral-300">
+                    <td className={`${td} ${num} ${keep}`}>{r.sequence}</td>
                     <td className={`${td} ${num} ${keep}`}>{formatClock(r.startTime)}</td>
                     <td className={`${td} ${num} ${keep}`}>{eventCode({ number: r.eventNumber })}</td>
                     <td className={td}>
                       {eventDances(r)} <span className="text-neutral-600">· {ageGroupLabel(r.ageGroup)} {r.class}</span>
                     </td>
                     <td className={`${td} ${keep}`}>{ROUND_TYPE_LABEL[r.roundType]}</td>
-                    <td className={`${td} ${num} ${keep} text-right`}>{r.entryCount}</td>
-                    <td className={`${td} ${keep}`}>{programAction(r)}</td>
-                    <td className={`${td} ${num} ${keep}`}>{letterRanges(r.panel)}</td>
+                    <td className={`${td} ${num} ${keep} text-center`}>{r.entryCount}
+                      {programHeatSplit(r) && <span className="block text-[8pt] text-neutral-600">{programHeatSplit(r)}</span>}
+                    </td>
+                    <td className={`${td} ${keep}`}>{programAction(r)}
+                      {programHeatCount(r) && <span className="block text-[8pt] text-neutral-600">{programHeatCount(r)}</span>}
+                    </td>
+                    <td className={`${td} ${num} ${keep}`}>{letterRanges(r.adjudicators)}</td>
                   </tr>
                 ) : (
                   <tr key={r.slotId} className="break-inside-avoid border-b border-neutral-300 font-semibold">
+                    <td className={`${td} ${num} ${keep}`}>{r.sequence}</td>
                     <td className={`${td} ${num} ${keep}`}>{formatClock(r.startTime)}</td>
                     <td className={td} colSpan={6}>
                       {r.label}

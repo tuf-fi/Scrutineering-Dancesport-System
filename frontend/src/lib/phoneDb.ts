@@ -10,6 +10,8 @@ export interface PendingSubmission {
   submissions: MarkSubmission[]
   // The drawn signature, sent with the marks
   signature?: string
+  // Set when these are the re-marks of a redanced heat: its number in the round
+  redance?: number
   savedAt: string
 }
 
@@ -18,13 +20,15 @@ export interface Draft {
   adjudicatorId: string
   roundId: string
   answers: Partial<Record<Dance, string[]>>
+  redance?: number
   savedAt: string
 }
 
 type Store = 'outbox' | 'drafts' | 'sent'
 
 const DB_NAME = 'bis-phone'
-const keyOf = (v: { adjudicatorId: string; roundId: string }) => `${v.adjudicatorId}:${v.roundId}`
+type Keyed = { adjudicatorId: string; roundId: string; redance?: number }
+const keyOf = (v: Keyed) => `${v.adjudicatorId}:${v.roundId}${v.redance ? `#r${v.redance}` : ''}`
 
 // Used when the browser has no IndexedDB (private windows in some browsers): marks then survive only until a refresh
 const fallback: Record<Store, Map<string, unknown>> = { outbox: new Map(), drafts: new Map(), sent: new Map() }
@@ -63,14 +67,14 @@ function run<T>(db: IDBDatabase, store: Store, mode: IDBTransactionMode, work: (
   })
 }
 
-async function put<T extends { adjudicatorId: string; roundId: string }>(store: Store, value: T): Promise<void> {
+async function put<T extends Keyed>(store: Store, value: T): Promise<void> {
   const key = keyOf(value)
   fallback[store].set(key, value)
   const db = await open()
   if (db) await run(db, store, 'readwrite', (s) => s.put({ ...value, key }))
 }
 
-async function remove(store: Store, value: { adjudicatorId: string; roundId: string }): Promise<void> {
+async function remove(store: Store, value: Keyed): Promise<void> {
   const key = keyOf(value)
   fallback[store].delete(key)
   const db = await open()
@@ -84,7 +88,7 @@ async function all<T>(store: Store): Promise<T[]> {
 }
 
 export const savePending = (pending: PendingSubmission) => put('outbox', pending)
-export const removePending = (pending: Pick<PendingSubmission, 'adjudicatorId' | 'roundId'>) => remove('outbox', pending)
+export const removePending = (pending: Pick<PendingSubmission, 'adjudicatorId' | 'roundId' | 'redance'>) => remove('outbox', pending)
 
 // The newest marks still waiting to be sent, for this phone
 export async function loadPending(): Promise<PendingSubmission | null> {
@@ -96,7 +100,7 @@ export async function loadPending(): Promise<PendingSubmission | null> {
 // an older backup after Laptop 2 failed), the phone sends them again.
 export const saveSent = (pending: PendingSubmission) => put('sent', pending)
 
-export const removeSent = (pending: Pick<PendingSubmission, 'adjudicatorId' | 'roundId'>) => remove('sent', pending)
+export const removeSent = (pending: Pick<PendingSubmission, 'adjudicatorId' | 'roundId' | 'redance'>) => remove('sent', pending)
 
 export async function loadSent(adjudicatorId: string, roundId: string): Promise<PendingSubmission | null> {
   const list = await all<PendingSubmission>('sent')
@@ -110,11 +114,11 @@ export async function pruneSent(maxAgeMs: number): Promise<void> {
 }
 
 export const saveDraft = (draft: Draft) => put('drafts', draft)
-export const removeDraft = (draft: Pick<Draft, 'adjudicatorId' | 'roundId'>) => remove('drafts', draft)
+export const removeDraft = (draft: Pick<Draft, 'adjudicatorId' | 'roundId' | 'redance'>) => remove('drafts', draft)
 
-export async function loadDraft(adjudicatorId: string, roundId: string): Promise<Draft | null> {
+export async function loadDraft(adjudicatorId: string, roundId: string, redance?: number): Promise<Draft | null> {
   const list = await all<Draft>('drafts')
-  return list.find((d) => d.adjudicatorId === adjudicatorId && d.roundId === roundId) ?? null
+  return list.find((d) => d.adjudicatorId === adjudicatorId && d.roundId === roundId && (d.redance ?? 0) === (redance ?? 0)) ?? null
 }
 
 // For tests: forget the open connection so a new "browser session" reads from storage again

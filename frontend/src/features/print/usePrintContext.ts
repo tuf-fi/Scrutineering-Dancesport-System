@@ -1,6 +1,6 @@
 import type { Round } from '@bis/shared'
 import { useSearchParams } from 'react-router'
-import { useAdjudicators, useCompetition, useEvent, usePanel, useRounds } from '../../hooks/index.ts'
+import { useAdjudicators, useCompetition, useEvent, usePanel, useRoundSet, useRounds } from '../../hooks/index.ts'
 
 // Everything a printed sheet shows about one event, plus the round picked in the address (?round=)
 export function usePrintContext(eventId: string) {
@@ -18,7 +18,10 @@ export function usePrintContext(eventId: string) {
   const round = list.find((r) => r.id === asked) ?? started[started.length - 1] ?? list[0]
   const next = round ? list[list.indexOf(round) + 1] : undefined
 
-  const letters = (panel.data?.adjudicatorIds ?? []).flatMap((id) => {
+  // The adjudicators who judge this round (its set, or the whole panel); without a round, the panel
+  const set = useRoundSet(round?.id ?? '')
+  const judging = round ? set.data : panel.data?.adjudicatorIds
+  const letters = (judging ?? []).flatMap((id) => {
     const a = adjudicators.data?.find((x) => x.id === id)
     return a ? [{ id: a.id, letter: a.letter, name: a.name }] : []
   })
@@ -30,8 +33,8 @@ export function usePrintContext(eventId: string) {
     round,
     next,
     adjudicators: letters,
-    isError: event.isError || rounds.isError || panel.isError,
-    isLoading: !event.data || !competition.data || !rounds.data || !panel.data || !adjudicators.data,
-    retry: () => void Promise.all([event.refetch(), rounds.refetch(), panel.refetch()]),
+    isError: event.isError || rounds.isError || panel.isError || set.isError,
+    isLoading: !event.data || !competition.data || !rounds.data || !panel.data || !adjudicators.data || (round !== undefined && !set.data),
+    retry: () => void Promise.all([event.refetch(), rounds.refetch(), panel.refetch(), set.refetch()]),
   }
 }

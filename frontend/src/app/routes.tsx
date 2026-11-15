@@ -40,6 +40,8 @@ import { LivePage } from '../features/scrutineer/LivePage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
 import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
+import { PanelsPage } from '../features/secretariat/PanelsPage.tsx'
+import { CertificatesPage } from '../features/print/CertificatesPage.tsx'
 import { BlankSheetsPage } from '../features/print/BlankSheetsPage.tsx'
 import { FinalResultsPage } from '../features/print/FinalResultsPage.tsx'
 import { HeatListPage } from '../features/print/HeatListPage.tsx'
@@ -48,7 +50,6 @@ import { ProgramPrintPage } from '../features/print/ProgramPrintPage.tsx'
 import { PinCardsPage } from '../features/print/PinCardsPage.tsx'
 import { QualifiedPage } from '../features/print/QualifiedPage.tsx'
 import { ScoresPage } from '../features/print/ScoresPage.tsx'
-import { CompetitorsPage } from '../features/secretariat/CompetitorsPage.tsx'
 import { EventPage } from '../features/secretariat/EventPage.tsx'
 import { EventsPage } from '../features/secretariat/EventsPage.tsx'
 import { CoachesPage } from '../features/secretariat/CoachesPage.tsx'
@@ -209,7 +210,6 @@ export const routes: RouteObject[] = [
             children: [
               { index: true, element: <EventsPage /> },
               { path: 'events/:eventId', element: <EventPage /> },
-              { path: 'competitors', element: <CompetitorsPage /> },
               { path: 'teams', element: <TeamsPage /> },
               { path: 'coaches', element: <CoachesPage /> },
               { path: 'athletes', element: <AthletesPage /> },
@@ -218,7 +218,9 @@ export const routes: RouteObject[] = [
               { path: 'entry-requests', element: <EntryRequestsPage /> },
               { path: 'late-entries', element: <LateEntriesPage /> },
               { path: 'schedule', element: <SchedulePage /> },
+              { path: 'heats', element: <HeatsPage /> },
               { path: 'program', element: <ProgramPage /> },
+              { path: 'panels', element: <PanelsPage /> },
               { path: 'security', element: <SecurityPage /> },
             ],
           },
@@ -239,6 +241,7 @@ export const routes: RouteObject[] = [
                   { path: 'paper-marks', element: <PaperMarksPage /> },
                   { path: 'schedule', element: <SchedulePage /> },
                   { path: 'program', element: <ProgramPage /> },
+                  { path: 'panels', element: <PanelsPage /> },
                 ],
               },
               { path: 'live', element: <LivePage /> },
@@ -282,6 +285,7 @@ export const routes: RouteObject[] = [
               { path: 'recall/:eventId', element: <QualifiedPage /> },
               { path: 'scores/:eventId', element: <ScoresPage /> },
               { path: 'results/:eventId', element: <FinalResultsPage /> },
+              { path: 'certificates/:eventId', element: <CertificatesPage /> },
               { path: 'blank-sheets/:eventId', element: <BlankSheetsPage /> },
               { path: 'pin-cards/:competitionId', element: <PinCardsPage /> },
             ],

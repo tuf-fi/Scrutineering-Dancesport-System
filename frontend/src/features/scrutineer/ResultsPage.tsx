@@ -73,6 +73,12 @@ export function ResultsPage() {
               <ArrowUpRight aria-hidden size={16} strokeWidth={2} />
             </Button>
           )}
+          {row && row.recallNumber === null && (row.status === RoundStatus.Approved || row.status === RoundStatus.Published) && (
+            <ButtonLink variant="secondary" className="rounded-lg" to={`/print/certificates/${row.eventId}`} target="_blank">
+              Print certificates
+              <ArrowUpRight aria-hidden size={16} strokeWidth={2} />
+            </ButtonLink>
+          )}
           {!readOnly && action && (
             <Button onClick={() => setConfirming(action)}>{action === 'approve' ? 'Approve results' : 'Publish results'}</Button>
           )}

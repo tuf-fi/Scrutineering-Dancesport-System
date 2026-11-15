@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/ui/index.ts'
-import { useAdjudicatorState, useSubmitMarks } from '../../hooks/index.ts'
+import { useAdjudicatorState, useSubmitMarks, useSubmitRedanceMarks } from '../../hooks/index.ts'
 import { removeDraft, removeSent, saveSent } from '../../lib/phoneDb.ts'
 import { lostMarksToResend, rememberSent } from '../../lib/recoverSent.ts'
 import { classifySendError } from '../../lib/sendPending.ts'
@@ -24,7 +24,8 @@ export function useOutboxFlush(adjudicatorId: string) {
   const online = useConnection((s) => s.online)
   const pending = useOutbox((s) => s.pending)
   const clear = useOutbox((s) => s.clear)
-  const submit = useSubmitMarks(adjudicatorId)
+  const submitWhole = useSubmitMarks(adjudicatorId)
+  const submitRedance = useSubmitRedanceMarks(adjudicatorId)
   const [attempt, setAttempt] = useState(0)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -33,7 +34,8 @@ export function useOutboxFlush(adjudicatorId: string) {
   // The server says this adjudicator has not submitted, but the phone remembers sending: the server lost them
   // (restored from an older backup). Send them again; the server stores a repeat once.
   const state = useAdjudicatorState(adjudicatorId)
-  const round = state.data?.status === 'marking' ? state.data.task.round.id : null
+  // While a redance waits, the old copy of the whole sheet must stay put: the heat is marked first
+  const round = state.data?.status === 'marking' && !state.data.redance ? state.data.task.round.id : null
   const save = useOutbox((s) => s.save)
   useEffect(() => {
     if (!round || pending) return
@@ -50,14 +52,17 @@ export function useOutboxFlush(adjudicatorId: string) {
     // A retry after a failure goes ahead even if the screen says offline: that flag is what the failure set, and only
     // a successful request can clear it
     const mayTry = online || attempt > 0
+    const submit = pending?.redance ? submitRedance : submitWhole
     if (!mayTry || !pending || pending.adjudicatorId !== adjudicatorId || submit.isPending) return
     submit.mutate(
       { roundId: pending.roundId, submissions: pending.submissions, signature: pending.signature },
       {
         onSuccess: async () => {
-          // The server has them. A copy stays on the phone in case the server is later restored from an older backup.
-          await saveSent(pending)
-          rememberSent(pending)
+          // The server has them. A copy of a whole sheet stays on the phone in case the server is later restored from an older backup.
+          if (!pending.redance) {
+            await saveSent(pending)
+            rememberSent(pending)
+          }
           await removeDraft(pending)
           await clear()
         },

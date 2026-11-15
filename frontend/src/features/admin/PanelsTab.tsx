@@ -1,11 +1,12 @@
 import type { Event } from '@bis/shared'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
-import { EmptyState, ErrorState, SearchField, Table, Toolbar, toast } from '../../components/ui/index.ts'
+import { Button, EmptyState, ErrorState, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { useAdjudicators, useEvents, usePanels, useSetPanel, useCatalog } from '../../hooks/index.ts'
+import { useAdjudicators, useEvents, usePanels, useSetPanel, useSetPanels, useCatalog } from '../../hooks/index.ts'
 import { eventCode, eventDances, letterRanges } from '../../lib/format.ts'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
+import { PanelsApplyDialog } from './PanelsApplyDialog.tsx'
 
 interface PanelsTabProps {
   competitionId: string
@@ -14,13 +15,16 @@ interface PanelsTabProps {
 }
 
 // Who marks each event, as one grid: an event on every row, an adjudicator on every column. A tap on a cell puts that
-// adjudicator on, or takes them off, that event's panel; it is saved at once.
+// adjudicator on, or takes them off, that event's panel; it is saved at once. "All" on a row puts every adjudicator on
+// that event, a letter at the top puts that adjudicator on every event, and "Set all events" gives every event one list.
 export function PanelsTab({ competitionId, competitions, onCompetitionChange }: PanelsTabProps) {
   const { eventGrade } = useCatalog()
   const events = useEvents(competitionId)
   const panels = usePanels(competitionId)
   const adjudicators = useAdjudicators()
   const save = useSetPanel()
+  const saveMany = useSetPanels()
+  const [applyKey, setApplyKey] = useState<number | null>(null)
   const [query, setQuery] = useState('')
   const needle = query.trim().toLowerCase()
 
@@ -35,11 +39,36 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
     save.mutate({ eventId: event.id, adjudicatorIds: next }, { onError: (e) => toast.error(e.message) })
   }
 
+  const everyEvent = (events.data ?? []).map((e) => e.id)
+
+  // Says what was left alone, since an event that has started keeps its panel
+  function applyMany(adjudicatorIds: string[], mode: 'replace' | 'add', eventIds = everyEvent) {
+    saveMany.mutate(
+      { competitionId, eventIds, adjudicatorIds, mode },
+      {
+        onSuccess: (result) => {
+          setApplyKey(null)
+          if (result.skipped.length === 0) return toast.success(`Panels set for ${result.changed.length} event${result.changed.length === 1 ? '' : 's'}`)
+          const skipped = (events.data ?? []).filter((e) => result.skipped.includes(e.id)).map((e) => eventCode(e))
+          toast.warning(`Set for ${result.changed.length}. ${skipped.join(', ')} already started, so kept ${skipped.length === 1 ? 'its' : 'their'} panel.`)
+        },
+        onError: (e) => toast.error(e.message),
+      },
+    )
+  }
+
   // The toolbar stays in every state, so the competition can always be switched
   const toolbar = (
     <Toolbar>
       <SearchField className="w-full sm:w-72" label="Search events" value={query} onChange={setQuery} />
       <CompetitionSelect list={competitions} value={competitionId} onChange={onCompetitionChange} />
+      {everyEvent.length > 0 && everyone.length > 0 && (
+        <ToolbarActions>
+          <Button variant="secondary" onClick={() => setApplyKey((k) => (k ?? 0) + 1)}>
+            Set all events
+          </Button>
+        </ToolbarActions>
+      )}
     </Toolbar>
   )
 
@@ -96,6 +125,18 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
           ...everyone.map((a) => ({
             key: a.id,
             header: a.letter,
+            headerCell: (
+              <button
+                type="button"
+                title={`Put ${a.name} on every event`}
+                aria-label={`Put ${a.name} on every event`}
+                disabled={saveMany.isPending}
+                onClick={() => applyMany([a.id], 'add')}
+                className="font-mono underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500"
+              >
+                {a.letter}
+              </button>
+            ),
             mono: true,
             align: 'center' as const,
             widthClass: 'w-14',
@@ -126,6 +167,24 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
             },
           })),
           {
+            key: 'all',
+            header: 'Select all',
+            align: 'center' as const,
+            widthClass: 'w-24',
+            detail: false as const,
+            cell: (e: Event) => (
+              <Button
+                size="sm"
+                variant="secondary"
+                aria-label={`Put every adjudicator on ${eventCode(e)}`}
+                disabled={save.isPending || everyone.length === 0 || panelOf(e.id).length === everyone.length}
+                onClick={() => save.mutate({ eventId: e.id, adjudicatorIds: everyone.map((a) => a.id) }, { onError: (err) => toast.error(err.message) })}
+              >
+                All
+              </Button>
+            ),
+          },
+          {
             key: 'panel',
             header: 'Panel',
             align: 'right' as const,
@@ -138,6 +197,16 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
             },
           },
         ]}
+      />
+
+      <PanelsApplyDialog
+        key={applyKey ?? 0}
+        open={applyKey !== null}
+        adjudicators={everyone}
+        eventCount={everyEvent.length}
+        pending={saveMany.isPending}
+        onApply={(ids, mode) => applyMany(ids, mode)}
+        onClose={() => setApplyKey(null)}
       />
     </div>
   )

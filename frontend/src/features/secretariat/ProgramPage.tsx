@@ -1,8 +1,8 @@
-import { ProgramKind, type ProgramRow } from '@bis/shared'
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
-import { useState } from 'react'
-import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
-import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
+import { ProgramKind, ProgramStatus, type ProgramRow } from "@bis/shared";
+import { ArrowUpDown, Pencil, Trash2, UsersRound } from "lucide-react";
+import { useState } from "react";
+import { CompetitionSelect } from "../../components/CompetitionSelect.tsx";
+import { ProgramStatusBadge } from "../../components/ProgramStatusBadge.tsx";
 import {
   Button,
   ButtonLink,
@@ -15,7 +15,7 @@ import {
   Toolbar,
   ToolbarActions,
   toast,
-} from '../../components/ui/index.ts'
+} from "../../components/ui/index.ts";
 import {
   useGenerateProgram,
   useMoveProgramSlotTo,
@@ -23,25 +23,39 @@ import {
   useRemoveProgramSlot,
   useSetProgramStart,
   useCatalog,
-} from '../../hooks/index.ts'
-import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
+} from "../../hooks/index.ts";
+import { useCompetitionChoice } from "../../hooks/useCompetitionChoice.ts";
 import {
   PROGRAM_KIND_LABEL,
   ROUND_TYPE_LABEL,
   eventCode,
   eventDances,
   formatClock,
+  letterRanges,
+  programAction,
+  programHeatCount,
+  programHeatSplit,
   programLineName,
-} from '../../lib/format.ts'
-import { programPrintPath } from '../../lib/programFilter.ts'
-import { MovePositionDialog } from './MovePositionDialog.tsx'
-import { ProgramLineDialog } from './ProgramLineDialog.tsx'
+} from "../../lib/format.ts";
+import { programPrintPath } from "../../lib/programFilter.ts";
+import { MovePositionDialog } from "./MovePositionDialog.tsx";
+import { ProgramLineDialog } from "./ProgramLineDialog.tsx";
+import { RotateSetsDialog } from "./RotateSetsDialog.tsx";
+import { RoundSetDialog } from "./RoundSetDialog.tsx";
 
-const fail = { onError: (e: Error) => toast.error(e.message) }
+const fail = { onError: (e: Error) => toast.error(e.message) };
 
 // Holds what is typed and saves it when the field is left; the key resets it when the saved time changes
-function StartField({ saved, disabled, onSave }: { saved: string; disabled: boolean; onSave: (value: string) => void }) {
-  const [value, setValue] = useState(saved)
+function StartField({
+  saved,
+  disabled,
+  onSave,
+}: {
+  saved: string;
+  disabled: boolean;
+  onSave: (value: string) => void;
+}) {
+  const [value, setValue] = useState(saved);
   return (
     <div className="w-full sm:w-40">
       <Input
@@ -54,60 +68,108 @@ function StartField({ saved, disabled, onSave }: { saved: string; disabled: bool
         className="font-mono tabular-nums"
       />
     </div>
-  )
+  );
 }
 
-export function ProgramPage() {
-  const { eventGrade } = useCatalog()
-  const [chosen, setChosen] = useState<string | null>(null)
-  const { list, competitionId } = useCompetitionChoice(chosen)
-  const program = useProgram(competitionId ?? '')
-  const generate = useGenerateProgram(competitionId ?? '')
-  const setStart = useSetProgramStart(competitionId ?? '')
-  const move = useMoveProgramSlotTo(competitionId ?? '')
-  const remove = useRemoveProgramSlot(competitionId ?? '')
+// The scrutineer reads the program and cannot change it
+export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
+  const { eventGrade } = useCatalog();
+  const [chosen, setChosen] = useState<string | null>(null);
+  const { list, competitionId } = useCompetitionChoice(chosen);
+  const program = useProgram(competitionId ?? "");
+  const generate = useGenerateProgram(competitionId ?? "");
+  const setStart = useSetProgramStart(competitionId ?? "");
+  const move = useMoveProgramSlotTo(competitionId ?? "");
+  const remove = useRemoveProgramSlot(competitionId ?? "");
   // The line being edited, or 'new' while adding a break
-  const [editing, setEditing] = useState<ProgramRow | 'new' | null>(null)
-  const [toRemove, setToRemove] = useState<ProgramRow | null>(null)
-  const [placing, setPlacing] = useState<ProgramRow | null>(null)
-  if (program.isError) return <ErrorState onRetry={() => void program.refetch()} />
+  const [editing, setEditing] = useState<ProgramRow | "new" | null>(null);
+  const [toRemove, setToRemove] = useState<ProgramRow | null>(null);
+  const [placing, setPlacing] = useState<ProgramRow | null>(null);
+  // The round whose adjudicators are being chosen; the count says whether the rotate dialog is open
+  const [choosing, setChoosing] = useState<ProgramRow | null>(null);
+  const [rotating, setRotating] = useState(0);
+  if (program.isError)
+    return <ErrorState onRetry={() => void program.refetch()} />;
 
   const moveTo = (row: ProgramRow, to: number) =>
-    move.mutate({ slotId: row.slotId, to }, { onSuccess: () => toast.success(`Moved ${programLineName(row)} to line ${to}`), onError: fail.onError })
+    move.mutate(
+      { slotId: row.slotId, to },
+      {
+        onSuccess: () =>
+          toast.success(`Moved ${programLineName(row)} to line ${to}`),
+        onError: fail.onError,
+      },
+    );
 
-  const rows = program.data?.rows ?? []
+  const rows = program.data?.rows ?? [];
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Program"
-        description="The running order: every round, break and the awarding, with the time each starts. Drag a line to move it."
+        description={
+          readOnly
+            ? "The running order: every round, break and the awarding, with the time each starts and how each round is split into heats."
+            : "The running order: every round, break and the awarding, with the time each starts. Drag a line to move it."
+        }
       />
 
       <Toolbar>
-        <CompetitionSelect list={list} value={competitionId} onChange={setChosen} />
+        <CompetitionSelect
+          list={list}
+          value={competitionId}
+          onChange={setChosen}
+        />
         <StartField
-          key={program.data?.start ?? ''}
-          saved={program.data?.start ?? ''}
-          disabled={!competitionId}
+          key={program.data?.start ?? ""}
+          saved={program.data?.start ?? ""}
+          disabled={!competitionId || readOnly}
           onSave={(value) => setStart.mutate(value || null, fail)}
         />
         <ToolbarActions>
-          <Button
-            variant="secondary"
-            disabled={!competitionId || generate.isPending}
-            onClick={() => generate.mutate(undefined, { ...fail, onSuccess: () => toast.success('Program updated from the events') })}
-          >
-            {generate.isPending ? 'Generating…' : rows.length ? 'Add missing rounds' : 'Generate'}
-          </Button>
+          {!readOnly && (
+            <Button
+              variant="secondary"
+              disabled={!competitionId || generate.isPending}
+              onClick={() =>
+                generate.mutate(undefined, {
+                  ...fail,
+                  onSuccess: () =>
+                    toast.success("Program updated from the events"),
+                })
+              }
+            >
+              {generate.isPending
+                ? "Generating…"
+                : rows.length
+                  ? "Add missing rounds"
+                  : "Generate"}
+            </Button>
+          )}
+          {!readOnly &&
+            competitionId &&
+            rows.some((r) => r.kind === ProgramKind.Round) && (
+              <Button
+                variant="secondary"
+                onClick={() => setRotating((k) => k + 1)}
+              >
+                Rotate adjudicators
+              </Button>
+            )}
           {competitionId && rows.length > 0 && (
-            <ButtonLink variant="secondary" to={programPrintPath(competitionId, '', 'all')} target="_blank">
+            <ButtonLink
+              variant="secondary"
+              to={programPrintPath(competitionId, "", "all")}
+              target="_blank"
+            >
               Print
             </ButtonLink>
           )}
-          <Button disabled={!competitionId} onClick={() => setEditing('new')}>
-            Add break
-          </Button>
+          {!readOnly && (
+            <Button disabled={!competitionId} onClick={() => setEditing("new")}>
+              Add break
+            </Button>
+          )}
         </ToolbarActions>
       </Toolbar>
 
@@ -117,63 +179,213 @@ export function ProgramPage() {
         rowKey={(r) => r.slotId}
         minWidthClass="min-w-0"
         paginationLabel="Program pagination"
-        onReorder={(row, target) => moveTo(row, target.sequence)}
+        onReorder={
+          readOnly ? undefined : (row, target) => moveTo(row, target.sequence)
+        }
         canReorder={() => !move.isPending}
-        reorderLabel={(r) => `Drag ${programLineName(r)} to move it. Arrow keys move it one place.`}
+        reorderLabel={(r) =>
+          `Drag ${programLineName(r)} to move it. Arrow keys move it one place.`
+        }
         detailTitle={programLineName}
         empty={{
-          title: 'No program yet',
-          description: 'Generate it from the events, then set the start time and add breaks.',
+          title: "No program yet",
+          description:
+            "Generate it from the events, then set the start time and add breaks.",
         }}
         columns={[
-          { key: 'time', header: 'Time', cell: (r) => formatClock(r.startTime), mono: true, widthClass: 'w-28' },
-          { key: 'seq', header: 'Sequence no.', cell: (r) => r.sequence, mono: true, muted: true, widthClass: 'w-28', hideBelow: 'sm' },
           {
-            key: 'what',
-            header: 'Event',
+            key: "time",
+            header: "Time",
+            cell: (r) => formatClock(r.startTime),
+            mono: true,
+            widthClass: "w-28",
+          },
+          {
+            key: "seq",
+            header: "Sequence no.",
+            cell: (r) => r.sequence,
+            mono: true,
+            muted: true,
+            widthClass: "w-28",
+            hideBelow: "sm",
+          },
+          {
+            key: "what",
+            header: "Event",
             cell: (r) =>
-              r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline ? (
+              r.kind === ProgramKind.Round &&
+              r.eventNumber !== null &&
+              r.ageGroup &&
+              r.class &&
+              r.discipline ? (
                 <div className="flex flex-col">
                   <span className="font-medium text-neutral-900">
-                    <span className="font-mono tabular-nums">{eventCode({ number: r.eventNumber })}</span> {eventDances(r)}
+                    <span className="font-mono tabular-nums">
+                      {eventCode({ number: r.eventNumber })}
+                    </span>{" "}
+                    {eventDances(r)}
                   </span>
                   <span className="text-xs text-neutral-500">
-                    {eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}
+                    {eventGrade({
+                      ageGroup: r.ageGroup,
+                      class: r.class,
+                      discipline: r.discipline,
+                    })}
                   </span>
                 </div>
               ) : (
                 <span className="font-medium text-neutral-900">
-                  {r.label} <span className="font-normal text-neutral-500">· {PROGRAM_KIND_LABEL[r.kind]}</span>
+                  {r.label}{" "}
+                  <span className="font-normal text-neutral-500">
+                    · {PROGRAM_KIND_LABEL[r.kind]}
+                  </span>
                 </span>
               ),
           },
-          { key: 'round', header: 'Round', cell: (r) => (r.roundType ? ROUND_TYPE_LABEL[r.roundType] : ''), muted: true, hideBelow: 'sm' },
-          { key: 'entries', header: 'Dancing', cell: (r) => (r.kind === ProgramKind.Round ? r.entryCount : ''), mono: true, align: 'right', hideBelow: 'md' },
-          { key: 'minutes', header: 'Min', cell: (r) => r.minutes, mono: true, align: 'right', hideBelow: 'sm' },
-          { key: 'status', header: 'Status', cell: (r) => <ProgramStatusBadge status={r.status} />, hideBelow: 'md' },
           {
-            key: 'actions',
-            header: '',
-            align: 'right',
-            widthClass: 'w-32',
-            cell: (r) => (
-              <div className="flex justify-end gap-0.5">
-                <IconButton icon={ArrowUpDown} label={`Move ${programLineName(r)} to a position`} disabled={move.isPending} onClick={() => setPlacing(r)} />
-                <IconButton icon={Pencil} label={`Edit ${programLineName(r)}`} onClick={() => setEditing(r)} />
-                <IconButton icon={Trash2} tone="danger" label={`Remove ${programLineName(r)}`} onClick={() => setToRemove(r)} />
-              </div>
-            ),
+            key: "round",
+            header: "Round",
+            cell: (r) => (r.roundType ? ROUND_TYPE_LABEL[r.roundType] : ""),
+            muted: true,
+            hideBelow: "sm",
           },
+          {
+            key: "entries",
+            header: "Dancing",
+            cell: (r) =>
+              r.kind === ProgramKind.Round ? (
+                <div className="flex flex-col items-center">
+                  <span>{r.entryCount}</span>
+                  {programHeatSplit(r) && (
+                    <span className="text-xs text-neutral-500">
+                      {programHeatSplit(r)}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                ""
+              ),
+            mono: true,
+            align: "center",
+            hideBelow: "md",
+          },
+          {
+            key: "action",
+            header: "Action",
+            cell: (r) =>
+              r.kind === ProgramKind.Round ? (
+                <div className="flex flex-col">
+                  <span>{programAction(r)}</span>
+                  {programHeatCount(r) && (
+                    <span className="text-xs text-neutral-500">
+                      {programHeatCount(r)}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                ""
+              ),
+            muted: true,
+            hideBelow: "md",
+          },
+          {
+            key: "adj",
+            header: "Adj.",
+            cell: (r) =>
+              r.kind === ProgramKind.Round ? (
+                <span
+                  className={
+                    r.customSet ? "font-semibold text-neutral-900" : undefined
+                  }
+                >
+                  {letterRanges(r.adjudicators)}
+                </span>
+              ) : (
+                ""
+              ),
+            mono: true,
+            muted: true,
+            hideBelow: "md",
+          },
+          {
+            key: "minutes",
+            header: "Min",
+            cell: (r) => r.minutes,
+            mono: true,
+            align: "right",
+            hideBelow: "sm",
+          },
+          {
+            key: "status",
+            header: "Status",
+            cell: (r) => <ProgramStatusBadge status={r.status} />,
+            hideBelow: "md",
+          },
+          ...(readOnly
+            ? []
+            : [
+                {
+                  key: "actions",
+                  header: "",
+                  align: "right" as const,
+                  widthClass: "w-40",
+                  cell: (r: ProgramRow) => (
+                    <div className="flex justify-end gap-0.5">
+                      {r.kind === ProgramKind.Round && (
+                        <IconButton
+                          icon={UsersRound}
+                          label={`Choose the adjudicators of ${programLineName(r)}`}
+                          disabled={r.status !== ProgramStatus.Upcoming}
+                          onClick={() => setChoosing(r)}
+                        />
+                      )}
+                      <IconButton
+                        icon={ArrowUpDown}
+                        label={`Move ${programLineName(r)} to a position`}
+                        disabled={move.isPending}
+                        onClick={() => setPlacing(r)}
+                      />
+                      <IconButton
+                        icon={Pencil}
+                        label={`Edit ${programLineName(r)}`}
+                        onClick={() => setEditing(r)}
+                      />
+                      <IconButton
+                        icon={Trash2}
+                        tone="danger"
+                        label={`Remove ${programLineName(r)}`}
+                        onClick={() => setToRemove(r)}
+                      />
+                    </div>
+                  ),
+                },
+              ]),
         ]}
       />
 
-      {competitionId && (
+      {competitionId && !readOnly && (
         <ProgramLineDialog
           open={editing !== null}
           competitionId={competitionId}
-          row={editing === 'new' ? null : editing}
+          row={editing === "new" ? null : editing}
           lastSequence={rows.length}
           onClose={() => setEditing(null)}
+        />
+      )}
+
+      {competitionId && (
+        <RoundSetDialog
+          row={choosing}
+          competitionId={competitionId}
+          onClose={() => setChoosing(null)}
+        />
+      )}
+      {competitionId && (
+        <RotateSetsDialog
+          key={rotating}
+          open={rotating > 0}
+          competitionId={competitionId}
+          onClose={() => setRotating(0)}
         />
       )}
 
@@ -188,7 +400,7 @@ export function ProgramPage() {
       <Dialog
         open={toRemove !== null}
         onClose={() => setToRemove(null)}
-        title={`Remove ${toRemove ? programLineName(toRemove) : ''}?`}
+        title={`Remove ${toRemove ? programLineName(toRemove) : ""}?`}
         description="It leaves the program only; the event and its entries stay. Add missing rounds puts a round back."
         actions={
           <>
@@ -203,17 +415,17 @@ export function ProgramPage() {
                 remove.mutate(toRemove.slotId, {
                   onSuccess: () => setToRemove(null),
                   onError: (e) => {
-                    setToRemove(null)
-                    toast.error(e.message)
+                    setToRemove(null);
+                    toast.error(e.message);
                   },
                 })
               }
             >
-              {remove.isPending ? 'Removing…' : 'Remove'}
+              {remove.isPending ? "Removing…" : "Remove"}
             </Button>
           </>
         }
       />
     </div>
-  )
+  );
 }

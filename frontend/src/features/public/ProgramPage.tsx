@@ -14,12 +14,14 @@ import {
   formatDate,
   letterRanges,
   programAction,
+  programHeatCount,
+  programHeatSplit,
   todayIso,
 } from '../../lib/format.ts'
 import { PublicHeader } from './PublicHeader.tsx'
 import { filterProgram, programPrintPath } from '../../lib/programFilter.ts'
 
-const COLS = 'lg:grid-cols-[6rem_minmax(0,1.6fr)_minmax(0,1fr)_5rem_8rem]'
+const COLS = 'lg:grid-cols-[6rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_8rem]'
 
 // The line itself in words, for the strip above the list
 function Line({ label, row, empty }: { label: string; row: ProgramRow | undefined; empty: string }) {
@@ -203,10 +205,12 @@ export function ProgramPage() {
                     )}
                   </div>
                   <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
-                    {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}
-                    {r.panel.length > 0 && <span className="block font-mono text-xs">{letterRanges(r.panel)}</span>}
+                    {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r), programHeatCount(r)].filter(Boolean).join(' · ')}
+                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">{letterRanges(r.adjudicators)}</span>}
                   </p>
-                  <span className="hidden font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}</span>
+                  <span className="hidden font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}
+                    {programHeatSplit(r) && <span className="block text-xs text-neutral-500">{programHeatSplit(r)}</span>}
+                  </span>
                   <span className="col-start-2 row-start-2 self-start lg:col-start-auto lg:row-start-auto lg:justify-self-end">
                     <ProgramStatusBadge status={r.status} />
                   </span>

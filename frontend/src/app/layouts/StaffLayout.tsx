@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import { Outlet, useLocation } from 'react-router'
 import { BackupNotice } from '../../components/BackupNotice.tsx'
+import { SignatureGate } from '../../features/auth/SignatureGate.tsx'
 import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import { cn } from '../../lib/cn.ts'
 import { useAuth } from '../../stores/auth.ts'
@@ -34,7 +35,9 @@ export function StaffLayout() {
         <BackupNotice />
         <main className="flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
           <div className={cn('mx-auto w-full', !wide && 'max-w-6xl')}>
-            <Outlet />
+            <SignatureGate>
+              <Outlet />
+            </SignatureGate>
           </div>
         </main>
       </div>

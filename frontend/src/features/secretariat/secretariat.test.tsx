@@ -1,5 +1,5 @@
 import { Role } from '@bis/shared'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { competitorName } from '../../lib/format.ts'
@@ -7,6 +7,7 @@ import { currentCompetitionId } from '../../mocks/data/competitions.ts'
 import { ageGroupOf, competitors } from '../../mocks/data/competitors.ts'
 import { entries } from '../../mocks/data/entries.ts'
 import { events } from '../../mocks/data/events.ts'
+import { createCompetitor, getTeams } from '../../mocks/api.ts'
 import { confirmDelete, renderApp } from '../../test-utils.tsx'
 
 // The sample data is shared across tests in this file, so each test uses its own records
@@ -56,9 +57,9 @@ describe('events', () => {
   })
 })
 
-describe('competitors', () => {
-  it('shows only the dancers entered in the chosen competition and event', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
+describe('athletes and their entries', () => {
+  it('shows only the athletes entered in the chosen competition and event', async () => {
+    renderApp('/secretariat/athletes', Role.Secretariat)
     await screen.findByRole('columnheader', { name: 'Team' })
     await waitFor(() => expect(bodyRows().length).toBe(10))
     const allCount = screen.getByText(/^Showing /).textContent
@@ -79,12 +80,12 @@ describe('competitors', () => {
     })
   })
 
-  it('adds a competitor, assigns the missing back number, and rejects a taken one', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
-    await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Add competitor' })
+  it('adds an athlete with their entry, assigns the missing back number, and rejects a taken one', async () => {
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
 
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
     expect(await within(dialog).findByText('Choose a team.')).toBeInTheDocument()
     // The dancer's details are required, and the labels of required fields end in a red asterisk
     expect(within(dialog).getByText('Enter the date of birth.')).toBeInTheDocument()
@@ -97,15 +98,18 @@ describe('competitors', () => {
     const team = within(dialog).getByLabelText('Team')
     await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await fillDetails(dialog)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
     expect(await screen.findByText('Added Zed Testerson')).toBeInTheDocument()
 
     await userEvent.click(await screen.findByRole('button', { name: 'Assign 1 back number' }))
     expect(await screen.findByText('Assigned 1 back number')).toBeInTheDocument()
     await waitFor(() => expect(screen.queryByRole('button', { name: /^Assign / })).not.toBeInTheDocument())
 
-    await userEvent.type(screen.getByLabelText('Search competitors'), 'Zed Testerson')
-    await userEvent.click(await screen.findByRole('button', { name: 'Set back number for Zed Testerson' }))
+    await userEvent.type(screen.getByLabelText('Search athletes'), 'Zed Testerson')
+    // The back number is set from the athlete's side panel, on the entry
+    await userEvent.click((await screen.findAllByText('Zed Testerson'))[0]!)
+    const panel = await screen.findByRole('dialog', { name: 'Zed Testerson' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Set back number' }))
     const numberDialog = await screen.findByRole('dialog', { name: 'Back number' })
     const field = within(numberDialog).getByLabelText('Back number')
     await userEvent.clear(field)
@@ -115,7 +119,7 @@ describe('competitors', () => {
   })
 
   it('imports a CSV and reports the rows it skipped', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
+    renderApp('/secretariat/athletes', Role.Secretariat)
     await userEvent.click(await screen.findByRole('button', { name: 'Import CSV' }))
     const dialog = await screen.findByRole('dialog', { name: 'Import competitors' })
 
@@ -129,15 +133,31 @@ describe('competitors', () => {
     expect(await within(dialog).findByText('1 imported, 1 skipped.')).toBeInTheDocument()
     expect(within(dialog).getByText(/Unknown team "Nowhere Team"/)).toBeInTheDocument()
   })
+  it('asks which entry when an athlete dances in more than one', async () => {
+    const [team] = await getTeams()
+    const blank = { birthDate: '2015-05-05', gender: '' as const, address: 'Naga City', email: 'a@test.example', phone: '0917' }
+    const details = { province: '', coachId: null, dancers: [blank, blank], beginner: false, memberYear: null, memberMonth: null }
+    await createCompetitor('test', { names: ['Chuck Twin'], teamId: team!.id, details })
+    await createCompetitor('test', { names: ['Chuck Twin', 'Dee Pair'], teamId: team!.id, details })
+
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.type(await screen.findByLabelText('Search athletes'), 'Chuck Twin')
+    await userEvent.click(await screen.findByRole('button', { name: 'Enter Chuck Twin in events' }))
+    const chooser = await screen.findByRole('dialog', { name: 'Which entry?' })
+    expect(within(chooser).getByRole('button', { name: /^Solo/ })).toBeInTheDocument()
+    await userEvent.click(within(chooser).getByRole('button', { name: /^With Dee Pair/ }))
+    expect(await screen.findByRole('dialog', { name: 'Enter Chuck Twin & Dee Pair' })).toBeInTheDocument()
+  })
 })
 
 describe('the detail panel of a row', () => {
   it('opens from the side with a menu of what is known about the competitor', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
-    const first = competitors[0]!
-    await userEvent.click(await screen.findByText(competitorName(first.names)))
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    const first = competitors[0]!.names[0]!
+    await userEvent.type(await screen.findByLabelText('Search athletes'), first)
+    await userEvent.click((await screen.findAllByText(first))[0]!)
 
-    const panel = await screen.findByRole('dialog', { name: competitorName(first.names) })
+    const panel = await screen.findByRole('dialog', { name: first })
     const menu = within(panel).getByRole('navigation', { name: 'Sections' })
     expect(within(menu).getAllByRole('button').map((b) => b.textContent)).toEqual(['Details', 'Entries', 'Results', 'Rankings'])
 
@@ -185,47 +205,51 @@ describe('editing and removing', () => {
     await userEvent.click(within(impact).getByRole('button', { name: 'Cancel' }))
   })
 
-  it('edits and deletes a competitor, and lists what goes with one who has entries', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
-    await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
-    let dialog = await screen.findByRole('dialog', { name: 'Add competitor' })
+  it('edits and deletes an entry from the athlete panel, and lists what goes with one that has entries', async () => {
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
+    let dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
     await userEvent.type(within(dialog).getByLabelText('Dancer'), 'Edna Fixable')
     const team = within(dialog).getByLabelText('Team')
     await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await fillDetails(dialog)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add competitor' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
     await screen.findByText('Added Edna Fixable')
 
-    await userEvent.type(screen.getByLabelText('Search competitors'), 'Edna')
-    await userEvent.click(await screen.findByRole('button', { name: 'Edit Edna Fixable' }))
-    dialog = await screen.findByRole('dialog', { name: 'Edit competitor' })
-    const name = within(dialog).getByLabelText('Dancer')
-    expect(name).toHaveValue('Edna Fixable')
-    await userEvent.clear(name)
-    await userEvent.type(name, 'Edna Fixed')
+    await userEvent.type(screen.getByLabelText('Search athletes'), 'Edna')
+    await userEvent.click((await screen.findAllByText('Edna Fixable'))[0]!)
+    let panel = await screen.findByRole('dialog', { name: 'Edna Fixable' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Edit entry' }))
+    dialog = await screen.findByRole('dialog', { name: 'Edit entry' })
+    const province = within(dialog).getByLabelText('Province')
+    await userEvent.clear(province)
+    await userEvent.type(province, 'Albay')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
-    expect(await screen.findByText('Saved Edna Fixed')).toBeInTheDocument()
+    expect(await screen.findByText('Saved Edna Fixable')).toBeInTheDocument()
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Edna Fixed' }))
-    await confirmDelete(await screen.findByRole('dialog'))
-    expect(await screen.findByText('Deleted Edna Fixed')).toBeInTheDocument()
+    panel = await screen.findByRole('dialog', { name: 'Edna Fixable' })
+    await userEvent.click(within(panel).getByRole('button', { name: 'Delete entry' }))
+    await confirmDelete(await screen.findByRole('dialog', { name: /^Delete/ }))
+    expect(await screen.findByText('Deleted Edna Fixable')).toBeInTheDocument()
 
-    // Someone with entries cannot be deleted
-    await userEvent.clear(screen.getByLabelText('Search competitors'))
-    await waitFor(() => expect(bodyRows().length).toBe(10))
-    const withEntries = bodyRows().find((r) => within(r).queryByText(/^[1-9]\d*$/, { selector: 'td.text-center' }))
-    const label = within(withEntries!).getAllByRole('button').find((b) => b.getAttribute('aria-label')?.startsWith('Delete '))!
-    await userEvent.click(label)
-    const entriesDialog = await screen.findByRole('dialog')
+    // An entry that has entries lists what goes with it, and is not deleted until confirmed
+    cleanup()
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    const first = competitors[0]!.names[0]!
+    await userEvent.type(await screen.findByLabelText('Search athletes'), first)
+    await userEvent.click((await screen.findAllByText(first))[0]!)
+    const withEntries = await screen.findByRole('dialog', { name: first })
+    await userEvent.click(within(withEntries).getAllByRole('button', { name: 'Delete entry' })[0]!)
+    const entriesDialog = await screen.findByRole('dialog', { name: /^Delete/ })
     expect(await within(entriesDialog).findByText('Entries')).toBeInTheDocument()
     await userEvent.click(within(entriesDialog).getByRole('button', { name: 'Cancel' }))
   })
 
   it('opens a read-only modal with every column when a row is clicked', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
+    renderApp('/secretariat/athletes', Role.Secretariat)
     await screen.findByRole('columnheader', { name: 'Team' })
     await waitFor(() => expect(bodyRows()[0]).toHaveTextContent(/\d/))
-    await userEvent.click(bodyRows()[0].querySelectorAll('td')[1])
+    await userEvent.click(bodyRows()[0].querySelectorAll('td')[0])
     const dialog = await screen.findByRole('dialog')
     for (const label of ['Back no.', 'Team', 'Entries']) {
       expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0)
@@ -370,6 +394,24 @@ describe('program', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('Give it a name')
   })
+
+  it('rotates the adjudicators of the rounds, and sets one round by hand', async () => {
+    renderApp('/secretariat/program', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Rotate adjudicators' }))
+    const rotate = await screen.findByRole('dialog', { name: 'Rotate the adjudicators' })
+    const size = within(rotate).getByLabelText('Adjudicators per round')
+    await userEvent.clear(size)
+    await userEvent.type(size, '3')
+    await userEvent.click(within(rotate).getByRole('button', { name: 'Rotate' }))
+    expect(await screen.findByText(/^Adjudicators set for \d+ rounds?$/)).toBeInTheDocument()
+
+    const open = (await screen.findAllByRole('button', { name: /^Choose the adjudicators of / })).find((b) => !b.hasAttribute('disabled'))!
+    await userEvent.click(open)
+    const dialog = await screen.findByRole('dialog', { name: 'Adjudicators of this round' })
+    await userEvent.click(await within(dialog).findByRole('button', { name: 'Use the whole panel' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText(/^Adjudicators set for /)).toBeInTheDocument()
+  })
 })
 
 describe('coaches', () => {
@@ -407,8 +449,8 @@ describe('registering from the entry form', () => {
     const name = competitorName(pick.c.names)
     const code = `E${pick.e.number}`
 
-    renderApp('/secretariat/competitors', Role.Secretariat)
-    await userEvent.type(await screen.findByLabelText('Search competitors'), name)
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.type(await screen.findByLabelText('Search athletes'), name)
     await userEvent.click(await screen.findByRole('button', { name: `Enter ${name} in events` }))
     const dialog = await screen.findByRole('dialog', { name: `Enter ${name}` })
 
@@ -430,7 +472,7 @@ describe('registering from the entry form', () => {
   })
 
   it('asks for at least one event', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
+    renderApp('/secretariat/athletes', Role.Secretariat)
     await userEvent.click((await screen.findAllByRole('button', { name: /^Enter .* in events$/ }))[0]!)
     const dialog = await screen.findByRole('dialog', { name: /^Enter / })
     await userEvent.click(within(dialog).getByRole('button', { name: 'Enter' }))
@@ -440,18 +482,18 @@ describe('registering from the entry form', () => {
 
 describe('a coach who has not paid', () => {
   it('offers the coach’s fees on the entry and adds them to the total', async () => {
-    renderApp('/secretariat/competitors', Role.Secretariat)
-    await userEvent.click(await screen.findByRole('button', { name: 'Add competitor' }))
-    const adding = await screen.findByRole('dialog', { name: 'Add competitor' })
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
+    const adding = await screen.findByRole('dialog', { name: 'Add athlete' })
     await userEvent.type(within(adding).getByLabelText('Dancer'), 'Coached Solo')
     const team = within(adding).getByLabelText('Team')
     await userEvent.selectOptions(team, within(team).getAllByRole('option')[1])
     await userEvent.selectOptions(within(adding).getByLabelText('Coach'), 'Ramon Villanueva')
     await fillDetails(adding)
-    await userEvent.click(within(adding).getByRole('button', { name: 'Add competitor' }))
+    await userEvent.click(within(adding).getByRole('button', { name: 'Add athlete' }))
     await screen.findByText('Added Coached Solo')
 
-    await userEvent.type(screen.getByLabelText('Search competitors'), 'Coached Solo')
+    await userEvent.type(screen.getByLabelText('Search athletes'), 'Coached Solo')
     await userEvent.click(await screen.findByRole('button', { name: 'Enter Coached Solo in events' }))
     const dialog = await screen.findByRole('dialog', { name: 'Enter Coached Solo' })
     await userEvent.selectOptions(within(dialog).getByLabelText('Competition'), currentCompetitionId)

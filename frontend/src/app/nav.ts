@@ -20,7 +20,6 @@ import {
   ListChecks,
   ListOrdered,
   Trophy,
-  UserRound,
   Users,
   Megaphone,
   Wallet,
@@ -44,21 +43,21 @@ export interface NavItem {
 export type StaffRole = typeof Role.Admin | typeof Role.Secretariat | typeof Role.Scrutineer | typeof Role.Chairperson
 
 const scrutineerNav: NavItem[] = [
-  { to: '/scrutineer', label: 'Rounds', end: true, icon: Layers },
-  { to: '/scrutineer/heats', label: 'Heats', icon: LayoutGrid },
-  { to: '/scrutineer/schedule', label: 'Schedule', icon: CalendarClock },
-  { to: '/scrutineer/program', label: 'Program', icon: ListOrdered },
-  { to: '/scrutineer/live', label: 'Live board', icon: Activity },
-  { to: '/scrutineer/paper-marks', label: 'Paper marks', icon: FileText },
-  { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks },
-  { to: '/scrutineer/results', label: 'Results', icon: Award },
-  { to: '/scrutineer/security', label: 'Security', icon: ShieldCheck },
+  { to: '/scrutineer', label: 'Rounds', end: true, icon: Layers, group: 'Running the day' },
+  { to: '/scrutineer/heats', label: 'Heats', icon: LayoutGrid, group: 'Running the day' },
+  { to: '/scrutineer/schedule', label: 'Schedule', icon: CalendarClock, group: 'Running the day' },
+  { to: '/scrutineer/program', label: 'Program', icon: ListOrdered, group: 'Running the day' },
+  { to: '/scrutineer/panels', label: 'Panels', icon: ClipboardCheck, group: 'Running the day' },
+  { to: '/scrutineer/live', label: 'Live board', icon: Activity, group: 'Marking and results' },
+  { to: '/scrutineer/paper-marks', label: 'Paper marks', icon: FileText, group: 'Marking and results' },
+  { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks, group: 'Marking and results' },
+  { to: '/scrutineer/results', label: 'Results', icon: Award, group: 'Marking and results' },
+  { to: '/scrutineer/security', label: 'Security', icon: ShieldCheck, group: 'System' },
 ]
 
 // The secretariat's work. The admin can do all of it too, so these screens sit in the admin's menu as well.
 const entriesNav: NavItem[] = [
   { to: '/secretariat', label: 'Events', end: true, icon: CalendarDays, group: 'Entries' },
-  { to: '/secretariat/competitors', label: 'Competitors', icon: UserRound, group: 'Entries' },
   { to: '/secretariat/teams', label: 'Teams', icon: Building2, group: 'Entries' },
   { to: '/secretariat/coaches', label: 'Coaches', icon: Users, group: 'Entries' },
   { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
@@ -69,6 +68,7 @@ const entriesNav: NavItem[] = [
 ]
 const dayNav: NavItem[] = [
   { to: '/secretariat/schedule', label: 'Schedule', icon: CalendarClock, group: 'The day' },
+  { to: '/secretariat/heats', label: 'Heats', icon: LayoutGrid, group: 'The day' },
   { to: '/secretariat/program', label: 'Program', icon: ListOrdered, group: 'The day' },
 ]
 
@@ -87,10 +87,10 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/staff', label: 'Staff accounts', icon: Users, group: 'System' },
     { to: '/admin/security', label: 'Security', icon: ShieldCheck, group: 'System' },
   ],
-  secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
+  secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/panels', label: 'Panels', icon: ClipboardCheck, group: 'The day' }, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
   scrutineer: scrutineerNav,
   // The chairperson watches and confirms ties; starting rounds and setting heats are the scrutineer's
-  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/schedule', '/scrutineer/program', '/scrutineer/paper-marks'].includes(item.to)),
+  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/schedule', '/scrutineer/program', '/scrutineer/panels', '/scrutineer/paper-marks'].includes(item.to)),
 }
 
 export const publicNav: NavItem[] = [
@@ -102,10 +102,10 @@ export const publicNav: NavItem[] = [
 ]
 
 // The announcer has one screen; the account page's sidebar offers it so there is a way back
-export const compereNav: NavItem[] = [{ to: '/compere', label: 'Announcer', icon: Megaphone }]
+export const compereNav: NavItem[] = [{ to: '/compere', label: 'Announcer', icon: Megaphone, group: 'The day' }]
 
 // The barker has one screen as well
-export const barkerNav: NavItem[] = [{ to: '/barker', label: 'Barker', icon: Megaphone }]
+export const barkerNav: NavItem[] = [{ to: '/barker', label: 'Barker', icon: Megaphone, group: 'The day' }]
 
 
 // Staff and adjudicators sign in here; it is not linked from any public page

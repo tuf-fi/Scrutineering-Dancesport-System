@@ -22,6 +22,16 @@ export const useResetTotp = () => useTotpWrite((id: string) => api.resetTotp(act
 // Staff changing their own password or name
 export const useChangeMyStaffPassword = () => useMutation({ mutationFn: (v: { current: string; next: string }) => api.changeMyStaffPassword(actor(), v.current, v.next) })
 
+export const useMySignature = (enabled = true) => useQuery({ queryKey: ['my-signature'], queryFn: () => api.getMySignature(actor()), enabled })
+
+export const useSaveMySignature = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (signature: string | null) => api.saveMyStaffSignature(actor(), signature),
+    onSuccess: () => Promise.all([queryClient.invalidateQueries({ queryKey: ['my-signature'] }), queryClient.invalidateQueries({ queryKey: ['sheet-signatures'] })]),
+  })
+}
+
 export const useSaveMyStaffName = () => {
   const queryClient = useQueryClient()
   return useMutation({ mutationFn: (name: string) => api.saveMyStaffName(actor(), name), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['staff-users'] }) })

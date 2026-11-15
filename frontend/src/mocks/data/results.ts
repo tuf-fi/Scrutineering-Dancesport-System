@@ -45,7 +45,7 @@ const eventById = new Map(events.map((e) => [e.id, e]))
 export const rankingPoints: RankingPoint[] = results.flatMap((r) => {
   const event = eventById.get(r.eventId)
   const points = completedPoints.get(r.id) ?? pointsFor(r.place)
-  if (!event || points === 0) return []
+  if (!event || event.usesPoints === false || points === 0) return []
   return [
     {
       id: `rp:${r.id}`,

@@ -11,6 +11,7 @@ import { useMyAthlete, useMyMember } from '../../hooks/index.ts'
 import { useSignOut } from '../useSignOut.ts'
 import { AccountMenu } from './AccountMenu.tsx'
 import { NotificationBell } from './NotificationBell.tsx'
+import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { PublicMenu } from './PublicMenu.tsx'
 import { SiteFooter } from './SiteFooter.tsx'
 
@@ -20,6 +21,7 @@ function TopNavLayout({ items, right }: { items: NavItem[]; right: ReactNode }) 
   // An account (athlete, coach or team) uses the whole width; the public pages stay in a reading column
   const wide = ['/athlete', '/coach', '/team'].some((base) => pathname === base || pathname.startsWith(`${base}/`))
   const header = useRef<HTMLElement>(null)
+  const links = useScrollActive<HTMLElement>(pathname)
 
   // The account's sidebar is fixed under the navbar, so it needs the navbar's height
   useLayoutEffect(() => {
@@ -39,7 +41,7 @@ function TopNavLayout({ items, right }: { items: NavItem[]; right: ReactNode }) 
           <Link to="/" aria-label="Home" className="py-1">
             <Brand size="md" plate={false} />
           </Link>
-          <nav aria-label="Main" className="no-scrollbar hidden overflow-x-auto lg:flex">
+          <nav ref={links} aria-label="Main" className="no-scrollbar hidden overflow-x-auto lg:flex">
             {items.map((item) => (
               <NavLink
                 key={item.to}

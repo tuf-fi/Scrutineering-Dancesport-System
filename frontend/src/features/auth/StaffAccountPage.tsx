@@ -1,18 +1,22 @@
-import { KeyRound, UserRound } from 'lucide-react'
+import { KeyRound, PenLine, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { SectionSidebar, useSection } from '../../app/layouts/SectionSidebar.tsx'
 import { Avatars } from '../../components/Avatars.tsx'
 import { Button, Input, PageHeader, toast } from '../../components/ui/index.ts'
-import { useChangeMyStaffPassword, useSaveMyStaffName, useTotpStatus } from '../../hooks/index.ts'
+import { useChangeMyStaffPassword, useMySignature, useSaveMyStaffName, useTotpStatus } from '../../hooks/index.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
+import { signsResults } from '../../lib/signing.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { SectionHead } from '../admin/SectionHead.tsx'
 import { PasswordForm } from './PasswordForm.tsx'
+import { SignatureSection } from './SignatureSection.tsx'
 
 const SECTIONS = [
   { id: 'details', label: 'Details', icon: UserRound },
   { id: 'password', label: 'Password', icon: KeyRound },
 ] as const
+const SIGNATURE_SECTION = { id: 'signature', label: 'Signature', icon: PenLine } as const
+
 
 // Who the signed-in staff member is, and the two things they may change about themselves: their name and their password
 export function StaffAccountPage() {
@@ -22,7 +26,10 @@ export function StaffAccountPage() {
   const totp = useTotpStatus()
   const [name, setName] = useState(user?.name ?? '')
   const [error, setError] = useState<string | undefined>()
-  const current = useSection(SECTIONS)
+  const signs = signsResults(user?.role)
+  const signature = useMySignature(signs)
+  const sections = signs ? [...SECTIONS, SIGNATURE_SECTION] : SECTIONS
+  const current = useSection(sections)
   if (!user) return null
 
   const dirty = name.trim() !== user.name
@@ -42,7 +49,7 @@ export function StaffAccountPage() {
 
   return (
     <div className="flex flex-col gap-8 lg:ml-[13rem]">
-      <SectionSidebar title="Account" label="Account sections" sections={SECTIONS} current={current} />
+      <SectionSidebar title="Account" label="Account sections" sections={sections} current={current} />
       <PageHeader title="My account" description="Your details and your password." />
 
       <section hidden={current !== 'details'} className="flex flex-col gap-6">
@@ -63,6 +70,14 @@ export function StaffAccountPage() {
             <dt className="text-neutral-500">Two-step sign-in</dt>
             <dd className="font-medium text-neutral-900">{totp.data ? (totp.data.enabled ? 'On' : 'Off') : '–'}</dd>
           </div>
+          {signs && (
+            <div className="grid grid-cols-[8rem_minmax(0,1fr)] items-center gap-x-4 border-t border-neutral-100 py-3 text-small">
+              <dt className="text-neutral-500">Signature</dt>
+              <dd>
+                {signature.data ? <img src={signature.data} alt="Your saved signature" className="max-h-12" /> : <span className="font-medium text-neutral-900">–</span>}
+              </dd>
+            </div>
+          )}
         </dl>
         <form onSubmit={submit} noValidate className="flex max-w-md flex-col gap-4">
           <Input label="Name" required value={name} onChange={(e) => setName(e.target.value)} error={error} autoComplete="name" />
@@ -78,6 +93,13 @@ export function StaffAccountPage() {
         <SectionHead title="Password" note="Enter your current password, then choose a new one." />
         <PasswordForm change={changePassword} />
       </section>
+
+      {signs && (
+        <section hidden={current !== 'signature'} className="flex flex-col gap-6">
+          <SectionHead title="Signature" note="Printed on the final results and the certificates of the events you approve or confirm." />
+          <SignatureSection />
+        </section>
+      )}
     </div>
   )
 }

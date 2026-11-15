@@ -29,6 +29,7 @@ function EventForm({
   const [kind, setKind] = useState(event?.kind ?? kinds.find((k) => k.id === 'standard')?.id ?? kinds[0]?.id ?? '')
   const [province, setProvince] = useState(event?.province ?? '')
   const [syllabus, setSyllabus] = useState(event?.syllabus ?? '')
+  const [ranking, setRanking] = useState(event?.usesPoints ?? true)
   const [error, setError] = useState<string | null>(null)
   const picked = kinds.find((k) => k.id === kind)
   const closed = picked?.closedToProvince === true
@@ -61,7 +62,7 @@ function EventForm({
       {
         competitionId,
         id: event?.id,
-        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, syllabus: syllabus.trim(), ...(closed ? { province: province.trim() } : {}) },
+        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, syllabus: syllabus.trim(), usesPoints: ranking, ...(closed ? { province: province.trim() } : {}) },
       },
       {
         onSuccess: (saved) => {
@@ -141,6 +142,13 @@ function EventForm({
             ))}
           </div>
         </fieldset>
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <label className="flex cursor-pointer items-center gap-3 text-small text-neutral-900">
+            <input type="checkbox" checked={ranking} onChange={(e) => setRanking(e.target.checked)} className="size-5 accent-neutral-900" />
+            Ranking event
+          </label>
+          <p className="text-small text-neutral-600">Its results earn ranking points. Turn off for an event that does not count towards the rankings.</p>
+        </div>
         <div className="sm:col-span-2">
           <Textarea
             label="Syllabus"

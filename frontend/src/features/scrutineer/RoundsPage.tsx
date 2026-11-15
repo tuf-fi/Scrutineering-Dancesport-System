@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import { ArrowUpRight } from 'lucide-react'
 import { RoundStatusBadge, ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import { Button, ErrorState, DarkPanel, PageHeader, SearchField, Select, Table, Toolbar, ToolbarActions, glass, toast } from '../../components/ui/index.ts'
-import { useClearFloor, useLiveSubmissions, usePlanRounds, useStartRound, useCatalog } from '../../hooks/index.ts'
+import { useClearFloor, useLiveSubmissions, usePlanRounds, useRedances, useStartRound, useCatalog } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -24,12 +24,15 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
   const clear = useClearFloor()
   const submissions = useLiveSubmissions(row.roundId)
   const submitted = submissions.filter((s) => s.status === SubmissionStatus.Submitted).length
+  const redance = useRedances(row.roundId).data?.find((x) => !x.doneAt)
+  const canRedance = !readOnly && (row.status === RoundStatus.Marking || row.status === RoundStatus.Review)
 
   const links: Array<[string, string]> = [
     ['Live board', 'live'],
     ['Heats', 'heats'],
     ['Recall', 'recall'],
     ['Results', 'results'],
+    ...(canRedance ? ([['Redance', 'heats']] as Array<[string, string]>) : []),
   ]
 
   return (
@@ -70,6 +73,11 @@ function OnTheFloor({ row, competitionId, readOnly }: { row: RoundRow; competiti
           </div>
         ))}
       </dl>
+      {redance && (
+        <p role="status" className="text-small font-medium text-gold-400">
+          {row.recallNumber === null ? 'Redance of the final' : `Redance of heat ${redance.heat}`}: {redance.redone.length} of {redance.required.length} adjudicators have marked it again.
+        </p>
+      )}
       <nav aria-label="Open this round" className="flex flex-wrap items-center gap-x-1 gap-y-2">
         {links.map(([label, page], i) => (
           <Link

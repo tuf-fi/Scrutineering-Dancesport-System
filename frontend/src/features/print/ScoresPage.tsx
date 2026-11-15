@@ -70,8 +70,8 @@ export function ScoresPage() {
                 {data.adjudicators.map((a) => {
                   const signature = signatures.data?.find((s) => s.adjudicatorId === a.id)?.signature
                   return (
-                    <div key={a.id} className="flex flex-col">
-                      <div className="flex h-14 items-end border-b border-neutral-900">
+                    <div key={a.id} className="flex flex-col text-center">
+                      <div className="flex h-14 items-end justify-center border-b border-neutral-900">
                         {signature && <img src={signature} alt={`Signature of adjudicator ${a.letter}`} className="max-h-14" />}
                       </div>
                       <p className="mt-1 text-[8pt]">

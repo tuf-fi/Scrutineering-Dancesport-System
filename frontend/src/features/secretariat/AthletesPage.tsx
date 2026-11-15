@@ -1,14 +1,36 @@
-import { membershipPaidText, type AthleteRecord, type AthleteRow } from '@bis/shared'
-import { Check, Pencil, Trash2, X } from 'lucide-react'
+import { membershipPaidText, type AthleteRecord, type AthleteRow, type CompetitorRow } from '@bis/shared'
+import { Check, ListPlus, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { Badge, Button, Dialog, ErrorState, IconButton, Input, PageHeader, SearchField, Select, Table, Textarea, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
-import { useAthleteRecords, useAthletes, useCompetitorRows, useDeleteAthleteRecord, useTeams, useConfirmMembership, useCorrectAthlete, useDeleteAthlete, useRejectMembership, } from '../../hooks/index.ts'
-
+import {
+  useAssignBackNumbers,
+  useAthleteRecords,
+  useAthletes,
+  useCompetitionEntries,
+  useCompetitions,
+  useCompetitorRows,
+  useDeleteAthleteRecord,
+  useDeleteCompetitor,
+  useEvents,
+  useTeams,
+  useConfirmMembership,
+  useCorrectAthlete,
+  useDeleteAthlete,
+  useRejectMembership,
+} from '../../hooks/index.ts'
+import { competitorName, eventCode, eventDances } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
+import { ACTIVITY, ActivityOf, AthleteEntries } from './AthleteEntries.tsx'
 import { AthleteRecordDialog } from './AthleteRecordDialog.tsx'
+import { BackNumberDialog } from './BackNumberDialog.tsx'
+import { CompetitorDialog } from './CompetitorDialog.tsx'
+import { EntryChooser } from './EntryChooser.tsx'
+import { ImportDialog } from './ImportDialog.tsx'
+import { RegistrationDialog } from './RegistrationDialog.tsx'
 
-type Filter = 'all' | 'waiting' | 'records'
+type Filter = 'all' | 'paid' | 'unpaid' | 'waiting' | 'records'
 
 const isWaiting = (a: AthleteRow) => a.request !== null && !a.request.rejectedReason
 
@@ -17,6 +39,9 @@ type Row =
   | { key: string; kind: 'account'; name: string; a: AthleteRow }
   | { key: string; kind: 'record'; name: string; r: AthleteRecord }
   | { key: string; kind: 'dancer'; name: string; teamName: string }
+
+// Paid for this year; a dancer known only from an entry form has not paid
+const isPaid = (row: Row) => membershipPaidText(row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear, new Date().getFullYear()) === 'Paid'
 
 const plain = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
 
@@ -61,12 +86,42 @@ export function AthletesPage() {
   const [rejecting, setRejecting] = useState<AthleteRow | null>(null)
   const [reason, setReason] = useState('')
   const [toDelete, setToDelete] = useState<AthleteRow | null>(null)
-  const [editingRecord, setEditingRecord] = useState<AthleteRecord | 'new' | null>(null)
+  const [editingRecord, setEditingRecord] = useState<AthleteRecord | null>(null)
   const [recordToDelete, setRecordToDelete] = useState<AthleteRecord | null>(null)
   const records = useAthleteRecords()
   const competitors = useCompetitorRows()
   const teamList = useTeams()
   const removeRecord = useDeleteAthleteRecord()
+  const competitions = useCompetitions()
+  const assign = useAssignBackNumbers()
+  const removeEntry = useDeleteCompetitor()
+  const [competitionId, setCompetitionId] = useState('all')
+  const [eventId, setEventId] = useState('all')
+  // The team filter lives in the address (?team=<id>), so the teams page can link to one team's athletes
+  const [params, setParams] = useSearchParams()
+  const teamId = params.get('team') ?? 'all'
+  const setTeamId = (id: string) =>
+    setParams(
+      (p) => {
+        if (id === 'all') p.delete('team')
+        else p.set('team', id)
+        return p
+      },
+      { replace: true },
+    )
+  const [adding, setAdding] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [entering, setEntering] = useState<CompetitorRow | null>(null)
+  const [numbering, setNumbering] = useState<CompetitorRow | null>(null)
+  const [editingEntry, setEditingEntry] = useState<CompetitorRow | null>(null)
+  const [entryToDelete, setEntryToDelete] = useState<CompetitorRow | null>(null)
+  // Entry details being added for an athlete who has none, by name
+  const [entryFor, setEntryFor] = useState<string | null>(null)
+  // An athlete in more than one entry is asked which one
+  const [choosing, setChoosing] = useState<{ name: string; entries: CompetitorRow[] } | null>(null)
+  const scoped = competitionId !== 'all'
+  const events = useEvents(scoped ? competitionId : undefined)
+  const entryList = useCompetitionEntries(scoped ? competitionId : '')
 
   if (athletes.isError) return <ErrorState onRetry={() => void athletes.refetch()} />
 
@@ -85,34 +140,128 @@ export function AthletesPage() {
     ...(records.data ?? []).map((x): Row => ({ key: x.id, kind: 'record', name: x.name, r: x })),
     ...dancers.values(),
   ].sort((x, y) => x.name.localeCompare(y.name))
+  const paid = all.filter(isPaid).length
+
+  // The entries an athlete dances in (a solo, a couple), found by name
+  const entriesOf = new Map<string, CompetitorRow[]>()
+  for (const c of competitors.data ?? []) {
+    for (const name of c.names) entriesOf.set(plain(name), [...(entriesOf.get(plain(name)) ?? []), c])
+  }
+  const entriesFor = (row: Row) => entriesOf.get(plain(row.name)) ?? []
+  const missing = (competitors.data ?? []).filter((c) => c.backNumber === null).length
+  // With a competition (and event) chosen: what each entry is entered in
+  const eventNumber = new Map((events.data ?? []).map((e) => [e.id, e.number]))
+  const enteredIn = new Map<string, number[]>()
+  if (scoped) {
+    for (const e of entryList.data ?? []) {
+      if (e.scratched || (eventId !== 'all' && e.eventId !== eventId)) continue
+      enteredIn.set(e.competitorId, [...(enteredIn.get(e.competitorId) ?? []), eventNumber.get(e.eventId) ?? 0])
+    }
+  }
+  const eventsOf = (row: Row) => entriesFor(row).flatMap((c) => enteredIn.get(c.id) ?? []).sort((x, y) => x - y)
+  const entryCount = (row: Row) => entriesFor(row).reduce((n, c) => n + (scoped ? (enteredIn.get(c.id)?.length ?? 0) : c.entryCount), 0)
+  const chosenTeam = teamList.data?.find((c) => c.id === teamId)?.name
+
   const rows = all.filter((row) => {
     if (filter === 'waiting') return row.kind === 'account' && isWaiting(row.a)
     if (filter === 'records' && row.kind === 'account') return false
-    const text = row.kind === 'account' ? [row.a.name, row.a.email, row.a.teamName, row.a.membershipId ?? ''] : row.kind === 'record' ? [row.name, teamName(row.r.teamId), row.r.membershipId ?? ''] : [row.name, row.teamName]
+    if (filter === 'paid' && !isPaid(row)) return false
+    if (filter === 'unpaid' && isPaid(row)) return false
+    if (scoped && !entriesFor(row).some((c) => enteredIn.has(c.id))) return false
+    if (teamId !== 'all') {
+      const rowTeam = row.kind === 'account' ? row.a.teamName : row.kind === 'record' ? teamName(row.r.teamId) : row.teamName
+      if (rowTeam !== chosenTeam && !entriesFor(row).some((c) => c.teamId === teamId)) return false
+    }
+    const own = row.kind === 'account' ? [row.a.name, row.a.email, row.a.teamName, row.a.membershipId ?? ''] : row.kind === 'record' ? [row.name, teamName(row.r.teamId), row.r.membershipId ?? ''] : [row.name, row.teamName]
+    const text = [...own, ...entriesFor(row).flatMap((c) => [...c.names, c.backNumber === null ? '' : String(c.backNumber)])]
     return !needle || text.some((v) => v.toLowerCase().includes(needle))
   })
 
+  function assignAll() {
+    assign.mutate(undefined, {
+      onSuccess: (n) => toast.success(`Assigned ${n} back number${n === 1 ? '' : 's'}`),
+      onError: (e) => toast.error(e.message),
+    })
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Athletes" description="Athletes with an account, and athletes you added who have not linked one yet. Confirm a membership once the money has arrived." />
+      <PageHeader title="Athletes" description="Every athlete in one list, paid or not. Confirm a membership once the money has arrived." />
 
       <Toolbar>
-        <SearchField className="w-full sm:w-64" label="Search athletes" value={query} onChange={setQuery} />
-        <Select label="Show" hideLabel className="w-full sm:w-52" value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
-          <option value="all">All athletes</option>
-          <option value="waiting">Waiting for you</option>
-          <option value="records">Not signed up yet</option>
-        </Select>
-        <ToolbarActions>
-          <Button
-            onClick={() => {
-              setEditingRecord('new')
+        <SearchField className="min-w-0" label="Search athletes" value={query} onChange={setQuery} />
+        <div className="min-w-0">
+          <Select label="Show" value={filter} onChange={(e) => setFilter(e.target.value as Filter)}>
+            <option value="all">All athletes</option>
+            <option value="paid">Paid</option>
+            <option value="unpaid">Not paid</option>
+            <option value="waiting">Waiting for you</option>
+            <option value="records">Not signed up yet</option>
+          </Select>
+        </div>
+        <div className="min-w-0">
+          <Select
+            label="Competition"
+            value={competitionId}
+            onChange={(e) => {
+              setCompetitionId(e.target.value)
+              setEventId('all')
             }}
           >
-            Add athlete
+            <option value="all">All competitions</option>
+            {[...(competitions.data ?? [])]
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+          </Select>
+        </div>
+        {scoped && (
+          <div className="min-w-0">
+            <Select label="Event" value={eventId} onChange={(e) => setEventId(e.target.value)}>
+              <option value="all">All events</option>
+              {[...(events.data ?? [])]
+                .sort((a, b) => a.number - b.number)
+                .map((ev) => (
+                  <option key={ev.id} value={ev.id}>
+                    {eventCode(ev)} {eventDances(ev)}
+                  </option>
+                ))}
+            </Select>
+          </div>
+        )}
+        <div className="min-w-0">
+          <Select label="Team" value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+            <option value="all">All teams</option>
+            {(teamList.data ?? []).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <ToolbarActions>
+          {missing > 0 && (
+            <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
+              {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
+            </Button>
+          )}
+          <Button variant="secondary" onClick={() => setImporting(true)}>
+            Import CSV
           </Button>
+          <Button onClick={() => setAdding(true)}>Add athlete</Button>
         </ToolbarActions>
       </Toolbar>
+
+      {!athletes.isLoading && !records.isLoading && !competitors.isLoading && (
+        <p role="status" className="text-small text-neutral-600">
+          <span className="font-mono tabular-nums text-neutral-900">{all.length}</span> athletes ·{' '}
+          <span className="font-mono tabular-nums text-neutral-900">{paid}</span> paid ·{' '}
+          <span className="font-mono tabular-nums text-neutral-900">{all.length - paid}</span> not paid
+        </p>
+      )}
 
       <Table<Row>
         loading={athletes.isLoading || records.isLoading || competitors.isLoading}
@@ -121,8 +270,17 @@ export function AthletesPage() {
         minWidthClass="min-w-0"
         paginationLabel="Athletes pagination"
         detailTitle={(row) => row.name}
+        detailExtra={(row) => (
+          <AthleteEntries
+            athlete={row.name}
+            entries={entriesFor(row)}
+            plain={plain}
+            actions={{ onEnter: setEntering, onNumber: setNumbering, onEdit: setEditingEntry, onDelete: setEntryToDelete, onAddDetails: () => setEntryFor(row.name) }}
+          />
+        )}
+        detailSections={(row) => ACTIVITY.map((a) => ({ id: a.id, label: a.label, icon: a.icon, content: <ActivityOf athlete={row.name} entries={entriesFor(row)} plain={plain} render={a.render} /> }))}
         empty={
-          needle || filter === 'waiting'
+          needle || filter !== 'all' || scoped || teamId !== 'all'
             ? { title: 'No athletes match', description: 'Try a different name or filter.' }
             : { title: 'No athletes yet', description: 'Athletes appear here once they make an account, are added, or are entered in a competition.' }
         }
@@ -137,23 +295,48 @@ export function AthletesPage() {
             cell: (row) => <MembershipCell year={row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear} />,
             mono: true,
             muted: true,
-            hideBelow: 'sm',
           },
+          {
+            key: 'back',
+            header: 'Back no.',
+            cell: (row) => {
+              const numbers = entriesFor(row).map((c) => c.backNumber)
+              return numbers.length === 0 ? '–' : numbers.map((n) => n ?? '–').join(', ')
+            },
+            mono: true,
+            muted: true,
+            align: 'center',
+            hideBelow: 'md',
+          },
+          ...(scoped ? [{ key: 'events', header: 'Events', cell: (row: Row) => eventsOf(row).map((n) => `E${n}`).join(', ') || '–', mono: true, muted: true, hideBelow: 'md' as const }] : []),
+          { key: 'entries', header: 'Entries', cell: (row) => entryCount(row), mono: true, align: 'center', hideBelow: 'md' },
+          { key: 'account', header: 'Account', cell: (row) => (row.kind === 'account' ? 'Account' : row.kind === 'record' ? 'No account yet' : 'Entry form only'), muted: true, hideBelow: 'md', detailOnly: true },
           {
             key: 'payment',
             header: 'Payment',
-            cell: (row) => (row.kind === 'account' ? <PaymentCell athlete={row.a} onView={setViewing} /> : <span className="text-neutral-500">{row.kind === 'record' ? 'No account yet' : 'Entry form only'}</span>),
+            cell: (row) => (row.kind === 'account' ? <PaymentCell athlete={row.a} onView={setViewing} /> : <span className="text-neutral-500">–</span>),
+            detailOnly: true,
           },
           {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-44',
+            widthClass: 'w-52',
             cell: (row) => {
-              if (row.kind === 'dancer') return null
+              const entries = entriesFor(row)
+              const enter =
+                entries.length > 0 ? (
+                  <IconButton
+                    icon={ListPlus}
+                    label={`Enter ${row.name} in events`}
+                    onClick={() => (entries.length === 1 ? setEntering(entries[0]!) : setChoosing({ name: row.name, entries }))}
+                  />
+                ) : null
+              if (row.kind === 'dancer') return <div className="flex justify-end gap-0.5">{enter}</div>
               if (row.kind === 'record') {
                 return (
                   <div className="flex justify-end gap-0.5">
+                    {enter}
                     <IconButton icon={Pencil} label={`Edit ${row.name}`} onClick={() => setEditingRecord(row.r)} />
                     <IconButton icon={Trash2} tone="danger" label={`Delete ${row.name}`} onClick={() => setRecordToDelete(row.r)} />
                   </div>
@@ -162,6 +345,7 @@ export function AthletesPage() {
               const a = row.a
               return (
                 <div className="flex justify-end gap-0.5">
+                  {enter}
                   {a.request && isWaiting(a) && (
                     <>
                       <IconButton
@@ -197,7 +381,37 @@ export function AthletesPage() {
         ]}
       />
 
-      <AthleteRecordDialog open={editingRecord !== null} athlete={editingRecord === 'new' ? null : editingRecord} onClose={() => setEditingRecord(null)} />
+      <AthleteRecordDialog open={editingRecord !== null} athlete={editingRecord} onClose={() => setEditingRecord(null)} />
+      <CompetitorDialog
+        open={adding}
+        competitor={null}
+        intent="athlete"
+        onClose={() => setAdding(false)}
+        onAdded={() => {
+          // A new athlete has no entries yet, so any filter would hide them
+          setCompetitionId('all')
+          setEventId('all')
+          setQuery('')
+          setTeamId('all')
+          setFilter('all')
+        }}
+      />
+      <CompetitorDialog open={entryFor !== null} competitor={null} intent="entry" prefillName={entryFor ?? undefined} onClose={() => setEntryFor(null)} />
+      <CompetitorDialog open={editingEntry !== null} competitor={editingEntry} onClose={() => setEditingEntry(null)} />
+      <DeleteDialog kind="competitor" target={entryToDelete ? { id: entryToDelete.id, label: competitorName(entryToDelete.names) } : null} remove={removeEntry} onClose={() => setEntryToDelete(null)} />
+      <ImportDialog open={importing} onClose={() => setImporting(false)} />
+      <BackNumberDialog competitor={numbering} onClose={() => setNumbering(null)} />
+      <RegistrationDialog competitor={entering} onClose={() => setEntering(null)} />
+      <EntryChooser
+        athlete={choosing?.name ?? null}
+        entries={choosing?.entries ?? []}
+        plain={plain}
+        onChoose={(entry) => {
+          setChoosing(null)
+          setEntering(entry)
+        }}
+        onClose={() => setChoosing(null)}
+      />
 
       <Dialog
         open={recordToDelete !== null}

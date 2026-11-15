@@ -31,8 +31,6 @@ export interface Competition {
   feeDeadline?: string | null
   // The photo on its card on the home page: a JPEG, PNG or WebP picture as a data URL
   image?: string | null
-  // Whether its results count towards the rankings; a competition without points awards none
-  usesPoints: boolean
   // Whether entering costs money. Off: no entry fee or membership is asked, and no payment or screenshot is needed
   paymentRequired: boolean
 }
@@ -75,6 +73,8 @@ export interface Event {
   province?: string
   // What the adjudicators may use in this event, shown under their numbers; empty uses the standard text for the age group
   syllabus?: string
+  // Whether its results count towards the rankings; a missing value counts as on
+  usesPoints?: boolean
 }
 
 export interface Team {
@@ -246,6 +246,12 @@ export interface Panel {
   adjudicatorIds: Id[]
 }
 
+// What setPanels did: the events it changed, and the ones it left alone because they have started
+export interface PanelsResult {
+  changed: Id[]
+  skipped: Id[]
+}
+
 export interface Round {
   id: Id
   eventId: Id
@@ -297,6 +303,8 @@ export interface Result {
   // The whole shared range, e.g. 13 to 18; equal to place when not shared. Absent in sample data.
   placeFrom?: number
   placeTo?: number
+  // 'final' for a placing in the final; the round a competitor was cut in otherwise. Absent in sample data.
+  stage?: string
   approvedBy: Id
   approvedAt: Timestamp
 }
@@ -338,6 +346,17 @@ export interface RankingPoint {
   discipline: Discipline
   competitionId: Id
   points: number
+}
+
+// Who signs a final's results, with the signature they saved on their account (null when they have none yet)
+export interface SheetSigner {
+  name: string
+  signature: string | null
+}
+
+export interface SheetSignatures {
+  scrutineer: SheetSigner | null
+  chairperson: SheetSigner | null
 }
 
 export interface StaffUser {
@@ -437,8 +456,14 @@ export interface ProgramRow {
   recallNumber: number | null
   // Dancing in this round, as far as it is known
   entryCount: number
+  // Couples in each heat, in heat order; empty until the scrutineer has set the heats (and for a final)
+  heats: number[]
   // Letters of the adjudicators on the event's panel
   panel: string[]
+  // Letters of the adjudicators who judge this round: its set, or the whole panel when none was chosen
+  adjudicators: string[]
+  // A set was chosen for this round
+  customSet: boolean
   status: ProgramStatus
 }
 
@@ -446,6 +471,13 @@ export interface Program {
   // "HH:MM"; null until set
   start: string | null
   rows: ProgramRow[]
+}
+
+// The adjudicators chosen for one round; rounds without a row are judged by the whole panel
+export interface RoundSetRow {
+  eventId: Id
+  roundType: RoundType
+  adjudicatorIds: Id[]
 }
 
 export interface ProgramSlotInput {
@@ -771,9 +803,34 @@ export interface MarkingTask {
   competitors: MarkingCompetitor[]
 }
 
+// A heat danced again. Each adjudicator who had marked it re-marks just that heat, with as many X per dance as before.
+export interface Redance {
+  id: Id
+  roundId: Id
+  seq: number
+  heat: number
+  reason: string
+  startedAt: Timestamp
+  // Null while it waits for marks
+  doneAt: Timestamp | null
+  // The adjudicators who must re-mark, and the ones who have
+  required: Id[]
+  redone: Id[]
+  // How many X per dance each of them must give the heat again (what they gave it before)
+  counts: Record<Id, Partial<Record<Dance, number>>>
+}
+
+// What one adjudicator has to re-mark after a redance
+export interface RedanceTask {
+  seq: number
+  heat: number
+  competitorIds: Id[]
+  counts: Partial<Record<Dance, number>>
+}
+
 export type AdjudicatorState =
   | { status: 'waiting' }
-  | { status: 'marking'; task: MarkingTask }
+  | { status: 'marking'; task: MarkingTask; redance?: RedanceTask }
   | { status: 'submitted'; task: MarkingTask }
 
 // One dance's marks: the competitors given an X, or in a final everyone in order from 1st place down
@@ -937,6 +994,8 @@ export interface Announcement {
   roundType: RoundType
   // call: the heat going to the floor
   heat: number | null
+  // call: this heat is danced again
+  redance?: boolean
   // How many couples each adjudicator selects in this round (its recall number); null in a final
   select: number | null
   // call, recall, finalists: the back numbers to read, lowest first
@@ -955,8 +1014,8 @@ export interface PaymentMethod {
 // What the secretariat keeps about a team
 export type TeamInput = Omit<Team, 'id'>
 
-// Leaving usesPoints or paymentRequired out keeps what is saved, or turns it on for a new competition
-export type CompetitionInput = Omit<Competition, 'id' | 'usesPoints' | 'paymentRequired'> & { usesPoints?: boolean; paymentRequired?: boolean }
+// Leaving paymentRequired out keeps what is saved, or turns it on for a new competition
+export type CompetitionInput = Omit<Competition, 'id' | 'paymentRequired'> & { paymentRequired?: boolean }
 
 export type EventInput = Omit<Event, 'id' | 'competitionId'>
 

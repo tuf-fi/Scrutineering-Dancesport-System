@@ -4,7 +4,9 @@ import {
   type Mark,
   type MarkingTask,
   type MarkSubmission,
+  type Redance,
   type Round,
+  type Dance,
 } from '@bis/shared'
 import { panels } from './data/adjudicators.ts'
 import { competitors } from './data/competitors.ts'
@@ -20,6 +22,26 @@ let activeRoundId: string | null = liveRoundId
 const submitted = new Set<string>()
 
 const key = (adjudicatorId: string, roundId: string) => `${adjudicatorId}:${roundId}`
+
+// Heats danced again: who must re-mark, and how many X per dance (what they gave the heat before)
+interface SampleRedance {
+  id: string
+  roundId: string
+  seq: number
+  heat: number
+  reason: string
+  startedAt: string
+  doneAt: string | null
+  required: Map<string, Partial<Record<Dance, number>>>
+  redone: string[]
+}
+const redances: SampleRedance[] = []
+const openRedance = (roundId: string) => redances.find((r) => r.roundId === roundId && !r.doneAt)
+// The final is one heat: everyone in it
+const heatMembers = (roundId: string, heat: number) => {
+  const task = taskFor(roundId)
+  return (task?.competitors ?? []).filter((c) => (task?.recallNumber === null ? heat === 1 : c.heat === heat)).map((c) => c.id)
+}
 
 function roundsOf(eventId: string): Round[] {
   return rounds.filter((r) => r.eventId === eventId)
@@ -73,6 +95,11 @@ export function adjudicatorState(adjudicatorId: string): AdjudicatorState {
   const task = activeRoundId ? taskFor(activeRoundId) : null
   const onPanel = panels.find((p) => p.eventId === task?.event.id)?.adjudicatorIds.includes(adjudicatorId)
   if (!task || !onPanel) return { status: 'waiting' }
+  const open = openRedance(task.round.id)
+  const counts = open?.required.get(adjudicatorId)
+  if (open && counts && !open.redone.includes(adjudicatorId)) {
+    return { status: 'marking', task, redance: { seq: open.seq, heat: open.heat, competitorIds: heatMembers(task.round.id, open.heat), counts } }
+  }
   return { status: submitted.has(key(adjudicatorId, task.round.id)) ? 'submitted' : 'marking', task }
 }
 
@@ -109,6 +136,60 @@ export function submitMarks(adjudicatorId: string, roundId: string, submissions:
     })
   }
   submitted.add(key(adjudicatorId, roundId))
+}
+
+export function getSampleRedances(roundId: string): Redance[] {
+  return redances
+    .filter((r) => r.roundId === roundId)
+    .map((r) => ({ id: r.id, roundId: r.roundId, seq: r.seq, heat: r.heat, reason: r.reason, startedAt: r.startedAt, doneAt: r.doneAt, required: [...r.required.keys()], redone: r.redone, counts: Object.fromEntries(r.required) }))
+}
+
+export function startSampleRedance(roundId: string, heat: number, reason: string): Redance {
+  const task = taskFor(roundId)
+  if (!task) throw new Error('Round not found.')
+  const why = reason.trim()
+  if (why.length < 3) throw new Error('Give the reason in a few words.')
+  if (openRedance(roundId)) throw new Error('A redance is waiting for its marks. Finish it before starting another.')
+  const members = new Set(heatMembers(roundId, heat))
+  if (members.size === 0) throw new Error('That heat does not exist.')
+  const required = new Map<string, Partial<Record<Dance, number>>>()
+  for (const adjudicatorId of panels.find((p) => p.eventId === task.event.id)?.adjudicatorIds ?? []) {
+    if (!submitted.has(key(adjudicatorId, roundId))) continue
+    const own = marks.filter((m) => m.roundId === roundId && m.adjudicatorId === adjudicatorId && members.has(m.competitorId))
+    if (own.length === 0) continue
+    required.set(adjudicatorId, Object.fromEntries(task.dances.map((d) => [d, own.filter((m) => m.dance === d).length])))
+    for (const gone of own) marks.splice(marks.indexOf(gone), 1)
+    submitted.delete(key(adjudicatorId, roundId))
+  }
+  const seq = redances.filter((r) => r.roundId === roundId).length + 1
+  const made: SampleRedance = { id: `${roundId}:redance${seq}`, roundId, seq, heat, reason: why, startedAt: new Date().toISOString(), doneAt: required.size === 0 ? new Date().toISOString() : null, required, redone: [] }
+  redances.push(made)
+  return getSampleRedances(roundId).find((r) => r.id === made.id)!
+}
+
+export function submitSampleRedance(adjudicatorId: string, roundId: string, submissions: MarkSubmission[]): void {
+  const open = openRedance(roundId)
+  const counts = open?.required.get(adjudicatorId)
+  if (!open || !counts) throw new Error('There is no redance waiting for these marks.')
+  if (open.redone.includes(adjudicatorId)) return
+  const members = new Set(heatMembers(roundId, open.heat))
+  const task = taskFor(roundId)!
+  for (const dance of task.dances) {
+    const ids = submissions.find((s) => s.dance === dance)?.competitorIds
+    if (!ids) throw new Error('Mark every dance before submitting.')
+    if (new Set(ids).size !== ids.length || ids.some((id) => !members.has(id))) throw new Error(`Mark each competitor once, and only those in heat ${open.heat}.`)
+    if (ids.length !== (counts[dance] ?? 0)) throw new Error(`Mark exactly ${counts[dance] ?? 0} in heat ${open.heat} for each dance, as before.`)
+  }
+  const at = new Date().toISOString()
+  for (const { dance, competitorIds } of submissions) {
+    competitorIds.forEach((competitorId, i) => {
+      const base = { id: `${roundId}:${adjudicatorId}:${dance}:${competitorId}`, roundId, adjudicatorId, competitorId, dance, submittedAt: at }
+      marks.push(task.recallNumber === null ? { ...base, kind: 'placing', placing: i + 1 } : { ...base, kind: 'x' })
+    })
+  }
+  open.redone.push(adjudicatorId)
+  submitted.add(key(adjudicatorId, roundId))
+  if ([...open.required.keys()].every((id) => open.redone.includes(id))) open.doneAt = at
 }
 
 // Rounds a demo can put on the floor, so every marking screen can be tried

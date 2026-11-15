@@ -60,7 +60,11 @@ export function syncEventSlots(ctx: Ctx, event: typeof t.events.$inferSelect, ty
   const all = slotsOf(ctx, event.competitionId)
   if (all.length === 0) return
   const stale = all.filter((s) => s.kind === ProgramKind.Round && s.eventId === event.id && !types.includes(s.roundType as RoundType))
-  if (stale.length > 0) ctx.db.delete(t.programSlots).where(inArray(t.programSlots.id, stale.map((s) => s.id))).run()
+  if (stale.length > 0) {
+    ctx.db.delete(t.programSlots).where(inArray(t.programSlots.id, stale.map((s) => s.id))).run()
+    // A round that is gone takes its set with it
+    for (const s of stale) ctx.db.delete(t.roundSets).where(and(eq(t.roundSets.eventId, event.id), eq(t.roundSets.roundType, s.roundType as RoundType))).run()
+  }
   const kept = all.filter((s) => !stale.includes(s))
   const couples = activeEntryRows(ctx, event.id).length
   const added: Slot[] = types
@@ -78,6 +82,21 @@ export function syncEventSlots(ctx: Ctx, event: typeof t.events.$inferSelect, ty
   if (added.length > 0) ctx.db.insert(t.programSlots).values(added).run()
   renumber(ctx, [...kept, ...added])
   changed(ctx)
+}
+
+// The letters of a round's set when one was chosen, else of the whole panel
+function setLetters(ctx: Ctx, eventId: string, roundType: string | null): { letters: string[]; custom: boolean } {
+  const custom = roundType
+    ? ctx.db
+        .select({ letter: t.adjudicators.letter })
+        .from(t.roundSets)
+        .innerJoin(t.adjudicators, eq(t.adjudicators.id, t.roundSets.adjudicatorId))
+        .where(and(eq(t.roundSets.eventId, eventId), eq(t.roundSets.roundType, roundType as RoundType)))
+        .orderBy(asc(t.adjudicators.letter))
+        .all()
+        .map((r) => r.letter)
+    : []
+  return custom.length > 0 ? { letters: custom, custom: true } : { letters: panelLetters(ctx, eventId), custom: false }
 }
 
 const panelLetters = (ctx: Ctx, eventId: string): string[] =>
@@ -133,6 +152,8 @@ function build(ctx: Ctx, competitionId: string): Program {
   const rows = slots.map<ProgramRow>((slot, i) => {
     const event = slot.eventId ? events.get(slot.eventId) : undefined
     const field = event && slot.roundType ? fieldFor(ctx, event.id, slot.roundType) : null
+    const round = roundOf(slot)
+    const set = event ? setLetters(ctx, event.id, slot.roundType) : { letters: [], custom: false }
     const row: ProgramRow = {
       slotId: slot.id,
       sequence: slot.sequence,
@@ -150,7 +171,10 @@ function build(ctx: Ctx, competitionId: string): Program {
       roundType: slot.roundType,
       recallNumber: field?.recallNumber ?? null,
       entryCount: field?.entryCount ?? 0,
+      heats: round && round.type !== RoundType.Final ? heatsOfRound(ctx, round.id).map((h) => h.competitorIds.length) : [],
       panel: event ? panelLetters(ctx, event.id) : [],
+      adjudicators: set.letters,
+      customSet: set.custom,
       status: status[i]!,
     }
     elapsed += slot.minutes

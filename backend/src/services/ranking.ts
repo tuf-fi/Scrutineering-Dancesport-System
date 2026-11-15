@@ -11,7 +11,6 @@ export function recomputeEventPoints(ctx: Ctx, eventId: string) {
   const event = ctx.db.select().from(t.events).where(eq(t.events.id, eventId)).get()
   if (!event) return
   const rows = ctx.db.select().from(t.results).where(eq(t.results.eventId, eventId)).all()
-  const competition = ctx.db.select({ usesPoints: t.competitions.usesPoints }).from(t.competitions).where(eq(t.competitions.id, event.competitionId)).get()
 
   const finalists = rows
     .filter((r) => r.stage === 'final')
@@ -29,7 +28,7 @@ export function recomputeEventPoints(ctx: Ctx, eventId: string) {
     }))
 
   ctx.db.delete(t.rankingPoints).where(eq(t.rankingPoints.eventId, eventId)).run()
-  if (competition?.usesPoints === false) return
+  if (!event.usesPoints) return
   for (const p of rankingPoints(pointsRows(ctx), finalists, eliminated)) {
     if (p.points === 0) continue
     ctx.db
@@ -46,16 +45,6 @@ export function recomputeEventPoints(ctx: Ctx, eventId: string) {
       })
       .run()
   }
-}
-
-export function recomputeCompetitionPoints(ctx: Ctx, competitionId: string) {
-  const events = ctx.db
-    .selectDistinct({ id: t.results.eventId })
-    .from(t.results)
-    .innerJoin(t.events, eq(t.events.id, t.results.eventId))
-    .where(eq(t.events.competitionId, competitionId))
-    .all()
-  for (const e of events) recomputeEventPoints(ctx, e.id)
 }
 
 export function recomputeAllPoints(ctx: Ctx) {

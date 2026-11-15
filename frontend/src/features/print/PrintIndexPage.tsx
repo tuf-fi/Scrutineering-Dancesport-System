@@ -22,6 +22,7 @@ export function PrintIndexPage() {
     ['Qualified list', `/print/recall/${eventId}${query}`, 'Who goes through to the next round'],
     ['Scores sheet', `/print/scores/${eventId}${query}`, "Every adjudicator's marks"],
     ['Final results', `/print/results/${eventId}`, 'Placings, with room to sign'],
+    ['Certificates', `/print/certificates/${eventId}`, 'One for each placed finalist, once the final is approved'],
     ['Blank mark sheets', `/print/blank-sheets/${eventId}${query}`, 'One per adjudicator, for the paper fallback'],
   ]
   if (competitionId) sheets.unshift(['Program', `/competitions/${competitionId}/program/print`, 'The running order for the whole competition'])

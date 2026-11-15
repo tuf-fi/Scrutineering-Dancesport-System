@@ -402,7 +402,7 @@ out.push(page(
 ))
 
 // ================================================================================ SECRETARIAT
-out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Competitors · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Program · Printouts · Security'))
+out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Program · Printouts · Security'))
 out.push(page(
   feat('Events', 'Menu: Events', 'Every event in the competition and how many entries it has.', [
     'Add event, edit and delete. Set the age group, class, style, dances, solo or couple.',
@@ -416,13 +416,7 @@ out.push(page(
     'Payment column: Unpaid, For checking, Rejected or paid.',
     'Print the Heat list and the Recall list, or press All printouts.',
   ], [I('secretariat/event', '', { h: 640 })]),
-  feat('Competitors', 'Menu: Competitors', 'Everyone who can be entered, with their back numbers.', [
-    'Add competitor: a dancer and partner (leave the partner empty for a solo), team, province, coach and Beginner if it applies. Each dancer\'s date of birth, contact number, email and address are required; gender is optional and is used for the Solo Junior Female entries on the Bicol Athletes list. The same dancers cannot be added twice to one team.',
-    'Import CSV: add many from a spreadsheet file that follows the entry form columns. The coach must already be added.',
-    'Assign back numbers: gives every competitor a number. The # icon sets one by hand.',
-    'Filter by competition, event and team.',
-  ], [I('secretariat/competitors', '', { h: 600 }), I('secretariat/competitor-add', 'Add competitor', { maxh: 150 }), I('secretariat/import', 'Import')]),
-  feat('Enter in events', 'Competitors, the first icon on a row', 'Put a dancer into events and record what was paid.', [
+  feat('Enter in events', 'Athletes, the list icon on a row', 'Put a dancer into events and record what was paid.', [
     'Choose the competition and tick the events from the entry form. The fee shows as you tick.',
     'Choose how it was paid: cash, GCash, Maya, bank, or Not paid yet. Teams usually pay after your summary.',
     'If the coach has not paid this year, you can add the coach\'s membership and the Coaches Summit to the payment.',
@@ -432,12 +426,16 @@ out.push(page(
   ], [I('secretariat/enter-in-events'), I('secretariat/back-number', 'Setting one back number')]),
   feat('Teams', 'Menu: Teams', 'The teams on the entry forms.', ['Add, edit and delete. A team that still has competitors cannot be deleted, and the same team name cannot be added twice.'], [I('secretariat/teams', '', { h: 560 }), I('secretariat/team-add')]),
   feat('Coaches', 'Menu: Coaches', 'The coaches on the entry forms.', ['Add, edit and delete. Enter the year their membership and the Coaches Summit were paid.', 'The membership ID (C-00001) is given automatically when the coach\'s membership is first recorded or paid. It cannot be typed in or changed.', 'Summits attended: add the date of each Coaches Summit the coach attended, and remove one added by mistake. The newest shows first.', 'Only an admin can change a coach\'s name. The same coach name cannot be added twice.'], [I('secretariat/coaches', '', { h: 560 }), I('secretariat/coach-add')]),
-  feat('Athletes', 'Menu: Athletes', 'Athletes who made an account.', [
+  feat('Athletes', 'Menu: Athletes', 'Every athlete in one list, paid or not: athletes with an account, athletes you added, and dancers who are only on an entry form.', [
+    'Add athlete: a dancer and partner (leave the partner empty for a solo), team, province, coach and the membership paid for. Each dancer\'s date of birth, contact number, email and address are required; gender is optional and is used for the Solo Junior Female entries on the Bicol Athletes list. The same dancers cannot be added twice to one team.',
+    'Import CSV: add many from a spreadsheet file that follows the entry form columns. The coach must already be added.',
+    'Assign back numbers: gives every entry a number. In an athlete\'s side panel, Set back number sets one by hand. An athlete in more than one entry (a solo and a couple) is asked which one.',
+    'Filter by paid or not paid, competition, event and team; the line under the filters counts everyone.',
     'Payment waiting: check it against the money received, then press the tick to confirm. Their membership is then recorded for the year, and they get their membership ID (A-00001) with the first one.',
     'The Membership ID column shows it, and you can search by it.',
     'Press the cross to turn a payment down. You must give a reason, and the athlete sees it.',
     'The key gives a new password and the bin deletes an account.',
-  ], [I('secretariat/athletes', '', { h: 560 })]),
+  ], [I('secretariat/athletes', '', { h: 560 }), I('secretariat/athlete-add', 'Add athlete', { maxh: 150 }), I('secretariat/import', 'Import')]),
   feat('Entry requests', 'Menu: Entry requests', 'Entries sent online by teams and athletes.', [
     'Newest first, each with its date, sender, events and fee. A pop-up announces each new one.',
     'Press the small picture to see the payment screenshot and check it against the money received.',
@@ -463,7 +461,8 @@ out.push(page(
     'Press Generate to build it from the events: every round, break and the awarding.',
     'Set Starts at to the first start time.',
     'Add break puts in a break. Use the arrows, pencil and bin on a line to move, edit or remove it.',
-    'Add missing rounds fills in rounds added later. Print prints it.',
+    'Add missing rounds fills in rounds added later. Print prints it, with a sequence number on every line.',
+    'Adj. shows who judges each round. When only some of the panel judge a round (5 of 7, say), press Rotate adjudicators and enter how many, or use the adjudicators icon on a round to choose them. Only those adjudicators mark that round, and it cannot change once the round has started.',
     'Visitors see the program on the website.',
   ], [I('secretariat/program-empty', 'Before it is generated', { h: 420 }), I('secretariat/program', 'After pressing Generate', { h: 640 }), I('secretariat/program-break', 'Add break')]),
   feat('Printouts', 'All printouts', 'Heat lists, recall lists, score sheets and blank sheets, plus the program.', [], [I('secretariat/print-index', '', { h: 560 }), I('secretariat/print-heats', 'Heat list', { y: 60, h: 700 })]),
@@ -522,7 +521,7 @@ out.push(page(
   ], [I('admin/security', '', { h: 420 }), I('admin/two-step')]),
   feat('Backups and the secretariat\'s screens', 'Top of every screen; menu sections Entries and The day', 'Two more things for the admin.', [
     'A warning appears at the top if a backup folder fails.',
-    'Your menu also holds every secretariat screen (Events, Competitors, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Program), so you can do that work from your own account. See the Secretariat section.',
+    'Your menu also holds every secretariat screen (Events, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Program), so you can do that work from your own account. See the Secretariat section.',
     'You cannot start, approve or publish a round, or confirm a tie.',
   ]),
 ))
@@ -572,10 +571,10 @@ ${step(6, 'Secretariat', 'Add the events', 'Open <b>Events</b> and add each even
 ${step(7, 'Secretariat', 'Add the teams and coaches', 'Open <b>Teams</b> and <b>Coaches</b> and add each one once, as named on the entry forms.')}
 <h2>Part 2 · Take entries</h2>
 ${step(8, 'Athletes, coaches, teams', 'Make accounts and link them', 'Each person presses <b>Sign in</b> on the website and creates an account. Coaches and teams then send a link request. The secretariat approves them under <b>Account links</b>.')}
-${step(9, 'Secretariat', 'Enter dancers from entry forms', 'Open <b>Competitors</b>. Use <b>Add competitor</b> or <b>Import CSV</b>, then press the first icon on a row to enter the dancer in events and record how they paid.', [I('secretariat/enter-in-events', '', { mm: 64 })])}
+${step(9, 'Secretariat', 'Enter dancers from entry forms', 'Open <b>Athletes</b>. Use <b>Add athlete</b> or <b>Import CSV</b>, then press the list icon on a row to enter the dancer in events and record how they paid.', [I('secretariat/enter-in-events', '', { mm: 64 })])}
 ${step(10, 'Secretariat', 'Approve entries sent online', 'Open <b>Entry requests</b>. Check each payment screenshot against the money received. Press the tick to approve, or the cross to turn down with a reason.')}
 ${step(11, 'Secretariat', 'Confirm memberships', 'Open <b>Athletes</b> and confirm each membership payment once the money arrives. The athlete\'s membership ID is given with the first one.')}
-${step(12, 'Secretariat', 'Give out back numbers', 'On <b>Competitors</b>, press <b>Assign back numbers</b> once the entries are in.')}
+${step(12, 'Secretariat', 'Give out back numbers', 'On <b>Athletes</b>, press <b>Assign back numbers</b> once the entries are in.')}
 ${step(13, 'Admin', 'Choose the panels', 'On <b>Adjudicators and panels</b>, open the <b>Panels</b> tab and choose which adjudicators mark each event.')}
 ${step(14, 'Secretariat', 'Plan the day', 'Open <b>Schedule</b> to set the order of the events. Then open <b>Program</b>, press <b>Generate</b>, set the start time and add breaks. The program is now on the website for everyone.', [I('secretariat/program', '', { y: 0, h: 560 })])}
 <h2>Part 3 · The day before</h2>

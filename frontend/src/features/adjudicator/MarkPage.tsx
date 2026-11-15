@@ -1,4 +1,4 @@
-import type { MarkingTask, MarkSubmission } from '@bis/shared'
+import type { MarkingTask, MarkSubmission, RedanceTask } from '@bis/shared'
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { ProgramKind } from '@bis/shared'
@@ -11,7 +11,7 @@ import { useFloor } from './useFloor.ts'
 
 // The adjudicator's marking screen. What they have marked so far is kept on the phone, and confirmed marks are
 // saved on the phone before anything is sent, so a refresh or a dropped Wi-Fi never loses them.
-function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorId: string }) {
+function MarkingBoard({ task, adjudicatorId, redance }: { task: MarkingTask; adjudicatorId: string; redance?: RedanceTask }) {
   const navigate = useNavigate()
   const save = useOutbox((s) => s.save)
   const roundId = task.round.id
@@ -26,11 +26,11 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
 
   useEffect(() => {
     let active = true
-    void loadDraft(adjudicatorId, roundId).then((d) => active && setDraft(d?.answers ?? null))
+    void loadDraft(adjudicatorId, roundId, redance?.seq).then((d) => active && setDraft(d?.answers ?? null))
     return () => {
       active = false
     }
-  }, [adjudicatorId, roundId])
+  }, [adjudicatorId, roundId, redance?.seq])
 
   if (draft === undefined) return <SkeletonList rows={5} />
 
@@ -38,16 +38,18 @@ function MarkingBoard({ task, adjudicatorId }: { task: MarkingTask; adjudicatorI
     if (sending.current) return
     sending.current = true
     // Stored on the phone first; the screen that follows sends it, and keeps trying until the server has it
-    await save({ adjudicatorId, roundId, submissions, signature })
+    await save({ adjudicatorId, roundId, submissions, signature, ...(redance ? { redance: redance.seq } : {}) })
     navigate('/adjudicator/submitted', { replace: true })
   }
 
   return (
     <MarkSheet
-      task={task}
-      next={next}
+      task={redance ? { ...task, competitors: task.competitors.filter((c) => redance.competitorIds.includes(c.id)) } : task}
+      next={redance ? null : next}
+      counts={redance?.counts}
+      heat={redance?.heat}
       initial={draft ?? {}}
-      onChange={(answers) => void saveDraft({ adjudicatorId, roundId, answers, savedAt: new Date().toISOString() })}
+      onChange={(answers) => void saveDraft({ adjudicatorId, roundId, answers, savedAt: new Date().toISOString(), ...(redance ? { redance: redance.seq } : {}) })}
       sign
       onSubmit={(submissions, signature) => void send(submissions, signature)}
     />
@@ -62,5 +64,6 @@ export function MarkPage() {
   if (pending || state.data.status === 'submitted') return <Navigate to="/adjudicator/submitted" replace />
   if (state.data.status === 'waiting') return <Navigate to="/adjudicator/waiting" replace />
 
-  return <MarkingBoard key={state.data.task.round.id} task={state.data.task} adjudicatorId={adjudicatorId} />
+  const redance = state.data.redance
+  return <MarkingBoard key={`${state.data.task.round.id}:${redance?.seq ?? 0}`} task={state.data.task} adjudicatorId={adjudicatorId} redance={redance} />
 }

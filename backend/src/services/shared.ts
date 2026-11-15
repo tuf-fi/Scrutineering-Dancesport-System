@@ -21,11 +21,12 @@ import {
   type PaymentDetail,
   type PointsRow,
   type RankingPoint,
+  type Redance,
   type Result,
   type Round,
   type StaffUser,
 } from '@bis/shared'
-import { and, asc, eq, inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
@@ -40,7 +41,6 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   ...(r.entryDeadline ? { entryDeadline: r.entryDeadline } : {}),
   ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
   ...(r.image ? { image: r.image } : {}),
-  usesPoints: r.usesPoints,
   paymentRequired: r.paymentRequired,
 })
 
@@ -56,6 +56,7 @@ export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
   kind: r.kind,
   ...(r.province ? { province: r.province } : {}),
   ...(r.syllabus ? { syllabus: r.syllabus } : {}),
+  usesPoints: r.usesPoints,
 })
 
 // The password hash never leaves the server
@@ -111,6 +112,7 @@ export const toResult = (r: typeof t.results.$inferSelect): Result => ({
   place: r.place,
   placeFrom: r.placeFrom,
   placeTo: r.placeTo,
+  stage: r.stage,
   approvedBy: r.approvedBy,
   approvedAt: r.approvedAt,
 })
@@ -225,6 +227,19 @@ export const panelAdjudicatorIds = (ctx: Ctx, eventId: string): string[] =>
     .all()
     .map((r) => r.id)
 
+// Who judges a round: its set when one was chosen, otherwise the whole panel of the event
+export function roundAdjudicatorIds(ctx: Ctx, round: { eventId: string; type: string }): string[] {
+  const set = ctx.db
+    .select({ id: t.adjudicators.id })
+    .from(t.roundSets)
+    .innerJoin(t.adjudicators, eq(t.adjudicators.id, t.roundSets.adjudicatorId))
+    .where(and(eq(t.roundSets.eventId, round.eventId), eq(t.roundSets.roundType, round.type as never)))
+    .orderBy(asc(t.adjudicators.letter))
+    .all()
+    .map((r) => r.id)
+  return set.length > 0 ? set : panelAdjudicatorIds(ctx, round.eventId)
+}
+
 export const toPanel = (ctx: Ctx, row: typeof t.panels.$inferSelect): Panel => ({
   id: row.id,
   eventId: row.eventId,
@@ -237,6 +252,29 @@ export const activeEntryRows = (ctx: Ctx, eventId: string) =>
     .from(t.entries)
     .where(and(eq(t.entries.eventId, eventId), eq(t.entries.scratched, false)))
     .all()
+
+export const toRedance = (r: typeof t.redances.$inferSelect): Redance => ({
+  id: r.id,
+  roundId: r.roundId,
+  seq: r.seq,
+  heat: r.heat,
+  reason: r.reason,
+  startedAt: r.startedAt,
+  doneAt: r.doneAt,
+  required: Object.keys(r.required),
+  redone: r.redone,
+  counts: r.required,
+})
+
+// The redance still waiting for marks in a round, if any
+export const openRedance = (ctx: Ctx, roundId: string) =>
+  ctx.db.select().from(t.redances).where(and(eq(t.redances.roundId, roundId), isNull(t.redances.doneAt))).get()
+
+// The open redance this adjudicator still has to re-mark
+export function owedRedance(ctx: Ctx, roundId: string, adjudicatorId: string) {
+  const open = openRedance(ctx, roundId)
+  return open && open.required[adjudicatorId] && !open.redone.includes(adjudicatorId) ? open : undefined
+}
 
 export const roundsOfEvent = (ctx: Ctx, eventId: string) =>
   ctx.db.select().from(t.rounds).where(eq(t.rounds.eventId, eventId)).orderBy(asc(t.rounds.position)).all()
@@ -467,6 +505,9 @@ export const MIN_PASSWORD = 8
 // A profile picture: a small JPEG, PNG or WebP as a data URL
 export const PHOTO = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/
 export const MAX_PHOTO = 400_000
+// A drawn or uploaded signature is a small PNG sent as a data URL
+export const PNG_PREFIX = 'data:image/png;base64,'
+export const MAX_SIGNATURE = 150_000
 
 // A payment screenshot, as a data URL
 export const MAX_RECEIPT = 1_500_000

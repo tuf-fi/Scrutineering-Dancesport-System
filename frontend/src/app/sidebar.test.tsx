@@ -39,7 +39,7 @@ describe('staff sidebar', () => {
       'Kinds, classes and age groups',
       'Adjudicators and panels',
       'Events',
-      'Competitors',
+
       'Teams',
       'Coaches',
       'Athletes',
@@ -48,6 +48,7 @@ describe('staff sidebar', () => {
       'Profile changes',
       'Late entries',
       'Schedule',
+      'Heats',
       'Program',
       'Points table',
       'Payments',
@@ -149,8 +150,8 @@ describe('staff sidebar', () => {
   })
 
   it.each([
-    [Role.Secretariat, '/secretariat', ['Events', 'Competitors', 'Teams', 'Coaches', 'Athletes', 'Entry requests', 'Account links', 'Profile changes', 'Late entries', 'Schedule', 'Program', 'Security']],
-    [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Schedule', 'Program', 'Live board', 'Paper marks', 'Recall', 'Results', 'Security']],
+    [Role.Secretariat, '/secretariat', ['Events', 'Teams', 'Coaches', 'Athletes', 'Entry requests', 'Account links', 'Profile changes', 'Late entries', 'Schedule', 'Heats', 'Program', 'Panels', 'Security']],
+    [Role.Scrutineer, '/scrutineer', ['Rounds', 'Heats', 'Schedule', 'Program', 'Panels', 'Live board', 'Paper marks', 'Recall', 'Results', 'Security']],
     [Role.Chairperson, '/scrutineer/live', ['Live board', 'Recall', 'Results', 'Security']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {
     renderApp(path, role)

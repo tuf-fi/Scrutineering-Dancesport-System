@@ -1,5 +1,5 @@
-import { FeeMode, PIN_LENGTH, Role, checkAgeGroup, checkClass, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type ClassDef, type ClassInput, type Competition, type CompetitionInput, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
-import { and, eq, inArray, ne } from 'drizzle-orm'
+import { FeeMode, PIN_LENGTH, Role, checkAgeGroup, checkClass, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type ClassDef, type ClassInput, type Competition, type CompetitionInput, type Panel, type PanelsResult, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
+import { and, eq, inArray, ne, notInArray } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { confirmCascade, impactSummary, removeCascade } from './cascade.ts'
@@ -8,8 +8,8 @@ import { hashPassword, temporaryPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { recomputeAllPoints, recomputeCompetitionPoints } from './ranking.ts'
-import { MAX_PHOTO, PHOTO, catalogOf, checkPhoto, clean, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { recomputeAllPoints } from './ranking.ts'
+import { MAX_PHOTO, PHOTO, catalogOf, checkPhoto, clean, panelAdjudicatorIds, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 
@@ -28,6 +28,27 @@ function startedEventIds(ctx: Ctx, ageGroup: string): Set<string> {
   return new Set(rounds.map((r) => r.eventId))
 }
 
+const existingAdjudicators = (ctx: Ctx, ids: string[]): string[] =>
+  Array.isArray(ids) && ids.length > 0 ? ctx.db.select({ id: t.adjudicators.id }).from(t.adjudicators).where(inArray(t.adjudicators.id, ids)).all().map((a) => a.id) : []
+
+// A round that has started keeps the panel it started with
+const panelLocked = (ctx: Ctx, eventId: string) =>
+  Boolean(ctx.db.select().from(t.rounds).where(and(eq(t.rounds.eventId, eventId), inArray(t.rounds.status, ['marking', 'review', 'approved', 'published']))).get())
+
+function writePanel(ctx: Ctx, event: typeof t.events.$inferSelect, ids: string[]): Panel {
+  let panel = ctx.db.select().from(t.panels).where(eq(t.panels.eventId, event.id)).get()
+  if (!panel) {
+    panel = { id: newId(), eventId: event.id }
+    ctx.db.insert(t.panels).values(panel).run()
+  }
+  ctx.db.delete(t.panelMembers).where(eq(t.panelMembers.panelId, panel.id)).run()
+  // Someone taken off the panel no longer sits in any set of the event
+  ctx.db.delete(t.roundSets).where(and(eq(t.roundSets.eventId, event.id), notInArray(t.roundSets.adjudicatorId, ids))).run()
+  for (const adjudicatorId of ids) ctx.db.insert(t.panelMembers).values({ panelId: panel.id, adjudicatorId }).run()
+  record(ctx.db, actor(ctx).id, 'Changed panel', `Event ${event.number}`, { after: { adjudicatorIds: ids } })
+  return { id: panel.id, eventId: event.id, adjudicatorIds: ids }
+}
+
 export const admin = {
   saveCompetition(ctx: Ctx, input: CompetitionInput, id?: string): Competition {
     const values = {
@@ -40,7 +61,6 @@ export const admin = {
       feeDeadline: clean(input?.feeDeadline) || null,
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) return fail('Fill in every field.')
-    if (input?.usesPoints !== undefined && typeof input.usesPoints !== 'boolean') return fail('Choose whether the competition uses points.')
     if (input?.paymentRequired !== undefined && typeof input.paymentRequired !== 'boolean') return fail('Choose whether the competition needs payment.')
     // A missing image keeps the one already there; a competition always has one
     const image = input?.image === undefined ? undefined : typeof input.image === 'string' && input.image ? input.image : null
@@ -59,12 +79,9 @@ export const admin = {
       const changes = {
         ...values,
         ...(image === undefined ? {} : { image }),
-        ...(input.usesPoints === undefined ? {} : { usesPoints: input.usesPoints }),
         ...(input.paymentRequired === undefined ? {} : { paymentRequired: input.paymentRequired }),
       }
       ctx.db.update(t.competitions).set(changes).where(eq(t.competitions.id, id)).run()
-      // Turning points off removes what its events awarded; turning them on awards them from the results already approved
-      if (changes.usesPoints !== undefined && changes.usesPoints !== before.usesPoints) recomputeCompetitionPoints(ctx, id)
       record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: changes })
       return toCompetition({ ...before, ...changes })
     }
@@ -73,7 +90,7 @@ export const admin = {
     if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
       return fail('A competition with this name and date already exists.', 409)
     }
-    const created = { id: newId(), floorRoundId: null, floorStartedAt: null, offlineHeldAt: null, ...values, image, usesPoints: input?.usesPoints ?? true, paymentRequired: input?.paymentRequired ?? true }
+    const created = { id: newId(), floorRoundId: null, floorStartedAt: null, offlineHeldAt: null, ...values, image, paymentRequired: input?.paymentRequired ?? true }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)
@@ -320,22 +337,36 @@ export const admin = {
 
   setPanel(ctx: Ctx, eventId: string, adjudicatorIds: string[]) {
     const event = found(ctx.db.select().from(t.events).where(eq(t.events.id, eventId)).get(), 'Event')
-    const ids = Array.isArray(adjudicatorIds)
-      ? ctx.db.select({ id: t.adjudicators.id }).from(t.adjudicators).where(inArray(t.adjudicators.id, adjudicatorIds)).all().map((a) => a.id)
-      : []
+    const ids = existingAdjudicators(ctx, adjudicatorIds)
     if (ids.length === 0) return fail('Choose at least one adjudicator.')
-    // A round that has started keeps the panel it started with
-    const started = ctx.db.select().from(t.rounds).where(and(eq(t.rounds.eventId, eventId), inArray(t.rounds.status, ['marking', 'review', 'approved', 'published']))).get()
-    if (started) return fail('This event has started, so its panel can no longer change.', 409)
-    let panel = ctx.db.select().from(t.panels).where(eq(t.panels.eventId, eventId)).get()
-    if (!panel) {
-      panel = { id: newId(), eventId }
-      ctx.db.insert(t.panels).values(panel).run()
-    }
-    ctx.db.delete(t.panelMembers).where(eq(t.panelMembers.panelId, panel.id)).run()
-    for (const adjudicatorId of ids) ctx.db.insert(t.panelMembers).values({ panelId: panel.id, adjudicatorId }).run()
-    record(ctx.db, actor(ctx).id, 'Changed panel', `Event ${event.number}`, { after: { adjudicatorIds: ids } })
-    return { id: panel.id, eventId, adjudicatorIds: ids }
+    if (panelLocked(ctx, eventId)) return fail('This event has started, so its panel can no longer change.', 409)
+    return writePanel(ctx, event, ids)
+  },
+
+  // One list for many events at once. An event that has started keeps its panel and is reported back as skipped.
+  setPanels(ctx: Ctx, competitionId: string, eventIds: string[], adjudicatorIds: string[], mode: 'replace' | 'add'): PanelsResult {
+    found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, competitionId)).get(), 'Competition')
+    const ids = existingAdjudicators(ctx, adjudicatorIds)
+    if (ids.length === 0) return fail('Choose at least one adjudicator.')
+    if (mode !== 'replace' && mode !== 'add') return fail('Choose whether to replace the panels or add to them.')
+    const events = (Array.isArray(eventIds) ? ctx.db.select().from(t.events).where(and(eq(t.events.competitionId, competitionId), inArray(t.events.id, eventIds))).all() : [])
+      .sort((a, b) => a.number - b.number)
+    if (events.length === 0) return fail('Choose at least one event.')
+    const changed: string[] = []
+    const skipped: string[] = []
+    ctx.db.transaction(() => {
+      for (const event of events) {
+        if (panelLocked(ctx, event.id)) {
+          skipped.push(event.id)
+          continue
+        }
+        const current = panelAdjudicatorIds(ctx, event.id)
+        const next = mode === 'add' ? [...new Set([...current, ...ids])] : ids
+        writePanel(ctx, event, next)
+        changed.push(event.id)
+      }
+    })
+    return { changed, skipped }
   },
 
   // Points already earned are worked out again from the new table

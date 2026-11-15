@@ -638,8 +638,8 @@ async function main() {
     const { ctx, page } = await open(LAPTOP, 'secretariat')
     try {
       await staffSignIn(page, 'secretariat')
-      await page.goto(`${BASE}/secretariat/competitors`)
-      await page.getByRole('button', { name: 'Add competitor' }).first().click()
+      await page.goto(`${BASE}/secretariat/athletes`)
+      await page.getByRole('button', { name: 'Add athlete' }).first().click()
       const dialog = page.getByRole('dialog')
       await dialog.getByRole('textbox', { name: 'Dancer', exact: true }).fill('Direct Dancer')
       await dialog.getByRole('combobox', { name: 'Team', exact: true }).selectOption({ index: 1 })
@@ -647,15 +647,15 @@ async function main() {
         const field = dialog.getByLabel(label)
         if (await field.count()) await field.first().fill(value)
       }
-      await dialog.getByRole('button', { name: 'Add competitor' }).click()
+      await dialog.getByRole('button', { name: 'Add athlete' }).click()
       direct = await until('the new dancer', async () => (await api.call('getCompetitorRows')).find((c) => c.names.join(' ') === 'Direct Dancer'))
       await dialog.waitFor({ state: 'hidden' })
       await page.locator('tbody tr').nth(1).waitFor()
-      await page.getByLabel('Search competitors').fill('Direct Dancer')
+      await page.getByLabel('Search athletes').fill('Direct Dancer')
       const row = page.locator('tr', { hasText: 'Direct Dancer' }).first()
       await row.waitFor().catch(async (e) => {
         await page.screenshot({ path: join(SHOTS, 'competitors-list.png'), fullPage: true })
-        const typed = await page.getByLabel('Search competitors').inputValue().catch(() => '(no search box)')
+        const typed = await page.getByLabel('Search athletes').inputValue().catch(() => '(no search box)')
         throw new Error(`${e.message.split('\n')[0]}; the search box holds "${typed}"; the page shows: ${(await text(page)).slice(-500)}`)
       })
       await row.getByRole('button', { name: /^Enter Direct Dancer/ }).click().catch(async (e) => {

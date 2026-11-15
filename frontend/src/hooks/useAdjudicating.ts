@@ -14,6 +14,15 @@ export const useAdjudicatorState = (adjudicatorId: string) =>
     refetchInterval: usePoll(POLL_MS),
   })
 
+export function useSubmitRedanceMarks(adjudicatorId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { roundId: string; submissions: MarkSubmission[]; signature?: string }) =>
+      v.signature ? api.submitRedanceMarks(adjudicatorId, v.roundId, v.submissions, v.signature) : api.submitRedanceMarks(adjudicatorId, v.roundId, v.submissions),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['adjudicator-state', adjudicatorId] }),
+  })
+}
+
 export function useSubmitMarks(adjudicatorId: string) {
   const queryClient = useQueryClient()
   return useMutation({

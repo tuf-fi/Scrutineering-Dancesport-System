@@ -1,13 +1,11 @@
-import type { Competition, RankingPoint } from '@bis/shared'
+import type { Event, RankingPoint } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { startTestApp, type TestApp } from './testing.ts'
 
-// A competition can opt out of ranking points: its results stay, but they award none
+// An event can opt out of ranking points: its results stay, but they award none
 
 let app: TestApp
 let admin = ''
-const SHOT = 'data:image/png;base64,iVBORw0KGgo='
-const base = { name: 'No Points Cup', date: '2099-06-01', venue: 'Gym', organizer: 'Org', image: SHOT }
 
 beforeAll(async () => {
   app = await startTestApp()
@@ -15,32 +13,33 @@ beforeAll(async () => {
 })
 afterAll(() => app.close())
 
-describe('competition points', () => {
-  it('uses points unless told otherwise, and a bad value is refused', async () => {
-    const made = await app.ok<Competition>('saveCompetition', [base], admin)
-    expect(made.usesPoints).toBe(true)
-    const off = await app.ok<Competition>('saveCompetition', [{ ...base, name: 'Friendly', usesPoints: false }], admin)
-    expect(off.usesPoints).toBe(false)
-    expect((await app.call('saveCompetition', [{ ...base, name: 'Odd', usesPoints: 'no' }], admin)).error).toMatch(/uses points/)
+const points = () => app.ok<RankingPoint[]>('getRankingPoints', [{}], admin)
+
+describe('ranking events', () => {
+  it('counts towards the rankings unless told otherwise, and a bad value is refused', async () => {
+    const row = app.sqlite.prepare('SELECT event_id AS id FROM ranking_points LIMIT 1').get() as { id: string }
+    const event = await app.ok<Event>('getEvent', [row.id], admin)
+    expect(event.usesPoints).toBe(true)
+    const { id, competitionId, ...input } = event
+    expect((await app.call('saveEvent', [competitionId, { ...input, usesPoints: 'no' }, id], admin)).error).toMatch(/ranking event/)
     // An edit that does not send it keeps it
-    expect((await app.ok<Competition>('saveCompetition', [{ ...base, name: 'Friendly', venue: 'Hall' }, off.id], admin)).usesPoints).toBe(false)
+    const { usesPoints, ...rest } = input
+    expect(usesPoints).toBe(true)
+    expect((await app.ok<Event>('saveEvent', [competitionId, rest, id], admin)).usesPoints).toBe(true)
   })
 
-  it('removes the points of a competition turned off, and awards them again when turned on', async () => {
-    const points = () => app.ok<RankingPoint[]>('getRankingPoints', [{}], admin)
-    const earned = (await points()).filter((p) => p.competitionId !== undefined)
-    const target = earned[0]!.competitionId
-    const own = () => points().then((all) => all.filter((p) => p.competitionId === target))
-    const before = (await own()).length
-    expect(before).toBeGreaterThan(0)
+  it('removes the points of an event turned off, even after it has results, and awards them again when turned on', async () => {
+    const row = app.sqlite.prepare('SELECT event_id AS id FROM ranking_points LIMIT 1').get() as { id: string }
+    const event = await app.ok<Event>('getEvent', [row.id], admin)
+    const { id, competitionId, ...input } = event
+    const count = () => (app.sqlite.prepare('SELECT COUNT(*) AS n FROM ranking_points WHERE event_id = ?').get(row.id) as { n: number }).n
+    expect(count()).toBeGreaterThan(0)
 
-    const competition = (await app.ok<Competition[]>('getCompetitions', [], admin)).find((c) => c.id === target)!
-    const { id, ...rest } = competition
-    await app.ok('saveCompetition', [{ ...rest, usesPoints: false }, id], admin)
-    expect(await own()).toHaveLength(0)
+    await app.ok('saveEvent', [competitionId, { ...input, usesPoints: false }, id], admin)
+    expect(count()).toBe(0)
     expect((await points()).length).toBeGreaterThan(0)
 
-    await app.ok('saveCompetition', [{ ...rest, usesPoints: true }, id], admin)
-    expect((await own()).length).toBeGreaterThan(0)
+    await app.ok('saveEvent', [competitionId, { ...input, usesPoints: true }, id], admin)
+    expect(count()).toBeGreaterThan(0)
   })
 })

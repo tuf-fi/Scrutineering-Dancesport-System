@@ -38,6 +38,9 @@ export const useScratchEntry = () =>
     ['entry-rows', 'competition-entries', 'competitor-rows'],
   )
 
+export const useAddAthlete = () =>
+  useWrite((v: { names: string[]; teamId: string; details?: CompetitorDetails }) => api.addAthlete(actor(), v), ['competitor-rows', 'athlete-records', 'athletes'])
+
 export const useCreateCompetitor = () =>
   useWrite((v: { names: string[]; teamId: string; details?: CompetitorDetails }) => api.createCompetitor(actor(), v), ['competitor-rows'])
 

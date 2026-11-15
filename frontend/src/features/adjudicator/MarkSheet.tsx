@@ -38,6 +38,9 @@ interface MarkSheetProps {
   confirm?: { title: string; description: string; action: string }
   // The scrutineer's laptop: ordinary button sizes and corners instead of the large touch targets of a phone
   compact?: boolean
+  // A redance: how many X each dance needs (what the adjudicator gave this heat before), and the heat
+  counts?: Partial<Record<Dance, number>>
+  heat?: number
 }
 
 const OWN_MARKS = {
@@ -48,7 +51,7 @@ const OWN_MARKS = {
 
 // The marking screen: X marks for early rounds, placings for a final. Used on the adjudicator's phone and,
 // for a paper sheet, on the scrutineer's laptop.
-export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS, compact = false }: MarkSheetProps) {
+export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy = false, sign = false, confirm = OWN_MARKS, compact = false, counts, heat }: MarkSheetProps) {
   const { eventGrade, catalog } = useCatalog()
   const [answers, setAnswers] = useState<Answers>(initial)
   const [dance, setDance] = useState<Dance>(task.dances[0])
@@ -60,9 +63,10 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
   const isFinal = task.recallNumber === null
   const group = catalog.ageGroups.find((g) => g.id === task.event.ageGroup)
   const syllabus = syllabusFor(task.event, group?.family ?? task.event.ageGroup)
-  const total = marksNeeded(task)
+  const needed = (d: Dance) => counts?.[d] ?? marksNeeded(task)
+  const total = needed(dance)
   const countOf = (d: Dance) => answers[d]?.length ?? 0
-  const ready = task.dances.every((d) => countOf(d) === total)
+  const ready = task.dances.every((d) => countOf(d) === needed(d))
   const backNumber = new Map(task.competitors.map((c) => [c.id, c.backNumber]))
   const current = answers[dance] ?? []
   const set = (next: string[]) =>
@@ -75,8 +79,8 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
   // A round with several dances has a tab for each: choose the numbers of one dance at a time
   const table = !isFinal
   const several = table && task.dances.length > 1
-  const doneDances = task.dances.filter((d) => countOf(d) === total).length
-  const over = several ? task.dances.some((d) => countOf(d) > total) : current.length > total
+  const doneDances = task.dances.filter((d) => countOf(d) === needed(d)).length
+  const over = several ? task.dances.some((d) => countOf(d) > needed(d)) : current.length > total
 
   const counter = isFinal
     ? `${current.length} of ${total} placed`
@@ -88,9 +92,14 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
         ? `${current.length - total} too many`
         : `${current.length} of ${total} marked`
 
+  const all = task.dances.reduce((sum, d) => sum + needed(d), 0)
   const progress = several
-    ? Math.round((task.dances.reduce((sum, d) => sum + Math.min(countOf(d), total), 0) / (total * task.dances.length)) * 100)
-    : Math.min(100, Math.round((current.length / total) * 100))
+    ? all === 0
+      ? 100
+      : Math.round((task.dances.reduce((sum, d) => sum + Math.min(countOf(d), needed(d)), 0) / all) * 100)
+    : total === 0
+      ? 100
+      : Math.min(100, Math.round((current.length / total) * 100))
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -103,6 +112,9 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
             <span aria-hidden className="h-3 w-px bg-white/25" />
             {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
           </p>
+          {heat !== undefined && (
+            <p className="text-small font-semibold text-gold-400">{isFinal ? 'Redance of the final. Place every finalist again.' : `Redance: heat ${heat}. Mark this heat again.`}</p>
+          )}
         </div>
         <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-white/10 pt-3 text-small">
           <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">Next event</span>
@@ -123,7 +135,11 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
           <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">{isFinal ? 'Place' : 'Select'}</span>
           <span aria-hidden className="font-mono text-4xl font-semibold leading-none tabular-nums text-gold-400">{total}</span>
           <span className="text-small text-brown-100">
-            {isFinal ? `Place all ${total} finalists, 1st to ${ordinal(total)}.` : `Mark an X for exactly ${total} in each dance.`}
+            {isFinal
+              ? `Place all ${total} finalists, 1st to ${ordinal(total)}.`
+              : heat !== undefined
+                ? `Mark an X for exactly ${total} in this dance, as before.`
+                : `Mark an X for exactly ${total} in each dance.`}
           </span>
         </p>
       </DarkPanel>

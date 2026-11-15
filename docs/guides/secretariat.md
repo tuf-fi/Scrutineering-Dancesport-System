@@ -5,7 +5,7 @@ You look after entries and the order of the day, on your laptop.
 ## Registering a team
 Teams send the entry form by email. You enter it. Athletes, coaches and teams can also make their own accounts (see **Athletes**, **Account links** and **Entry requests** below). A team or an athlete can send an entry online, but nothing is entered until you approve it.
 1. **Teams** and **Coaches**: add the team and the coach named on the form, once each. Tick the year their membership and the Coaches Summit were paid.
-2. **Competitors, Add competitor**: the dancer and partner, the team, province, coach, each dancer's date of birth, contact number, email and address. Tick **Beginner** for a Bicol Grassroots Beginners (BGB) athlete. Fill **Membership paid for** if the athlete already paid the year.
+2. **Athletes, Add athlete**: the dancer and partner, the team, province, coach, each dancer's date of birth, contact number, email and address. Tick **Beginner** for a Bicol Grassroots Beginners (BGB) athlete. Fill **Membership paid for** if the athlete already paid the year.
 3. Press the **Enter in events** button on the row. Choose the competition and tick the events on the form. The fee shows as you tick: the first entry in full, each extra entry lower, ranking and inter-collegiate events at the fixed price, and membership for an athlete who has not paid it this year.
 4. Choose how it was paid (cash, GCash, Maya, bank, or not yet) and press **Enter**. Teams pay after your summary, so use **Not paid yet** until the money arrives, then record it under Late entries, Cash payments.
 5. If the dancer's coach has not paid this year, two tick boxes offer to add the coach's membership and the Coaches Summit to this payment. Ticking them adds the fees to the total; when the payment is paid, the coach is recorded as paid for the year.
@@ -35,9 +35,10 @@ Memberships are recorded when the money is. If you enter a team as **Not paid ye
 The fees come from the registration fees the admin set (the organizer's 2026 entry form until they are changed). Set an event's **Kind** (Beginners, Ranking, Inter-school, or Closed to a province) on the Events page so it is priced and checked correctly. For a Closed event also enter the province: a team whose province on the entry form is different cannot be entered in it, and the red note says why.
 
 ## Before the event
-1. **Competitors**: check names and teams. **Import CSV** adds a list; **Add competitor** adds one.
-2. Assign back numbers: **Assign back numbers** gives every competitor one. Change a single one with its back-number button.
+1. **Athletes**: check names and teams. **Import CSV** adds a list; **Add athlete** adds one.
+2. Assign back numbers: **Assign back numbers** gives every competitor one. Change a single one with **Set back number** in the athlete's side panel.
 3. **Events**: check each event's entries. **Schedule**: put the events in running order.
+4. **Program**: if only some of an event's adjudicators judge each round (for example 5 of 7), press **Rotate adjudicators** and enter how many judge a round; the program shows each round's adjudicators in **Adj.** and you can change one round with its adjudicators icon. Only those adjudicators mark that round.
 
 ## On the day
 - **Late entries**: add a dancer to an event. Choose whether they paid cash at the venue; a late entry that has not paid cannot dance.

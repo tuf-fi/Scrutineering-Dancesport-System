@@ -50,7 +50,7 @@ When a function is added to the server, add it to `API_FUNCTIONS` in `packages/s
   - Public and team: mobile-first
 - Make every screen responsive from the start, across all screen sizes (375px phones, tablets, 1280px laptops, 1920px venue screen). Don't wait to be asked.
   - Mobile and tablet means below `lg` (1024px). Staff and public navigation is a black header with a hamburger on the right and a right drawer; the athlete, coach and team links are a fixed strip under the navbar.
-  - Toolbars: filters share one row (a single filter is full width) and the buttons wrap below at their natural width. Use `Toolbar` and `ToolbarActions`; never make a button full width.
+  - Toolbars: the search and filters fill the full width as a grid (two to a row on phones, as many as fit on larger screens, a single filter full width) and the buttons sit below them at their natural width. Use `Toolbar` and `ToolbarActions`; never set a width on a filter or make a button full width.
   - Text sizes come from the tokens in `index.css`, which step up below 640px. Don't set a one-off mobile size.
   - Buttons and badges never wrap their text.
 - Every screen needs empty, loading and error states. For loading, use a skeleton that matches the final layout's shape, built with the shared `Skeleton` or `SkeletonList` component. Don't use a plain spinner.

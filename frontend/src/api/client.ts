@@ -71,6 +71,11 @@ import type {
   MarkingTask,
   MarkSubmission,
   Panel,
+  PanelsResult,
+  Redance,
+  RoundSetRow,
+  RoundType,
+  SheetSignatures,
   Program,
   ProgramKind,
   ProgramSlotInput,
@@ -167,6 +172,8 @@ export const generatePins = (_actorId: string, competitionId: string, adjudicato
   call<AdjudicatorPin[]>('generatePins', competitionId, adjudicatorId)
 export const setPanel = (_actorId: string, eventId: string, adjudicatorIds: string[]) =>
   call<Panel>('setPanel', eventId, adjudicatorIds)
+export const setPanels = (_actorId: string, competitionId: string, eventIds: string[], adjudicatorIds: string[], mode: 'replace' | 'add') =>
+  call<PanelsResult>('setPanels', competitionId, eventIds, adjudicatorIds, mode)
 export const savePointsTable = (_actorId: string, rows: PointsRow[]) => call<PointsRow[]>('savePointsTable', rows)
 
 // ---- Secretariat ----
@@ -176,6 +183,8 @@ export const getEntryRows = (eventId: string) => call<EntryRow[]>('getEntryRows'
 export const setEntryScratched = (_actorId: string, entryId: string, scratched: boolean) =>
   call<EntryRow>('setEntryScratched', entryId, scratched)
 export const getCompetitorRows = () => call<CompetitorRow[]>('getCompetitorRows')
+export const addAthlete = (_actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
+  call<CompetitorRow>('addAthlete', input)
 export const createCompetitor = (_actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('createCompetitor', input)
 export const setBackNumber = (_actorId: string, competitorId: string, backNumber: number | null) =>
@@ -196,6 +205,11 @@ export const moveScheduledEventTo = (_actorId: string, competitionId: string, ev
   call<ScheduleItem[]>('moveScheduledEventTo', competitionId, eventId, to)
 export const setEventRounds = (_actorId: string, eventId: string, plan: RoundPlanInput[]) => call<void>('setEventRounds', eventId, plan)
 export const getProgram = (competitionId: string) => call<Program>('getProgram', competitionId)
+export const getRoundSets = (competitionId: string) => call<RoundSetRow[]>('getRoundSets', competitionId)
+export const getRoundSet = (roundId: string) => call<string[]>('getRoundSet', roundId)
+export const setRoundSet = (_actorId: string, eventId: string, roundType: RoundType, adjudicatorIds: string[] | null) =>
+  call<void>('setRoundSet', eventId, roundType, adjudicatorIds)
+export const rotateRoundSets = (_actorId: string, competitionId: string, setSize: number) => call<number>('rotateRoundSets', competitionId, setSize)
 export const getEntriesByBackNumber = (competitionId: string, backNumber: number) =>
   call<string[]>('getEntriesByBackNumber', competitionId, backNumber)
 export const setProgramStart = (_actorId: string, competitionId: string, start: string | null) =>
@@ -249,6 +263,12 @@ export const saveHeats = (_actorId: string, roundId: string, assignments: HeatAs
 export const getMarkingTask = (roundId: string) => call<MarkingTask>('getMarkingTask', roundId)
 export const getSubmissions = (roundId: string) => call<AdjudicatorSubmission[]>('getSubmissions', roundId)
 export const getSignatures = (roundId: string) => call<RoundSignature[]>('getSignatures', roundId)
+export const getRedances = (roundId: string) => call<Redance[]>('getRedances', roundId)
+export const startRedance = (_actorId: string, roundId: string, heat: number, reason: string) => call<Redance>('startRedance', roundId, heat, reason)
+export const submitRedanceMarks = (_adjudicatorId: string, roundId: string, submissions: MarkSubmission[], signature?: string) =>
+  call<void>('submitRedanceMarks', roundId, submissions, ...(signature ? [signature] : []))
+export const enterRedanceMarks = (_actorId: string, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
+  call<void>('enterRedanceMarks', adjudicatorId, roundId, submissions)
 export const enterAdjudicatorMarks = (_actorId: string, adjudicatorId: string, roundId: string, submissions: MarkSubmission[]) =>
   call<void>('enterAdjudicatorMarks', adjudicatorId, roundId, submissions)
 export const getRecallTable = (roundId: string) => call<RecallTable>('getRecallTable', roundId)
@@ -328,6 +348,9 @@ export const getAdjudicatorAssignments = (adjudicatorId: string) => call<Adjudic
 export const getCompetitorActivity = (competitorId: string) => call<MyActivity>('getCompetitorActivity', competitorId)
 export const changeMyStaffPassword = (_actorId: string, current: string, next: string) => call<void>('changeMyStaffPassword', current, next)
 export const saveMyStaffName = (_actorId: string, name: string) => call<StaffUser>('saveMyStaffName', name)
+export const getMySignature = (_actorId: string) => call<string | null>('getMySignature')
+export const saveMyStaffSignature = (_actorId: string, signature: string | null) => call<string | null>('saveMyStaffSignature', signature)
+export const getSheetSignatures = (eventId: string) => call<SheetSignatures>('getSheetSignatures', eventId)
 export const getMyNotifications = (_athleteId: string) => call<AthleteNotification[]>('getMyNotifications')
 export const markNotificationsRead = (_athleteId: string, ids?: string[]) => call<void>('markNotificationsRead', ids)
 export const getAthletes = () => call<AthleteRow[]>('getAthletes')

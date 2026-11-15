@@ -159,7 +159,7 @@ function Sheet({ item, next }: { item: Announcement; next: Announcement | undefi
       <p aria-label="What to do" className="mt-auto flex flex-wrap items-baseline gap-x-[6vmin] gap-y-[1vmin] border-t border-white/10 pt-[2.2vmin]">
         {todo.heat && (
           <span className="flex items-baseline gap-[1.8vmin]">
-            <span className={LABEL}>Heat</span>
+            <span className={LABEL}>{item.kind === 'call' && item.redance ? 'Redance, heat' : 'Heat'}</span>
             <span className="font-mono text-[6vmin] font-semibold leading-none tabular-nums text-white">{todo.heat}</span>
           </span>
         )}
@@ -211,7 +211,7 @@ function View({ item }: { item: Announcement }) {
     <div className="flex flex-1 flex-col gap-[3.5vmin]">
       <p className="flex flex-wrap items-baseline gap-x-[2vmin] gap-y-[0.6vmin]">
         <span className="text-[4.4vmin] font-semibold text-white">
-          {item.kind === 'call' ? `Heat ${item.heat}` : `${item.numbers.length} competitors`}
+          {item.kind === 'call' ? `${item.redance ? 'Redance, heat' : 'Heat'} ${item.heat}` : `${item.numbers.length} competitors`}
         </span>
         <span className="text-[2.8vmin] font-medium text-brown-100">{NUMBERS_FOR[item.kind]}</span>
       </p>

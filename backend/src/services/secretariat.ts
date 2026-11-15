@@ -24,6 +24,8 @@ import { confirmCascade, impactSummary, removeCascade } from './cascade.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
+import { recomputeEventPoints } from './ranking.ts'
+import { saveAthleteRecord } from './athleteRecords.ts'
 import {
   activeEntryRows,
   catalogOf,
@@ -154,12 +156,28 @@ function checkEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: str
   if (!catalog.ageGroups.some((g) => g.id === input.ageGroup && !g.retired)) return fail('Choose an age group.')
   if (!catalog.classes.some((c) => c.name === input.class)) return fail('Choose a class.')
   if (kind.closedToProvince && !clean(input.province)) return fail('Enter the province this event is closed to.')
+  if (input.usesPoints !== undefined && typeof input.usesPoints !== 'boolean') return fail('Choose whether the event is a ranking event.')
 }
 
 function addCompetitor(ctx: Ctx, names: string[], teamId: string, details: CompetitorDetails | null = null) {
   const row = { id: newId(), names, ageGroup: null, birthDate: null, backNumber: null, teamId, details }
   ctx.db.insert(t.competitors).values(row).run()
   return row
+}
+
+const plainName = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+
+// A competitor (a solo dancer or a couple) from an entry form
+function createCompetitorEntry(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
+  const names = cleanNames(input?.names)
+  getTeamRow(ctx, input.teamId)
+  // A double tap, or the same form sent twice, must not add the same dancers twice
+  const key = (list: string[]) => list.map((n) => n.toLowerCase().replace(/\s+/g, ' ').trim()).sort().join('|')
+  const twin = ctx.db.select().from(t.competitors).where(eq(t.competitors.teamId, input.teamId)).all().find((c) => key(c.names) === key(names))
+  if (twin) return fail(`${names.join(' & ')} is already on this team.`, 409)
+  const row = addCompetitor(ctx, names, input.teamId, cleanDetails(ctx, names, input.details))
+  record(ctx.db, actor(ctx).id, 'Added competitor', names.join(' & '))
+  return competitorRow(ctx, row)
 }
 
 export const secretariat = {
@@ -199,16 +217,31 @@ export const secretariat = {
   getCompetitorRows: (ctx: Ctx): CompetitorRow[] =>
     ctx.db.select().from(t.competitors).orderBy(desc(sql`rowid`)).all().map((c) => competitorRow(ctx, c)),
 
-  createCompetitor(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
-    const names = cleanNames(input?.names)
-    getTeamRow(ctx, input.teamId)
-    // A double tap, or the same form sent twice, must not add the same dancers twice
-    const key = (list: string[]) => list.map((n) => n.toLowerCase().replace(/\s+/g, ' ').trim()).sort().join('|')
-    const twin = ctx.db.select().from(t.competitors).where(eq(t.competitors.teamId, input.teamId)).all().find((c) => key(c.names) === key(names))
-    if (twin) return fail(`${names.join(' & ')} is already on this team.`, 409)
-    const row = addCompetitor(ctx, names, input.teamId, cleanDetails(ctx, names, input.details))
-    record(ctx.db, actor(ctx).id, 'Added competitor', names.join(' & '))
-    return competitorRow(ctx, row)
+  createCompetitor: (ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow => createCompetitorEntry(ctx, input),
+
+  // An athlete and their entry from one form: the person for the athletes list, the competitor for the events. The person
+  // is not added again when an account or record with that name is already there.
+  addAthlete(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
+    return ctx.db.transaction(() => {
+      const row = createCompetitorEntry(ctx, input)
+      const name = row.names[0]!
+      const taken = [...ctx.db.select({ name: t.athletes.name }).from(t.athletes).all(), ...ctx.db.select({ name: t.athleteRecords.name }).from(t.athleteRecords).all()].some((x) => plainName(x.name) === plainName(name))
+      if (!taken) {
+        const dancer = row.details?.dancers[0]
+        saveAthleteRecord(ctx, {
+          name,
+          birthDate: dancer?.birthDate ?? '',
+          phone: dancer?.phone ?? '',
+          address: dancer?.address ?? '',
+          province: row.details?.province ?? '',
+          teamId: input.teamId,
+          coachId: row.details?.coachId ?? null,
+          memberYear: row.details?.memberYear ?? null,
+          memberMonth: row.details?.memberMonth ?? null,
+        })
+      }
+      return row
+    })
   },
 
   setBackNumber(ctx: Ctx, competitorId: string, backNumber: number | null): CompetitorRow {
@@ -467,13 +500,21 @@ export const secretariat = {
       if (event.isSolo !== values.isSolo && ctx.db.select().from(t.entries).where(eq(t.entries.eventId, id)).get()) {
         return fail('Remove the entries before changing between solo and couple.', 409)
       }
-      checkNotStarted(ctx, id)
-      ctx.db.update(t.events).set(values).where(eq(t.events.id, id)).run()
-      record(ctx.db, actor(ctx).id, 'Edited event', `Event ${event.number}`, { before: toEvent(event), after: values })
-      return toEvent({ ...event, ...values })
+      const usesPoints = input.usesPoints ?? event.usesPoints
+      const rankingOnly = Object.entries(values).every(([key, value]) => JSON.stringify(value) === JSON.stringify(event[key as keyof typeof event]))
+      // Whether it counts towards the rankings can still change once it has started; the rest cannot
+      if (!(rankingOnly && usesPoints !== event.usesPoints)) checkNotStarted(ctx, id)
+      ctx.db.update(t.events).set({ ...values, usesPoints }).where(eq(t.events.id, id)).run()
+      // Off removes what the event awarded; on awards it from the results already approved
+      if (usesPoints !== event.usesPoints) {
+        recomputeEventPoints(ctx, id)
+        ctx.defer(() => ctx.hub.rankings())
+      }
+      record(ctx.db, actor(ctx).id, 'Edited event', `Event ${event.number}`, { before: toEvent(event), after: { ...values, usesPoints } })
+      return toEvent({ ...event, ...values, usesPoints })
     }
     const last = ctx.db.select({ p: sql<number>`coalesce(max(${t.events.position}), 0)` }).from(t.events).where(eq(t.events.competitionId, competitionId)).get()
-    const row = { id: newId(), competitionId, position: (last?.p ?? 0) + 1, ...values }
+    const row = { id: newId(), competitionId, position: (last?.p ?? 0) + 1, ...values, usesPoints: input.usesPoints ?? true }
     ctx.db.insert(t.events).values(row).run()
     record(ctx.db, actor(ctx).id, 'Created event', `Event ${row.number}`, { after: values })
     return toEvent(row)

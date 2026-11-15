@@ -34,6 +34,9 @@ export const useRecallTable = (roundId: string, enabled = true) =>
     refetchInterval: usePoll(POLL_MS),
   })
 
+export const useSheetSignatures = (eventId: string) =>
+  useQuery({ queryKey: ['sheet-signatures', eventId], queryFn: () => api.getSheetSignatures(eventId), enabled: eventId !== '' })
+
 export const useSignatures = (roundId: string) =>
   useQuery({ queryKey: ['signatures', roundId], queryFn: () => api.getSignatures(roundId), enabled: roundId !== '' })
 
@@ -91,6 +94,13 @@ export function usePlanRounds() {
 export const useStartRound = () =>
   useWrite((roundId: string) => api.startRound(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'current-round', 'live-submissions'])
 
+// The redances of a round: heats danced again
+export const useRedances = (roundId: string) => useQuery({ queryKey: ['redances', roundId], queryFn: () => api.getRedances(roundId), enabled: roundId !== '' })
+
+// Orders a heat to be danced again; the marks of that heat are cleared for those who had sent them
+export const useStartRedance = () =>
+  useWrite((v: { roundId: string; heat: number; reason: string }) => api.startRedance(actor(), v.roundId, v.heat, v.reason).then(() => undefined), ['redances', 'competition-rounds', 'round', 'rounds', 'live-submissions', 'marks', 'recall', 'skating', 'marking-task'])
+
 // Takes the round off the floor; only possible before any adjudicator has submitted
 export const useClearFloor = () =>
   useWrite((competitionId: string) => api.clearFloor(actor(), competitionId), ['competition-rounds', 'round', 'rounds', 'current-round'])
@@ -105,6 +115,12 @@ export const useMarkingTask = (roundId: string, enabled = true) =>
   useQuery({ queryKey: ['marking-task', roundId], queryFn: () => api.getMarkingTask(roundId), enabled: enabled && roundId !== '' })
 
 // The scrutineer types in an adjudicator's marks from their paper sheet
+export const useEnterRedanceMarks = () =>
+  useWrite(
+    (v: { adjudicatorId: string; roundId: string; submissions: MarkSubmission[] }) => api.enterRedanceMarks(actor(), v.adjudicatorId, v.roundId, v.submissions),
+    ['marks', 'round', 'rounds', 'recall', 'skating', 'redances', 'marking-task'],
+  )
+
 export const useEnterAdjudicatorMarks = () =>
   useWrite(
     (v: { adjudicatorId: string; roundId: string; submissions: MarkSubmission[] }) => api.enterAdjudicatorMarks(actor(), v.adjudicatorId, v.roundId, v.submissions),

@@ -58,7 +58,7 @@ export function TeamsPage() {
                 <span className="text-neutral-500">0</span>
               ) : (
                 <Link
-                  to={`${section}/competitors?team=${c.id}`}
+                  to={`${section}/athletes?team=${c.id}`}
                   onClick={(e) => e.stopPropagation()}
                   aria-label={`${dancers.get(c.id)} competitors of ${c.name}`}
                   className="group/count inline-flex items-center gap-1.5 text-neutral-900 underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500 focus-visible:outline-2 focus-visible:outline-gold-500"

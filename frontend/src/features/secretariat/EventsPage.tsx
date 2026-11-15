@@ -15,7 +15,7 @@ import {
   ToolbarActions,
 } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
-import { useCompetitionEntries, useDeleteEvent, useEvents, useCatalog } from '../../hooks/index.ts'
+import { useCompetitionEntries, useCompetitions, useDeleteEvent, useEvents, useCatalog } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import { EventDialog } from './EventDialog.tsx'
 import { DISCIPLINE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
@@ -24,6 +24,9 @@ export function EventsPage() {
   const { ageGroups, ageGroupLabel } = useCatalog()
   const [chosen, setChosen] = useState<string | null>(null)
   const { list, competitionId } = useCompetitionChoice(chosen)
+  const competitions = useCompetitions()
+  // Loaded, and there is none: nothing to wait for
+  const noCompetition = competitions.isSuccess && list.length === 0
   const events = useEvents(competitionId)
   const entries = useCompetitionEntries(competitionId ?? '')
   const [query, setQuery] = useState('')
@@ -69,18 +72,20 @@ export function EventsPage() {
         </div>
         <CompetitionSelect list={list} value={competitionId} onChange={setChosen} />
         <ToolbarActions>
-          <Button onClick={() => setEditing('new')}>Add event</Button>
+          <Button disabled={!competitionId} onClick={() => setEditing('new')}>
+            Add event
+          </Button>
         </ToolbarActions>
       </Toolbar>
 
       <Table<Event>
-        loading={events.isLoading || !competitionId}
+        loading={!noCompetition && (events.isLoading || !competitionId)}
         rows={rows}
         rowKey={(e) => e.id}
         minWidthClass="min-w-0"
         paginationLabel="Events pagination"
         detailTitle={(e) => `${eventCode(e)} ${eventDances(e)}`}
-        empty={{ title: 'No events match', description: 'Try a different age group or search.' }}
+        empty={noCompetition ? { title: 'No competition yet', description: 'Create a competition first, then add its events here.' } : { title: 'No events match', description: 'Try a different age group or search.' }}
         columns={[
           {
             key: 'number',

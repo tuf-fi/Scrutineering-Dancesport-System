@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -50,5 +51,10 @@ describe('test data', () => {
     expect(app.db.select().from(t.competitions).all()).toHaveLength(8)
     expect(app.db.select().from(t.adjudicators).all()).toHaveLength(10)
     expect(app.db.select().from(t.entries).all()).toHaveLength(8 * 6 * 5)
+  })
+
+  it('gives each finished event a final with five placed finalists, ready for certificates', () => {
+    const results = app.db.select().from(t.results).where(eq(t.results.eventId, 'td-past-1-e1')).all().sort((a, b) => a.place - b.place)
+    expect(results.map((r) => [r.place, r.stage])).toEqual([1, 2, 3, 4, 5].map((p) => [p, 'final']))
   })
 })

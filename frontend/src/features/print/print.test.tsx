@@ -55,6 +55,17 @@ describe('printouts', () => {
     expect(screen.getByText('Chairperson of Adjudicators')).toBeInTheDocument()
   })
 
+  it('prints a certificate for each placed finalist, signed by the scrutineer and the chairperson', async () => {
+    renderApp(`/print/certificates/${E12}`, Role.Scrutineer, staff)
+    const certificates = await screen.findAllByRole('article', { name: /^Certificate, / }, { timeout: 4000 })
+    expect(certificates).toHaveLength(6)
+    expect(within(certificates[0]!).getByText('1st')).toBeInTheDocument()
+    expect(within(certificates[0]!).getByText('Scrutineer')).toBeInTheDocument()
+    expect(within(certificates[0]!).getByText('Chairperson of Adjudicators')).toBeInTheDocument()
+    // Nothing to sign on the page: the signatures come from the accounts
+    expect(screen.queryByRole('region', { name: 'Signatures' })).not.toBeInTheDocument()
+  })
+
   it('prints one blank mark sheet per adjudicator, numbers filled in', async () => {
     renderApp(`/print/blank-sheets/${E11}?round=${E11}:round_2`, Role.Scrutineer, staff)
     const sheets = await screen.findAllByRole('heading', { name: 'Adjudicator mark sheet: Round 2' })
@@ -74,6 +85,7 @@ describe('printouts', () => {
       expect.stringContaining('Qualified list'),
       expect.stringContaining('Scores sheet'),
       expect.stringContaining('Final results'),
+      expect.stringContaining('Certificates'),
       expect.stringContaining('Blank mark sheets'),
     ])
     for (const link of links) expect(link).toHaveAttribute('target', '_blank')
@@ -95,6 +107,9 @@ describe('program printout', () => {
     expect(screen.queryByRole('navigation', { name: /pagination/i })).not.toBeInTheDocument()
     expect(screen.getByText(/^Printed$/)).toBeInTheDocument()
     expect(screen.getByText(`${sheetRows().length} lines.`)).toBeInTheDocument()
+    // Each line has its sequence number first
+    expect(screen.getByRole('columnheader', { name: 'No.' })).toBeInTheDocument()
+    expect(within(sheetRows()[0]!).getAllByRole('cell')[0]).toHaveTextContent('1')
   })
 
   it('keeps the search and round filter, and says so', async () => {
@@ -102,7 +117,7 @@ describe('program printout', () => {
     await screen.findByText(/filtered by Final\./)
     const rows = sheetRows()
     expect(rows.length).toBeGreaterThan(0)
-    for (const row of rows) expect(within(row).getAllByRole('cell')[3]).toHaveTextContent('Final')
+    for (const row of rows) expect(within(row).getAllByRole('cell')[4]).toHaveTextContent('Final')
     expect(screen.getByText(/filtered by Final\.$/)).toBeInTheDocument()
   })
 

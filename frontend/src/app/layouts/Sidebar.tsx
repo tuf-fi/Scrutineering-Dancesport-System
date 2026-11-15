@@ -1,11 +1,12 @@
 import { ChevronRight, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
-import { NavLink } from 'react-router'
+import { NavLink, useLocation } from 'react-router'
 import { usingMocks } from '../../api/mode.ts'
 import { Avatars } from '../../components/Avatars.tsx'
 import logo from '../../assets/logo.png'
 import { Brand } from '../../components/Brand.tsx'
 import { cn } from '../../lib/cn.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
+import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useConnection } from '../../stores/connection.ts'
 import { useUi } from '../../stores/ui.ts'
@@ -123,6 +124,9 @@ export function Sidebar({ items }: { items: NavItem[] }) {
   const collapsed = useUi((s) => s.sidebarCollapsed)
   const toggle = useUi((s) => s.toggleSidebar)
   const signOut = useSignOut(STAFF_SIGN_IN)
+  const { pathname } = useLocation()
+  // A long list starts at the top after a reload, so the current section is scrolled into view
+  const navRef = useScrollActive<HTMLElement>(pathname, collapsed)
   if (!user) return null
 
   // Items that share a group sit together under its heading; items without one stay in a single list
@@ -185,6 +189,7 @@ export function Sidebar({ items }: { items: NavItem[] }) {
 
       {/* Scrolls on short screens; collapsed it must not clip the hover tooltips */}
       <nav
+        ref={navRef}
         aria-label="Sections"
         className={cn('no-scrollbar flex flex-1 flex-col gap-1 px-3 py-4', !collapsed && 'overflow-y-auto')}
       >

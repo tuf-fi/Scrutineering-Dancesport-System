@@ -351,6 +351,34 @@
       "when": 1794497273248,
       "tag": "0049_floor_started",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1794712851959,
+      "tag": "0050_event_uses_points",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "6",
+      "when": 1794713303571,
+      "tag": "0051_staff_signature",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "6",
+      "when": 1794716994064,
+      "tag": "0052_redances",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1794725520708,
+      "tag": "0053_round_sets",
+      "breakpoints": true
     }
   ]
 }

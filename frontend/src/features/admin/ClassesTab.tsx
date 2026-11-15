@@ -67,7 +67,7 @@ export function ClassesTab() {
           if (list.length === 0) return null
           const groups = [...new Set(list.map((e) => e.competitionId))]
           return (
-            <section aria-label="Events" className="flex flex-col gap-5 border-t border-neutral-200 pt-6">
+            <section aria-label="Events" className="flex flex-col gap-5">
               <h3 className="font-mono text-xs uppercase text-neutral-500">All events ({list.length})</h3>
               {groups.map((id) => (
                 <div key={id} className="flex flex-col gap-1">

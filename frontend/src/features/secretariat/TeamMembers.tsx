@@ -8,7 +8,7 @@ import { competitorName } from '../../lib/format.ts'
 
 const SHOWN = 8
 
-// The competitors of a team, with a link to the full list filtered to it
+// The competitors of a team, with a link to the athletes list filtered to it
 export function TeamMembers({ team, section }: { team: Team; section: string }) {
   const competitors = useCompetitorRows()
   const members = (competitors.data ?? []).filter((c) => c.teamId === team.id)
@@ -18,7 +18,7 @@ export function TeamMembers({ team, section }: { team: Team; section: string }) 
       <div className="flex items-center justify-between gap-4">
         <h3 className="font-mono text-xs uppercase text-neutral-500">Competitors ({members.length})</h3>
         {members.length > 0 && (
-          <Link to={`${section}/competitors?team=${team.id}`} className="group flex items-center gap-1 text-small font-semibold text-neutral-900 focus-visible:outline-2 focus-visible:outline-gold-500">
+          <Link to={`${section}/athletes?team=${team.id}`} className="group flex items-center gap-1 text-small font-semibold text-neutral-900 focus-visible:outline-2 focus-visible:outline-gold-500">
             Open the list
             <ArrowUpRight aria-hidden className="size-4 text-neutral-500 transition duration-300 group-hover:rotate-45 group-hover:text-gold-500" strokeWidth={1.75} />
           </Link>

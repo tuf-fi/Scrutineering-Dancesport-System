@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ProgramKind, ProgramSlotInput } from '@bis/shared'
+import type { ProgramKind, ProgramSlotInput, RoundType } from '@bis/shared'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
 import { usePoll } from './usePoll.ts'
@@ -32,6 +32,26 @@ function useProgramWrite<TVars>(competitionId: string, mutationFn: (vars: TVars)
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['program', competitionId] }),
   })
 }
+
+// Who judges each round, when it is not the whole panel
+export const useRoundSets = (competitionId: string) =>
+  useQuery({ queryKey: ['round-sets', competitionId], queryFn: () => api.getRoundSets(competitionId), enabled: competitionId !== '' })
+
+// The adjudicators who judge one round, for its printed sheets
+export const useRoundSet = (roundId: string) => useQuery({ queryKey: ['round-set', roundId], queryFn: () => api.getRoundSet(roundId), enabled: roundId !== '' })
+
+function useSetsWrite<TVars>(competitionId: string, mutationFn: (vars: TVars) => Promise<unknown>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: () => Promise.all(['program', 'round-sets', 'round-set'].map((key) => queryClient.invalidateQueries({ queryKey: key === 'program' ? [key, competitionId] : [key] }))),
+  })
+}
+
+export const useSetRoundSet = (competitionId: string) =>
+  useSetsWrite(competitionId, (v: { eventId: string; roundType: RoundType; adjudicatorIds: string[] | null }) => api.setRoundSet(actor(), v.eventId, v.roundType, v.adjudicatorIds))
+
+export const useRotateRoundSets = (competitionId: string) => useSetsWrite(competitionId, (setSize: number) => api.rotateRoundSets(actor(), competitionId, setSize))
 
 export const useSetProgramStart = (competitionId: string) =>
   useProgramWrite(competitionId, (start: string | null) => api.setProgramStart(actor(), competitionId, start))

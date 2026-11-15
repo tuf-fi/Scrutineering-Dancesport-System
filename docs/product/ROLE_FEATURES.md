@@ -30,7 +30,7 @@ Everyone who signs in with an email can change their own password. Staff can als
 | Home | `/` | See the hero, **Upcoming events** (a photo card per competition with its date and countdown, opening that competition), **Latest competitions** (opens the ranking of that competition), and **How to join** |
 | Competitions | `/competitions` | Browse all competitions, search them and filter by year; see which are live, soon or done |
 | A competition | `/competitions/:id` | See its events with search and filters, open an event, open the program |
-| Program | `/competitions/:id/program` | See what is on the floor now and what is next, the whole running order, filter by back number to follow one competitor, and **Print** or save a PDF |
+| Program | `/competitions/:id/program` | See what is on the floor now and what is next, the whole running order with each round's adjudicators, filter by back number to follow one competitor, and **Print** or save a PDF (numbered by sequence) |
 | Event results | `/competitions/:id/events/:eventId` | Read the published results of an event |
 | Athletes | `/athletes` | Search the directory of competitors and teams |
 | A competitor | `/competitors/:id` | See a couple or solo dancer's points, results and history |
@@ -129,7 +129,7 @@ Only **published** results are public. A round that is still being marked or has
 | Screen | Path | What you can do |
 | --- | --- | --- |
 | Announcer | `/compere` | Read the announcements of the round just **published**: places in order, last place first, in very large type. **Next announcement** and **Previous announcement** move through them; the program is shown too |
-| Account | `/account` | Change your name and password; turn on two-step sign-in |
+| Account | `/account` | Change your name and password; turn on two-step sign-in. The scrutineer and the chairperson see their **signature** here and can change it (draw it or upload a picture). It prints on the final results and the certificates. They must add it on their first sign-in, and an account made before signatures existed is asked for it the next time it signs in |
 
 Nothing shows until the scrutineer publishes a round. The compere changes nothing about the competition and gets no pop-ups.
 
@@ -142,11 +142,11 @@ Nothing shows until the scrutineer publishes a round. The compere changes nothin
 | Screen | Path | What you can do |
 | --- | --- | --- |
 | Rounds | `/scrutineer` | See where the competition is and every round still to run. **Plan rounds** (once) so every event with entries gets its rounds. **Start round** (put it on the floor and on the phones; refused while entries are unpaid). **Take off the floor** a wrong round, until a phone has submitted. Open a round's Live board, Heats, Recall or Results |
-| Heats | `/scrutineer/heats` | **Split evenly** into heats, move any competitor to another heat, **save** the heats |
-| Live board | `/scrutineer/live` | Watch each adjudicator's phone go from waiting to marking to submitted. A phone silent for 20 seconds, or "marks on the phone, not sent", is flagged. **Review the recall** (or **results**) when all are in |
+| Heats | `/scrutineer/heats` | **Split evenly** into heats, move any competitor to another heat, **save** the heats. **Redance a heat** (any round, the final included, while it is being marked): give a reason and pick the heat. The final is one heat: those who had placed it place every finalist again. The marks of that heat are cleared for adjudicators who had already sent theirs, kept in the audit log, and each marks that heat again on their phone with the same number of X per dance as before; heats cannot change until they have. The compere hears it as "Redance, heat N" |
+| Live board | `/scrutineer/live` | Watch each adjudicator's phone go from waiting to marking to submitted. A phone silent for 20 seconds, or "marks on the phone, not sent", is flagged. A waiting redance shows as a line with how many have marked the heat again. **Review the recall** (or **results**) when all are in |
 | Recall | `/scrutineer/recall` | See the X marks per competitor and the cut-off for the next round. For a tie at the cut-off: choose how to settle it and **Propose decision** |
-| Results | `/scrutineer/results` | See each adjudicator's marks and the skating table. For a tie in a final: propose keeping the shared place or a tie-break order. **Approve results** (saves the result, adds ranking points, takes a backup), then **Publish results** (makes it public and shows it to the compere). **Print summary** |
-| Paper marks | `/scrutineer/paper-marks` | When an adjudicator's phone could not send their marks, choose the round and the adjudicator who handed in a sheet (only those who have not submitted are listed), type in exactly what is on it (X marks, or placings in a final) and press **Enter marks**. They count the same as marks sent from the phone and the adjudicator shows as submitted on the Live board. Only while a round is being marked or reviewed; not after it is approved |
+| Results | `/scrutineer/results` | See each adjudicator's marks and the skating table. For a tie in a final: propose keeping the shared place or a tie-break order. **Approve results** (saves the result, adds ranking points for a ranking event, takes a backup), then **Publish results** (makes it public and shows it to the compere). Competitors cut before the final are ranked by X count, and those with the same count share a range such as 7th-8th. **Print summary**, and **Print certificates** (one per placed finalist) once the final is approved |
+| Paper marks | `/scrutineer/paper-marks` | When an adjudicator's phone could not send their marks, choose the round and the adjudicator who handed in a sheet (only those who have not submitted are listed), type in exactly what is on it (X marks, or placings in a final) and press **Enter marks**. They count the same as marks sent from the phone and the adjudicator shows as submitted on the Live board. For an adjudicator who owes a redance, only that heat is typed in. Only while a round is being marked or reviewed; not after it is approved |
 | Printouts | `/print` | Heat list, qualified list, scores sheet, final results and blank mark sheets for any event or round |
 | Security | `/scrutineer/security` | Turn on two-step sign-in, change your password |
 | Backups | top of the screen | A warning appears if a backup folder fails |
@@ -177,18 +177,18 @@ Nothing shows until the scrutineer publishes a round. The compere changes nothin
 
 | Screen | Path | What you can do |
 | --- | --- | --- |
-| Events | `/secretariat` | **Add**, edit and delete events (age group, class, discipline, dances, solo or couple, kind: Beginners, Ranking, Inter-school, or Closed to a province). Search and filter by age group. Open an event to see its entries |
+| Events | `/secretariat` | **Add**, edit and delete events (age group, class, discipline, dances, solo or couple, kind: Beginners, Ranking, Inter-school, or Closed to a province). Each event has a **Ranking event** checkbox (on by default): off means its results earn no ranking points. Search and filter by age group. Open an event to see its entries |
 | An event | `/secretariat/events/:id` | See its entries; **Scratch** a dancer who withdraws and **Restore** before the event starts; add a **Late entry**; print the Heat list and Recall list |
-| Competitors | `/secretariat/competitors` | **Add**, edit or delete a competitor (dancer and partner, team, province, coach, dates of birth, contact, beginner, membership year). **Import CSV** (entry-form columns). **Assign back numbers** to everyone, or set one by hand. Filter by competition, event and team. **Enter in events** on a row: pick the competition and events, see the fee and red warnings, choose how it was paid (cash, GCash, Maya, bank or **Not paid yet**), optionally add the coach's membership and Coaches Summit, and press **Enter** |
+| Entries (on Athletes) | `/secretariat/athletes` | **Add athlete** (the dancer and partner, team, province, coach, dates of birth, contact, membership year) makes the athlete and their entry together. **Import CSV** (entry-form columns). **Assign back numbers**, or **Set back number**, **Edit entry** and **Delete entry** in the athlete's side panel (an athlete in more than one entry is asked which). Filter by competition, event and team. **Enter in events** on a row: pick the competition and events, see the fee and red warnings, choose how it was paid (cash, GCash, Maya, bank or **Not paid yet**), optionally add the coach's membership and Coaches Summit, and press **Enter** |
 | Teams | `/secretariat/teams` | Add, edit and delete teams. A team with competitors cannot be deleted |
 | Coaches | `/secretariat/coaches` | Add, edit and delete coaches, with the year their membership and the Coaches Summit were paid |
-| Athletes | `/secretariat/athletes` | See athletes who made an account. **Confirm** a membership payment once the money arrives, or **turn it down** with a reason. **Reset password**, **delete** |
+| Athletes | `/secretariat/athletes` | Every athlete in one list, paid or not: athletes with an account, athletes the secretariat added, and dancers who are only on an entry form, with a count of how many have paid. Filter by **Paid**, **Not paid**, **Waiting for you** or **Not signed up yet**. **Confirm** a membership payment once the money arrives, or **turn it down** with a reason. **Reset password**, **delete** |
 | Entry requests | `/secretariat/entry-requests` | Newest first. Open the payment screenshot, then **Approve** (enters the dancer and records the payment) or **Turn down** with a reason. The sender is told. A pop-up announces each new one |
 | Account links | `/secretariat/account-links` | **Link** a coach or team account to its record, or turn it down |
 | Team and coach changes | `/secretariat/profile-changes` | **Approve** or turn down (with a reason) an athlete's request to change their team or coach |
 | Late entries | `/secretariat/late-entries` | **Add**, edit or delete a late entry (cash at the venue or not yet paid; an unpaid late entry cannot dance). On **Cash payments**, **mark** a team's unpaid or rejected payment as paid at the venue |
 | Schedule | `/secretariat/schedule` | Put the events in running order |
-| Program | `/secretariat/program` | Set the start time, **generate** the running order (rounds, breaks, the awarding) with minutes from the WDSF rules, **add breaks**, edit, move or remove a line, and print the program |
+| Program | `/secretariat/program` | Set the start time, **generate** the running order (rounds, breaks, the awarding) with minutes from the WDSF rules, **add breaks**, edit, move or remove a line, and print the program. Each round shows its adjudicators (**Adj.**): when only some of the event's panel judge a round (a pool of 7 where 5 judge each round), use the **adjudicators** icon on a round to choose its set, or **Rotate adjudicators** to give every round not yet started a set of a chosen size that shifts who sits out from round to round. Only a round's set can mark it, and a round that has started keeps its set. The printed program has a sequence number column |
 | Printouts | `/print` | The same sheets as the scrutineer, plus the program |
 | Security | `/secretariat/security` | Turn on two-step sign-in, change your password |
 
@@ -203,7 +203,7 @@ Nothing shows until the scrutineer publishes a round. The compere changes nothin
 | Screen | Path | What you can do |
 | --- | --- | --- |
 | Competitions | `/admin/competitions` | **Create**, edit and delete competitions: name, date, venue, organizer, **Entries close**, **Fees due**, and the **card photo** (required). Search and filter by year. A competition with events cannot be deleted |
-| Adjudicators and panels | `/admin/adjudicators` | **Add**, edit and delete adjudicators with a letter A to J and a photo (required). Adjudicators can be added before any competition exists. **Set or make a new PIN** for a competition, select adjudicators and **Print PIN cards** (PIN plus QR code), **Sign out everywhere** for a phone. Choose each event's **panel** in a grid of events by adjudicator |
+| Adjudicators and panels | `/admin/adjudicators` | **Add**, edit and delete adjudicators with a letter A to J and a photo (required). Adjudicators can be added before any competition exists. **Set or make a new PIN** for a competition, select adjudicators and **Print PIN cards** (PIN plus QR code), **Sign out everywhere** for a phone. Choose each event's **panel** in a grid of events by adjudicator; **All** puts every adjudicator on an event, a letter puts that adjudicator on every event, and **Set all events** gives every event one list (replace or add). The secretariat and the scrutineer have the same **Panels** grid. An event that has started keeps its panel |
 | Points table | `/admin/points` | Edit the ranking points for each place |
 | Payments | `/admin/payments` | See what each team owes and has paid, search and filter by status, open one to see what it covers and who recorded it. A read-only ledger |
 | Fees and payment details | `/admin/fees` | Set the registration fees (first entry, each extra, ranking and inter-collegiate events, athlete and coach membership, Coaches Summit), the late-entry solo and couple fees, and the **payment accounts** (GCash, Maya, bank) people are shown when they pay |
@@ -211,7 +211,7 @@ Nothing shows until the scrutineer publishes a round. The compere changes nothin
 | Security | `/admin/security` | Turn on two-step sign-in with an authenticator app (and save the recovery codes), change your password |
 | Backups | top of every screen | A warning appears if a backup folder fails |
 
-**Limits:** cannot start, approve or publish a round or confirm a tie (the scrutineer and chairperson do). The admin's menu also holds every screen the secretariat has (Events, Competitors, Teams, Coaches, Athletes, Entry requests, Account links, Team and coach changes, Late entries, Schedule, Program), under **Entries** and **The day**, so the admin can do all of the secretariat's work without a second account. The admin hears the same pop-ups as the secretariat.
+**Limits:** cannot start, approve or publish a round or confirm a tie (the scrutineer and chairperson do). The admin's menu also holds every screen the secretariat has (Events, Teams, Coaches, Athletes, Entry requests, Account links, Team and coach changes, Late entries, Schedule, Program), under **Entries** and **The day**, so the admin can do all of the secretariat's work without a second account. The admin hears the same pop-ups as the secretariat.
 
 ---
 
@@ -221,6 +221,6 @@ Nothing shows until the scrutineer publishes a round. The compere changes nothin
 - **Required fields** have a red asterisk after their label. A button that saves is switched off while the save is under way, so a double tap saves once.
 
 - **Pop-up notifications** with a short sound, live: staff see alerts that are not kept (a new entry request, a new account link); athletes, coaches and teams see what is saved in their **Notifications**. On a laptop they appear bottom right and slide out to the right; on a phone or tablet they come across the top and slide up. Adjudicators and the compere get none.
-- **Account page** for staff at `/account`: change your name and password and set up two-step sign-in.
+- **Account page** for staff at `/account`: change your name and password and set up two-step sign-in. The scrutineer and the chairperson also have a signature, required on their first sign-in and printed automatically on the final results and the certificates.
 - **Phone and tablet layout:** the same pages with a black header and a right-hand menu; the athlete, coach and team links become a strip under the navbar.
 - **The server decides.** Every action is checked on the server against the role, so a hidden screen is not the only thing stopping someone: a role that is not on a function's list gets "Your account cannot do this."

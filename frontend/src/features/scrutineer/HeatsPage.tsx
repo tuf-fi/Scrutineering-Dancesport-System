@@ -1,4 +1,4 @@
-import { RoundStatus, type CompetitorRow } from '@bis/shared'
+import { Role, RoundStatus, type CompetitorRow } from '@bis/shared'
 import { useMemo, useState, type ReactNode } from 'react'
 import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import {
@@ -16,9 +16,11 @@ import {
   DarkPanel,
   glass,
 } from '../../components/ui/index.ts'
-import { useCompetitorRows, useHeatAssignments, useSaveHeats } from '../../hooks/index.ts'
+import { useCompetitorRows, useHeatAssignments, useRedances, useSaveHeats } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
+import { useAuth } from '../../stores/auth.ts'
 import { NoRounds } from './NoRounds.tsx'
+import { RedanceDialog } from './RedanceDialog.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
@@ -37,6 +39,8 @@ function HeatEditor({
   editable,
   status,
   roundSelect,
+  canRedance,
+  final,
 }: {
   roundId: string
   initial: Array<{ competitorId: string; heat: number }>
@@ -44,9 +48,15 @@ function HeatEditor({
   status?: RoundStatus
   // Sits first in the toolbar, so the whole page has one row of controls
   roundSelect: ReactNode
+  // A heat can be danced again while its round is being marked; the final is one heat
+  canRedance: boolean
+  final: boolean
 }) {
   const people = useCompetitorRows()
   const save = useSaveHeats()
+  const redances = useRedances(roundId)
+  const waiting = redances.data?.find((r) => !r.doneAt)
+  const [redancing, setRedancing] = useState(0)
   const [assign, setAssign] = useState(() => new Map(initial.map((a) => [a.competitorId, a.heat])))
   const [size, setSize] = useState(String(DEFAULT_HEAT_SIZE))
 
@@ -114,12 +124,17 @@ function HeatEditor({
             </li>
           ))}
         </ul>
+        {waiting && (
+          <p role="status" className="text-small font-medium text-gold-400">
+            {final ? 'Redance of the final' : `Redance of heat ${waiting.heat}`}: {waiting.redone.length} of {waiting.required.length} adjudicators have marked it again. Heats cannot change until then.
+          </p>
+        )}
       </DarkPanel>
 
 
       <Toolbar>
         {roundSelect}
-        {editable && (
+        {editable && !waiting && (
           <>
             <div className="w-full sm:w-28">
               <Input
@@ -131,6 +146,11 @@ function HeatEditor({
               />
             </div>
             <ToolbarActions>
+              {canRedance && (
+                <Button variant="secondary" onClick={() => setRedancing((k) => k + 1)}>
+                  {final ? 'Redance the final' : 'Redance a heat'}
+                </Button>
+              )}
               <Button variant="secondary" onClick={split}>
                 Split evenly
               </Button>
@@ -141,6 +161,7 @@ function HeatEditor({
           </>
         )}
       </Toolbar>
+      {canRedance && <RedanceDialog key={redancing} open={redancing > 0} roundId={roundId} heats={heatNumbers} final={final} onClose={() => setRedancing(0)} />}
       <Table<Row>
         loading={people.isLoading}
         rows={rows}
@@ -187,6 +208,7 @@ function HeatEditor({
 export function HeatsPage() {
   const { rounds, list, roundId, row, setRoundId, readOnly, noRounds } = useRoundChoice()
   const heats = useHeatAssignments(roundId)
+  const role = useAuth((s) => s.user?.role)
 
   if (rounds.isError || heats.isError) return <ErrorState onRetry={() => void Promise.all([rounds.refetch(), heats.refetch()])} />
   if (noRounds) return <NoRounds title="Heats" description="Split the round's competitors into heats, then move anyone who needs a different one." canPlan={!readOnly} />
@@ -217,6 +239,8 @@ export function HeatsPage() {
           editable={!readOnly && !closed}
           status={row?.status}
           roundSelect={roundSelect}
+          canRedance={role === Role.Scrutineer && row !== undefined && (row.status === RoundStatus.Marking || row.status === RoundStatus.Review)}
+          final={row?.recallNumber === null}
         />
       )}
     </div>

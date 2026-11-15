@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import { ErrorState, DarkPanel, PageHeader, Skeleton, glass } from '../../components/ui/index.ts'
-import { useAdjudicators, useLiveSubmissions, useCatalog } from '../../hooks/index.ts'
+import { useAdjudicators, useLiveSubmissions, useRedances, useCatalog } from '../../hooks/index.ts'
 import { eventCode, eventDances } from '../../lib/format.ts'
 import { GoToFloor } from './GoToFloor.tsx'
 import { NoRounds } from './NoRounds.tsx'
@@ -51,6 +51,7 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
   const { ageGroupLabel } = useCatalog()
   const roundId = row.roundId
   const submissions = useLiveSubmissions(roundId)
+  const redance = useRedances(roundId).data?.find((r) => !r.doneAt)
   const adjudicators = useAdjudicators()
   const quietFor = useSince(submissions)
   const people = new Map((adjudicators.data ?? []).map((a) => [a.id, a]))
@@ -80,6 +81,12 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
           {ageGroupLabel(row.ageGroup)} · {row.class}
         </p>
       </div>
+
+      {redance && (
+        <p role="status" className="text-small font-medium text-gold-400">
+          {final ? 'Redance of the final' : `Redance, heat ${redance.heat}`}: {redance.reason}. {redance.redone.length} of {redance.required.length} adjudicators have marked it again.
+        </p>
+      )}
 
       <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
         <div className={`flex w-full max-w-md flex-col gap-4 p-4 ${glass}`}>

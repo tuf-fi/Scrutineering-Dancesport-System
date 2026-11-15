@@ -65,3 +65,34 @@ export async function heroPhoto(file: File, longest = 1600): Promise<string> {
   bitmap.close()
   return canvas.toDataURL('image/jpeg', 0.8)
 }
+
+// A picture of a signature as a small PNG with a clear background, so it prints cleanly over the signing line. It is
+// shrunk to fit the box, and made smaller still until the server will take it.
+export async function signatureImage(file: File, maxWidth = 600, maxHeight = 200, maxChars = 140_000): Promise<string> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Choose a JPEG, PNG or WebP picture.')
+  if (file.size > MAX_PICTURE_BYTES) throw new Error(TOO_BIG)
+  const bitmap = await createImageBitmap(file)
+  try {
+    let scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height)
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+      const context = canvas.getContext('2d')
+      if (!context) throw new Error('This browser cannot resize pictures.')
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height)
+      // Near-white paper becomes clear; the ink stays
+      for (let i = 0; i < pixels.data.length; i += 4) {
+        if (pixels.data[i]! > 235 && pixels.data[i + 1]! > 235 && pixels.data[i + 2]! > 235) pixels.data[i + 3] = 0
+      }
+      context.putImageData(pixels, 0, 0)
+      const png = canvas.toDataURL('image/png')
+      if (png.length <= maxChars) return png
+      scale *= 0.7
+    }
+  } finally {
+    bitmap.close()
+  }
+  throw new Error('That picture is too detailed for a signature. Use a plain one.')
+}

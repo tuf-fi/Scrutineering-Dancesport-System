@@ -13,16 +13,19 @@ interface DialogProps {
   // Buttons, right-aligned in a footer bar
   actions?: ReactNode
   className?: string
+  // Cannot be closed (no X, Esc or click outside) until what it asks for is done
+  required?: boolean
 }
 
 // Built on Radix Dialog, which provides the focus trap, scroll lock, Esc and portal
-export function Dialog({ open, onClose, title, description, children, actions, className }: DialogProps) {
+export function Dialog({ open, onClose, title, description, children, actions, className, required }: DialogProps) {
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-[60] grid animate-fade-in place-items-center bg-black/50 p-4 data-[state=closed]:animate-fade-out">
           <RadixDialog.Content
             {...(description ? {} : { 'aria-describedby': undefined })}
+            {...(required ? { onEscapeKeyDown: (e: Event) => e.preventDefault(), onPointerDownOutside: (e: Event) => e.preventDefault(), onInteractOutside: (e: Event) => e.preventDefault() } : {})}
             className={cn(
               'flex max-h-[90dvh] w-full max-w-md animate-dialog-in flex-col data-[state=closed]:animate-dialog-out overflow-hidden rounded-xl bg-white text-neutral-900 shadow-overlay',
               className,
@@ -35,9 +38,11 @@ export function Dialog({ open, onClose, title, description, children, actions, c
                   {description}
                 </RadixDialog.Description>
               )}
-              <RadixDialog.Close asChild>
-                <IconButton icon={X} label="Close" className="absolute right-4 top-4" />
-              </RadixDialog.Close>
+              {!required && (
+                <RadixDialog.Close asChild>
+                  <IconButton icon={X} label="Close" className="absolute right-4 top-4" />
+                </RadixDialog.Close>
+              )}
             </div>
 
             {children && <div className="no-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-6 pb-6">{children}</div>}

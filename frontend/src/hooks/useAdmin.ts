@@ -94,6 +94,13 @@ export const useGeneratePins = () =>
     (v) => [['adjudicator-pins', v.competitionId]],
   )
 
+export const useSetPanels = () =>
+  useWrite(
+    (v: { competitionId: string; eventIds: string[]; adjudicatorIds: string[]; mode: 'replace' | 'add' }) =>
+      api.setPanels(actor(), v.competitionId, v.eventIds, v.adjudicatorIds, v.mode),
+    () => [['panels'], ['panel']],
+  )
+
 export const useSetPanel = () =>
   useWrite(
     (v: { eventId: string; adjudicatorIds: string[] }) =>

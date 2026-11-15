@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
-import { NavLink } from 'react-router'
+import { NavLink, useLocation } from 'react-router'
+import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { cn } from '../../lib/cn.ts'
 
 export type NavSection = { to: string; label: string; icon: LucideIcon; end?: boolean }
@@ -7,8 +8,11 @@ export type NavGroup = { label: string; items: NavSection[] }
 
 // The black sidebar of an account (athlete, coach, team): a strip of tabs on phones, fixed under the navbar from laptop width
 export function AccountNav({ groups }: { groups: NavGroup[] }) {
+  const { pathname } = useLocation()
+  // The strip and the sidebar can scroll, so the current page is scrolled into view after a reload
+  const navRef = useScrollActive<HTMLElement>(pathname)
   return (
-    <nav aria-label="Account" className="no-scrollbar fixed inset-x-0 top-[var(--nav-h)] z-20 flex gap-1 overflow-x-auto bg-black px-3 py-2 sm:px-7 lg:inset-x-auto lg:left-0 lg:px-0 lg:fixed lg:bottom-0 lg:left-0 lg:top-[var(--nav-h)] lg:z-20 lg:w-60 lg:flex-col lg:overflow-y-auto lg:rounded-none lg:p-4">
+    <nav ref={navRef} aria-label="Account" className="no-scrollbar fixed inset-x-0 top-[var(--nav-h)] z-20 flex gap-1 overflow-x-auto bg-black px-3 py-2 sm:px-7 lg:inset-x-auto lg:left-0 lg:px-0 lg:fixed lg:bottom-0 lg:left-0 lg:top-[var(--nav-h)] lg:z-20 lg:w-60 lg:flex-col lg:overflow-y-auto lg:rounded-none lg:p-4">
       {groups.map((group) => (
         <div key={group.label} role="group" aria-label={group.label} className="flex gap-1 lg:flex-col lg:pb-5">
           <p aria-hidden className="hidden px-4 pb-2 font-mono text-xs uppercase tracking-wide text-white/40 lg:block">

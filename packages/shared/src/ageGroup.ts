@@ -3,8 +3,8 @@ import type { AgeGroup } from './enums.ts'
 
 // A group covers the dancers born in its years, whatever year the competition is in (see DEFAULT_AGE_GROUPS for the
 // organizer's 2026 groups); the admin keeps the list and changes the years when a new season starts. Groups may overlap:
-// the youngest one that holds the year wins. TODO: WDSF also has Under 21, Senior I-IV (35, 45, 55, 65) and a minimum for
-// the younger partner; none is modelled, as the forms stop at Youth.
+// the youngest one that holds the year wins. Groups go by birth year, not the exact birthday, as the organizer's forms do.
+// There is no limit on how much younger the other partner may be. The admin can add groups such as Under 21 or Senior I-IV.
 export function ageGroupForBirthYear(year: number, groups: AgeGroupDef[] = DEFAULT_AGE_GROUPS): AgeGroup | null {
   return [...groups]
     .filter((g) => !g.retired)

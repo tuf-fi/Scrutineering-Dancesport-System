@@ -359,9 +359,9 @@ const JOBS = {
     })
     await closeDialogs(page)
     await visit(page, R, 'event', `/secretariat/events/${E11}`)
-    await visit(page, R, 'competitors', '/secretariat/competitors')
-    await tryShot(page, R, 'competitor-add', async () => {
-      await page.getByRole('button', { name: 'Add competitor' }).click()
+    await visit(page, R, 'athletes', '/secretariat/athletes')
+    await tryShot(page, R, 'athlete-add', async () => {
+      await page.getByRole('button', { name: 'Add athlete' }).click()
       await dialog(page)
     })
     await closeDialogs(page)
@@ -394,7 +394,6 @@ const JOBS = {
       await dialog(page)
     })
     await closeDialogs(page)
-    await visit(page, R, 'athletes', '/secretariat/athletes')
     await visit(page, R, 'entry-requests', '/secretariat/entry-requests')
     await tryShot(page, R, 'request-turn-down', async () => {
       await first(/Turn down/).click()

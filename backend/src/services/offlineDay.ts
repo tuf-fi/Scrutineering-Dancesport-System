@@ -33,7 +33,7 @@ export const offlineDay = {
 }
 
 // What people may still do online while a laptop holds a competition: their own sign-in details and the offline day itself
-const STILL_ALLOWED = /^(startOfflineDay|cancelOfflineDay|changeMyStaffPassword|saveMyStaffName|.*Totp.*|.*SecondStep.*)$/
+const STILL_ALLOWED = /^(startOfflineDay|cancelOfflineDay|changeMyStaffPassword|saveMyStaffName|saveMyStaffSignature|.*Totp.*|.*SecondStep.*)$/
 const WORKING_ROLES = ['admin', 'secretariat', 'scrutineer', 'chairperson']
 
 // While a venue laptop runs a competition, the online server must not change what the day replaces: the staff's changes

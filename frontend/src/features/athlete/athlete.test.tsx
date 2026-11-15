@@ -1,5 +1,5 @@
 import { Role } from '@bis/shared'
-import { cleanup, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { confirmMembership, getAthletes, getCompetitorHistory, getCompetitors, getTeams, rejectMembership, requestTeamMembership, saveMyAthlete, signUpAthlete } from '../../mocks/api.ts'
@@ -16,6 +16,21 @@ async function teamPays(athleteId: string, method = 'GCash') {
   const row = (await getAthletes()).find((a) => a.id === athleteId)!
   await saveMyAthlete(athleteId, { name: row.name, birthDate: '2015-01-01', phone: '0917', address: '', province: '', coachId: null, teamId: team!.id })
   await requestTeamMembership('member-sample-team', { athleteIds: [athleteId], method, receipt: SHOT })
+}
+
+// The Add athlete form: the athlete and the entry details the entry form asks for
+async function addAthleteForm(name: string) {
+  await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
+  const dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
+  await userEvent.type(within(dialog).getByLabelText('Dancer'), name)
+  const team = within(dialog).getByLabelText('Team')
+  await userEvent.selectOptions(team, within(team).getAllByRole('option')[1]!)
+  fireEvent.change(within(dialog).getByLabelText('Date of birth'), { target: { value: '2015-05-05' } })
+  await userEvent.type(within(dialog).getByLabelText('Province'), 'Albay')
+  await userEvent.type(within(dialog).getByLabelText('Contact no.'), '0917 000 0000')
+  await userEvent.type(within(dialog).getByLabelText('Email'), 'dancer@test.example')
+  await userEvent.type(within(dialog).getByLabelText('Address'), 'Naga City')
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
 }
 
 describe('sign-in field', () => {
@@ -62,8 +77,11 @@ describe('athlete account', () => {
     cleanup()
     renderApp('/secretariat/athletes', Role.Secretariat)
     await userEvent.type(await screen.findByLabelText('Search athletes'), 'Ana Lim')
+    // The payment is read in the athlete's side panel
+    await userEvent.click((await screen.findAllByText('Ana Lim'))[0]!)
     expect(await screen.findByText('Waiting')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm membership of Ana Lim' }))
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirm membership of Ana Lim' }))
     expect(await screen.findByText('Confirmed Ana Lim')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Confirm membership of Ana Lim' })).not.toBeInTheDocument()
   })
@@ -89,16 +107,13 @@ describe('athlete account', () => {
     await userEvent.type(within(dialog).getByLabelText('Reason'), 'No payment found')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Turn down' }))
     expect(await screen.findByText('Turned down the payment of Ben Reyes')).toBeInTheDocument()
+    await userEvent.click((await screen.findAllByText('Ben Reyes'))[0]!)
     expect(await screen.findByText('Not confirmed')).toBeInTheDocument()
   })
 
   it('lets staff add an athlete, who then links their account to it once the secretariat agrees', async () => {
     renderApp('/secretariat/athletes', Role.Secretariat)
-    await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
-    await userEvent.type(within(dialog).getByLabelText('Full name'), 'Lia Gomez')
-    await userEvent.type(within(dialog).getByLabelText('Province'), 'Albay')
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
+    await addAthleteForm('Lia Gomez')
     expect(await screen.findByText('Added Lia Gomez')).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Search athletes'), 'Lia Gomez')
     expect(await screen.findByRole('button', { name: 'Edit Lia Gomez' })).toBeInTheDocument()
@@ -127,6 +142,28 @@ describe('athlete account', () => {
     await userEvent.type(screen.getByLabelText('Confirm new password'), 'A-new-password1')
     await userEvent.click(screen.getByRole('button', { name: 'Change password' }))
     expect(await screen.findByText('Your current password is not right.')).toBeInTheDocument()
+  })
+
+  it('lists every athlete on one page, paid or not, and filters by membership', async () => {
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await addAthleteForm('Mia Santos')
+    expect(await screen.findByText('Added Mia Santos')).toBeInTheDocument()
+
+    // One count for everyone, split into paid and not paid
+    const summary = await screen.findByText(/athletes ·/)
+    const [total, paid, unpaid] = summary.textContent!.match(/\d+/g)!.map(Number)
+    expect(total).toBe(paid! + unpaid!)
+    expect(unpaid).toBeGreaterThan(0)
+
+    await userEvent.type(screen.getByLabelText('Search athletes'), 'Mia Santos')
+    expect(await screen.findByRole('button', { name: 'Edit Mia Santos' })).toBeInTheDocument()
+    // The membership status is a column, not a separate page
+    expect(screen.getByRole('columnheader', { name: 'Membership' })).toBeInTheDocument()
+    // Not paid shows her; Paid does not
+    await userEvent.selectOptions(screen.getByLabelText('Show'), 'Not paid')
+    expect(await screen.findByRole('button', { name: 'Edit Mia Santos' })).toBeInTheDocument()
+    await userEvent.selectOptions(screen.getByLabelText('Show'), 'Paid')
+    expect(await screen.findByText('No athletes match')).toBeInTheDocument()
   })
 
   it('keeps an athlete out of the staff screens and staff out of the athlete page', async () => {

@@ -47,8 +47,8 @@ Staff sign in at `/staff-access`, which is not linked from the public site. Ever
 | --- | --- | --- |
 | Events | `/secretariat` (Events) | Add each event: age group, class, discipline, dances, solo or couple, and its kind (Beginners, Ranking, Inter-school, Closed to a province) so it is priced and checked correctly |
 | Teams and coaches | `/secretariat/teams`, `/secretariat/coaches` | The teams and coaches named on the entry forms, once each, with the year their membership was paid |
-| Competitors | `/secretariat/competitors` | **Add competitor** or **Import CSV**: the dancer and partner, team, province, coach, dates of birth, contact |
-| Back numbers | `/secretariat/competitors` → **Assign back numbers** | Every competitor gets a number; one can be changed on its row |
+| Athletes | `/secretariat/athletes` | **Add athlete** or **Import CSV**: the dancer and partner, team, province, coach, dates of birth, contact |
+| Back numbers | `/secretariat/athletes` → **Assign back numbers** | Every entry gets a number; one can be changed in the athlete's side panel |
 
 ### 1.4 People make accounts and link to their records
 
@@ -64,7 +64,7 @@ Each decision reaches the person as a pop-up with a short sound and a saved noti
 
 | Way | Who and where | Then |
 | --- | --- | --- |
-| Entry form | Secretariat: `/secretariat/competitors` → **Enter in events** on the dancer | Pick the competition and events; the fee shows as you tick; choose how it was paid (cash, GCash, Maya, bank, or **Not paid yet**); red notes warn (age group, beginner rules, late entry) but do not stop the entry |
+| Entry form | Secretariat: `/secretariat/athletes` → **Enter in events** on the dancer | Pick the competition and events; the fee shows as you tick; choose how it was paid (cash, GCash, Maya, bank, or **Not paid yet**); red notes warn (age group, beginner rules, late entry) but do not stop the entry |
 | Online by a team | Team: `/team/register` (Enter events) → pick dancer, competition and events, pay, attach a payment screenshot, **Send entry** | Shows as waiting at `/team/requests`. The secretariat is alerted with a pop-up |
 | Online by an athlete | Athlete: `/athlete/register` for their own name, same steps | Same: `/athlete/requests` |
 

@@ -64,13 +64,6 @@ function GroupForm({ initial, onSubmit }: { initial: Values; onSubmit: (values: 
         error={errors.bornTo}
         className="font-mono tabular-nums"
       />
-      <label className="flex cursor-pointer items-start gap-3 text-small text-neutral-900 sm:col-span-2">
-        <input type="checkbox" checked={values.juvenileFee} onChange={(e) => setValues((v) => ({ ...v, juvenileFee: e.target.checked }))} className="mt-0.5 size-5 shrink-0 accent-neutral-900" />
-        <span className="flex flex-col">
-          Pays the juvenile price
-          <span className="text-neutral-600">In events priced by age group, this group pays the juvenile tier.</span>
-        </span>
-      </label>
     </form>
   )
 }

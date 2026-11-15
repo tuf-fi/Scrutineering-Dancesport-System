@@ -1,7 +1,7 @@
 import { RoundStatus, SubmissionStatus } from '@bis/shared'
 import { useState, type ReactNode } from 'react'
 import { EmptyState, ErrorState, PageHeader, Select, SkeletonList, Toolbar, toast } from '../../components/ui/index.ts'
-import { useAdjudicators, useEnterAdjudicatorMarks, useLiveSubmissions, useMarkingTask } from '../../hooks/index.ts'
+import { useAdjudicators, useEnterAdjudicatorMarks, useEnterRedanceMarks, useLiveSubmissions, useMarkingTask, useRedances } from '../../hooks/index.ts'
 import { MarkSheet } from '../adjudicator/MarkSheet.tsx'
 import { GoToFloor } from './GoToFloor.tsx'
 import { NoRounds } from './NoRounds.tsx'
@@ -50,7 +50,12 @@ function Sheet({ roundId, roundSelect, adjudicatorId, onAdjudicator }: { roundId
   const submissions = useLiveSubmissions(roundId)
   const adjudicators = useAdjudicators()
   const task = useMarkingTask(roundId)
-  const enter = useEnterAdjudicatorMarks()
+  const enterWhole = useEnterAdjudicatorMarks()
+  const enterRedo = useEnterRedanceMarks()
+  const open = useRedances(roundId).data?.find((x) => !x.doneAt)
+  // Someone who owes a redance types in just that heat
+  const owed = open && adjudicatorId !== '' && open.required.includes(adjudicatorId) && !open.redone.includes(adjudicatorId) ? open : undefined
+  const enter = owed ? enterRedo : enterWhole
   const people = new Map((adjudicators.data ?? []).map((a) => [a.id, a]))
   const waiting = submissions.filter((s) => s.status !== SubmissionStatus.Submitted)
   const chosen = people.get(adjudicatorId)
@@ -96,8 +101,10 @@ function Sheet({ roundId, roundSelect, adjudicatorId, onAdjudicator }: { roundId
             Typing in the sheet of <span className="font-semibold text-neutral-900">{chosen.letter} · {chosen.name}</span>. Enter exactly what is written on it.
           </p>
           <MarkSheet
-            key={`${roundId}-${adjudicatorId}`}
-            task={task.data}
+            key={`${roundId}-${adjudicatorId}-${owed?.seq ?? 0}`}
+            task={owed ? { ...task.data, competitors: task.data.competitors.filter((c) => task.data.recallNumber === null || c.heat === owed.heat) } : task.data}
+            counts={owed?.counts[adjudicatorId]}
+            heat={owed?.heat}
             compact
             busy={enter.isPending}
             confirm={{
