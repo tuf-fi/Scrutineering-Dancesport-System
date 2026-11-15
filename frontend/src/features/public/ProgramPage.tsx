@@ -14,14 +14,13 @@ import {
   formatDate,
   letterRanges,
   programAction,
-  programHeatCount,
-  programHeatSplit,
   todayIso,
 } from '../../lib/format.ts'
+import { HeatSplit } from '../../components/HeatSplit.tsx'
 import { PublicHeader } from './PublicHeader.tsx'
 import { filterProgram, programPrintPath } from '../../lib/programFilter.ts'
 
-const COLS = 'lg:grid-cols-[6rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_8rem]'
+const COLS = 'lg:grid-cols-[3rem_6rem_minmax(0,1.6fr)_minmax(0,1fr)_8rem_8rem]'
 
 // The line itself in words, for the strip above the list
 function Line({ label, row, empty }: { label: string; row: ProgramRow | undefined; empty: string }) {
@@ -174,10 +173,11 @@ export function ProgramPage() {
         ) : (
           <div>
             <div aria-hidden className={cn('hidden gap-x-8 px-3 pb-3 font-mono text-xs uppercase text-neutral-500 lg:grid', COLS)}>
+              <span>No.</span>
               <span>Time</span>
               <span>Event</span>
               <span>Round / Action</span>
-              <span>No. of Entries</span>
+              <span className="text-center">No. of Entries</span>
               <span className="text-right">Status</span>
             </div>
             <ul aria-label="Running order" className="border-b border-neutral-200">
@@ -190,6 +190,10 @@ export function ProgramPage() {
                     r.status === ProgramStatus.Current && 'bg-gold-50',
                   )}
                 >
+                  <span className="col-span-2 font-mono text-xs tabular-nums text-neutral-500 lg:col-span-1 lg:text-small">
+                    <span className="lg:hidden">No. </span>
+                    {r.sequence}
+                  </span>
                   <span className="col-span-2 font-mono text-xs font-medium tabular-nums text-gold-700 lg:col-span-1">{formatClock(r.startTime)}</span>
                   <div className="flex min-w-0 flex-col gap-0.5">
                     {r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline ? (
@@ -205,11 +209,11 @@ export function ProgramPage() {
                     )}
                   </div>
                   <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
-                    {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r), programHeatCount(r)].filter(Boolean).join(' · ')}
-                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">{letterRanges(r.adjudicators)}</span>}
+                    {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}
+                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">Adj. {letterRanges(r.adjudicators)}</span>}
                   </p>
-                  <span className="hidden font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}
-                    {programHeatSplit(r) && <span className="block text-xs text-neutral-500">{programHeatSplit(r)}</span>}
+                  <span className="hidden text-center font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}
+                    <HeatSplit heats={r.heats} className="text-xs" />
                   </span>
                   <span className="col-start-2 row-start-2 self-start lg:col-start-auto lg:row-start-auto lg:justify-self-end">
                     <ProgramStatusBadge status={r.status} />

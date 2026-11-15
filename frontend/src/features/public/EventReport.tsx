@@ -7,6 +7,7 @@ import { useEventReport } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, competitorName, ordinal, placeRange } from '../../lib/format.ts'
 import { FinalMarks } from './FinalMarks.tsx'
+import { PlacingsOnly } from './PlacingsOnly.tsx'
 
 interface PartProps {
   index: number
@@ -226,7 +227,8 @@ export function EventReportView({ eventId, finalRoundId }: { eventId: string; fi
   // One part is open at a time: opening another closes the open one, and pressing the open one closes it
   const [openPart, setOpenPart] = useState<number | null>(1)
   const at = (n: number) => ({ open: openPart === n, onToggle: () => setOpenPart(openPart === n ? null : n) })
-  if (report.isError) return <ErrorState onRetry={() => void report.refetch()} />
+  // A published event without marks has no sheet to build; its placings are still shown
+  if (report.isError) return <PlacingsOnly eventId={eventId} />
   if (!report.data) return <Skeleton className="h-40 w-full" />
   const data = report.data
   const final = data.rounds.find((r) => r.isFinal)

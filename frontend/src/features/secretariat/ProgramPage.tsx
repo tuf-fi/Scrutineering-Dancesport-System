@@ -2,6 +2,7 @@ import { ProgramKind, ProgramStatus, type ProgramRow } from "@bis/shared";
 import { ArrowUpDown, Pencil, Trash2, UsersRound } from "lucide-react";
 import { useState } from "react";
 import { CompetitionSelect } from "../../components/CompetitionSelect.tsx";
+import { HeatSplit } from '../../components/HeatSplit.tsx';
 import { ProgramStatusBadge } from "../../components/ProgramStatusBadge.tsx";
 import {
   Button,
@@ -33,8 +34,6 @@ import {
   formatClock,
   letterRanges,
   programAction,
-  programHeatCount,
-  programHeatSplit,
   programLineName,
 } from "../../lib/format.ts";
 import { programPrintPath } from "../../lib/programFilter.ts";
@@ -256,11 +255,7 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
               r.kind === ProgramKind.Round ? (
                 <div className="flex flex-col items-center">
                   <span>{r.entryCount}</span>
-                  {programHeatSplit(r) && (
-                    <span className="text-xs text-neutral-500">
-                      {programHeatSplit(r)}
-                    </span>
-                  )}
+                  <HeatSplit heats={r.heats} className="text-xs" />
                 </div>
               ) : (
                 ""
@@ -274,14 +269,7 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
             header: "Action",
             cell: (r) =>
               r.kind === ProgramKind.Round ? (
-                <div className="flex flex-col">
-                  <span>{programAction(r)}</span>
-                  {programHeatCount(r) && (
-                    <span className="text-xs text-neutral-500">
-                      {programHeatCount(r)}
-                    </span>
-                  )}
-                </div>
+                <span>{programAction(r)}</span>
               ) : (
                 ""
               ),

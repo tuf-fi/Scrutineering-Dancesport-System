@@ -10,10 +10,9 @@ import {
   formatClock,
   letterRanges,
   programAction,
-  programHeatCount,
-  programHeatSplit,
   sheetDate,
 } from '../../lib/format.ts'
+import { HeatSplit } from '../../components/HeatSplit.tsx'
 import { filterProgram } from '../../lib/programFilter.ts'
 import { num, td, th } from './tableStyles.ts'
 
@@ -116,11 +115,9 @@ export function ProgramPrintPage() {
                     </td>
                     <td className={`${td} ${keep}`}>{ROUND_TYPE_LABEL[r.roundType]}</td>
                     <td className={`${td} ${num} ${keep} text-center`}>{r.entryCount}
-                      {programHeatSplit(r) && <span className="block text-[8pt] text-neutral-600">{programHeatSplit(r)}</span>}
+                      <HeatSplit heats={r.heats} className="text-[8pt]" />
                     </td>
-                    <td className={`${td} ${keep}`}>{programAction(r)}
-                      {programHeatCount(r) && <span className="block text-[8pt] text-neutral-600">{programHeatCount(r)}</span>}
-                    </td>
+                    <td className={`${td} ${keep}`}>{programAction(r)}</td>
                     <td className={`${td} ${num} ${keep}`}>{letterRanges(r.adjudicators)}</td>
                   </tr>
                 ) : (
