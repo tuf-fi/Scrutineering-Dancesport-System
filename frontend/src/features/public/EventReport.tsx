@@ -2,7 +2,7 @@ import type { EventReport, EventReportPlaced, EventReportPerson, EventReportRoun
 import { ArrowUpRight } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ErrorState, Skeleton, Table, type Column } from '../../components/ui/index.ts'
+import { Skeleton, Table, type Column } from '../../components/ui/index.ts'
 import { useEventReport } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { DANCE_LABEL, ROUND_TYPE_LABEL, competitorName, ordinal, placeRange } from '../../lib/format.ts'
