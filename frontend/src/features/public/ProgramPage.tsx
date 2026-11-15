@@ -177,7 +177,7 @@ export function ProgramPage() {
               <span>Time</span>
               <span>Event</span>
               <span>Round / Action</span>
-              <span>Dancing</span>
+              <span>No. of Entries</span>
               <span className="text-right">Status</span>
             </div>
             <ul aria-label="Running order" className="border-b border-neutral-200">

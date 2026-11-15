@@ -251,7 +251,7 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
           },
           {
             key: "entries",
-            header: "Dancing",
+            header: "No. of Entries",
             cell: (r) =>
               r.kind === ProgramKind.Round ? (
                 <div className="flex flex-col items-center">

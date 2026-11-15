@@ -198,8 +198,8 @@ export const programLineName = (row: ProgramRow) =>
 export const programAction = (row: Pick<ProgramRow, 'kind' | 'recallNumber' | 'entryCount'>) =>
   row.kind !== 'round' ? '' : row.recallNumber !== null ? `Select ${row.recallNumber}` : `Rank ${row.entryCount}`
 
-// How the field of a round is split: "8 + 7" for two heats, empty for one heat or none yet
-export const programHeatSplit = (row: Pick<ProgramRow, 'heats'>) => (row.heats.length > 1 ? row.heats.join(' + ') : '')
+// How the field of a round is split: "8 | 7" for two heats, empty for one heat or none yet
+export const programHeatSplit = (row: Pick<ProgramRow, 'heats'>) => (row.heats.length > 1 ? row.heats.join(' | ') : '')
 export const programHeatCount = (row: Pick<ProgramRow, 'heats'>) => (row.heats.length > 1 ? `${row.heats.length} heats` : '')
 
 // "10/Oct/2026", as on the paper result sheets

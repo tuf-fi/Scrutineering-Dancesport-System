@@ -99,7 +99,7 @@ export function ProgramPrintPage() {
                 <th className={`${th} ${keep}`}>Evt</th>
                 <th className={th}>Category</th>
                 <th className={`${th} ${keep}`}>Round</th>
-                <th className={`${th} ${keep} text-center`}>Dancing</th>
+                <th className={`${th} ${keep} text-center`}>No. of Entries</th>
                 <th className={`${th} ${keep}`}>Action</th>
                 <th className={`${th} ${keep}`}>Adj.</th>
               </tr>
