@@ -58,6 +58,7 @@ import type {
   EntryRow,
   FinalTie,
   TeamInput,
+  AdvancementRule,
   Coach,
   CoachInput,
   CompetitorDetails,
@@ -205,6 +206,9 @@ export const moveScheduledEventTo = (_actorId: string, competitionId: string, ev
   call<ScheduleItem[]>('moveScheduledEventTo', competitionId, eventId, to)
 export const setEventRounds = (_actorId: string, eventId: string, plan: RoundPlanInput[]) => call<void>('setEventRounds', eventId, plan)
 export const getProgram = (competitionId: string) => call<Program>('getProgram', competitionId)
+export const getAdvancementRules = (competitionId: string) => call<AdvancementRule[]>('getAdvancementRules', competitionId)
+export const setAdvancementRules = (_actorId: string, competitionId: string, rules: AdvancementRule[]) =>
+  call<void>('setAdvancementRules', competitionId, rules)
 export const getRoundSets = (competitionId: string) => call<RoundSetRow[]>('getRoundSets', competitionId)
 export const getRoundSet = (roundId: string) => call<string[]>('getRoundSet', roundId)
 export const setRoundSet = (_actorId: string, eventId: string, roundType: RoundType, adjudicatorIds: string[] | null) =>

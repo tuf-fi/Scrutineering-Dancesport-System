@@ -61,7 +61,7 @@ export const rounds = {
       if (roundsOfEvent(ctx, event.id).length > 0) continue
       const entered = activeEntryRows(ctx, event.id).length
       if (entered === 0) continue
-      planFor(entered).forEach((plan, i) => {
+      planFor(ctx, competitionId, entered).forEach((plan, i) => {
         ctx.db
           .insert(t.rounds)
           .values({ id: newId(), eventId: event.id, type: plan.type, position: i + 1, recallNumber: plan.recall, status: 'pending' })

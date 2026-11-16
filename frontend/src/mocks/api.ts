@@ -92,6 +92,10 @@ import {
   type ImportResult,
   type LateEntryRow,
   type ScheduleItem,
+  type AdvancementRule,
+  DEFAULT_ADVANCEMENT,
+  checkAdvancementRules,
+  planForEntries,
   type Program,
   type ProgramKind,
   type ProgramSlotInput,
@@ -1139,6 +1143,8 @@ function orderFor(competitionId: string): string[] {
   return order
 }
 
+const advancement = new Map<string, AdvancementRule[]>()
+
 function scheduleOf(competitionId: string): ScheduleItem[] {
   return orderFor(competitionId).map((eventId, i) => {
     const event = found(events.find((e) => e.id === eventId), 'Event')
@@ -1153,6 +1159,7 @@ function scheduleOf(competitionId: string): ScheduleItem[] {
       isSolo: event.isSolo,
       entryCount: entries.filter((e) => e.eventId === eventId && !e.scratched).length,
       rounds: rounds.filter((r) => r.eventId === eventId).map((r) => ({ type: r.type, status: r.status, recall: r.recallNumber })),
+      suggested: planForEntries(advancement.get(competitionId) ?? DEFAULT_ADVANCEMENT, entries.filter((e) => e.eventId === eventId && !e.scratched).length),
     }
   })
 }
@@ -1202,6 +1209,14 @@ export const setEventRounds = (actorId: string, eventId: string, plan: RoundPlan
   })
 
 export const getProgram = (competitionId: string) => reply(sampleProgram.programOf(competitionId))
+export const getAdvancementRules = (competitionId: string) => reply(advancement.get(competitionId) ?? DEFAULT_ADVANCEMENT)
+export const setAdvancementRules = (actorId: string, competitionId: string, rules: AdvancementRule[]) =>
+  settle<void>(() => {
+    const checked = checkAdvancementRules(rules)
+    if ('error' in checked) throw new Error(checked.error)
+    advancement.set(competitionId, checked.values)
+    record(actorId, 'Changed the advancement table', competitionId)
+  })
 export const getRoundSets = (competitionId: string) => reply(sampleProgram.sampleRoundSets(competitionId))
 export const getRoundSet = (roundId: string) => reply(sampleProgram.sampleRoundSet(roundId))
 export const setRoundSet = (actorId: string, eventId: string, roundType: RoundType, adjudicatorIds: string[] | null) =>

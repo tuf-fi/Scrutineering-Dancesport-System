@@ -118,9 +118,12 @@ class Api {
     return r.json.data
   }
 }
+const TINY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 const staff = async (role) => {
   const api = new Api()
   await api.signIn('staff', { username: `${role}@sample.example`, password: 'bis2026' })
+  // The scrutineer and the chairperson must have a signature saved before the screens open
+  if ((role === 'scrutineer' || role === 'chairperson') && !(await api.call('getMySignature'))) await api.call('saveMyStaffSignature', TINY_PNG)
   return api
 }
 
@@ -143,6 +146,7 @@ async function open(options, label, quiet = false) {
 }
 const text = async (page) => (await page.locator('main').first().innerText()).replace(/\n+/g, ' | ')
 const staffSignIn = async (page, role) => {
+  await staff(role)
   await page.goto(`${BASE}/staff-access`)
   await page.locator('input[type=email],input[name=email],input[name=username],input[autocomplete=username]').first().fill(`${role}@sample.example`)
   await page.locator('input[type=password]').first().fill('bis2026')
@@ -513,6 +517,9 @@ async function main() {
       await page.goto(`${BASE}/athlete/sign-in`)
       await page.getByRole('link', { name: /create an account/i }).or(page.getByRole('button', { name: /create an account/i })).first().click()
       await page.getByLabel('Full name').fill('Eva Test Santos')
+      const photo = join(work, 'photo.png')
+      writeFileSync(photo, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64'))
+      await page.locator('input[type=file]').first().setInputFiles(photo)
       await page.getByLabel('Email').fill(email)
       await page.getByLabel('Password', { exact: true }).fill('Correct-Horse-9')
       await page.getByLabel('Confirm password').fill('Correct-Horse-9')
@@ -536,9 +543,7 @@ async function main() {
     }
   })
 
-  await step('5b. The athlete sends a membership payment and the secretariat confirms it in the browser', async () => {
-    const shot = join(work, 'payment.png')
-    writeFileSync(shot, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64'))
+  await step('5b. The athlete cannot pay membership alone: the page says the team pays, and nothing is sent', async () => {
     const a = await open(PHONE, 'athlete')
     try {
       await a.page.goto(`${BASE}/athlete/sign-in`)
@@ -547,33 +552,15 @@ async function main() {
       await a.page.getByRole('button', { name: /sign in/i }).first().click()
       await a.page.waitForURL((u) => u.pathname.startsWith('/athlete'))
       await a.page.goto(`${BASE}/athlete/membership`)
-      await a.page.getByLabel('Paid with').selectOption({ index: 1 })
-      await a.page.locator('input[type=file]').setInputFiles(shot)
-      await a.page.getByRole('button', { name: 'Send payment' }).click()
-      await until('the payment to be sent', async () => /Waiting for the secretariat/.test(await text(a.page)))
+      await until('the membership page', async () => /Your team pays the membership fee/.test(await text(a.page)))
+      expect((await a.page.getByLabel('Paid with').count()) === 0, 'the athlete should have no payment form')
     } finally {
       await a.ctx.close()
     }
-    const s = await open(LAPTOP, 'secretariat')
-    try {
-      await staffSignIn(s.page, 'secretariat')
-      await s.page.goto(`${BASE}/secretariat/athletes`)
-      await s.page.getByLabel('Search athletes').fill('Eva Test')
-      const row = s.page.locator('tr', { hasText: email })
-      await row.getByRole('button', { name: /^Confirm membership of/ }).click()
-      await until('the membership to be confirmed', async () => {
-        const list = await (await staff('secretariat')).call('getAthletes')
-        return list.find((x) => x.email === email)?.memberYear === 2026
-      })
-    } finally {
-      await s.ctx.close()
-    }
     const api = new Api()
     const me = await api.signIn('athlete', { email, password: 'Correct-Horse-9' })
-    const notes = await api.call('getMyNotifications', me.id)
-    expect(notes.some((n) => n.kind === 'membership_confirmed'), 'the athlete was not told the membership was confirmed')
     const profile = (await api.call('getMyAthlete', me.id)).profile
-    expect(profile.memberYear === 2026 && profile.history.some((h) => h.kind === 'sent'), 'the membership or its history is missing')
+    expect(profile.memberYear === null, 'the membership should still be unpaid')
   })
 
   // ---------------------------------------------------------------- 6. Team entry with a payment
@@ -581,6 +568,7 @@ async function main() {
   const mine = (r) => r.names.includes('Bea Mendoza') && r.requesterRole === 'team' && r.status !== 'rejected' && r.createdAt > startedAt
   await step('6. A team enters a dancer in two events with a payment; the secretariat approves; entries and payment are recorded', async () => {
     const shot = join(work, 'payment.png')
+    writeFileSync(shot, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64'))
     const t = await open({ viewport: { width: 1000, height: 1100 } }, 'team')
     try {
       await t.page.goto(`${BASE}/team/sign-in`)
@@ -641,9 +629,9 @@ async function main() {
       await page.goto(`${BASE}/secretariat/athletes`)
       await page.getByRole('button', { name: 'Add athlete' }).first().click()
       const dialog = page.getByRole('dialog')
-      await dialog.getByRole('textbox', { name: 'Dancer', exact: true }).fill('Direct Dancer')
-      await dialog.getByRole('combobox', { name: 'Team', exact: true }).selectOption({ index: 1 })
-      for (const [label, value] of [['Province', 'Sorsogon'], ['Date of birth', '2012-05-05'], ['Contact no.', '09170001111'], ['Address', '1 Test St']]) {
+      await dialog.locator('input').first().fill('Direct Dancer')
+      await dialog.locator('select').first().selectOption({ index: 1 })
+      for (const [label, value] of [['Province', 'Sorsogon'], ['Date of birth', '2018-05-05'], ['Contact no.', '09170001111'], ['Address', '1 Test St'], ['Email', 'direct.dancer@test.example']]) {
         const field = dialog.getByLabel(label)
         if (await field.count()) await field.first().fill(value)
       }
@@ -730,31 +718,19 @@ async function main() {
     }
   })
 
-  await step('11b. The tie is found, the round cannot be approved, the scrutineer proposes, the chairperson confirms, then it is approved', async () => {
+  await step('11b. Couples level on the cut of 6 all go through: 7 recalled, no tie to decide, the round approves and the final has 7', async () => {
     const api = await staff('scrutineer')
     const table = await api.call('getRecallTable', SEMI2)
-    expect(table.tie && table.tie.xCount === 3 && table.tie.count === 3 && table.tie.decision === null, `expected a 3-way tie on 3 X, got ${JSON.stringify(table.tie)}`)
+    expect(table.tie === null, `no tie is left to decide, got ${JSON.stringify(table.tie)}`)
     expect(JSON.stringify(table.rows.map(countOf).sort((a, b) => b - a)) === '[5,5,5,4,3,3,3,1,1]', 'the X counts are not what the adjudicators marked')
-    expect(table.rows.filter((r) => r.outcome === 'tied').length === 3, 'three couples should show as tied')
-    const blocked = await api.raw('approveRound', SEMI2)
-    expect(blocked.status === 409 && /tie/i.test(blocked.json.error), `approving a tied round gave HTTP ${blocked.status}: ${blocked.json?.error}`)
-    await scr.goto(`${BASE}/scrutineer/recall?round=${SEMI2}`)
-    await scr.locator('label', { hasText: 'Recall only the 4 above' }).click()
-    await scr.getByRole('button', { name: 'Propose decision' }).click()
-    await until('the proposal', async () => (await api.call('getRecallTable', SEMI2)).tie?.decision?.choice === 'fewer')
-    const proposed = await api.raw('approveRound', SEMI2)
-    expect(proposed.status === 409 && /chairperson to confirm/.test(proposed.json.error), `approving before the chairperson confirms gave HTTP ${proposed.status}: ${proposed.json?.error}`)
-    expect((await api.raw('confirmTieDecision', SEMI2)).status === 403, 'the scrutineer could confirm their own tie decision')
-    await chairpersonConfirms(`/scrutineer/recall?round=${SEMI2}`)
-    await scr.reload()
-    await until('the confirmation on the scrutineer screen', async () => /Confirmed by Gregorio Almazan/.test(await text(scr)))
+    expect(table.rows.filter((r) => r.outcome === 'recalled').length === 7 && table.rows.every((r) => r.outcome !== 'tied'), 'the three couples level on 3 X should all be recalled')
     await approveAndPublish(SEMI2)
     const decided = await api.call('getRecallTable', SEMI2)
-    expect(decided.recalled === 4, `expected 4 recalled, found ${decided.recalled}`)
+    expect(decided.recalled === 7, `expected 7 recalled, found ${decided.recalled}`)
     const field = new Set((await api.call('getHeats', `${E2}:final`)).flatMap((h) => h.competitorIds))
-    const expected = new Set(tieNumbers.slice(0, 4).map((n) => rowFor(n).id))
-    expect(field.size === 4 && [...field].every((id) => expected.has(id)), 'the final is not the four couples above the tie')
-    return 'tie of 3 on 3 X: only the 4 above recalled, confirmed by Gregorio Almazan'
+    const expected = new Set(tieNumbers.slice(0, 7).map((n) => rowFor(n).id))
+    expect(field.size === 7 && [...field].every((id) => expected.has(id)), 'the final is not the seven couples recalled')
+    return 'three couples level on 3 X all recalled: 7 through, no decision needed'
   })
 
   // ---------------------------------------------------------------- 12 and 13. A tie in a final

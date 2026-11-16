@@ -42,6 +42,7 @@ const REPLACED: Array<{ table: string; where: string }> = [
   { table: 'panels', where: `event_id IN (${EVENTS})` },
   { table: 'panel_members', where: `panel_id IN (${PANELS})` },
   { table: 'program_starts', where: 'competition_id = ?' },
+  { table: 'advancement_rules', where: 'competition_id = ?' },
   { table: 'program_slots', where: 'competition_id = ?' },
   { table: 'round_sets', where: `event_id IN (${EVENTS})` },
   { table: 'rounds', where: `event_id IN (${EVENTS})` },

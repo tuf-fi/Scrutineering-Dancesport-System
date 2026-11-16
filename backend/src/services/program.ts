@@ -112,10 +112,10 @@ const panelLetters = (ctx: Ctx, eventId: string): string[] =>
 
 // Who dances a round and how many are recalled from it. Before rounds are planned this follows the plan the
 // scrutineer would get, so the program can be laid out early.
-function fieldFor(ctx: Ctx, eventId: string, type: RoundType): { entryCount: number; recallNumber: number | null } {
+function fieldFor(ctx: Ctx, competitionId: string, eventId: string, type: RoundType): { entryCount: number; recallNumber: number | null } {
   const entered = activeEntryRows(ctx, eventId).length
   const saved = roundsOfEvent(ctx, eventId)
-  const list = saved.length > 0 ? saved.map((r) => ({ type: r.type, recall: r.recallNumber })) : planFor(entered)
+  const list = saved.length > 0 ? saved.map((r) => ({ type: r.type, recall: r.recallNumber })) : planFor(ctx, competitionId, entered)
   const i = list.findIndex((r) => r.type === type)
   if (i < 0) return { entryCount: 0, recallNumber: null }
   return { entryCount: i === 0 ? entered : (list[i - 1]!.recall ?? 0), recallNumber: list[i]!.recall }
@@ -151,7 +151,7 @@ function build(ctx: Ctx, competitionId: string): Program {
   let elapsed = 0
   const rows = slots.map<ProgramRow>((slot, i) => {
     const event = slot.eventId ? events.get(slot.eventId) : undefined
-    const field = event && slot.roundType ? fieldFor(ctx, event.id, slot.roundType) : null
+    const field = event && slot.roundType ? fieldFor(ctx, competitionId, event.id, slot.roundType) : null
     const round = roundOf(slot)
     const set = event ? setLetters(ctx, event.id, slot.roundType) : { letters: [], custom: false }
     const row: ProgramRow = {
@@ -274,7 +274,7 @@ export const program = {
     const missing = events
       .flatMap((event) => {
         const types = roundsOfEvent(ctx, event.id).map((r) => r.type)
-        const planned = types.length > 0 ? types : planFor(activeEntryRows(ctx, event.id).length).map((p) => p.type)
+        const planned = types.length > 0 ? types : planFor(ctx, competitionId, activeEntryRows(ctx, event.id).length).map((p) => p.type)
         return planned.map((type) => ({ event, type }))
       })
       .filter(({ event, type }) => !has.has(`${event.id}:${type}`))

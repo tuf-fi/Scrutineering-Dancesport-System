@@ -1,4 +1,4 @@
-import { RoundStatus, RoundType, checkRoundPlan, suggestRounds, type RoundPlanInput, type ScheduleItem } from '@bis/shared'
+import { RoundStatus, RoundType, checkRoundPlan, type RoundPlanInput, type ScheduleItem } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, toast } from '../../components/ui/index.ts'
 import { useSetEventRounds } from '../../hooks/index.ts'
@@ -16,7 +16,7 @@ const toPicked = (plan: RoundPlanInput[]): Picked => Object.fromEntries(plan.map
 
 function RoundsForm({ item, onDone }: { item: ScheduleItem; onDone: () => void }) {
   const save = useSetEventRounds()
-  const suggestion = suggestRounds(item.entryCount)
+  const suggestion = item.suggested
   const [picked, setPicked] = useState<Picked>(() => toPicked(item.rounds.length > 0 ? item.rounds.map((r) => ({ type: r.type, recall: r.recall })) : suggestion))
   const [error, setError] = useState<string | null>(null)
   const started = item.rounds.some((r) => r.status !== RoundStatus.Pending)
@@ -54,7 +54,7 @@ function RoundsForm({ item, onDone }: { item: ScheduleItem; onDone: () => void }
     <>
       <form id={FORM_ID} onSubmit={submit} noValidate className="flex flex-col gap-5">
         <p className="text-small text-neutral-600">
-          {item.entryCount} {item.entryCount === 1 ? 'couple is' : 'couples are'} entered. For that many the system suggests{' '}
+          {item.entryCount} {item.entryCount === 1 ? 'couple is' : 'couples are'} entered. For that many the advancement table gives{' '}
           <span className="font-medium text-neutral-900">{suggestion.map((p) => ROUND_TYPE_LABEL[p.type]).join(' › ')}</span>.
         </p>
         <fieldset className="flex flex-col" disabled={started}>
@@ -90,7 +90,7 @@ function RoundsForm({ item, onDone }: { item: ScheduleItem; onDone: () => void }
           <p className="text-small text-neutral-600">This event has started, so its rounds can no longer change.</p>
         ) : (
           <Button type="button" variant="ghost" size="sm" className="self-start" onClick={() => setPicked(toPicked(suggestion))}>
-            Use the suggestion
+            Use the table
           </Button>
         )}
       </form>

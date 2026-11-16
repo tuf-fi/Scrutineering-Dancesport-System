@@ -430,6 +430,8 @@ export interface ScheduleItem {
   // Couples entered, and the rounds with how many each recalls
   entryCount: number
   rounds: Array<{ type: RoundType; status: RoundStatus; recall: number | null }>
+  // The rounds the scrutineer's advancement table gives an event of this size
+  suggested: Array<{ type: RoundType; recall: number | null }>
 }
 
 // One line of the running order: a round, a break or the awarding

@@ -5,6 +5,7 @@ import { site } from './services/site.ts'
 import { deleteImpact } from './services/cascade.ts'
 import { offlineDay } from './services/offlineDay.ts'
 import { redance } from './services/redance.ts'
+import { advancement } from './services/advancement.ts'
 import { roundSets } from './services/roundSets.ts'
 import { signatures } from './services/signatures.ts'
 import { program } from './services/program.ts'
@@ -68,6 +69,7 @@ const handlers: Record<string, Handler> = {
   ...signatures,
   ...redance,
   ...roundSets,
+  ...advancement,
   ...rounds,
   ...scrutiny,
   ...accountFunctions,
@@ -120,6 +122,8 @@ const access: Record<string, Access> = {
   getCompetitionRounds: 'public',
   getProgram: 'public',
   getRoundSets: OFFICIALS,
+  getAdvancementRules: OFFICIALS,
+  setAdvancementRules: SCRUTINEER,
   getRoundSet: OFFICIALS,
   setRoundSet: PROGRAM_EDITORS,
   rotateRoundSets: PROGRAM_EDITORS,

@@ -67,6 +67,8 @@ export const API_FUNCTIONS = [
   'moveProgramSlotTo',
   'moveScheduledEventTo',
   'setEventRounds',
+  'getAdvancementRules',
+  'setAdvancementRules',
   'removeProgramSlot',
   'getPaymentDetails',
   'getPayments',

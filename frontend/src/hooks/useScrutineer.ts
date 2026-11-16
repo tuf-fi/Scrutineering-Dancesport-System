@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { HeatAssignment, MarkSubmission, TieDecision } from '@bis/shared'
+import type { AdvancementRule, HeatAssignment, MarkSubmission, TieDecision } from '@bis/shared'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
 import { usePoll } from './usePoll.ts'
@@ -47,6 +47,17 @@ export const useSkatingTable = (roundId: string) =>
     enabled: roundId !== '',
     refetchInterval: usePoll(POLL_MS),
   })
+
+export const useAdvancementRules = (competitionId: string) =>
+  useQuery({ queryKey: ['advancement', competitionId], queryFn: () => api.getAdvancementRules(competitionId), enabled: competitionId !== '' })
+
+export const useSetAdvancementRules = (competitionId: string) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (rules: AdvancementRule[]) => api.setAdvancementRules(actor(), competitionId, rules),
+    onSuccess: () => Promise.all(['advancement', 'schedule'].map((key) => queryClient.invalidateQueries({ queryKey: [key] }))),
+  })
+}
 
 function useWrite<TVars>(mutationFn: (vars: TVars) => Promise<void>, invalidates: string[]) {
   const queryClient = useQueryClient()

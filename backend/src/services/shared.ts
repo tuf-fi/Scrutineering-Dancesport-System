@@ -1,8 +1,11 @@
 import {
+  DEFAULT_ADVANCEMENT,
+  planForEntries,
   pickCurrentCompetition,
   Role,
   RoundStatus,
   type AdjudicatorPin,
+  type AdvancementRule,
   type AgeGroupDef,
   type Catalog,
   byAge,
@@ -341,16 +344,14 @@ export function fieldOf(ctx: Ctx, round: typeof t.rounds.$inferSelect): string[]
   return []
 }
 
-// Which rounds an event of this size needs, and how many each recalls
-export function planFor(entryCount: number): Array<{ type: typeof t.rounds.$inferInsert.type; recall: number | null }> {
-  const final = { type: 'final' as const, recall: null }
-  const semi = { type: 'semi_final' as const, recall: 6 }
-  // The client's finals have 6 couples ("select 6"), so 7 entries already need a semi-final
-  if (entryCount <= 6) return [final]
-  if (entryCount <= 14) return [semi, final]
-  if (entryCount <= 24) return [{ type: 'round_1' as const, recall: 12 }, semi, final]
-  return [{ type: 'round_1' as const, recall: 24 }, { type: 'round_2' as const, recall: 12 }, semi, final]
+// The scrutineer's advancement table for a competition, or the built-in default
+export function advancementOf(ctx: Ctx, competitionId: string): AdvancementRule[] {
+  const row = ctx.db.select().from(t.advancementRules).where(eq(t.advancementRules.competitionId, competitionId)).get()
+  return row ? (JSON.parse(row.rules) as AdvancementRule[]) : DEFAULT_ADVANCEMENT
 }
+
+// Which rounds an event of this size needs, and how many each recalls
+export const planFor = (ctx: Ctx, competitionId: string, entryCount: number) => planForEntries(advancementOf(ctx, competitionId), entryCount)
 
 export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): PaymentDetail {
   const lines = ctx.db

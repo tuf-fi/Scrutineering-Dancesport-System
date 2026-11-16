@@ -379,6 +379,13 @@
       "when": 1794725520708,
       "tag": "0053_round_sets",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "6",
+      "when": 1794796324465,
+      "tag": "0054_advancement_rules",
+      "breakpoints": true
     }
   ]
 }

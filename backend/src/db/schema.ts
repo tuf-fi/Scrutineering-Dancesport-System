@@ -267,6 +267,15 @@ export const programSlots = sqliteTable(
   (t) => [index('program_slots_order').on(t.competitionId, t.sequence)],
 )
 
+// The scrutineer's table of how many couples go through each round, by how many entered: a JSON list of AdvancementRule.
+// One row at most per competition; none means the built-in default.
+export const advancementRules = sqliteTable('advancement_rules', {
+  competitionId: text('competition_id')
+    .primaryKey()
+    .references(() => competitions.id, { onDelete: 'cascade' }),
+  rules: text('rules').notNull(),
+})
+
 // When a competition's running order starts, "HH:MM"; each slot's time is worked out from it. One row at most per
 // competition. It is a table of its own, not a column, so it travels to the cloud with the slots.
 export const programStarts = sqliteTable('program_starts', {

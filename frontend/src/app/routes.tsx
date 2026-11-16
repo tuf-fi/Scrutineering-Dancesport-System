@@ -40,6 +40,7 @@ import { LivePage } from '../features/scrutineer/LivePage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
 import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
+import { AdvancementPage } from '../features/scrutineer/AdvancementPage.tsx'
 import { PanelsPage } from '../features/secretariat/PanelsPage.tsx'
 import { CertificatesPage } from '../features/print/CertificatesPage.tsx'
 import { BlankSheetsPage } from '../features/print/BlankSheetsPage.tsx'
@@ -242,6 +243,7 @@ export const routes: RouteObject[] = [
                   { path: 'schedule', element: <SchedulePage /> },
                   { path: 'program', element: <ProgramPage /> },
                   { path: 'panels', element: <PanelsPage /> },
+                  { path: 'advancement', element: <AdvancementPage /> },
                 ],
               },
               { path: 'live', element: <LivePage /> },

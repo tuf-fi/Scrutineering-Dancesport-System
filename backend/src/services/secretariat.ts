@@ -43,6 +43,7 @@ import {
   roundsOfEvent,
   toCompetitor,
   toEvent,
+  planFor,
 } from './shared.ts'
 
 const teamNames = (ctx: Ctx) => new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
@@ -134,6 +135,7 @@ function scheduleOf(ctx: Ctx, competitionId: string): ScheduleItem[] {
       isSolo: event.isSolo,
       entryCount: activeEntryRows(ctx, event.id).length,
       rounds: roundsOfEvent(ctx, event.id).map((r) => ({ type: r.type, status: r.status, recall: r.recallNumber })),
+      suggested: planFor(ctx, competitionId, activeEntryRows(ctx, event.id).length),
     }))
 }
 

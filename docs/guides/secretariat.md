@@ -38,7 +38,8 @@ The fees come from the registration fees the admin set (the organizer's 2026 ent
 1. **Athletes**: check names and teams. **Import CSV** adds a list; **Add athlete** adds one.
 2. Assign back numbers: **Assign back numbers** gives every competitor one. Change a single one with **Set back number** in the athlete's side panel.
 3. **Events**: check each event's entries. **Schedule**: put the events in running order.
-4. **Program**: if only some of an event's adjudicators judge each round (for example 5 of 7), press **Rotate adjudicators** and enter how many judge a round; the program shows each round's adjudicators in **Adj.** and you can change one round with its adjudicators icon. Only those adjudicators mark that round.
+4. **Rounds**: how many couples go through each round comes from the scrutineer's **Advancement** table (by number of entries). In an event's Rounds dialog, **Use the table** puts its rounds back; you can still change one event until it starts.
+5. **Program**: if only some of an event's adjudicators judge each round (for example 5 of 7), press **Rotate adjudicators** and enter how many judge a round; the program shows each round's adjudicators in **Adj.** and you can change one round with its adjudicators icon. Only those adjudicators mark that round.
 
 ## On the day
 - **Late entries**: add a dancer to an event. Choose whether they paid cash at the venue; a late entry that has not paid cannot dance.
