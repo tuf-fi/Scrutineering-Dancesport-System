@@ -131,6 +131,7 @@ export const getPaymentDetails = () => call<PaymentDetail[]>('getPaymentDetails'
 export const getPointsTable = () => call<PointsRow[]>('getPointsTable')
 export const getCatalog = () => call<Catalog>('getCatalog')
 export const getSiteSettings = () => call<SiteSettings>('getSiteSettings')
+export const saveSignInImage = (_actorId: string, image: string | null) => call<SiteSettings>('saveSignInImage', image)
 export const saveHeroImage = (_actorId: string, image: string | null) => call<SiteSettings>('saveHeroImage', image)
 export const getBarkerBoard = () => call<BarkerBoard>('getBarkerBoard')
 export const getBicolAthleteIds = () => call<string[]>('getBicolAthleteIds')

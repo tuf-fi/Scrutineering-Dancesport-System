@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Brand } from '../../components/Brand.tsx'
 import { Skeleton } from '../../components/ui/index.ts'
-import { useUpcomingCompetitions } from '../../hooks/index.ts'
+import { useSiteSettings, useUpcomingCompetitions } from '../../hooks/index.ts'
 import { HERO_IMAGE } from '../../lib/hero.ts'
 import { formatDate } from '../../lib/format.ts'
 
@@ -83,6 +83,7 @@ export function AuthShell({
   footer?: ReactNode
 }) {
   const [heroFailed, setHeroFailed] = useState(false)
+  const settings = useSiteSettings()
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
@@ -106,7 +107,7 @@ export function AuthShell({
 
       <aside className="sticky top-0 hidden h-dvh self-start overflow-hidden bg-black lg:block">
         {!heroFailed && (
-          <img src={HERO_IMAGE} alt="" onError={() => setHeroFailed(true)} className="absolute inset-0 size-full object-cover opacity-80" />
+          <img src={settings.data?.signInImage ?? HERO_IMAGE} alt="" onError={() => setHeroFailed(true)} className="absolute inset-0 size-full object-cover opacity-80" />
         )}
         <div className="absolute left-0 top-0 bg-black px-10 py-3">
           <Brand size="md" plate={false} />

@@ -177,6 +177,7 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
       place: r.rank,
       shared: false,
       dancePlaces: [],
+      danceX: dancesIn(roundMarks).map((dance) => ({ dance, count: roundMarks.filter((m) => m.competitorId === r.competitorId && m.dance === dance).length })),
       decidedBy: null,
     }))
     rows.sort((a, b) => b.total - a.total || byBackNumber(a, b))
@@ -211,6 +212,7 @@ function skatingTable(ctx: Ctx, roundId: string): SkatingTable {
     place: r.announcedPlace,
     shared: r.shared,
     dancePlaces: single ? [] : final.dances.map((d) => ({ dance: d.dance, place: r.dancePlaces[d.dance] ?? 0 })),
+    danceX: [],
     decidedBy: r.decidedBy,
   }))
   rows.sort((a, b) => a.place - b.place || byBackNumber(a, b))

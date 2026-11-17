@@ -23,6 +23,7 @@ export const API_FUNCTIONS = [
   'getDeleteImpact',
   'getSiteSettings',
   'saveHeroImage',
+  'saveSignInImage',
   'getAdjudicatorPins',
   'getAdjudicatorState',
   'getAdjudicators',

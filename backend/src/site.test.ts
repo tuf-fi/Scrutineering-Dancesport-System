@@ -16,7 +16,7 @@ afterAll(() => app.close())
 
 describe('the home page picture', () => {
   it('starts on the built-in picture, readable by anyone', async () => {
-    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null })
+    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: null })
   })
 
   it('is changed and reset by the admin only, and only to a real picture', async () => {
@@ -25,9 +25,18 @@ describe('the home page picture', () => {
     expect((await app.call('saveHeroImage', ['data:image/svg+xml;base64,PHN2Zz4='], admin)).status).toBe(400)
 
     await app.ok('saveHeroImage', [picture], admin)
-    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: picture })
+    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: picture, signInImage: null })
 
     await app.ok('saveHeroImage', [null], admin)
-    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null })
+    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: null })
+  })
+
+  it('keeps a separate picture for the sign-in pages, changed by the admin only', async () => {
+    expect((await app.call('saveSignInImage', [picture], secretariat)).status).toBe(403)
+    expect((await app.call('saveSignInImage', ['not a picture'], admin)).status).toBe(400)
+    await app.ok('saveSignInImage', [picture], admin)
+    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: picture })
+    await app.ok('saveSignInImage', [null], admin)
+    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: null })
   })
 })

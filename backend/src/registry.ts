@@ -113,6 +113,7 @@ const access: Record<string, Access> = {
   getCatalog: 'public',
   getSiteSettings: 'public',
   saveHeroImage: ADMIN,
+  saveSignInImage: ADMIN,
   getRankingPoints: 'public',
   getBicolAthleteIds: 'public',
   getCompetitorHistory: 'public',

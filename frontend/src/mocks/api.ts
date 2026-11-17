@@ -199,12 +199,19 @@ const catalog = () => ({ kinds: eventKinds, ageGroups: [...ageGroups].sort(byAge
 export const getCatalog = () => reply(catalog())
 
 let heroImage: string | null = null
-export const getSiteSettings = () => reply<SiteSettings>({ heroImage })
+let signInImage: string | null = null
+export const getSiteSettings = () => reply<SiteSettings>({ heroImage, signInImage })
 export const saveHeroImage = (actorId: string, image: string | null) =>
   settle<SiteSettings>(() => {
     heroImage = image
     record(actorId, image ? 'Changed the home page picture' : 'Reset the home page picture', 'Home page')
-    return { heroImage }
+    return { heroImage, signInImage }
+  })
+export const saveSignInImage = (actorId: string, image: string | null) =>
+  settle<SiteSettings>(() => {
+    signInImage = image
+    record(actorId, image ? 'Changed the sign-in picture' : 'Reset the sign-in picture', 'Home page')
+    return { heroImage, signInImage }
   })
 
 // TODO: the sample has no barker account, so its board is empty

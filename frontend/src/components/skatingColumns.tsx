@@ -36,8 +36,17 @@ export function skatingColumns(table: SkatingTable) {
       cell: (r: SkatingRow) => r.marks[a.id] ?? '–',
       mono: true,
       align: 'right' as const,
-      group: isPlacing ? 'Placings' : 'X marks',
+      group: isPlacing ? 'Placings' : table.rows[0]?.danceX.length ? `X marks, all ${table.rows[0].danceX.length} dances` : 'X marks',
     })),
+    ...(isPlacing ? [] : (table.rows[0]?.danceX ?? []).map((d, i) => ({
+      key: `x-${d.dance}`,
+      header: DANCE_LABEL[d.dance],
+      cell: (r: SkatingRow) => r.danceX[i]?.count ?? '',
+      mono: true,
+      align: 'right' as const,
+      hideBelow: 'md' as const,
+      group: 'X marks per dance',
+    }))),
     ...(isPlacing
       ? Array.from({ length: table.places }, (_, i) => ({
           key: `maj-${i + 1}`,

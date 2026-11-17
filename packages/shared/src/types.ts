@@ -939,6 +939,8 @@ export interface SkatingRow {
   shared: boolean
   // Multi-dance final: the place in each dance, and the rule that decided the overall place
   dancePlaces: Array<{ dance: Dance; place: number }>
+  // Recall round: how many adjudicators marked this competitor in each dance
+  danceX: Array<{ dance: Dance; count: number }>
   decidedBy: 'total' | 'rule10' | 'rule11' | 'shared' | null
 }
 
@@ -1122,6 +1124,8 @@ export interface DeleteImpact {
 export interface SiteSettings {
   // A data URL, or null for the built-in picture
   heroImage: string | null
+  // The picture beside the sign-in forms; null for the built-in one
+  signInImage: string | null
 }
 
 // ---- The public report of one event, in the order of the printed result sheet ----

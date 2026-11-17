@@ -116,4 +116,6 @@ export const useRevokeSessions = () =>
 
 export const useSiteSettings = () => useQuery({ queryKey: ['site-settings'], queryFn: api.getSiteSettings, staleTime: 5 * 60_000 })
 
+export const useSaveSignInImage = () => useWrite((image: string | null) => api.saveSignInImage(actor(), image), () => [['site-settings']])
+
 export const useSaveHeroImage = () => useWrite((image: string | null) => api.saveHeroImage(actor(), image), () => [['site-settings']])
