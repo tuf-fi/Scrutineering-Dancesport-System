@@ -939,8 +939,8 @@ export interface SkatingRow {
   shared: boolean
   // Multi-dance final: the place in each dance, and the rule that decided the overall place
   dancePlaces: Array<{ dance: Dance; place: number }>
-  // Recall round: how many adjudicators marked this competitor in each dance
-  danceX: Array<{ dance: Dance; count: number }>
+  // More than one dance: each dance's marks by adjudicator, its place, and in a final the Skating System working (counts per column, the ticked column)
+  byDance: Array<{ dance: Dance; marks: Record<Id, number | null>; place: number | null; majority: number[]; placedColumn: number | null }>
   decidedBy: 'total' | 'rule10' | 'rule11' | 'shared' | null
 }
 

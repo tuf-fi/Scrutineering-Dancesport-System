@@ -101,7 +101,7 @@ function PlacedTable({ rows, label }: { rows: EventReportPlaced[]; label: string
   const columns: Column<EventReportPlaced>[] = [
     { key: 'place', header: 'Place', cell: placeText, mono: true, widthClass: 'w-32' },
     { key: 'who', header: 'Participant', cell: who },
-    { key: 'no', header: 'No.', cell: (r) => r.backNumber ?? '–', mono: true, align: 'right', widthClass: 'w-24' },
+    { key: 'no', header: 'No.', cell: (r) => r.backNumber ?? '–', mono: true, align: 'center', widthClass: 'w-24' },
   ]
   return (
     <Table<EventReportPlaced>
@@ -174,7 +174,7 @@ function MarksTable({ round, danceIndex }: { round: EventReportRound; danceIndex
       ]
     : [
         { key: 'x', header: 'X', cell: (r) => r.total, mono: true, align: 'center', bold: true },
-        { key: 'through', header: 'Recalled', cell: (r) => (r.recalled ? 'Yes' : 'No'), muted: true, align: 'right' },
+        { key: 'through', header: 'Recalled', cell: (r) => (r.recalled ? 'Yes' : 'No'), muted: true, align: 'center' },
       ]
   const columns: Column<MarkRow>[] = [{ key: 'no', header: 'No.', cell: (r) => r.backNumber ?? '–', mono: true, widthClass: 'w-20' }, ...letters, ...tail]
   return (

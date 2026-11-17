@@ -49,6 +49,8 @@ export function Showing({ page, pageSize, total }: Pick<PaginationProps, 'page' 
 // The pager, centred under the table; it also says which rows are showing unless <Showing> already does
 export function Pagination({ page, pageSize, total, onPageChange, label = 'Pagination', showSummary = true, className }: PaginationProps) {
   const pages = Math.max(1, Math.ceil(total / pageSize))
+  // One page needs no pager
+  if (pages <= 1) return null
 
   return (
     <nav

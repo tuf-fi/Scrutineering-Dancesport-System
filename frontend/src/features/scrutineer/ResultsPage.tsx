@@ -1,11 +1,10 @@
-import { RoundStatus, type SkatingRow } from '@bis/shared'
+import { RoundStatus } from '@bis/shared'
 import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
-import { skatingColumns } from '../../components/skatingColumns.tsx'
+import { SkatingTables } from '../../components/SkatingTables.tsx'
 import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
-import { Button, ButtonLink, Dialog, ErrorState, PageHeader, SkeletonList, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, ButtonLink, Dialog, ErrorState, PageHeader, SkeletonList, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
-import { competitorName } from '../../lib/format.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
 import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
@@ -93,15 +92,7 @@ export function ResultsPage() {
         <SkeletonList rows={5} />
       ) : (
         <>
-          <Table<SkatingRow>
-            rows={skating.data.rows}
-            rowKey={(r) => r.competitorId}
-            minWidthClass="min-w-[36rem]"
-            paginationLabel="Results pagination"
-            detailTitle={(r) => competitorName(r.names)}
-            empty={{ title: 'No marks yet', description: 'The table fills in as adjudicators submit.' }}
-            columns={skatingColumns(skating.data)}
-          />
+          <SkatingTables table={skating.data} />
           {!skating.data.complete && (
             <p className="text-xs text-neutral-500">Provisional until every adjudicator has submitted.</p>
           )}

@@ -70,6 +70,8 @@ interface TableProps<T> {
   paginationLabel?: string
   // plain: no box around the table, mono column labels and hairline rows, like the public lists
   variant?: 'card' | 'plain'
+  // Tighter cells, for tables with many narrow columns
+  dense?: boolean
   className?: string
 }
 
@@ -100,6 +102,7 @@ export function Table<T>({
   minWidthClass = 'min-w-[34rem]',
   paginationLabel,
   variant = 'card',
+  dense = false,
   className,
 }: TableProps<T>) {
   const plain = variant === 'plain'
@@ -171,7 +174,7 @@ export function Table<T>({
                   scope="col"
                   className={cn(
                     'sticky top-0 z-10 whitespace-nowrap border-b border-neutral-200',
-                    plain ? 'bg-white px-3 py-3 font-mono text-xs font-normal uppercase text-neutral-500' : 'bg-neutral-50 px-4 py-3.5 text-xs font-medium uppercase tracking-wider text-neutral-500 first:pl-6 last:pr-6',
+                    plain ? 'bg-white px-3 py-3 font-mono text-xs font-normal uppercase text-neutral-500' : cn('bg-neutral-50 text-xs font-medium uppercase tracking-wider text-neutral-500', dense ? 'px-2.5 py-3 first:pl-4 last:pr-4' : 'px-4 py-3.5 first:pl-6 last:pr-6'),
                     c.bold && 'font-bold text-neutral-900',
                     align[c.align ?? 'left'],
                     c.hideBelow && hide[c.hideBelow],
@@ -248,7 +251,7 @@ export function Table<T>({
                       <td
                         key={c.key}
                         className={cn(
-                          plain ? 'px-3 py-4' : 'px-4 py-4 first:pl-6 last:pr-6',
+                          plain ? 'px-3 py-4' : dense ? 'px-2.5 py-3 first:pl-4 last:pr-4' : 'px-4 py-4 first:pl-6 last:pr-6',
                           !c.wrap && 'sm:whitespace-nowrap',
                           c.muted ? 'text-neutral-600' : 'text-neutral-900',
                           align[c.align ?? 'left'],

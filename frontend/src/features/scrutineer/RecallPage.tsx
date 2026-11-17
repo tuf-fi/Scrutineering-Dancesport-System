@@ -247,7 +247,7 @@ export function RecallPage() {
               { key: 'rank', header: '#', cell: (r) => r.rank, mono: true, widthClass: 'w-16' },
               { key: 'back', header: 'Back no.', cell: (r) => r.backNumber ?? '–', mono: true },
               { key: 'who', header: 'Competitor', cell: (r) => <span className="font-medium">{competitorName(r.names)}</span>, hideBelow: 'sm' },
-              { key: 'x', header: 'X marks', cell: (r) => r.xCount, mono: true, bold: true, align: 'right' },
+              { key: 'x', header: 'X marks', cell: (r) => r.xCount, mono: true, bold: true, align: 'center' },
               {
                 key: 'outcome',
                 header: 'Outcome',

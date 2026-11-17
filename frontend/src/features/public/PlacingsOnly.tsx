@@ -42,7 +42,7 @@ export function PlacingsOnly({ eventId }: { eventId: string }) {
         )
       },
     },
-    { key: 'no', header: 'No.', cell: (r) => people.get(r.competitorId)?.backNumber ?? '–', mono: true, align: 'right', widthClass: 'w-24' },
+    { key: 'no', header: 'No.', cell: (r) => people.get(r.competitorId)?.backNumber ?? '–', mono: true, align: 'center', widthClass: 'w-24' },
   ]
 
   return (

@@ -175,7 +175,7 @@ function HeatEditor({
           {
             key: 'heat',
             header: 'Heat',
-            align: 'right',
+            align: 'center',
             widthClass: 'w-36',
             cell: (r) =>
               editable ? (

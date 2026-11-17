@@ -99,7 +99,7 @@ export function CompetitionsPage() {
             header: 'Events',
             cell: (c) => eventCount(c.id) ?? '–',
             mono: true,
-            align: 'right',
+            align: 'center',
             hideBelow: 'sm',
           },
           {

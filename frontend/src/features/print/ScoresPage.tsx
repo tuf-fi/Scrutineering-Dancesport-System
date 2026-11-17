@@ -55,12 +55,12 @@ export function ScoresPage() {
                     <td className={`${td} ${num}`}>{r.backNumber}</td>
                     <td className={td}>{competitorName(r.names)}</td>
                     {data.adjudicators.map((a) => (
-                      <td key={a.id} className={`${td} ${num} text-right`}>
+                      <td key={a.id} className={`${td} ${num} text-center`}>
                         {r.marks[a.id] ?? ''}
                       </td>
                     ))}
-                    {placing && r.majority.map((m, i) => <td key={i} className={`${td} ${num} text-right`}>{m}{r.placedColumn === i + 1 ? ' ✓' : ''}</td>)}
-                    {!placing && <td className={`${td} ${num} text-right font-bold`}>{r.total}</td>}
+                    {placing && r.majority.map((m, i) => <td key={i} className={`${td} ${num} text-center`}>{m}{r.placedColumn === i + 1 ? ' ✓' : ''}</td>)}
+                    {!placing && <td className={`${td} ${num} text-center font-bold`}>{r.total}</td>}
                   </tr>
                 ))}
               </tbody>

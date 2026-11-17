@@ -199,10 +199,10 @@ export function skatingTable(roundId: string): SkatingTable {
   const markedBy = new Set(roundMarks.map((m) => m.adjudicatorId))
   const complete = panel.length > 0 && panel.every((id) => markedBy.has(id))
 
-  const cellsFor = (competitorId: string) => {
+  const cellsFor = (competitorId: string, only?: string) => {
     const cells: Record<string, number | null> = {}
     for (const { id } of adjudicatorList) {
-      const own = roundMarks.filter((m) => m.adjudicatorId === id && m.competitorId === competitorId)
+      const own = roundMarks.filter((m) => m.adjudicatorId === id && m.competitorId === competitorId && (!only || m.dance === only))
       cells[id] = markedBy.has(id) ? own.reduce((sum, m) => sum + (m.kind === 'placing' ? m.placing : 1), 0) : null
     }
     return cells
@@ -215,6 +215,7 @@ export function skatingTable(roundId: string): SkatingTable {
       names: person(competitorId)?.names ?? [],
       marks,
       total: Object.values(marks).reduce<number>((sum, v) => sum + (v ?? 0), 0),
+      byDance: dancesIn(roundMarks).length > 1 ? dancesIn(roundMarks).map((dance) => ({ dance, place: null as number | null, majority: [] as number[], placedColumn: null as number | null, marks: cellsFor(competitorId, dance) })) : [],
     }
   }
   const byBackNumber = (a: SkatingRow, b: SkatingRow) => (a.backNumber ?? 0) - (b.backNumber ?? 0)
@@ -229,7 +230,6 @@ export function skatingTable(roundId: string): SkatingTable {
       place: r.rank,
       shared: false,
       dancePlaces: [],
-      danceX: dancesIn(roundMarks).map((dance) => ({ dance, count: roundMarks.filter((m) => m.competitorId === r.competitorId && m.dance === dance).length })),
       decidedBy: null,
     }))
     rows.sort((a, b) => b.total - a.total || byBackNumber(a, b))
@@ -263,7 +263,11 @@ export function skatingTable(roundId: string): SkatingTable {
     place: r.announcedPlace,
     shared: r.shared,
     dancePlaces: single ? [] : final.dances.map((d) => ({ dance: d.dance, place: r.dancePlaces[d.dance] ?? 0 })),
-    danceX: [],
+    byDance: base(r.competitorId).byDance.map((b) => {
+      const own = final.dances.find((d) => d.dance === b.dance)
+      const check = own ? explainDance(own.result)[r.competitorId] : undefined
+      return { ...b, place: r.dancePlaces[b.dance] ?? null, majority: (own?.result.columns[r.competitorId] ?? []).map((c) => c.count), placedColumn: check?.column ?? null }
+    }),
     decidedBy: r.decidedBy,
   }))
   rows.sort((a, b) => a.place - b.place || byBackNumber(a, b))

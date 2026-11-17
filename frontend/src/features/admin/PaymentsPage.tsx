@@ -124,7 +124,7 @@ export function PaymentsPage() {
             header: 'Entries',
             cell: (p) => p.lines.length,
             mono: true,
-            align: 'right',
+            align: 'center',
             hideBelow: 'sm',
           },
           { key: 'due', header: 'Amount due', cell: (p) => formatPeso(p.amountDue), mono: true, align: 'right' },

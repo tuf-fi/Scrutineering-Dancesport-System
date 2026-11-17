@@ -21,11 +21,10 @@ describe('Pagination', () => {
     expect(screen.getByText('34')).toBeInTheDocument()
   })
 
-  it('shows 0–0 for an empty list and stays on one page', () => {
-    render(<Pagination page={1} pageSize={10} total={0} onPageChange={() => {}} />)
-    expect(screen.getByText('0–0')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled()
+  it('shows nothing when everything fits on one page', () => {
+    const { container } = render(<Pagination page={1} pageSize={10} total={10} onPageChange={() => {}} />)
+    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByRole('button', { name: 'Next page' })).not.toBeInTheDocument()
   })
 
   it('disables previous on the first page and next on the last', () => {
@@ -63,12 +62,10 @@ describe('Pagination', () => {
 })
 
 describe('Table pagination', () => {
-  it('never shows more than 10 rows, and always has a pager', () => {
+  it('never shows more than 10 rows, and has no pager for one page', () => {
     render(<NumberTable rows={numbers(7)} />)
     expect(bodyRows()).toHaveLength(7)
-    // Even a short list gets the pager, so the layout is the same everywhere
-    expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
-    expect(screen.getByText('1–7')).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
   })
 
   it('splits 25 rows into pages of 10, 10 and 5', async () => {
@@ -89,7 +86,7 @@ describe('Table pagination', () => {
   it('shows exactly 10 rows when there are exactly 10, on a single page', () => {
     render(<NumberTable rows={numbers(10)} />)
     expect(bodyRows()).toHaveLength(10)
-    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Next page' })).not.toBeInTheDocument()
   })
 
   it('goes back to the first page when the rows change, as with a search', async () => {

@@ -202,7 +202,7 @@ function Dancers() {
               },
               { key: 'number', header: 'Back no.', mono: true, cell: (r) => (r.backNumber === null ? '–' : String(r.backNumber).padStart(3, '0')) },
               { key: 'team', header: 'Team', muted: true, hideBelow: 'sm', cell: (r) => r.teamName },
-              { key: 'entries', header: 'Entries', align: 'right', mono: true, cell: (r) => r.entries },
+              { key: 'entries', header: 'Entries', align: 'center', mono: true, cell: (r) => r.entries },
             ]}
           />
         </>

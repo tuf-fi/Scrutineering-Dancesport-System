@@ -1,8 +1,6 @@
-import type { SkatingRow } from '@bis/shared'
-import { skatingColumns } from '../../components/skatingColumns.tsx'
-import { ErrorState, SkeletonList, Table } from '../../components/ui/index.ts'
+import { SkatingTables } from '../../components/SkatingTables.tsx'
+import { ErrorState, SkeletonList } from '../../components/ui/index.ts'
 import { useSkatingTable } from '../../hooks/index.ts'
-import { competitorName } from '../../lib/format.ts'
 
 // A published final's marks, with a tick where each place was decided, so competitors can follow the working
 export function FinalMarks({ roundId }: { roundId: string }) {
@@ -17,16 +15,7 @@ export function FinalMarks({ roundId }: { roundId: string }) {
       {!table.data ? (
         <SkeletonList rows={5} />
       ) : (
-        <Table<SkatingRow>
-          variant="plain"
-          rows={table.data.rows}
-          rowKey={(r) => r.competitorId}
-          minWidthClass="min-w-[36rem]"
-          paginationLabel="Marks pagination"
-          detailTitle={(r) => competitorName(r.names)}
-          empty={{ title: 'No marks yet', description: 'The marks appear once the results are published.' }}
-          columns={skatingColumns(table.data)}
-        />
+        <SkatingTables table={table.data} variant="plain" />
       )}
     </section>
   )
