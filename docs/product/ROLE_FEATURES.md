@@ -128,10 +128,10 @@ Only **published** results are public. A round that is still being marked or has
 
 | Screen | Path | What you can do |
 | --- | --- | --- |
-| Announcer | `/compere` | Read the announcements of the round just **published**: places in order, last place first, in very large type. **Next announcement** and **Previous announcement** move through them; the program is shown too |
+| Announcer | `/compere` | Read the announcements of the round just **published**: places in order, last place first, in very large type. **Next announcement** and **Previous announcement** move through them; the program is shown too. Key **6**, **Live**, shows a card for every round on the floor with how many adjudicators have submitted (never their marks); when a round is published while Live is up, its Results slide comes up by itself |
 | Account | `/account` | Change your name and password; turn on two-step sign-in. The scrutineer and the chairperson see their **signature** here and can change it (draw it or upload a picture). It prints on the final results and the certificates. They must add it on their first sign-in, and an account made before signatures existed is asked for it the next time it signs in |
 
-Nothing shows until the scrutineer publishes a round. The compere changes nothing about the competition and gets no pop-ups.
+Slides appear when the scrutineer publishes a round; the Live view only shows progress. The compere changes nothing about the competition and gets no pop-ups.
 
 ---
 

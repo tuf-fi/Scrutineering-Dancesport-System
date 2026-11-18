@@ -90,9 +90,10 @@ describe('what guests may not see', () => {
     expect(await withDetails(cookies.secretariat)).toBeGreaterThan(0)
   })
 
-  it('keeps the compere to announcements, and marks away from the admin', async () => {
+  it('keeps the compere to announcements and progress, and marks away from the admin', async () => {
     expect((await app.call('getEntryRows', [], cookies.compere)).status).toBe(403)
-    expect((await app.call('getSubmissions', ['x'], cookies.compere)).status).toBe(403)
+    // The compere's live view shows how many adjudicators have submitted, never their marks
+    expect((await app.call('getSubmissions', ['x'], cookies.compere)).status).not.toBe(403)
     expect((await app.call('getAnnouncements', [], cookies.compere)).status).toBe(200)
     expect((await app.call('getMarks', ['x'], cookies.admin)).status).toBe(403)
   })

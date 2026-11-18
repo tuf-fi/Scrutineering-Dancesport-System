@@ -12,6 +12,7 @@ import { ROUND_TYPE_LABEL, eventDances, ordinal } from '../../lib/format.ts'
 import { AccountMenu } from '../../app/layouts/AccountMenu.tsx'
 import { useSignOut } from '../../app/useSignOut.ts'
 import { useAuth } from '../../stores/auth.ts'
+import { CompereLive } from './CompereLive.tsx'
 import { CompereProgram } from './CompereProgram.tsx'
 
 // Built for an LED wall: every size is in vmin so it holds on 16:9 and ultra-wide, a deep brown ground with
@@ -25,6 +26,7 @@ const MODES: Array<{ kind: Announcement['kind']; label: string; key: string }> =
 ]
 
 const PROGRAM_KEY = '5'
+const LIVE_KEY = '6'
 
 const EYEBROW: Record<Announcement['kind'], string> = {
   call: 'Next to the floor',
@@ -425,7 +427,7 @@ export function CompereHome() {
   const competitions = useCompetitions()
   const [asked, setAsked] = useState(0)
   // Key 5 shows the running order instead of a slide; any slide control brings the slides back
-  const [view, setView] = useState<'slides' | 'program'>('slides')
+  const [view, setView] = useState<'slides' | 'program' | 'live'>('slides')
   const [awake, setAwake] = useState(true)
   const [host, setHost] = useState<HTMLDivElement | null>(null)
   const items = useMemo(() => data ?? [], [data])
@@ -435,7 +437,25 @@ export function CompereHome() {
   const competitionName = latest?.name
   const program = useProgram(latest?.id ?? '')
   // Before the first announcement the running order is what the announcer needs, if there is one
-  const showProgram = view === 'program' || (!current && (program.data?.rows.length ?? 0) > 0)
+  const showLive = view === 'live'
+  const showProgram = !showLive && (view === 'program' || (!current && (program.data?.rows.length ?? 0) > 0))
+  // Both are whole screens of their own, not slides
+  const offSlides = showLive || showProgram
+
+  // While the live board is up, results that get published bring the Results slide up by themselves
+  const seenResults = useRef<Set<string> | null>(null)
+  useEffect(() => {
+    if (!data) return
+    const ids = new Set(items.filter((a) => a.kind === 'results').map((a) => a.id))
+    const seen = seenResults.current
+    seenResults.current = ids
+    if (!seen || view !== 'live') return
+    const fresh = items.findIndex((a) => a.kind === 'results' && !seen.has(a.id))
+    if (fresh >= 0) {
+      setView('slides')
+      setAsked(fresh)
+    }
+  }, [data, items, view])
 
   const go = useCallback(
     (to: number) => {
@@ -497,6 +517,7 @@ export function CompereHome() {
       else if (e.key === 'End') go(items.length - 1)
       else if (mode) jump(mode.kind)
       else if (e.key === PROGRAM_KEY) setView('program')
+      else if (e.key === LIVE_KEY) setView('live')
       else if (e.key.toLowerCase() === 'f') fullscreen()
     }
     window.addEventListener('keydown', onKey)
@@ -518,7 +539,7 @@ export function CompereHome() {
           disabled={!items.some((a) => a.kind === m.kind)}
           className={cn(
             'rounded-md px-3 py-2 transition-colors hover:text-white disabled:opacity-30',
-            !showProgram && (current?.kind === 'result' ? 'results' : current?.kind) === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
+            !offSlides && (current?.kind === 'result' ? 'results' : current?.kind) === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
           )}
         >
           <span className="mr-2 font-mono text-xs opacity-70">{m.key}</span>
@@ -533,9 +554,17 @@ export function CompereHome() {
         <span className="mr-2 font-mono text-xs opacity-70">{PROGRAM_KEY}</span>
         Program
       </button>
+      <button
+        type="button"
+        onClick={() => setView('live')}
+        className={cn('rounded-md px-3 py-2 transition-colors hover:text-white', showLive ? 'font-semibold text-gold-400' : 'text-brown-100')}
+      >
+        <span className="mr-2 font-mono text-xs opacity-70">{LIVE_KEY}</span>
+        Live
+      </button>
     </div>
     <div className="flex items-center gap-1">
-      {!showProgram && (
+      {!offSlides && (
         <p aria-label="Up next" className="mr-3 flex items-baseline gap-2 border-r border-white/10 pr-4 text-small">
           <span className="font-mono text-xs uppercase tracking-[0.12em] text-brown-100">Up next</span>
           {items[index + 1] ? (
@@ -548,10 +577,10 @@ export function CompereHome() {
           )}
         </p>
       )}
-      <button type="button" aria-label="Previous announcement" disabled={items.length === 0 || (index === 0 && !showProgram)} onClick={() => go(index - 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
+      <button type="button" aria-label="Previous announcement" disabled={items.length === 0 || (index === 0 && !offSlides)} onClick={() => go(index - 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
         <ChevronLeft aria-hidden className="size-5" />
       </button>
-      <button type="button" aria-label="Next announcement" disabled={items.length === 0 || (index === items.length - 1 && !showProgram)} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
+      <button type="button" aria-label="Next announcement" disabled={items.length === 0 || (index === items.length - 1 && !offSlides)} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
         <ChevronRight aria-hidden className="size-5" />
       </button>
       <button type="button" aria-label="Full screen" onClick={fullscreen} className="grid size-10 place-items-center rounded-md hover:text-white">
@@ -571,7 +600,7 @@ export function CompereHome() {
     )
   }
 
-  if (!current && !showProgram) {
+  if (!current && !showProgram && !showLive) {
     return (
       <div className="relative flex flex-1 items-center">
         {controls}
@@ -587,7 +616,7 @@ export function CompereHome() {
 
   return (
     <div ref={setHost} className={cn('relative flex flex-1 flex-col gap-[3.5vmin]', !awake && 'cursor-none')}>
-      {!showProgram && (
+      {!offSlides && (
         <div aria-hidden className="fixed inset-x-0 top-0 h-[0.5vmin] bg-white/10">
           <div className="h-full bg-gold-400 transition-[width] duration-300" style={{ width: `${((index + 1) / items.length) * 100}%` }} />
         </div>
@@ -597,7 +626,7 @@ export function CompereHome() {
         <img src={logo} alt="BIS" className="h-[7vmin] w-auto select-none" />
         <div className="flex items-baseline gap-[3vmin] text-[2.1vmin] font-medium text-brown-100">
           <span>{competitionName}</span>
-          {!showProgram && (
+          {!offSlides && (
             <span className="font-mono tabular-nums text-white" role="status">
               {index + 1} / {items.length}
             </span>
@@ -605,7 +634,11 @@ export function CompereHome() {
         </div>
       </div>
 
-      {showProgram || !current ? (
+      {showLive ? (
+        <div key="live" className="flex flex-1 animate-fade-in flex-col">
+          <CompereLive competitionId={latest?.id ?? ''} />
+        </div>
+      ) : showProgram || !current ? (
         <div key="program" className="flex flex-1 animate-fade-in flex-col">
           <CompereProgram program={program.data} error={program.isError} />
         </div>

@@ -153,7 +153,7 @@ const access: Record<string, Access> = {
   // The compere's screen reads only this, besides the public program and results
   getAnnouncements: STAFF,
   getSignatures: OFFICIALS,
-  getSubmissions: OFFICIALS,
+  getSubmissions: STAFF,
   getRedances: OFFICIALS,
   startRedance: SCRUTINEER,
   enterRedanceMarks: SCRUTINEER,
