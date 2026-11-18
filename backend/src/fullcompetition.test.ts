@@ -20,7 +20,7 @@ beforeAll(async () => {
   // Start from a competition nobody has run: the sample comes with some rounds already played
   app.sqlite.exec(`
     DELETE FROM tie_decisions; DELETE FROM marks; DELETE FROM submissions; DELETE FROM heat_competitors; DELETE FROM heats;
-    DELETE FROM results; DELETE FROM ranking_points; DELETE FROM rounds; UPDATE competitions SET floor_round_id = NULL;
+    DELETE FROM results; DELETE FROM ranking_points; DELETE FROM rounds; UPDATE rounds SET on_floor_at = NULL;
     UPDATE payments SET status = 'paid_at_venue' WHERE status IN ('unpaid', 'for_checking', 'rejected');
   `)
   const admin = await app.signIn.staff('admin')

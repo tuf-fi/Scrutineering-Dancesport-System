@@ -147,8 +147,9 @@ export function importDay(sqlite: Sqlite, pkg: DayPackage, options: { dryRun?: b
     }
 
     // Nothing is on the floor any more
+    sqlite.prepare('UPDATE rounds SET on_floor_at = NULL WHERE event_id IN (SELECT id FROM events WHERE competition_id = ?)').run(pkg.competitionId)
     // The laptop is done with it: the competition can be changed online again
-    sqlite.prepare('UPDATE competitions SET floor_round_id = NULL, offline_held_at = NULL WHERE id = ?').run(pkg.competitionId)
+    sqlite.prepare('UPDATE competitions SET offline_held_at = NULL WHERE id = ?').run(pkg.competitionId)
     sqlite
       .prepare('INSERT INTO audit_log (id, actor_id, action, target, "before", "after", at) VALUES (?, ?, ?, ?, NULL, NULL, ?)')
       .run(randomUUID(), 'day-import', 'Imported the competition day', pkg.competitionName, new Date().toISOString())

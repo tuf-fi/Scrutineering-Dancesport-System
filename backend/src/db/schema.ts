@@ -25,10 +25,6 @@ export const competitions = sqliteTable('competitions', {
   image: text('image'),
   // Whether entering costs money: fees and membership are asked, and an entry is paid. Off for a free competition
   paymentRequired: integer('payment_required', { mode: 'boolean' }).notNull().default(true),
-  // The round on the floor now; the scrutineer sets it
-  floorRoundId: text('floor_round_id'),
-  // When that round was put on the floor; the newest one is what a phone shows if two are open
-  floorStartedAt: text('floor_started_at'),
   // Set while a venue laptop runs this competition offline: its day data is not changed online until the day is loaded back
   offlineHeldAt: text('offline_held_at'),
 })
@@ -242,6 +238,8 @@ export const rounds = sqliteTable(
     status: text('status', { enum: oneOf(RoundStatus) }).notNull(),
     // When the scrutineer published it; the compere reads announcements in this order
     publishedAt: text('published_at'),
+    // When the scrutineer put it on the floor, null when it is not there; several rounds of a competition can be on the floor at once
+    onFloorAt: text('on_floor_at'),
   },
   (t) => [uniqueIndex('rounds_once_per_event').on(t.eventId, t.type)],
 )

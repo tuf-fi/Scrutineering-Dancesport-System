@@ -12,7 +12,7 @@ import {
   type MarkingTask,
   type RoundRow,
 } from '@bis/shared'
-import { and, asc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
@@ -29,6 +29,7 @@ import {
   openRedance,
   owedRedance,
   roundAdjudicatorIds,
+  floorRounds,
   planFor,
   roundAdvanced,
   roundsOfEvent,
@@ -117,6 +118,7 @@ export const rounds = {
         type: round.type,
         recallNumber: round.recallNumber,
         status: round.status,
+        onFloor: round.onFloorAt !== null,
         heatCount: round.type === 'final' ? 0 : heatsOfRound(ctx, round.id).length,
         entryCount,
         sequence: lines.get(`${event.id}:${round.type}`) ?? null,
@@ -153,10 +155,7 @@ export const rounds = {
 
   getCurrentRoundId(ctx: Ctx, competitionId?: string): string {
     actor(ctx)
-    const row = competitionId
-      ? competitionRow(ctx, competitionId)
-      : ctx.db.select().from(t.competitions).where(sql`${t.competitions.floorRoundId} is not null`).get()
-    return row?.floorRoundId ?? ''
+    return floorRounds(ctx, competitionId)[0]?.round.id ?? ''
   },
 
   // Puts a round on the floor: adjudicators' phones now show it
@@ -168,10 +167,19 @@ export const rounds = {
     const previous = roundsOfEvent(ctx, event.id).find((r) => r.position === round.position - 1)
     if (previous && !roundAdvanced(previous.status)) return fail('Approve the previous round first.', 409)
 
-    const competition = competitionRow(ctx, event.competitionId)
-    if (competition.floorRoundId && competition.floorRoundId !== roundId) {
-      const onFloor = ctx.db.select().from(t.rounds).where(eq(t.rounds.id, competition.floorRoundId)).get()
-      if (onFloor?.status === 'marking') return fail('Finish or clear the round on the floor first.', 409)
+    // Rounds can run side by side, but an adjudicator marks one at a time
+    const panel = roundAdjudicatorIds(ctx, round)
+    for (const other of floorRounds(ctx)) {
+      if (other.round.id === roundId || other.round.status !== 'marking') continue
+      const submitted = new Set(ctx.db.select().from(t.submissions).where(eq(t.submissions.roundId, other.round.id)).all().map((s) => s.adjudicatorId))
+      const busy = roundAdjudicatorIds(ctx, other.round).filter((id) => panel.includes(id) && !submitted.has(id))
+      if (busy.length === 0) continue
+      const letters = ctx.db.select().from(t.adjudicators).where(inArray(t.adjudicators.id, busy)).orderBy(asc(t.adjudicators.letter)).all().map((a) => a.letter)
+      const where = `E${getEventRow(ctx, other.round.eventId).number} ${other.round.type.replace(/_/g, ' ')}`
+      return fail(
+        `${letters.length === 1 ? `Adjudicator ${letters[0]} is` : `Adjudicators ${letters.join(', ')} are`} still marking ${where}. Wait until they finish, or take that round off the floor.`,
+        409,
+      )
     }
 
     const field = fieldOf(ctx, round)
@@ -185,8 +193,7 @@ export const rounds = {
     }
     if (heatsOfRound(ctx, roundId).length === 0) saveHeats(ctx, roundId, groupsFor(ctx, round, field))
 
-    ctx.db.update(t.rounds).set({ status: 'marking' }).where(eq(t.rounds.id, roundId)).run()
-    ctx.db.update(t.competitions).set({ floorRoundId: roundId, floorStartedAt: now() }).where(eq(t.competitions.id, competition.id)).run()
+    ctx.db.update(t.rounds).set({ status: 'marking', onFloorAt: now() }).where(eq(t.rounds.id, roundId)).run()
     record(ctx.db, actor(ctx).id, 'Started round', `Event ${event.number}, ${round.type}`, { before: { status: round.status }, after: { status: 'marking' } })
     ctx.defer(() => {
       ctx.hub.floor(roundId)
@@ -195,18 +202,13 @@ export const rounds = {
   },
 
   // Takes a round off the floor without finishing it, e.g. started by mistake
-  clearFloor(ctx: Ctx, competitionId?: string): void {
-    const competitions = competitionId
-      ? [competitionRow(ctx, competitionId)]
-      : ctx.db.select().from(t.competitions).where(sql`${t.competitions.floorRoundId} is not null`).all()
-    for (const competition of competitions) {
-      if (!competition.floorRoundId) continue
-      const round = ctx.db.select().from(t.rounds).where(eq(t.rounds.id, competition.floorRoundId)).get()
-      const hasMarks = round ? ctx.db.select().from(t.submissions).where(eq(t.submissions.roundId, round.id)).get() : undefined
-      if (round?.status === 'marking' && hasMarks) return fail('Adjudicators have already submitted this round, so it cannot be taken off the floor.', 409)
-      if (round?.status === 'marking') ctx.db.update(t.rounds).set({ status: 'pending' }).where(eq(t.rounds.id, round.id)).run()
-      ctx.db.update(t.competitions).set({ floorRoundId: null, floorStartedAt: null }).where(eq(t.competitions.id, competition.id)).run()
-      record(ctx.db, actor(ctx).id, 'Cleared the floor', competition.name, { before: { floorRoundId: competition.floorRoundId } })
+  clearFloor(ctx: Ctx, roundId?: string): void {
+    const onFloor = floorRounds(ctx).filter((r) => !roundId || r.round.id === roundId)
+    for (const { round } of onFloor) {
+      const hasMarks = ctx.db.select().from(t.submissions).where(eq(t.submissions.roundId, round.id)).get()
+      if (round.status === 'marking' && hasMarks) return fail('Adjudicators have already submitted this round, so it cannot be taken off the floor.', 409)
+      ctx.db.update(t.rounds).set({ onFloorAt: null, ...(round.status === 'marking' ? { status: 'pending' as const } : {}) }).where(eq(t.rounds.id, round.id)).run()
+      record(ctx.db, actor(ctx).id, 'Cleared the floor', `Event ${getEventRow(ctx, round.eventId).number}, ${round.type}`, { before: { onFloorAt: round.onFloorAt } })
     }
     ctx.defer(() => ctx.hub.floor(null))
   },
@@ -227,23 +229,19 @@ export const rounds = {
   getAdjudicatorState(ctx: Ctx): AdjudicatorState {
     const user = actor(ctx)
     // Only a round that has started and is not decided counts, so a finished round or an old competition never shows
-    const open = ctx.db
-      .select()
-      .from(t.competitions)
-      .innerJoin(t.adjudicatorPins, eq(t.adjudicatorPins.competitionId, t.competitions.id))
-      .where(eq(t.adjudicatorPins.adjudicatorId, user.id))
-      .all()
-      .flatMap((r) => {
-        if (!r.competitions.floorRoundId) return []
-        const round = ctx.db.select().from(t.rounds).where(eq(t.rounds.id, r.competitions.floorRoundId)).get()
-        if (!round || (round.status !== 'marking' && round.status !== 'review')) return []
+    const competitionIds = ctx.db.select().from(t.adjudicatorPins).where(eq(t.adjudicatorPins.adjudicatorId, user.id)).all().map((p) => p.competitionId)
+    const open = floorRounds(ctx)
+      .filter((f) => competitionIds.includes(f.competitionId))
+      .flatMap((f) => {
+        const round = f.round
+        if (round.status !== 'marking' && round.status !== 'review') return []
         if (!roundAdjudicatorIds(ctx, round).includes(user.id)) return []
         const submitted = ctx.db
           .select()
           .from(t.submissions)
           .where(and(eq(t.submissions.roundId, round.id), eq(t.submissions.adjudicatorId, user.id)))
           .get()
-        return [{ round, submitted: Boolean(submitted), owed: owedRedance(ctx, round.id, user.id), startedAt: r.competitions.floorStartedAt ?? '' }]
+        return [{ round, submitted: Boolean(submitted), owed: owedRedance(ctx, round.id, user.id), startedAt: round.onFloorAt ?? '' }]
       })
     // The most recently started round first; one still waiting for this adjudicator's marks comes before one they have sent
     open.sort((a, b) => b.startedAt.localeCompare(a.startedAt))

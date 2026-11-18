@@ -59,7 +59,7 @@ describe('only paid entries dance', () => {
       .get() as { roundId: string; entryId: string; paymentId: string } | undefined
     expect(target, 'the sample competition has a round waiting to start').toBeDefined()
     floor.sqlite.prepare("update payments set status = 'unpaid' where id = ?").run(target!.paymentId)
-    floor.sqlite.prepare('update competitions set floor_round_id = null').run()
+    floor.sqlite.prepare('update rounds set on_floor_at = null').run()
 
     const refused = await floor.call('startRound', [target!.roundId], scrutineer)
     expect(refused.status).toBe(409)

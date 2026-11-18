@@ -165,7 +165,7 @@ export function seedSampleData(db: Db) {
 
   db.transaction((tx) => {
     insertAll(data.competitions, (batch) =>
-      tx.insert(t.competitions).values(batch.map((c) => ({ ...c, image: sampleCompetitionImage(), floorRoundId: c.id === data.currentCompetitionId ? data.liveRoundId : null }))).run(),
+      tx.insert(t.competitions).values(batch.map((c) => ({ ...c, image: sampleCompetitionImage() }))).run(),
     )
     insertAll(data.teams, (batch) => tx.insert(t.teams).values(batch).run())
     insertAll(data.competitors, (batch) => tx.insert(t.competitors).values(batch).run())
@@ -226,6 +226,7 @@ export function seedSampleData(db: Db) {
       return { ...r, position: next, publishedAt }
     })
     insertAll(roundRows, (batch) => tx.insert(t.rounds).values(batch).run())
+    tx.update(t.rounds).set({ onFloorAt: new Date().toISOString() }).where(eq(t.rounds.id, data.liveRoundId)).run()
 
     // A round that has marks always has saved heats; finals are one group of whoever was marked
     const heatsByRound = new Map<string, Heat[]>()

@@ -13,6 +13,7 @@ export function Toaster() {
             'flex w-[min(24rem,calc(100vw-2rem))] items-center gap-3 rounded-md bg-brown-950 px-4 py-3 text-small font-medium text-white shadow-overlay',
           success: 'bg-success!',
           error: 'bg-danger!',
+          warning: 'bg-warning!',
           title: 'text-small font-medium',
           description: 'text-small opacity-80',
         },

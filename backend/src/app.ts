@@ -4,7 +4,6 @@ import fastifyStatic from '@fastify/static'
 import { ScoringError } from '@bis/scoring'
 import { Role, type SessionUser } from '@bis/shared'
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify'
-import { sql } from 'drizzle-orm'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { RequestLimiter } from './auth/ratelimit.ts'
@@ -18,7 +17,7 @@ import { noBackups, type Backups } from './backup.ts'
 import type { Config } from './config.ts'
 import { HttpError, type Ctx } from './core/context.ts'
 import type { Db, Sqlite } from './db/client.ts'
-import * as t from './db/schema.ts'
+
 import { now } from './ids.ts'
 import { createSocketHub, SESSION_COOKIE } from './realtime/socket.ts'
 import type { Hub } from './realtime/hub.ts'
@@ -26,7 +25,7 @@ import { allowed, endpoint } from './registry.ts'
 import { pauseWhileOffline } from './services/offlineDay.ts'
 import { registerOfflineRoutes } from './offlineRoutes.ts'
 import { submissionSnapshot } from './services/rounds.ts'
-import { MAX_PHOTO } from './services/shared.ts'
+import { MAX_PHOTO, floorRounds } from './services/shared.ts'
 
 export interface AppDeps {
   config: Config
@@ -299,9 +298,8 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
     sweep = setInterval(() => {
       try {
         const ctx = baseContext(null)
-        const onFloor = db.select().from(t.competitions).where(sql`${t.competitions.floorRoundId} is not null`).all()
-        for (const competition of onFloor) {
-          const roundId = competition.floorRoundId!
+        for (const { round } of floorRounds(ctx)) {
+          const roundId = round.id
           const snapshot = submissionSnapshot(ctx, roundId)
           const key = JSON.stringify(snapshot)
           if (lastBoard.get(roundId) !== key) {

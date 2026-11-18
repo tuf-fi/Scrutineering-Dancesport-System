@@ -114,7 +114,7 @@ export const useStartRedance = () =>
 
 // Takes the round off the floor; only possible before any adjudicator has submitted
 export const useClearFloor = () =>
-  useWrite((competitionId: string) => api.clearFloor(actor(), competitionId), ['competition-rounds', 'round', 'rounds', 'current-round'])
+  useWrite((roundId: string) => api.clearFloor(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'current-round'])
 
 // Whether the database copies (the backup folders) are being written; checked once a minute
 const BACKUP_CHECK_MS = 60_000

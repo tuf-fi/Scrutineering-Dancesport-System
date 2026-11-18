@@ -15,7 +15,8 @@ const statuses = (p: Program) => p.rows.map((r) => r.status)
 function setRound(row: ProgramRow, status: string, onFloor = false) {
   const round = app.sqlite.prepare('SELECT id FROM rounds WHERE event_id = ? AND type = ?').get(row.eventId, row.roundType) as { id: string }
   app.sqlite.prepare('UPDATE rounds SET status = ? WHERE id = ?').run(status, round.id)
-  app.sqlite.prepare('UPDATE competitions SET floor_round_id = ? WHERE id = ?').run(onFloor ? round.id : null, COMP)
+  if (onFloor) app.sqlite.prepare('UPDATE rounds SET on_floor_at = NULL').run()
+  app.sqlite.prepare('UPDATE rounds SET on_floor_at = ? WHERE id = ?').run(onFloor ? new Date().toISOString() : null, round.id)
 }
 
 beforeAll(async () => {
@@ -25,7 +26,7 @@ beforeAll(async () => {
   // Start from a competition nobody has run
   app.sqlite.exec(`
     DELETE FROM tie_decisions; DELETE FROM marks; DELETE FROM submissions; DELETE FROM heat_competitors; DELETE FROM heats;
-    DELETE FROM results; DELETE FROM ranking_points; DELETE FROM rounds; UPDATE competitions SET floor_round_id = NULL, date = date('now');
+    DELETE FROM results; DELETE FROM ranking_points; DELETE FROM rounds; UPDATE rounds SET on_floor_at = NULL; UPDATE competitions SET date = date('now');
     DELETE FROM program_slots;
   `)
 })

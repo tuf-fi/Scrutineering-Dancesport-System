@@ -14,7 +14,7 @@ const one = (app: TestApp, sql: string, ...args: unknown[]) => app.sqlite.prepar
 beforeAll(async () => {
   venue = await startTestApp()
   online = await startTestApp()
-  competitionId = (one(venue, 'SELECT id FROM competitions WHERE floor_round_id IS NOT NULL') as { id: string }).id
+  competitionId = (one(venue, 'SELECT e.competition_id AS id FROM rounds r JOIN events e ON e.id = r.event_id WHERE r.on_floor_at IS NOT NULL') as { id: string }).id
 })
 afterAll(async () => {
   await venue.close()
@@ -30,7 +30,7 @@ describe('the competition day file', () => {
     venue.sqlite.prepare('INSERT INTO competitors (id, names, team_id, back_number) VALUES (?, ?, ?, ?)').run('c-venue', JSON.stringify(['Late Dancer']), team.id, 999)
     const first = one(venue, "SELECT id FROM competitors WHERE id <> 'c-venue' AND back_number IS NOT NULL LIMIT 1") as { id: string }
     venue.sqlite.prepare('UPDATE competitors SET back_number = 998 WHERE id = ?').run(first.id)
-    venue.sqlite.prepare('UPDATE competitions SET floor_round_id = NULL WHERE id = ?').run(competitionId)
+    venue.sqlite.prepare('UPDATE rounds SET on_floor_at = NULL WHERE event_id IN (SELECT id FROM events WHERE competition_id = ?)').run(competitionId)
     venue.sqlite.prepare('DELETE FROM marks WHERE id = (SELECT id FROM marks WHERE round_id IN (SELECT id FROM rounds) LIMIT 1)').run()
 
     const pkg = exportDay(venue.sqlite, competitionId)
@@ -40,13 +40,13 @@ describe('the competition day file', () => {
     const before = {
       marks: rows(online, 'SELECT id FROM marks').length,
       competitors: rows(online, 'SELECT id FROM competitors').length,
-      floor: one(online, 'SELECT floor_round_id AS f FROM competitions WHERE id = ?', competitionId).f,
+      floor: one(online, 'SELECT COUNT(*) AS f FROM rounds WHERE on_floor_at IS NOT NULL AND event_id IN (SELECT id FROM events WHERE competition_id = ?)', competitionId).f,
     }
     const trial = importDay(online.sqlite, pkg, { dryRun: true })
     expect(trial.added.competitors).toBe(1)
     expect(rows(online, 'SELECT id FROM marks').length).toBe(before.marks)
     expect(rows(online, 'SELECT id FROM competitors').length).toBe(before.competitors)
-    expect(one(online, 'SELECT floor_round_id AS f FROM competitions WHERE id = ?', competitionId).f).toBe(before.floor)
+    expect(one(online, 'SELECT COUNT(*) AS f FROM rounds WHERE on_floor_at IS NOT NULL AND event_id IN (SELECT id FROM events WHERE competition_id = ?)', competitionId).f).toBe(before.floor)
 
     importDay(online.sqlite, pkg)
     // The online server now has the venue's day
@@ -55,7 +55,7 @@ describe('the competition day file', () => {
     }
     expect(one(online, "SELECT names, back_number AS n FROM competitors WHERE id = 'c-venue'")).toMatchObject({ n: 999 })
     expect(one(online, 'SELECT back_number AS n FROM competitors WHERE id = ?', first.id).n).toBe(998)
-    expect(one(online, 'SELECT floor_round_id AS f FROM competitions WHERE id = ?', competitionId).f).toBeNull()
+    expect(one(online, 'SELECT COUNT(*) AS f FROM rounds WHERE on_floor_at IS NOT NULL AND event_id IN (SELECT id FROM events WHERE competition_id = ?)', competitionId).f).toBe(0)
     expect(online.sqlite.pragma('foreign_key_check')).toEqual([])
     expect(one(online, "SELECT action FROM audit_log WHERE actor_id = 'day-import'").action).toBe('Imported the competition day')
 

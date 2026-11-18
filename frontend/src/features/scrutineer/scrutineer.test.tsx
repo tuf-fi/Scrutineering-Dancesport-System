@@ -13,7 +13,7 @@ const bodyRows = () => screen.getAllByRole('row').slice(1)
 describe('rounds dashboard', () => {
   it('shows the round on the floor and every round, and opens a round read-only', async () => {
     renderApp('/scrutineer', Role.Scrutineer, scrutineer)
-    const floor = await screen.findByRole('region', { name: 'On the floor' })
+    const floor = await screen.findByRole('region', { name: /^On the floor/ })
     expect(within(floor).getByText('Marking')).toBeInTheDocument()
     expect(within(floor).getByText('Round 2')).toBeInTheDocument()
     expect(await within(floor).findByText(/of 7/)).toBeInTheDocument()

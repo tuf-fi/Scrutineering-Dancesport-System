@@ -1440,7 +1440,7 @@ export const startRound = (actorId: string, roundId: string) =>
     startDemoRound(roundId)
     record(actorId, 'Started round', roundId)
   })
-export const clearFloor = (actorId: string, _competitionId?: string) =>
+export const clearFloor = (actorId: string, _roundId?: string) =>
   settle<void>(() => {
     startDemoRound(null)
     record(actorId, 'Cleared the floor', 'Floor')

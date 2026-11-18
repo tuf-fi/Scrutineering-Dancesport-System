@@ -16,7 +16,7 @@ const screens: Array<{ name: string; path: string; role?: Role; user?: Record<st
   { name: 'admin competitions', path: '/admin/competitions', role: Role.Admin, ready: () => screen.findByText('Legazpi Dancesport Cup 2026') },
   { name: 'admin payments', path: '/admin/payments', role: Role.Admin, ready: () => screen.findByRole('columnheader', { name: 'Team' }) },
   { name: 'secretariat events', path: '/secretariat', role: Role.Secretariat, ready: () => screen.findByRole('link', { name: 'E1' }) },
-  { name: 'scrutineer rounds', path: '/scrutineer', role: Role.Scrutineer, user: { id: 'staff-scrutineer' }, ready: () => screen.findByRole('region', { name: 'On the floor' }) },
+  { name: 'scrutineer rounds', path: '/scrutineer', role: Role.Scrutineer, user: { id: 'staff-scrutineer' }, ready: () => screen.findByRole('region', { name: /^On the floor/ }) },
   { name: 'adjudicator marking', path: '/adjudicator/waiting', role: Role.Adjudicator, user: { id: 'adj-d', letter: 'D' }, ready: () => screen.findByText(/Mark an X for exactly/) },
   { name: 'secretariat teams', path: '/secretariat/teams', role: Role.Secretariat, ready: () => screen.findByRole('heading', { name: 'Teams' }) },
   { name: 'secretariat coaches', path: '/secretariat/coaches', role: Role.Secretariat, ready: () => screen.findByRole('heading', { name: 'Coaches' }) },

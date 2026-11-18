@@ -328,8 +328,7 @@ export const scrutiny = {
       writeResults(ctx, round, event, user.id)
     }
 
-    ctx.db.update(t.rounds).set({ status: 'approved' }).where(eq(t.rounds.id, roundId)).run()
-    ctx.db.update(t.competitions).set({ floorRoundId: null }).where(eq(t.competitions.floorRoundId, roundId)).run()
+    ctx.db.update(t.rounds).set({ status: 'approved', onFloorAt: null }).where(eq(t.rounds.id, roundId)).run()
     record(ctx.db, user.id, 'Approved round', `Event ${event.number}, ${round.type}`, { before: { status: round.status }, after: { status: 'approved' } })
     ctx.defer(() => {
       ctx.hub.floor(null)
@@ -553,11 +552,10 @@ function announcements(ctx: Ctx): Announcement[] {
   const numbersOf = (ids: string[]) =>
     [...backNumbers(ctx, ids).values()].filter((n): n is number => typeof n === 'number').sort((a, b) => a - b)
 
-  // The round on the floor: each heat is called in turn
-  if (competition.floorRoundId) {
-    const round = allRounds.find((r) => r.id === competition.floorRoundId)
-    const row = round ? eventById.get(round.eventId) : undefined
-    if (round && row && round.status !== 'pending') {
+  // The rounds on the floor: each heat is called in turn
+  for (const round of allRounds.filter((r) => r.onFloorAt !== null)) {
+    const row = eventById.get(round.eventId)
+    if (row && round.status !== 'pending') {
       for (const heat of heatsOfRound(ctx, round.id)) {
         call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}`, kind: 'call', heat: heat.number, numbers: numbersOf(heat.competitorIds) })
         // A heat danced again is called again

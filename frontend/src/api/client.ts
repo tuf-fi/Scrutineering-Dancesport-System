@@ -261,7 +261,7 @@ export const getCurrentRoundId = () => call<string>('getCurrentRoundId')
 export const getCompetitionRounds = (competitionId: string) => call<RoundRow[]>('getCompetitionRounds', competitionId)
 export const planRounds = (_actorId: string, competitionId: string) => call<number>('planRounds', competitionId)
 export const startRound = (_actorId: string, roundId: string) => call<void>('startRound', roundId)
-export const clearFloor = (_actorId: string, competitionId?: string) => call<void>('clearFloor', competitionId)
+export const clearFloor = (_actorId: string, roundId?: string) => call<void>('clearFloor', roundId)
 export const getHeatAssignments = (roundId: string) => call<HeatAssignment[]>('getHeatAssignments', roundId)
 export const saveHeats = (_actorId: string, roundId: string, assignments: HeatAssignment[]) =>
   call<void>('saveHeats', roundId, assignments)

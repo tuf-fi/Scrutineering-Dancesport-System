@@ -15,7 +15,7 @@ beforeAll(async () => {
   venue = await startTestApp({ env: { BIS_VENUE: 'true' } })
   admin = await online.signIn.staff('admin')
   scrutineer = await online.signIn.staff('scrutineer')
-  competitionId = (online.sqlite.prepare('SELECT id FROM competitions WHERE floor_round_id IS NOT NULL').get() as { id: string }).id
+  competitionId = (online.sqlite.prepare('SELECT e.competition_id AS id FROM rounds r JOIN events e ON e.id = r.event_id WHERE r.on_floor_at IS NOT NULL').get() as { id: string }).id
 })
 afterAll(async () => {
   await online.close()

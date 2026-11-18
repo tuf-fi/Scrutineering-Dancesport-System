@@ -864,6 +864,8 @@ export interface RoundRow {
   type: RoundType
   recallNumber: number | null
   status: RoundStatus
+  // On the floor now: several rounds of a competition can be, each with its own adjudicators
+  onFloor: boolean
   heatCount: number
   entryCount: number
   // The round's line number in the program, null when it has no line yet

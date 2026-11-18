@@ -29,7 +29,7 @@ import {
   type Round,
   type StaffUser,
 } from '@bis/shared'
-import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
@@ -241,6 +241,17 @@ export function roundAdjudicatorIds(ctx: Ctx, round: { eventId: string; type: st
     .all()
     .map((r) => r.id)
   return set.length > 0 ? set : panelAdjudicatorIds(ctx, round.eventId)
+}
+
+// The rounds on the floor, newest first. A competition can have several at once, each with its own adjudicators
+export function floorRounds(ctx: Ctx, competitionId?: string) {
+  return ctx.db
+    .select({ round: t.rounds, competitionId: t.events.competitionId })
+    .from(t.rounds)
+    .innerJoin(t.events, eq(t.events.id, t.rounds.eventId))
+    .where(and(isNotNull(t.rounds.onFloorAt), competitionId ? eq(t.events.competitionId, competitionId) : undefined))
+    .all()
+    .sort((a, b) => (b.round.onFloorAt ?? '').localeCompare(a.round.onFloorAt ?? ''))
 }
 
 export const toPanel = (ctx: Ctx, row: typeof t.panels.$inferSelect): Panel => ({

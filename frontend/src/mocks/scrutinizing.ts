@@ -57,6 +57,7 @@ export function roundRows(competitionId: string): RoundRow[] {
         type: round.type,
         recallNumber: round.recallNumber,
         status: statusOf(round),
+        onFloor: round.id === liveRoundId,
         heatCount: heats.filter((h) => h.roundId === round.id).length,
         entryCount: entries.filter((e) => e.eventId === event.id && !e.scratched).length,
         sequence: null,
