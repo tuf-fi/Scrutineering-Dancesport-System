@@ -92,6 +92,17 @@ export const useApproveRound = () =>
 export const usePublishRound = () =>
   useWrite((roundId: string) => api.publishRound(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'skating', 'recall'])
 
+export const useResultsRelease = (competitionId: string) =>
+  useQuery({
+    queryKey: ['results-release', competitionId],
+    queryFn: () => api.getResultsRelease(competitionId),
+    enabled: competitionId !== '',
+    refetchInterval: usePoll(POLL_MS),
+  })
+
+export const useRevealResults = () =>
+  useWrite((competitionId: string) => api.revealResults(actor(), competitionId), ['results-release', 'competition-rounds', 'results', 'rankings'])
+
 // Creates the rounds each event with entries needs; returns how many events were planned
 export function usePlanRounds() {
   const queryClient = useQueryClient()

@@ -1568,6 +1568,13 @@ export const publishRound = (actorId: string, roundId: string) =>
     record(actorId, 'Published round', roundId)
   })
 
+export const getResultsRelease = (_competitionId: string) => reply({ hold: false, revealedAt: null, waiting: 0, total: 0 })
+
+export const revealResults = (_actorId: string, _competitionId: string) =>
+  settle<void>(() => {
+    throw new ApiError(409, 'This competition does not hold its results.')
+  })
+
 // ---- Compere ----
 
 export const getAnnouncements = () => reply(announcements())

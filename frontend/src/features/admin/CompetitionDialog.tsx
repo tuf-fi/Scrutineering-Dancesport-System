@@ -15,6 +15,7 @@ interface Values {
   feeDeadline: string
   image: string
   paymentRequired: boolean
+  holdResults: boolean
 }
 
 type Errors = Partial<Record<keyof Values, string>>
@@ -26,7 +27,7 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
   const [errors, setErrors] = useState<Errors>({})
   const picker = useRef<HTMLInputElement>(null)
 
-  const set = (key: Exclude<keyof Values, 'paymentRequired'>) => (e: { target: { value: string } }) =>
+  const set = (key: Exclude<keyof Values, 'paymentRequired' | 'holdResults'>) => (e: { target: { value: string } }) =>
     setValues((v) => ({ ...v, [key]: e.target.value }))
 
   async function choose(file: File | undefined) {
@@ -109,6 +110,18 @@ function CompetitionForm({ initial, onSubmit }: { initial: Values; onSubmit: (va
           </label>
         ))}
       </fieldset>
+      <label className="flex cursor-pointer items-start gap-3 text-small text-neutral-900 sm:col-span-2">
+        <input
+          type="checkbox"
+          checked={values.holdResults}
+          onChange={(e) => setValues((v) => ({ ...v, holdResults: e.target.checked }))}
+          className="mt-0.5 size-5 shrink-0 accent-neutral-900"
+        />
+        <span className="flex flex-col">
+          Hold the results until the awarding
+          <span className="text-neutral-600">Finals are published as usual but stay private. The scrutineer reveals every event at once at the awarding.</span>
+        </span>
+      </label>
       <Input label="Entries close" hint="Optional. Later entries are flagged." type="date" value={values.entryDeadline} onChange={set('entryDeadline')} />
       {values.paymentRequired && <Input label="Fees due" hint="Optional. Later unpaid entries are flagged." type="date" value={values.feeDeadline} onChange={set('feeDeadline')} />}
     </form>
@@ -180,8 +193,9 @@ export function CompetitionDialog({
                 feeDeadline: competition.feeDeadline ?? '',
                 image: competition.image ?? '',
                 paymentRequired: competition.paymentRequired,
+                holdResults: competition.holdResults ?? false,
               }
-            : { name: '', date: '', venue: '', organizer: '', executor: '', entryDeadline: '', feeDeadline: '', image: '', paymentRequired: true }
+            : { name: '', date: '', venue: '', organizer: '', executor: '', entryDeadline: '', feeDeadline: '', image: '', paymentRequired: true, holdResults: false }
         }
         onSubmit={submit}
       />

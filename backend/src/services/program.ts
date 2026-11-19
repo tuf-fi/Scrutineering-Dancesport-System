@@ -2,6 +2,7 @@ import {
   PROGRAM_START,
   ProgramKind,
   ProgramStatus,
+  RoundStatus,
   RoundType,
   clockTime,
   programStatuses,
@@ -140,7 +141,7 @@ function build(ctx: Ctx, competitionId: string): Program {
     if (slot.kind !== ProgramKind.Round) return null
     if (round && roundAdvanced(round.status)) return ProgramStatus.Completed
     if (!round && slot.eventId && decided.has(slot.eventId)) return ProgramStatus.Completed
-    if (round && round.onFloorAt !== null) return ProgramStatus.Current
+    if (round && round.onFloorAt !== null && round.status !== RoundStatus.Pending) return ProgramStatus.Current
     return ProgramStatus.Upcoming
   })
 

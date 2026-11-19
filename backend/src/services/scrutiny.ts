@@ -10,6 +10,7 @@ import {
 } from '@bis/scoring'
 import {
   RoundStatus,
+  RoundType,
   type Announcement,
   type Event,
   type EventReport,
@@ -17,6 +18,7 @@ import {
   type Mark,
   type RecallRow,
   type RecallTable,
+  type ResultsRelease,
   type Round,
   type SkatingRow,
   type SkatingTable,
@@ -35,6 +37,7 @@ import {
   fieldOf,
   getEventRow,
   getRoundRow,
+  hiddenEventIds,
   heatsOfRound,
   panelAdjudicatorIds,
   roundAdjudicatorIds,
@@ -352,6 +355,42 @@ export const scrutiny = {
   },
 
   getAnnouncements: (ctx: Ctx) => announcements(ctx),
+
+  getResultsRelease(ctx: Ctx, competitionId: string): ResultsRelease {
+    const competition = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, competitionId)).get(), 'Competition')
+    const finals = ctx.db
+      .select({ status: t.rounds.status })
+      .from(t.rounds)
+      .innerJoin(t.events, eq(t.events.id, t.rounds.eventId))
+      .where(and(eq(t.events.competitionId, competitionId), eq(t.rounds.type, 'final')))
+      .all()
+    return {
+      hold: competition.holdResults,
+      revealedAt: competition.resultsRevealedAt,
+      waiting: finals.filter((f) => f.status === RoundStatus.Published).length,
+      total: finals.length,
+    }
+  },
+
+  revealResults(ctx: Ctx, competitionId: string): void {
+    const user = actor(ctx)
+    const competition = found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, competitionId)).get(), 'Competition')
+    if (!competition.holdResults) return fail('This competition does not hold its results.', 409)
+    if (competition.resultsRevealedAt) return fail('The results are already revealed.', 409)
+    const at = now()
+    ctx.db.update(t.competitions).set({ resultsRevealedAt: at }).where(eq(t.competitions.id, competitionId)).run()
+    record(ctx.db, user.id, 'Revealed results', competition.name, { before: { revealedAt: null }, after: { revealedAt: at } })
+    const finals = ctx.db
+      .select({ id: t.rounds.id, eventId: t.rounds.eventId })
+      .from(t.rounds)
+      .innerJoin(t.events, eq(t.events.id, t.rounds.eventId))
+      .where(and(eq(t.events.competitionId, competitionId), eq(t.rounds.type, 'final'), eq(t.rounds.status, 'published')))
+      .all()
+    ctx.defer(() => {
+      for (const f of finals) ctx.hub.published({ competitionId, eventId: f.eventId, roundId: f.id })
+      ctx.hub.rankings()
+    })
+  },
 }
 
 // The public sheet of an event once its final is published: who judged, the placings, and every adjudicator's marks
@@ -360,6 +399,7 @@ function eventReport(ctx: Ctx, eventId: string): EventReport {
   const all = roundsOfEvent(ctx, eventId)
   const final = all.find((r) => r.recallNumber === null)
   if (!final || final.status !== RoundStatus.Published) return fail('These results are not published yet.', 403)
+  if (hiddenEventIds(ctx).has(eventId)) return fail('These results are held until the awarding.', 403)
   const rounds = all.filter((r) => r.status === RoundStatus.Published)
 
   const letters = new Map(ctx.db.select().from(t.adjudicators).all().map((a) => [a.id, a]))
@@ -408,6 +448,7 @@ function assertCanView<T>(ctx: Ctx, roundId: string, build: () => T): T {
   if (ctx.user && ctx.user.role !== 'adjudicator') return build()
   const round = getRoundRow(ctx, roundId)
   if (round.status !== RoundStatus.Published) return fail('These results are not published yet.', 403)
+  if (hiddenEventIds(ctx).has(round.eventId)) return fail('These results are held until the awarding.', 403)
   return build()
 }
 
@@ -547,8 +588,19 @@ function announcements(ctx: Ctx): Announcement[] {
     heat: null,
     select: round.recallNumber,
     numbers: [] as number[],
+    entries: [] as Announcement['entries'],
     result: null,
   })
+  const teamNames = new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
+  const entriesOf = (type: RoundType, ids: string[]): Announcement['entries'] => {
+    if (type !== RoundType.SemiFinal && type !== RoundType.Final) return []
+    const people = peopleOf(ctx, ids)
+    return ids
+      .map((id) => people.get(id))
+      .filter((c): c is NonNullable<typeof c> => !!c && typeof c.backNumber === 'number')
+      .map((c) => ({ backNumber: c.backNumber!, names: c.names, teamName: teamNames.get(c.teamId) ?? '' }))
+      .sort((a, b) => a.backNumber - b.backNumber)
+  }
   const numbersOf = (ids: string[]) =>
     [...backNumbers(ctx, ids).values()].filter((n): n is number => typeof n === 'number').sort((a, b) => a - b)
 
@@ -557,25 +609,28 @@ function announcements(ctx: Ctx): Announcement[] {
     const row = eventById.get(round.eventId)
     if (row && round.status !== 'pending') {
       for (const heat of heatsOfRound(ctx, round.id)) {
-        call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}`, kind: 'call', heat: heat.number, numbers: numbersOf(heat.competitorIds) })
+        call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}`, kind: 'call', heat: heat.number, numbers: numbersOf(heat.competitorIds), entries: entriesOf(round.type, heat.competitorIds) })
         // A heat danced again is called again
         for (const again of ctx.db.select().from(t.redances).where(and(eq(t.redances.roundId, round.id), eq(t.redances.heat, heat.number))).orderBy(asc(t.redances.seq)).all()) {
-          call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}:redance${again.seq}`, kind: 'call', heat: heat.number, redance: true, numbers: numbersOf(heat.competitorIds) })
+          call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}:redance${again.seq}`, kind: 'call', heat: heat.number, redance: true, numbers: numbersOf(heat.competitorIds), entries: entriesOf(round.type, heat.competitorIds) })
         }
       }
     }
   }
 
+  const holding = competition.holdResults
+  const held = holding && !competition.resultsRevealedAt
   const publishedRounds = allRounds.filter((r) => r.status === 'published').sort((a, b) => (a.publishedAt ?? '').localeCompare(b.publishedAt ?? ''))
   for (const round of publishedRounds) {
     const row = eventById.get(round.eventId)
     if (!row) continue
+    if (round.recallNumber === null && held) continue
     const event = toEvent(row)
     const roundOut = toRound(round)
     if (round.recallNumber !== null) {
       const next = roundsOfEvent(ctx, round.eventId).find((r) => r.position === round.position + 1)
       const through = next ? heatsOfRound(ctx, next.id).flatMap((h) => h.competitorIds) : []
-      done.push({ at: round.publishedAt ?? '', items: [{ ...base(event, roundOut), id: `recall:${round.id}`, kind: 'recall', numbers: numbersOf(through) }] })
+      done.push({ at: round.publishedAt ?? '', items: [{ ...base(event, roundOut), id: `recall:${round.id}`, kind: 'recall', numbers: numbersOf(through), entries: entriesOf(next?.type ?? round.type, through) }] })
       continue
     }
     const placed = ctx.db
@@ -587,7 +642,7 @@ function announcements(ctx: Ctx): Announcement[] {
     const people = peopleOf(ctx, placed.map((p) => p.competitorId))
     const teams = new Map(ctx.db.select().from(t.teams).all().map((c) => [c.id, c.name]))
     const items: Announcement[] = [
-      { ...base(event, roundOut), id: `finalists:${round.id}`, kind: 'finalists', numbers: numbersOf(placed.map((p) => p.competitorId)) },
+      { ...base(event, roundOut), id: `finalists:${round.id}`, kind: 'finalists', numbers: numbersOf(placed.map((p) => p.competitorId)), entries: entriesOf(round.type, placed.map((p) => p.competitorId)) },
       ...(placed.length > 0 ? [{ ...base(event, roundOut), id: `results:${round.id}`, kind: 'results' as const }] : []),
       ...placed.map<Announcement>((r) => {
         const dancer = people.get(r.competitorId)
@@ -600,7 +655,7 @@ function announcements(ctx: Ctx): Announcement[] {
         }
       }),
     ]
-    done.push({ at: round.publishedAt ?? '', items })
+    done.push({ at: holding ? `${competition.resultsRevealedAt}#${String(event.number).padStart(4, '0')}` : (round.publishedAt ?? ''), items })
   }
 
   return [...call, ...done.flatMap((d) => d.items)]

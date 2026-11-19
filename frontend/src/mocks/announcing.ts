@@ -23,15 +23,25 @@ function base(event: Event, round: Round) {
     heat: null,
     select: round.recallNumber,
     numbers: [] as number[],
+    entries: [] as Announcement['entries'],
     result: null,
   }
+}
+
+function entriesOf(type: RoundType, ids: string[]): Announcement['entries'] {
+  if (type !== RoundType.SemiFinal && type !== RoundType.Final) return []
+  return ids
+    .map((id) => person(id))
+    .filter((c): c is NonNullable<typeof c> => typeof c?.backNumber === 'number')
+    .map((c) => ({ backNumber: c.backNumber!, names: c.names, teamName: teams.find((t) => t.id === c.teamId)?.name ?? '' }))
+    .sort((a, b) => a.backNumber - b.backNumber)
 }
 
 // The next event to the floor: its first heat
 function callFor(event: Event, round: Round): Announcement[] {
   const first = heats.find((h) => h.roundId === round.id && h.number === 1)
   if (!first) return []
-  return [{ ...base(event, round), id: `call:${round.id}`, kind: 'call', heat: 1, numbers: backNumbers(first.competitorIds) }]
+  return [{ ...base(event, round), id: `call:${round.id}`, kind: 'call', heat: 1, numbers: backNumbers(first.competitorIds), entries: entriesOf(round.type, first.competitorIds) }]
 }
 
 // TODO: the real announcements come from the scrutineer publishing each round; the sample replays one finished event
@@ -47,7 +57,7 @@ export function announcements(): Announcement[] {
     if (!next || next.type === RoundType.Final) return
     // Who goes through is who is in the next round
     const through = heats.filter((h) => h.roundId === next.id).flatMap((h) => h.competitorIds)
-    list.push({ ...base(completedEvent, round), id: `recall:${round.id}`, kind: 'recall', numbers: backNumbers(through) })
+    list.push({ ...base(completedEvent, round), id: `recall:${round.id}`, kind: 'recall', numbers: backNumbers(through), entries: entriesOf(next.type, through) })
   })
 
   const final = done.find((r) => r.type === RoundType.Final)
@@ -60,6 +70,7 @@ export function announcements(): Announcement[] {
       id: `finalists:${final.id}`,
       kind: 'finalists',
       numbers: backNumbers(placed.map((r) => r.competitorId)),
+      entries: entriesOf(final.type, placed.map((r) => r.competitorId)),
     })
     list.push({ ...base(completedEvent, final), id: `results:${final.id}`, kind: 'results' })
     // Read out from last place up, one at a time

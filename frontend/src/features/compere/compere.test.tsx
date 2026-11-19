@@ -29,7 +29,6 @@ describe('Compere screen', () => {
     await screen.findByText('Next to the floor')
     // "Next event" is also the name of a control, so look inside the sheet
     const sheet = screen.getByLabelText('Back numbers').parentElement!
-    expect(within(sheet).getByText('Event')).toBeInTheDocument()
     expect(within(sheet).getByText('Next event')).toBeInTheDocument()
     // Back numbers are written with three digits
     for (const n of within(screen.getByLabelText('Back numbers')).getAllByRole('listitem')) expect(n.textContent).toMatch(/^[0-9]{3}$/)
@@ -44,7 +43,9 @@ describe('Compere screen', () => {
     await userEvent.keyboard('3')
     // Finalists is also the name of the control, so look at what is on the screen
     expect(await screen.findByLabelText('What to do')).toHaveTextContent('Finalists6')
-    expect(within(screen.getByLabelText('Back numbers')).getAllByRole('listitem')).toHaveLength(6)
+    const finalists = within(screen.getByLabelText('Competitors')).getAllByRole('listitem')
+    expect(finalists).toHaveLength(6)
+    expect(finalists[0]).toHaveTextContent(/\d{3}/)
 
     await userEvent.keyboard('4')
     // The slide that says it is time for the results comes before the first place

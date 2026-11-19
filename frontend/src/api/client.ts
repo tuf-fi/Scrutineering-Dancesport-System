@@ -2,6 +2,7 @@
 // Names and arguments match the sample API in ../mocks/api.ts, so screens and hooks do not change.
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
+  ResultsRelease,
   AccountKind,
   SiteSettings,
   DeleteImpact,
@@ -288,6 +289,8 @@ export const getSkatingTable = (roundId: string) => call<SkatingTable>('getSkati
 export const getEventReport = (eventId: string) => call<EventReport>('getEventReport', eventId)
 export const approveRound = (_actorId: string, roundId: string) => call<void>('approveRound', roundId)
 export const publishRound = (_actorId: string, roundId: string) => call<void>('publishRound', roundId)
+export const getResultsRelease = (competitionId: string) => call<ResultsRelease>('getResultsRelease', competitionId)
+export const revealResults = (_actorId: string, competitionId: string) => call<void>('revealResults', competitionId)
 export const getBackupStatus = () => call<BackupStatus>('getBackupStatus')
 
 // The offline day: a competition run on a venue laptop with no internet

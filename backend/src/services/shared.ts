@@ -45,6 +45,8 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
   ...(r.image ? { image: r.image } : {}),
   paymentRequired: r.paymentRequired,
+  holdResults: r.holdResults,
+  resultsRevealedAt: r.resultsRevealedAt,
 })
 
 export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
@@ -498,17 +500,29 @@ export function applySettles(ctx: Ctx, paymentId: string) {
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 export const isStaff = (ctx: Ctx) => ctx.user !== null && STAFF_ROLES.includes(ctx.user.role)
 
-// Events whose final has not been published yet: only staff may see their results
-export function hiddenEventIds(ctx: Ctx): Set<string> {
-  if (isStaff(ctx)) return new Set()
+// Events of competitions that hold their results until the awarding and have not revealed them yet
+export function heldEventIds(ctx: Ctx): Set<string> {
   return new Set(
     ctx.db
-      .select({ eventId: t.rounds.eventId })
-      .from(t.rounds)
-      .where(and(eq(t.rounds.type, 'final'), inArray(t.rounds.status, ['pending', 'marking', 'review', 'approved'])))
+      .select({ id: t.events.id })
+      .from(t.events)
+      .innerJoin(t.competitions, eq(t.competitions.id, t.events.competitionId))
+      .where(and(eq(t.competitions.holdResults, true), isNull(t.competitions.resultsRevealedAt)))
       .all()
-      .map((r) => r.eventId),
+      .map((r) => r.id),
   )
+}
+
+// Events whose final has not been published yet, or whose results are held for the awarding: only staff may see their results
+export function hiddenEventIds(ctx: Ctx): Set<string> {
+  if (isStaff(ctx)) return new Set()
+  const unpublished = ctx.db
+    .select({ eventId: t.rounds.eventId })
+    .from(t.rounds)
+    .where(and(eq(t.rounds.type, 'final'), inArray(t.rounds.status, ['pending', 'marking', 'review', 'approved'])))
+    .all()
+    .map((r) => r.eventId)
+  return new Set([...unpublished, ...heldEventIds(ctx)])
 }
 
 // The shortest password an athlete, coach or team can choose

@@ -1,4 +1,4 @@
-import type { Announcement } from '@bis/shared'
+import { ProgramKind, ProgramStatus, pickCurrentCompetition, type Announcement, type Program } from '@bis/shared'
 import { STAFF_SIGN_IN } from '../../app/nav.ts'
 import { ChevronLeft, ChevronRight, Maximize } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -83,17 +83,25 @@ function Numbers({ numbers }: { numbers: number[] }) {
   )
 }
 
-// The sheet the announcer reads from, drawn as a table: the event, the next event, the back numbers in a grid and what to do with them
-function nextEventOf(items: Announcement[], index: number): Announcement | undefined {
+type NextLine = Pick<Announcement, 'eventNumber' | 'dances' | 'roundType' | 'ageGroup' | 'class' | 'discipline'>
+
+// The event after this one: the running order says it; the announcements are the fallback
+function nextEventOf(items: Announcement[], index: number, program: Program | undefined): NextLine | undefined {
   const here = items[index]
+  const rows = program?.rows ?? []
+  const at = rows.findIndex((r) => r.eventNumber === here?.eventNumber && r.roundType === here?.roundType)
+  const row = at >= 0 ? rows.slice(at + 1).find((r) => r.kind === ProgramKind.Round && r.eventNumber !== null && r.status !== ProgramStatus.Completed) : undefined
+  if (row && row.eventNumber !== null && row.roundType && row.ageGroup && row.class && row.discipline) {
+    return { eventNumber: row.eventNumber, dances: row.dances, roundType: row.roundType, ageGroup: row.ageGroup, class: row.class, discipline: row.discipline }
+  }
   return items.slice(index + 1).find((a) => a.kind !== 'result' && (a.eventNumber !== here?.eventNumber || a.roundType !== here?.roundType))
 }
 
 // More numbers, more columns and smaller type, so a long list still fits the wall
 function sheetSize(count: number) {
-  if (count <= 12) return { columns: 4, text: 'text-[7vmin]', pad: 'py-[2.6vmin]' }
-  if (count <= 24) return { columns: 6, text: 'text-[5vmin]', pad: 'py-[1.8vmin]' }
-  return { columns: 8, text: 'text-[3.8vmin]', pad: 'py-[1.3vmin]' }
+  if (count <= 12) return { columns: 4, text: 'text-[5vmin]', pad: 'py-[2vmin]' }
+  if (count <= 24) return { columns: 6, text: 'text-[3.8vmin]', pad: 'py-[1.4vmin]' }
+  return { columns: 8, text: 'text-[3vmin]', pad: 'py-[1vmin]' }
 }
 
 // What to do with the numbers: the heat, then how many to select (or that it is a final); or how many came through
@@ -104,72 +112,100 @@ function instruction(a: Announcement): { heat: string; word: string; count: stri
   return { heat, word: 'Finalists', count: String(a.numbers.length) }
 }
 
-const LABEL = 'font-mono text-[1.9vmin] font-medium uppercase tracking-[0.12em] text-brown-100'
+function entrySize(count: number) {
+  if (count <= 6) return { columns: 1, number: 'text-[4.6vmin]', name: 'text-[2.8vmin]', team: 'text-[1.8vmin]', pad: 'py-[1.3vmin]', badge: '12vmin' }
+  if (count <= 12) return { columns: 2, number: 'text-[3.6vmin]', name: 'text-[2.2vmin]', team: 'text-[1.5vmin]', pad: 'py-[1vmin]', badge: '10vmin' }
+  return { columns: 3, number: 'text-[3vmin]', name: 'text-[1.8vmin]', team: 'text-[1.3vmin]', pad: 'py-[0.8vmin]', badge: '8vmin' }
+}
+
+function EntryList({ entries }: { entries: Announcement['entries'] }) {
+  const size = entrySize(entries.length)
+  return (
+    <ul aria-label="Competitors" style={{ gridTemplateColumns: `repeat(${size.columns}, minmax(0, 1fr))` }} className="grid">
+      {entries.map((e) => (
+        <li key={e.backNumber} className={cn('flex items-center gap-[2.4vmin] border-b border-white/10 px-[1.6vmin]', size.pad)}>
+          <span style={{ width: size.badge }} className={cn('shrink-0 font-mono font-semibold leading-none tabular-nums text-white', size.number)}>
+            {String(e.backNumber).padStart(3, '0')}
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <span className={cn('truncate font-semibold leading-tight text-white', size.name)}>{e.names.join(' & ')}</span>
+            <span className={cn('truncate font-medium text-brown-100', size.team)}>{e.teamName}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+const SMALL_LABEL = 'font-mono text-[1.5vmin] font-medium uppercase tracking-[0.12em] text-brown-100'
 
 // The sheet the announcer reads from: the event and the one after it, the back numbers as tiles, and what to do with them
-function Sheet({ item, next }: { item: Announcement; next: Announcement | undefined }) {
+function Sheet({ item, next }: { item: Announcement; next: NextLine | undefined }) {
   const { eventGrade } = useCatalog()
   const size = sheetSize(item.numbers.length)
   const todo = instruction(item)
 
   return (
-    <div className="flex flex-1 flex-col gap-[3.5vmin]">
+    <div className="flex flex-1 flex-col gap-[3.2vmin]">
       <h1 className="sr-only">{EYEBROW[item.kind]}</h1>
 
-      <header className="flex flex-col gap-[2.2vmin]">
-        <div className="flex flex-col gap-[1vmin]">
-          <span className={LABEL}>Event</span>
-          <p className="flex flex-wrap items-baseline gap-x-[2.4vmin] gap-y-[0.6vmin]">
-            <span className="flex items-baseline gap-[1.8vmin] text-[5.6vmin] font-semibold leading-none tracking-[-0.03em] text-white">
-              <span className="font-mono font-medium tabular-nums text-gold-400">E{item.eventNumber}</span>
-              {eventDances(item)}
-            </span>
-            <span className="text-[2.6vmin] font-medium text-brown-100">
-              {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventGrade(item)}
-            </span>
-          </p>
-        </div>
-        <p className="flex flex-wrap items-baseline gap-x-[2vmin] gap-y-[0.6vmin] border-t border-white/10 pt-[2vmin]">
-          <span className={LABEL}>Next event</span>
-          {next ? (
-            <span className="text-[2.8vmin] font-medium text-white/80">
-              <span className="mr-[1.2vmin] font-mono tabular-nums text-gold-400">E{next.eventNumber}</span>
+      <section aria-label="Next event" className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-[2.4vmin] rounded-[1vmin] bg-white/[0.07] px-[2vmin] py-[1.4vmin]">
+        <span className="w-[9vmin] border-r border-white/20 font-mono text-[1.5vmin] font-medium uppercase leading-snug tracking-[0.12em] text-white/70">Next event</span>
+        {next ? (
+          <p className="flex min-w-0 flex-col gap-[0.5vmin]">
+            <span className="text-[2.6vmin] font-semibold leading-none text-white">
+              <span className="mr-[1vmin] font-mono font-medium tabular-nums text-white/60">E{next.eventNumber}</span>
+              {ROUND_TYPE_LABEL[next.roundType]}
+              <span aria-hidden className="mx-[1vmin] text-white/40">·</span>
               {eventDances(next)}
-              <span className="ml-[1.2vmin] text-brown-100">
-                {ROUND_TYPE_LABEL[next.roundType]} <span aria-hidden>·</span> {eventGrade(next)}
-              </span>
             </span>
-          ) : (
-            <span className="text-[2.8vmin] font-medium text-white/50">–</span>
-          )}
-        </p>
-      </header>
-
-      {/* Square cells split by hairlines. A last row with fewer numbers starts at the left; there are no empty cells. */}
-      <ul aria-label="Back numbers" className="flex flex-wrap pl-px pt-px">
-        {item.numbers.map((n) => (
-          <li
-            key={n}
-            style={{ width: `calc(100% / ${size.columns})` }}
-            className={cn('-ml-px -mt-px border border-white/15 text-center font-mono font-medium leading-none tabular-nums text-white', size.text, size.pad)}
-          >
-            {String(n).padStart(3, '0')}
-          </li>
-        ))}
-      </ul>
-
-      <p aria-label="What to do" className="mt-auto flex flex-wrap items-baseline gap-x-[6vmin] gap-y-[1vmin] border-t border-white/10 pt-[2.2vmin]">
-        {todo.heat && (
-          <span className="flex items-baseline gap-[1.8vmin]">
-            <span className={LABEL}>{item.kind === 'call' && item.redance ? 'Redance, heat' : 'Heat'}</span>
-            <span className="font-mono text-[6vmin] font-semibold leading-none tabular-nums text-white">{todo.heat}</span>
-          </span>
+            <span className="text-[1.8vmin] font-medium text-white/60">{eventGrade(next)}</span>
+          </p>
+        ) : (
+          <span className="text-[2vmin] font-medium text-white/60">None after this one</span>
         )}
-        <span className="flex items-baseline gap-[1.8vmin]">
-          <span className={LABEL}>{todo.word}</span>
-          {todo.count && <span className="font-mono text-[6vmin] font-semibold leading-none tabular-nums text-gold-400">{todo.count}</span>}
-        </span>
-      </p>
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-x-[4vmin] gap-y-[1.2vmin] border-b border-white/15 pb-[1.8vmin]">
+        <p className="flex min-w-0 flex-col gap-[0.8vmin]">
+          <span className="flex items-baseline gap-[1.4vmin] text-[4vmin] font-semibold leading-none tracking-[-0.03em] text-white">
+            <span className="font-mono font-medium tabular-nums text-gold-400">E{item.eventNumber}</span>
+            {eventDances(item)}
+          </span>
+          <span className="text-[2vmin] font-medium text-brown-100">
+            {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventGrade(item)}
+          </span>
+        </p>
+
+        <p aria-label="What to do" className="flex items-center gap-x-[4vmin]">
+          {todo.heat && (
+            <span className="flex items-center gap-[1.4vmin]">
+              <span className={SMALL_LABEL}>{item.kind === 'call' && item.redance ? 'Redance, heat' : 'Heat'}</span>
+              <span className="font-mono text-[4.2vmin] font-semibold leading-none tabular-nums text-white">{todo.heat}</span>
+            </span>
+          )}
+          <span className="flex items-center gap-[1.4vmin]">
+            <span className={SMALL_LABEL}>{todo.word}</span>
+            {todo.count && <span className="font-mono text-[4.2vmin] font-semibold leading-none tabular-nums text-gold-400">{todo.count}</span>}
+          </span>
+        </p>
+      </div>
+
+      {item.entries.length > 0 ? (
+        <EntryList entries={item.entries} />
+      ) : (
+        <ul aria-label="Back numbers" className="flex flex-wrap pl-px pt-px">
+          {item.numbers.map((n) => (
+            <li
+              key={n}
+              style={{ width: `calc(100% / ${size.columns})` }}
+              className={cn('-ml-px -mt-px border border-white/15 text-center font-mono font-medium leading-none tabular-nums text-white', size.text, size.pad)}
+            >
+              {String(n).padStart(3, '0')}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -433,7 +469,7 @@ export function CompereHome() {
   const items = useMemo(() => data ?? [], [data])
   const index = Math.min(asked, Math.max(0, items.length - 1))
   const current = items[index]
-  const latest = [...(competitions.data ?? [])].sort((a, b) => b.date.localeCompare(a.date))[0]
+  const latest = pickCurrentCompetition(competitions.data ?? [])
   const competitionName = latest?.name
   const program = useProgram(latest?.id ?? '')
   // Before the first announcement the running order is what the announcer needs, if there is one
@@ -466,10 +502,10 @@ export function CompereHome() {
   )
   const jump = useCallback(
     (kind: Announcement['kind']) => {
-      const first = items.findIndex((a) => a.kind === kind)
-      if (first >= 0) {
+      const newest = items.findLastIndex((a) => a.kind === kind)
+      if (newest >= 0) {
         setView('slides')
-        setAsked(first)
+        setAsked(newest)
       }
     },
     [items],
@@ -594,7 +630,7 @@ export function CompereHome() {
   if (announcements.isError) {
     return (
       <div className="relative flex flex-1 flex-col">
-        <ErrorState onRetry={() => void announcements.refetch()} />
+        <ErrorState tone="dark" onRetry={() => void announcements.refetch()} />
         {controls}
       </div>
     )
@@ -611,7 +647,7 @@ export function CompereHome() {
     )
   }
 
-  const results = items.filter((a) => a.kind === 'result')
+  const results = items.filter((a) => a.kind === 'result' && a.eventNumber === current.eventNumber && a.roundType === current.roundType)
   const shown = new Set(items.slice(0, index + 1).filter((a) => a.kind === 'result').map((a) => a.id))
 
   return (
@@ -656,7 +692,7 @@ export function CompereHome() {
                 <View item={current} />
               </>
             ) : (
-              <Sheet item={current} next={nextEventOf(items, index)} />
+              <Sheet item={current} next={nextEventOf(items, index, program.data)} />
             )}
           </div>
 

@@ -6,12 +6,13 @@ import { RoundStatusBadge } from '../../components/RoundStatusBadge.tsx'
 import { Button, ButtonLink, Dialog, ErrorState, PageHeader, SkeletonList, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
 import { useApproveRound, useFinalTie, usePublishRound, useSkatingTable } from '../../hooks/index.ts'
 import { FinalTieSection } from './FinalTieSection.tsx'
+import { ResultsRelease } from './ResultsRelease.tsx'
 import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
 export function ResultsPage() {
-  const { rounds, list, roundId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice()
+  const { competitionId, rounds, list, roundId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice()
   const skating = useSkatingTable(roundId)
   const undecided = row?.status === RoundStatus.Marking || row?.status === RoundStatus.Review
   const finalTie = useFinalTie(roundId, Boolean(row) && row?.recallNumber === null && undecided)
@@ -54,6 +55,7 @@ export function ResultsPage() {
           ) : undefined
         }
       />
+      <ResultsRelease competitionId={competitionId} />
       <Toolbar>
         <RoundSelect rounds={list} value={roundId} onChange={setRoundId} />
         <ToolbarActions>

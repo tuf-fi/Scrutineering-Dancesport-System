@@ -153,6 +153,7 @@ export const reads = {
     const current = new Map(groups.filter((g) => !g.retired).map((g) => [g.family ?? g.id, g.id]))
     const familyOf = new Map(groups.map((g) => [g.id, g.family ?? g.id]))
     const wanted = filter.ageGroup ? groups.filter((g) => (g.family ?? g.id) === familyOf.get(filter.ageGroup!)).map((g) => g.id) : null
+    const hidden = hiddenEventIds(ctx)
     return ctx.db
       .select()
       .from(t.rankingPoints)
@@ -164,6 +165,7 @@ export const reads = {
         ),
       )
       .all()
+      .filter((p) => !hidden.has(p.eventId))
       .map(toRankingPoint)
       .map((p) => ({ ...p, ageGroup: current.get(familyOf.get(p.ageGroup) ?? p.ageGroup) ?? p.ageGroup }))
   },

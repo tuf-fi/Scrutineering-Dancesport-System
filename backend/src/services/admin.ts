@@ -62,6 +62,7 @@ export const admin = {
     }
     if (!values.name || !values.date || !values.venue || !values.organizer) return fail('Fill in every field.')
     if (input?.paymentRequired !== undefined && typeof input.paymentRequired !== 'boolean') return fail('Choose whether the competition needs payment.')
+    if (input?.holdResults !== undefined && typeof input.holdResults !== 'boolean') return fail('Choose whether the results are held until the awarding.')
     // A missing image keeps the one already there; a competition always has one
     const image = input?.image === undefined ? undefined : typeof input.image === 'string' && input.image ? input.image : null
     if (image && (!PHOTO.test(image) || image.length > MAX_PHOTO)) return fail('Send the photo as a JPEG, PNG or WebP picture under 400 KB.')
@@ -80,6 +81,8 @@ export const admin = {
         ...values,
         ...(image === undefined ? {} : { image }),
         ...(input.paymentRequired === undefined ? {} : { paymentRequired: input.paymentRequired }),
+        ...(input.holdResults === undefined ? {} : { holdResults: input.holdResults }),
+        ...(input.holdResults === true && !before.holdResults ? { resultsRevealedAt: null } : {}),
       }
       ctx.db.update(t.competitions).set(changes).where(eq(t.competitions.id, id)).run()
       record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: changes })
@@ -90,7 +93,7 @@ export const admin = {
     if (ctx.db.select().from(t.competitions).all().some((c) => c.name.toLowerCase() === values.name.toLowerCase() && c.date === values.date)) {
       return fail('A competition with this name and date already exists.', 409)
     }
-    const created = { id: newId(), offlineHeldAt: null, ...values, image, paymentRequired: input?.paymentRequired ?? true }
+    const created = { id: newId(), offlineHeldAt: null, ...values, image, paymentRequired: input?.paymentRequired ?? true, holdResults: input?.holdResults ?? false, resultsRevealedAt: null }
     ctx.db.insert(t.competitions).values(created).run()
     record(ctx.db, user.id, 'Created competition', values.name, { after: values })
     return toCompetition(created)

@@ -2,6 +2,7 @@ import { ProgramKind, ProgramStatus, RoundType, type ProgramRow } from '@bis/sha
 import { useState } from 'react'
 import { useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
+import { StatusDot, StatusLegend } from '../../components/StatusDot.tsx'
 import { Button, ButtonLink, DarkPanel, EmptyState, ErrorState, Input, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
 import { useCompetition, useEntriesByBackNumber, useProgram, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
@@ -20,7 +21,7 @@ import { HeatSplit } from '../../components/HeatSplit.tsx'
 import { PublicHeader } from './PublicHeader.tsx'
 import { filterProgram, programPrintPath } from '../../lib/programFilter.ts'
 
-const COLS = 'lg:grid-cols-[3rem_6rem_minmax(0,1.6fr)_minmax(0,1fr)_8rem_8rem]'
+const COLS = 'lg:grid-cols-[4.5rem_6rem_minmax(0,1.6fr)_minmax(0,1fr)_8rem_8rem]'
 
 // The line itself in words, for the strip above the list
 function Line({ label, row, empty }: { label: string; row: ProgramRow | undefined; empty: string }) {
@@ -141,6 +142,7 @@ export function ProgramPage() {
         <h2 id="running-order" className="text-small font-bold uppercase tracking-wide text-neutral-900">
           Running order
         </h2>
+        {rows.length > 0 && <StatusLegend />}
 
         {loading ? (
           <div aria-hidden>
@@ -190,7 +192,8 @@ export function ProgramPage() {
                     r.status === ProgramStatus.Current && 'bg-gold-50',
                   )}
                 >
-                  <span className="col-span-2 font-mono text-xs tabular-nums text-neutral-500 lg:col-span-1 lg:text-small">
+                  <span className="col-span-2 flex items-center gap-2.5 font-mono text-xs tabular-nums text-neutral-500 lg:col-span-1 lg:text-small">
+                    <StatusDot status={r.status} />
                     <span className="lg:hidden">No. </span>
                     {r.sequence}
                   </span>

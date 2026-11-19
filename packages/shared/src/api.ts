@@ -80,6 +80,8 @@ export const API_FUNCTIONS = [
   'getBarkerBoard',
   'getRecallTable',
   'getResultEventIds',
+  'getResultsRelease',
+  'revealResults',
   'getResults',
   'getRound',
   'getRounds',

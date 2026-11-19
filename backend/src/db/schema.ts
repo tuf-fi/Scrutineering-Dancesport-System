@@ -27,6 +27,9 @@ export const competitions = sqliteTable('competitions', {
   paymentRequired: integer('payment_required', { mode: 'boolean' }).notNull().default(true),
   // Set while a venue laptop runs this competition offline: its day data is not changed online until the day is loaded back
   offlineHeldAt: text('offline_held_at'),
+  // Finals are approved and published as usual but stay private until the results are revealed at the awarding
+  holdResults: integer('hold_results', { mode: 'boolean' }).notNull().default(false),
+  resultsRevealedAt: text('results_revealed_at'),
 })
 
 // A team the secretariat enters dancers for; teams have no sign-in

@@ -33,6 +33,20 @@ export interface Competition {
   image?: string | null
   // Whether entering costs money. Off: no entry fee or membership is asked, and no payment or screenshot is needed
   paymentRequired: boolean
+  // Finals are published as usual but their results stay private until they are revealed at the awarding
+  holdResults?: boolean
+  // When the results were revealed; null while they are still held
+  resultsRevealedAt?: string | null
+}
+
+// Where a competition stands on holding its results until the awarding
+export interface ResultsRelease {
+  hold: boolean
+  revealedAt: string | null
+  // Events whose final is published and waiting to be revealed
+  waiting: number
+  // Events with a final in the competition
+  total: number
 }
 
 // A competition that can be run on a venue laptop with no internet, and whether a laptop has it now
@@ -1006,6 +1020,8 @@ export interface Announcement {
   select: number | null
   // call, recall, finalists: the back numbers to read, lowest first
   numbers: number[]
+  // Semi-final and final only: who the numbers are, for the wall to name them; empty in earlier rounds
+  entries: Array<{ backNumber: number; names: string[]; teamName: string }>
   // result: one competitor and their place
   result: { place: number; backNumber: number | null; names: string[]; teamName: string } | null
 }

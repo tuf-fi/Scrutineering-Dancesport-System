@@ -248,6 +248,8 @@ const access: Record<string, Access> = {
   proposeFinalTie: SCRUTINEER,
   approveRound: SCRUTINEER,
   publishRound: SCRUTINEER,
+  getResultsRelease: [Role.Admin, Role.Scrutineer, Role.Chairperson],
+  revealResults: [Role.Scrutineer, Role.Chairperson],
   confirmTieDecision: [Role.Chairperson],
   confirmFinalTie: [Role.Chairperson],
 
