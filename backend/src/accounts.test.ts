@@ -70,6 +70,26 @@ describe('only paid entries dance', () => {
   })
 })
 
+describe('a competition that does not need payment', () => {
+  it('starts a round even when entries still carry unpaid payments from before', async () => {
+    const scrutineer = await floor.signIn.staff('scrutineer')
+    const target = floor.sqlite
+      .prepare(
+        `SELECT r.id AS roundId, ev.competition_id AS competitionId, e.payment_id AS paymentId FROM rounds r
+         JOIN entries e ON e.event_id = r.event_id JOIN events ev ON ev.id = r.event_id
+         WHERE r.status = 'pending' AND r.position = 1 AND e.scratched = 0 AND e.payment_id IS NOT NULL LIMIT 1`,
+      )
+      .get() as { roundId: string; competitionId: string; paymentId: string }
+    floor.sqlite.prepare("update payments set status = 'unpaid' where id = ?").run(target.paymentId)
+    floor.sqlite.prepare('update rounds set on_floor_at = null').run()
+    expect((await floor.call('startRound', [target.roundId], scrutineer)).error).toMatch(/not been paid/)
+
+    floor.sqlite.prepare('update competitions set payment_required = 0 where id = ?').run(target.competitionId)
+    expect((await floor.call('startRound', [target.roundId], scrutineer)).error ?? '').not.toMatch(/not been paid/)
+    floor.sqlite.prepare('update competitions set payment_required = 1 where id = ?').run(target.competitionId)
+  })
+})
+
 describe('a staff member changing their own account', () => {
   it('changes the password only with the current one, and signs in with the new one', async () => {
     const mine = await cloud.signIn.staff('scrutineer')

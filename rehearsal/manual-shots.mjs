@@ -5,6 +5,7 @@ import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import zlib from 'node:zlib'
 import { chromium } from 'playwright-core'
 
 const ROOT = resolve(import.meta.dirname, '..')
@@ -93,6 +94,44 @@ async function settle(page) {
   await page.waitForLoadState('networkidle').catch(() => {})
   await page.waitForFunction(() => !document.querySelector('[class*="skeleton" i], [data-skeleton]'), null, { timeout: 8000 }).catch(() => {})
   await sleep(500)
+}
+
+// A small handwritten-looking signature as a PNG data URL, drawn here so no picture has to be kept in the repo
+function signaturePng() {
+  const w = 220
+  const h = 70
+  const px = new Uint8Array(w * h * 4)
+  const dot = (cx, cy) => {
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        const x = Math.round(cx + dx)
+        const y = Math.round(cy + dy)
+        if (x >= 0 && x < w && y >= 0 && y < h) px.set([20, 30, 70, 255], (y * w + x) * 4)
+      }
+  }
+  for (let i = 0; i <= 900; i++) {
+    const t = i / 900
+    dot(12 + 196 * t, 36 + 20 * Math.sin(t * 22) * (1 - 0.6 * t) - 6 * Math.sin(t * 5))
+  }
+  const raw = Buffer.alloc((w * 4 + 1) * h)
+  for (let y = 0; y < h; y++) {
+    raw[y * (w * 4 + 1)] = 0
+    Buffer.from(px.buffer, y * w * 4, w * 4).copy(raw, y * (w * 4 + 1) + 1)
+  }
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4)
+    len.writeUInt32BE(data.length)
+    const body = Buffer.concat([Buffer.from(type), data])
+    const crc = Buffer.alloc(4)
+    crc.writeUInt32BE(zlib.crc32(body))
+    return Buffer.concat([len, body, crc])
+  }
+  const head = Buffer.alloc(13)
+  head.writeUInt32BE(w, 0)
+  head.writeUInt32BE(h, 4)
+  head.set([8, 6, 0, 0, 0], 8)
+  const png = Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', head), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])
+  return `data:image/png;base64,${png.toString('base64')}`
 }
 
 const taken = []
@@ -432,6 +471,7 @@ const JOBS = {
       await dialog(page)
     })
     await closeDialogs(page)
+    await visit(page, R, 'heats', '/secretariat/heats')
     await visit(page, R, 'print-index', '/print')
     await visit(page, R, 'print-heats', `/print/heats/${E11}`)
     await visit(page, R, 'security', '/secretariat/security')
@@ -445,6 +485,10 @@ const JOBS = {
     const chair = await session('chairperson')
     const compere = await session('compere', { viewport: { width: 1280, height: 720 } })
     const phone = await session('adjudicator', PHONE)
+    // The scrutineer and chairperson must have a signature before any screen opens
+    const sign = signaturePng()
+    await api(scr.ctx, 'saveMyStaffSignature', sign)
+    await api(chair.ctx, 'saveMyStaffSignature', sign)
     const S = scr.page
     const P = phone.page
     const ABOVE = [5, 89, 115, 139, 197, 244, 347, 367, 196, 250, 277] // the eleven clear of the tie, by back number
@@ -467,8 +511,15 @@ const JOBS = {
     // ---- Scrutineer: the round on the floor
     await visit(S, 'scrutineer', 'rounds', '/scrutineer')
     await visit(S, 'scrutineer', 'heats', '/scrutineer/heats')
+    await visit(S, 'scrutineer', 'program', '/scrutineer/program')
+    await visit(S, 'scrutineer', 'advancement', '/scrutineer/advancement')
     await visit(S, 'scrutineer', 'live', '/scrutineer/live')
     await visit(chair.page, 'chairperson', 'live', '/scrutineer/live')
+    await visit(compere.page, 'compere', 'announcer', '/compere')
+    await tryShot(compere.page, 'compere', 'live', async () => {
+      await compere.page.keyboard.press('6')
+      await sleep(1200)
+    })
 
     // ---- Adjudicator D: marking and signing
     await visit(P, 'adjudicator', 'mark', '/adjudicator/mark')
@@ -566,11 +617,20 @@ const JOBS = {
     await visit(chair.page, 'chairperson', 'security', '/scrutineer/security')
 
     // ---- Compere
-    await visit(compere.page, 'compere', 'announcer', '/compere')
+    await compere.page.goto(BASE + '/compere')
+    await settle(compere.page)
     for (const [label, name] of [['Recalled', 'recalled'], ['Finalists', 'finalists'], ['Results', 'results'], ['Program', 'program']]) {
       await tryShot(compere.page, 'compere', name, async () => {
         await compere.page.keyboard.press({ Recalled: '2', Finalists: '3', Results: '4', Program: '5' }[label])
         await sleep(1000)
+        // The results slide comes first; step on to a place with the podium showing
+        if (label === 'Results') {
+          for (let i = 0; i < 4; i++) {
+            await compere.page.keyboard.press(' ')
+            await sleep(500)
+          }
+          await sleep(3500)
+        }
       })
     }
     await visit(compere.page, 'compere', 'account', '/account')
@@ -627,7 +687,7 @@ const JOBS = {
       // The sample competition is dated in the past, which the running order treats as finished: a real one is held today
       const comp = (await api(adm.ctx, 'getCompetitions')).find((c) => c.id === COMP)
       const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
-      await api(adm.ctx, 'saveCompetition', { name: comp.name, date: today, venue: comp.venue, organizer: comp.organizer }, COMP)
+      await api(adm.ctx, 'saveCompetition', { name: comp.name, date: today, venue: comp.venue, organizer: comp.organizer, holdResults: true }, COMP)
       const made = await api(adm.ctx, 'createStaffUser', { name: 'Ruben Soriano', username: 'barker@sample.example', role: 'barker', photo: 'data:image/png;base64,iVBORw0KGgo=' })
       await adm.ctx.close()
       const ctx = await browser.newContext({ ...PHONE, reducedMotion: 'reduce' })
@@ -638,6 +698,19 @@ const JOBS = {
       await visit(page, 'barker', 'board', '/barker')
       await ctx.close()
     }
+    await tryShot(compere.page, 'compere', 'program', async () => {
+      await compere.page.goto(BASE + '/compere')
+      await settle(compere.page)
+      await compere.page.keyboard.press('5')
+      await sleep(1200)
+    })
+    // The competition now holds its results, so the Results page shows the reveal bar
+    await visit(S, 'scrutineer', 'results-hold', '/scrutineer/results', { before: (page) => page.getByText('Results are held until the awarding').waitFor() })
+    await tryShot(S, 'scrutineer', 'reveal-confirm', async () => {
+      await S.getByRole('button', { name: 'Reveal results' }).click()
+      await dialog(S)
+    })
+    await closeDialogs(S)
 
     await scr.ctx.close()
     await chair.ctx.close()

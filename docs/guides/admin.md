@@ -1,10 +1,10 @@
 # Admin guide
 
-Your menu also holds the secretariat's screens (Events, Competitors, Teams, Coaches, Athletes, Entry requests, Account links, Team and coach changes, Late entries, Schedule, Program). You can do the secretariat's work from your own account; see [the secretariat guide](secretariat.md).
+Your menu also holds the secretariat's screens (Events, Competitors, Teams, Coaches, Athletes, Entry requests, Account links, Team and coach changes, Late entries, Schedule, Heats, Program). You can do the secretariat's work from your own account; see [the secretariat guide](secretariat.md).
 
 ## Set up once (online)
 1. **Fees and payment details**: check the **Registration fees** the secretariat charges from an entry form (first entry, each extra entry, ranking and inter-collegiate events, athlete and coach membership, Coaches Summit). They start as the organizer's 2026 entry form. The late entry fee is the flat solo and couple fee below it. Add where teams send money (GCash, Maya, bank).
-1. **Competitions**: set **Entries close** and **Fees due** if the organizer has deadlines; the secretariat is warned about later entries.
+1. **Competitions**: set **Entries close** and **Fees due** if the organizer has deadlines; the secretariat is warned about later entries. Tick **Hold the results until the awarding** to keep every final private until the scrutineer or chairperson presses **Reveal results** at the awarding (guests, standings and the compere see nothing before then).
 2. **Staff accounts**: one for each person, with a photo. A temporary password is shown once; give it to them in person.
 3. **Adjudicators and panels**: create adjudicators with a photo and a letter (you can do this before the first competition exists), make PINs for the competition, choose each event's panel.
 4. **Points table**: check the points for each place.

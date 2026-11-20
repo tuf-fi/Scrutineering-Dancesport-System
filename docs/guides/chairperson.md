@@ -8,6 +8,9 @@ You oversee the scoring. You see the scrutineer's screens but cannot enter marks
 - **Results:** before the scrutineer publishes a final, look at **Results**: the places and the skating tables should make sense to you.
 - **Live board:** shows who has submitted and who has not.
 
+## At the awarding
+If the competition holds its results until the awarding, press **Reveal results** on **Results** to make every event public at once. The scrutineer can do it too. It cannot be undone.
+
 ## You cannot
 - Start, approve or publish a round. Ask the scrutineer.
 

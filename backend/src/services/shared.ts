@@ -160,12 +160,16 @@ export function feeFor(ctx: Ctx, event: { isSolo: boolean }): number {
   return fees ? (event.isSolo ? fees.solo : fees.couple) : 0
 }
 
-// Entries of an event whose payment is not settled; only paid entries may dance
+// Entries of an event whose payment is not settled; only paid entries may dance. A competition that does not ask for
+// payment has none, even when it once had payments that were left unpaid.
 export function unpaidEntries(ctx: Ctx, eventId: string): number {
   const row = ctx.sqlite
     .prepare(
-      `SELECT count(*) AS n FROM entries e JOIN payments p ON p.id = e.payment_id
-       WHERE e.event_id = ? AND e.scratched = 0 AND p.status IN ('unpaid', 'for_checking', 'rejected')`,
+      `SELECT count(*) AS n FROM entries e
+       JOIN payments p ON p.id = e.payment_id
+       JOIN events ev ON ev.id = e.event_id
+       JOIN competitions c ON c.id = ev.competition_id
+       WHERE e.event_id = ? AND e.scratched = 0 AND c.payment_required = 1 AND p.status IN ('unpaid', 'for_checking', 'rejected')`,
     )
     .get(eventId) as { n: number }
   return row.n

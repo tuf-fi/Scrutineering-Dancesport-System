@@ -118,6 +118,10 @@ out.push(pageNew(`
 <p>The same pages fit any screen. On a phone, the menu is the three lines at the top right, and athlete, coach and team pages have a strip of links under the top bar.</p>
 <h2>Safe by design</h2>
 <p>Every action is checked against your role. A role that is not allowed to do something sees "Your account cannot do this."</p>
+<h2>Addresses that do not exist</h2>
+<p>If you open an address that does not exist, you are taken to the home page. On the staff pages you are taken to the staff sign-in.</p>
+<h2>Pages with nothing to show</h2>
+<p>A page with nothing to show says <b>No data available</b>, or says what is missing, for example "No program yet". <b>Couldn't load this</b> means the connection failed: press <b>Try again</b>.</p>
 `))
 
 // ================================================================================ VISITOR
@@ -140,12 +144,15 @@ out.push(pageCols(
   ], [I('public/competition')], true),
   feat('Program', 'A competition, then Program and running order', 'What is happening on the floor.', [
     'See what is on the floor now and what is next.',
-    'See the whole running order with start times.',
+    'A coloured dot before each line number shows where it is: red finished, green on the floor, blue up next, grey not started. A key above the list explains the dots.',
+    'See the whole running order with its number and start time. The entries column shows how many couples dance, and when a round is split into heats, how many are in each heat (for example 7 | 8).',
     'Type a back number to follow one competitor.',
     'Press Print to print the program or save it as a PDF.',
   ], [I('public/program')], true),
   feat('Event results', 'Results or Competitions, then a competition, then an event', 'The published results of one event.', [
     'Results show only after the scrutineer publishes them. Until then you see "No results yet".',
+    'When the organizer holds the results until the awarding, no event shows its results until the scrutineer reveals them all at once at the awarding. The ranking points and Standings wait too.',
+    'If the adjudicators\' marks were not entered for an event (an older result that was imported, for example), the page shows only the placings.',
   ], [I('public/event-results')], true),
   feat('Bicol Athletes', 'Menu: Bicol Athletes', 'The athletes and couples who have a ranking entry.', [
     'Only those with points in a ranking event in Juvenile, Junior or Youth are listed. A Junior solo is listed only for a female dancer.',
@@ -306,17 +313,31 @@ out.push(pageCols(
 ))
 
 // ================================================================================ Compere
-out.push(divider('Compere', 'The announcer. Use a laptop or a projector.', 'Announcer · Account'))
+out.push(divider('Compere', 'The announcer. Use a laptop or a projector.', 'Announcer · Program · Live · Account'))
 out.push(page(
-  feat('Announcer', 'Sign in as compere: you land here', 'Your screen shows what to announce, in very large type.', [
-    'Five views along the top: Next event, Recalled, Finalists, Results and Program. A view shows only after its announcement exists.',
-    'Move with the arrows at the top right, or press the number keys 1 to 5.',
-    'Next event: the numbers to call to the floor, by heat.',
-    'Recalled: the numbers that go through to the next round.',
-    'Results: places in order, from last place up, for the round just published.',
+  feat('Announcer', 'Sign in as compere: you land here', 'Your screen is made for the LED wall, in very large type. Press F for full screen: the controls fade out after a few seconds so the wall shows only the announcement.', [
+    'Six views along the top: Next event, Recalled, Finalists, Results, Program and Live. Press the number keys 1 to 6, or click one. A view is dimmed until it has something to show.',
+    'Space, Enter or the right arrow goes to the next announcement. Backspace or the left arrow goes back. Home and End jump to the first and last. "Up next" at the top right tells you what the next screen is before you press.',
+    'Next event: the event going to the floor and, above it, the event after it, so the next couples can get ready. On the right, the heat and how many each adjudicator selects (or Final). Below are the back numbers. For a semi-final or a final each couple\'s name and team are shown with the number.',
+    'Recalled: the numbers that go through to the next round, with names for a semi-final or final.',
+    'Finalists: the couples in the final with their numbers, names and teams.',
     'Nothing shows until the scrutineer publishes a round. If the screen is empty, ask the scrutineer.',
-  ], [I('compere/announcer', 'Next event', { h: 720 }), I('compere/recalled', 'Recalled', { h: 720 })]),
-  feat('Program view', 'Press 5', 'The whole program, with start times.', [], [I('compere/program', '', { h: 720 })]),
+  ], [I('compere/announcer', 'Next event', { h: 720 }), I('compere/recalled', 'Recalled', { h: 720 }), I('compere/finalists', 'Finalists', { h: 720 })]),
+  feat('Results', 'Press 4', 'The places, read from last up to 1st.', [
+    'A "Results" slide first, then each place in turn from last up. The list on the right fills in as you go.',
+    'The top three stand as bars, with the winner\'s number, name and team shown large before it moves onto its bar.',
+    'It shows only the event on screen, never another event\'s places.',
+    'If the competition holds its results until the awarding, nothing about the final placings appears here until the scrutineer or chairperson reveals them. Then the Results slides for every event appear, in event order.',
+  ], [I('compere/results', '', { h: 720 })]),
+  feat('Program view', 'Press 5', 'What is on the floor, what is up next, and the lines around them.', [
+    'On the floor and Up next sit side by side. When nothing is on the floor yet, Up next fills the top of the screen. A round counts as on the floor only once marking has started.',
+    'Below them, the running order with its dots (red finished, green on the floor, blue up next, grey not started), each line\'s number and start time, and what happens in it, such as Select 6 or Rank 8.',
+  ], [I('compere/program', '', { h: 720 })]),
+  feat('Live view', 'Press 6', 'How many adjudicators have sent their marks for each round on the floor, while you wait for the results.', [
+    'One round on the floor fills the screen. When several rounds are on the floor at once they sit side by side (five fit on one screen), each with its own count and progress bar.',
+    'It never shows the marks themselves.',
+    'When the results are published while this view is up, the screen moves to the Results slide by itself.',
+  ], [I('compere/live', '', { h: 720 })]),
   feat('Account', 'Your name at the top right', 'Change your name and password. Turn on two-step sign-in.', ['The compere cannot change anything about the competition.'], [I('compere/account', '', { h: 560 })]),
 ))
 
@@ -334,7 +355,7 @@ out.push(page(
 ))
 
 // ================================================================================ SCRUTINEER
-out.push(divider('Scrutineer', 'You run every round. Use a laptop and keep it open all day.', 'Rounds · Heats · Live board · Paper marks · Recall · Results · Printouts · Security'))
+out.push(divider('Scrutineer', 'You run every round. Use a laptop and keep it open all day.', 'Rounds · Heats · Program · Advancement · Live board · Paper marks · Recall · Results · Printouts · Security'))
 out.push(page(
   feat('Rounds', 'Menu: Rounds', 'See where the competition is and every round still to run.', [
     'Plan rounds: press once so every event with entries gets its rounds.',
@@ -346,8 +367,18 @@ out.push(page(
   feat('Heats', 'Menu: Heats', 'Split a big round into groups that dance together.', [
     'Choose the round and how many dancers per heat.',
     'Split evenly shares them out. Use the heat box on a row to move one dancer.',
-    'Press Save heats.',
+    'Press Save heats. The program and its printout then show the split of every round, for example 12 | 12 | 8.',
+    'The admin and the secretariat have the same Heats page, so the heats can be set before the day.',
   ], [I('scrutineer/heats', '', { h: 640 })]),
+  feat('Program, Schedule and Panels', 'Menu: Program, Schedule, Panels', 'The running order and who marks each event, the same screens the secretariat uses.', [
+    'Program: every round, break and the awarding with its start time, how many couples dance (and the heats of each round) and what is done in it, such as Select 6 or Rank 8. Drag a line to move it.',
+    'Schedule sets the order of the events. Panels shows which adjudicators mark each event.',
+  ], [I('scrutineer/program', '', { h: 640 })]),
+  feat('Advancement', 'Menu: Advancement', 'How many couples dance in each round, by the number of entries.', [
+    'Each row says: from this many entries, which rounds an event dances (Round 1, Round 2, Quarter-final, Semi-final, Final) and how many couples go through each. All means every couple dances the first round.',
+    'The table gives every event its rounds when you press Plan rounds. Changing a row changes the rounds for every event of that size.',
+    'To change one event only, open Schedule and edit that event\'s rounds. This is possible until the event has started.',
+  ], [I('scrutineer/advancement', '', { h: 640 })]),
   feat('Live board', 'Menu: Live board', 'Watch each adjudicator\'s phone.', [
     'Each adjudicator goes from Waiting to Submitted.',
     'A phone silent for 20 seconds is flagged. "Marks saved on the phone, not sent yet" means the phone has them and is waiting for a connection.',
@@ -370,8 +401,9 @@ out.push(page(
     'Tie in a final: propose keeping the shared place, or a tie-break order. The chairperson confirms.',
     'Approve results: locks the marks, saves the result, adds the ranking points and takes a backup.',
     'Publish results: makes the result public and shows it to the compere.',
+    'When the competition holds its results until the awarding, a bar at the top says how many finals are published and waiting. Publishing keeps them private. Press Reveal results at the awarding to make every event public at once, on the website and the compere screen. Only the scrutineer and the chairperson can reveal, and it cannot be undone.',
     'Print summary prints the round.',
-  ], [I('scrutineer/results', '', { h: 640 }), I('scrutineer/approve-confirm', 'Approve'), I('scrutineer/publish-confirm', 'Publish')]),
+  ], [I('scrutineer/results', '', { h: 640 }), I('scrutineer/approve-confirm', 'Approve'), I('scrutineer/publish-confirm', 'Publish'), I('scrutineer/results-hold', 'When results are held: the bar at the top shows how many finals are waiting', { h: 330 }), I('scrutineer/reveal-confirm', 'Reveal results asks first')]),
   feat('Printouts', 'Print summary, or All printouts', 'Paper sheets for any event or round.', [
     'Heat list, list of dancers going through, scores sheet, final results and blank mark sheets.',
     'Press Print on the sheet, or Back to return.',
@@ -388,6 +420,7 @@ out.push(divider('Chairperson', 'You oversee the scoring. Use a laptop.', 'Live 
 out.push(page(
   feat('What you can see', 'Menu: Live board, Recall, Results', 'You see the scrutineer\'s screens and marks, but you cannot enter marks.', [
     'You cannot start, approve or publish a round.',
+    'You can press Reveal results on the Results page at the awarding, when the competition holds its results.',
     'Every decision you make is stored with your name and the time.',
   ], [I('chairperson/live', 'Live board: who has submitted', { h: 640 })]),
   feat('Confirm a tie at the cut-off', 'Menu: Recall', 'When the scrutineer has proposed how to settle a tie, read it and confirm.', [
@@ -402,7 +435,7 @@ out.push(page(
 ))
 
 // ================================================================================ SECRETARIAT
-out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Program · Printouts · Security'))
+out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Heats · Program · Printouts · Security'))
 out.push(page(
   feat('Events', 'Menu: Events', 'Every event in the competition and how many entries it has.', [
     'Add event, edit and delete. Set the age group, class, style, dances, solo or couple.',
@@ -433,6 +466,7 @@ out.push(page(
     'Filter by paid or not paid, competition, event and team; the line under the filters counts everyone.',
     'Payment waiting: check it against the money received, then press the tick to confirm. Their membership is then recorded for the year, and they get their membership ID (A-00001) with the first one.',
     'The Membership ID column shows it, and you can search by it.',
+    'Press a row to see the athlete\'s account and payment details in the side panel.',
     'Press the cross to turn a payment down. You must give a reason, and the athlete sees it.',
     'The key gives a new password and the bin deletes an account.',
   ], [I('secretariat/athletes', '', { h: 560 }), I('secretariat/athlete-add', 'Add athlete', { maxh: 150 }), I('secretariat/import', 'Import')]),
@@ -457,11 +491,16 @@ out.push(page(
     'Cash payments tab: mark a team\'s unpaid or rejected payment as paid at the venue.',
   ], [I('secretariat/late-entries', '', { h: 520 }), I('secretariat/late-entry-add'), I('secretariat/cash-payments', 'Cash payments', { h: 520 })]),
   feat('Schedule', 'Menu: Schedule', 'The order the events are danced in.', ['Use the arrows to move an event up or down.'], [I('secretariat/schedule', '', { h: 620 })]),
+  feat('Heats', 'Menu: Heats', 'Split a big round into groups that dance together.', [
+    'Choose the round and how many dancers go in each heat, press Split evenly, or move one dancer with the heat box on its row, then press Save heats.',
+    'The program and its printout show each round\'s heats, for example 7 | 8. The scrutineer and the admin have the same page.',
+  ], [I('secretariat/heats', '', { h: 640 })]),
   feat('Program', 'Menu: Program', 'The running order with start times.', [
     'Press Generate to build it from the events: every round, break and the awarding.',
+    'Columns: Time, Sequence no., Event, Round, No. of Entries (with the heats of each round), Action (Select 6 or Rank 8), Adj., Min and Status.',
     'Set Starts at to the first start time.',
     'Add break puts in a break. Use the arrows, pencil and bin on a line to move, edit or remove it.',
-    'Add missing rounds fills in rounds added later. Print prints it, with a sequence number on every line.',
+    'Add missing rounds fills in rounds added later. Print prints it on A4 portrait, with a sequence number on every line and the heats of each round.',
     'Adj. shows who judges each round. When only some of the panel judge a round (5 of 7, say), press Rotate adjudicators and enter how many, or use the adjudicators icon on a round to choose them. Only those adjudicators mark that round, and it cannot change once the round has started.',
     'Visitors see the program on the website.',
   ], [I('secretariat/program-empty', 'Before it is generated', { h: 420 }), I('secretariat/program', 'After pressing Generate', { h: 640 }), I('secretariat/program-break', 'Add break')]),
@@ -476,12 +515,14 @@ out.push(page(
     'New competition: name, date, organizer, venue and a card photo (required). The date cannot be before today: a finished competition cannot be added or moved into the past. A competition already held can still have its other details corrected.',
     'Executor (optional) is who runs the scoring; it is printed as the Executor on result sheets. Empty uses the organizer.',
     'Entries close and Fees due are optional. Later entries are flagged to the secretariat.',
+    'Hold the results until the awarding: finals are published as usual but stay private. Guests, Standings and the compere see nothing until the scrutineer or chairperson presses Reveal results. Leave it off to show each result as soon as it is published.',
     'Search, filter by year, edit and delete. A competition with events cannot be deleted.',
   ], [I('admin/competitions', '', { h: 560 }), I('admin/competition-new')]),
   feat('Kinds and age groups', 'Menu: Kinds and age groups', 'The kinds of event and the age groups the system uses.', [
     'Kinds set which disciplines their events are danced in and who may enter, for example Beginners only or Closed to one province. Age groups set a name, how it is printed and the years of birth the group covers.',
     'A change never rewrites the past. Once an event in an age group has started, saving a change makes a new version and keeps the old one for those events, their results and sheets. Events still to run, and competitors, move to the new version.',
     'Standings add points earned under the old version to the new one. A group or kind that events use cannot be deleted.',
+    'Age groups go by year of birth. A couple dances in the group of its older partner or an older one. You can add groups such as Under 21 or Senior.',
   ]),
   feat('Adjudicators', 'Menu: Adjudicators and panels', 'The adjudicators and their PINs.', [
     'Add adjudicator: name, a photo (required) and a letter, A to J. Edit or delete with the icons on the row. Adjudicators can be added before any competition exists; only their PINs need one.',
@@ -521,7 +562,7 @@ out.push(page(
   ], [I('admin/security', '', { h: 420 }), I('admin/two-step')]),
   feat('Backups and the secretariat\'s screens', 'Top of every screen; menu sections Entries and The day', 'Two more things for the admin.', [
     'A warning appears at the top if a backup folder fails.',
-    'Your menu also holds every secretariat screen (Events, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Program), so you can do that work from your own account. See the Secretariat section.',
+    'Your menu also holds every secretariat screen (Events, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Heats, Program), so you can do that work from your own account. See the Secretariat section.',
     'You cannot start, approve or publish a round, or confirm a tie.',
   ]),
 ))
@@ -552,6 +593,7 @@ out.push(pageNew(`
 <tr><td>X mark</td><td>An adjudicator's vote to recall a dancer.</td></tr>
 <tr><td>Placing</td><td>An adjudicator's ranking in the final: 1 is best.</td></tr>
 <tr><td>Panel</td><td>The adjudicators who mark an event.</td></tr>
+<tr><td>Awarding</td><td>The ceremony where the winners are announced. A competition can hold every result until then.</td></tr>
 </table>
 `))
 
@@ -566,7 +608,7 @@ ${step(1, 'Admin', 'Set the fees and where to pay', 'Open <b>Fees and payment de
 ${step(2, 'Admin', 'Create the staff accounts', 'Open <b>Staff accounts</b> and add the secretariat, scrutineer, chairperson and compere. Give each person their temporary password in person. Ask the secretariat and admin to turn on two-step sign-in.')}
 ${step(3, 'Admin', 'Add the adjudicators', 'Open <b>Adjudicators and panels</b> and add each adjudicator with a letter (A, B, C and so on).')}
 ${step(4, 'Admin', 'Check the points table', 'Open <b>Points table</b> and check the points for each place.')}
-${step(5, 'Admin', 'Create the competition', 'Open <b>Competitions</b> and press <b>New competition</b>. Add the name, date, venue, organizer and a card photo. Set the entries and fees deadlines if you have them.', [I('admin/competition-new', '', { mm: 62 })])}
+${step(5, 'Admin', 'Create the competition', 'Open <b>Competitions</b> and press <b>New competition</b>. Add the name, date, venue, organizer and a card photo. Set the entries and fees deadlines if you have them. Tick <b>Hold the results until the awarding</b> if every result is to be revealed together at the awarding.', [I('admin/competition-new', '', { mm: 62 })])}
 ${step(6, 'Secretariat', 'Add the events', 'Open <b>Events</b> and add each event with its age group, class, style and dances. Set the Kind (Beginners, Ranking, Inter-school or Closed to a province).')}
 ${step(7, 'Secretariat', 'Add the teams and coaches', 'Open <b>Teams</b> and <b>Coaches</b> and add each one once, as named on the entry forms.')}
 <h2>Part 2 · Take entries</h2>
@@ -584,7 +626,7 @@ ${step(17, 'Secretariat', 'Print the heat lists', 'Open an event and press <b>He
 ${step(18, 'Everyone', 'Sign in and test', 'Staff sign in on their laptops. Each adjudicator signs in with their PIN and sees <b>Waiting for the next round</b>.', [I('adjudicator/waiting', '', { mm: 60, y: 780, h: 420 })])}
 <h2>Part 4 · On the day, round by round</h2>
 ${step(19, 'Scrutineer', 'Plan the rounds (once)', 'Open <b>Rounds</b> and press <b>Plan rounds</b>. Every event with entries gets its rounds.')}
-${step(20, 'Scrutineer', 'Split into heats if needed', 'If a round is too big for the floor, open <b>Heats</b>, press <b>Split evenly</b> and <b>Save heats</b>.')}
+${step(20, 'Scrutineer', 'Split into heats if needed', 'If a round is too big for the floor, open <b>Heats</b>, press <b>Split evenly</b> and <b>Save heats</b>. The secretariat and the admin can do this too, even before the day. The program then shows each round\'s heats.')}
 ${step(21, 'Scrutineer', 'Start the round', 'On <b>Rounds</b>, press <b>Start</b> on the round. It appears on the adjudicators\' phones and the compere\'s screen shows the numbers to call. If it will not start, some entries are unpaid: the secretariat records the payment or scratches the dancer.', [I('scrutineer/rounds', '', { h: 560 })])}
 ${step(22, 'Adjudicators', 'Mark and sign', 'Early rounds: tap the numbers of the dancers to go through, exactly the number shown. Final: place every finalist 1st to last. Press <b>Submit</b>, check, then <b>Final and submit</b>, sign and press <b>Finalize</b>.', [I('adjudicator/mark-chosen', '', { mm: 34 }), I('adjudicator/review', '', { mm: 40 }), I('adjudicator/sign', '', { mm: 40 })])}
 ${step(23, 'Scrutineer', 'Watch the live board', 'Watch each phone go from <b>Waiting</b> to <b>Submitted</b>. If a phone cannot send, take the paper sheet and type it in on <b>Paper marks</b>.', [I('scrutineer/live-complete', '', { h: 640, mm: 120 })])}
@@ -592,11 +634,12 @@ ${step(24, 'Scrutineer and chairperson', 'Settle any tie', 'Open <b>Recall</b>. 
 ${step(25, 'Scrutineer', 'Approve and publish', 'Open <b>Results</b>. Check the table, press <b>Approve results</b>, then <b>Publish results</b>. The result is now on the website and on the compere\'s screen, and the ranking points are added.', [I('scrutineer/publish-confirm', '', { mm: 60 })])}
 ${step(26, 'Compere', 'Announce', 'The compere reads the numbers that go through (<b>Recalled</b>), or the places from last to first (<b>Results</b>). Press the arrows or number keys for the next announcement.', [I('compere/recalled', '', { h: 720, mm: 110 })])}
 ${step(27, 'Scrutineer', 'Next round', 'Go back to step 21 for the next round: round 1, round 2, quarter-final, semi-final and finally the final. In the final the adjudicators place every finalist, and a tie in the final is settled the same way as step 24.')}
-${step(28, 'Secretariat', 'Late changes', 'A dancer withdraws: open the event and press <b>Scratch</b>. A dancer arrives late: add them under <b>Late entries</b>. They cannot dance until they have paid.')}
+${step(28, 'Scrutineer or chairperson', 'Reveal the results (when they are held)', 'If the competition holds its results until the awarding, finals stay private after they are published. At the awarding, open <b>Results</b> and press <b>Reveal results</b>. Every event goes public at once and the compere reads the places from last to first, event by event.', [I('scrutineer/results-hold', '', { h: 330, mm: 120 }), I('scrutineer/reveal-confirm', '', { mm: 60 })])}
+${step(29, 'Secretariat', 'Late changes', 'A dancer withdraws: open the event and press <b>Scratch</b>. A dancer arrives late: add them under <b>Late entries</b>. They cannot dance until they have paid.')}
 <h2>Part 5 · After the competition</h2>
-${step(29, 'Everyone', 'Results and standings are public', 'Visitors read the results on the competition page and the points on <b>Standings</b>. Athletes, coaches and teams see their results on their own pages.', [I('public/standings', '', { mm: 40, h: 1450 })])}
-${step(30, 'Scrutineer', 'Print the results', 'Use <b>Print summary</b> on <b>Results</b>, or <b>All printouts</b> for score sheets and final results.')}
-${step(31, 'Admin', 'Check the money and the backups', 'Open <b>Payments</b> to see what is paid and what is still owed. Check there is no backup warning.')}
+${step(30, 'Everyone', 'Results and standings are public', 'Visitors read the results on the competition page and the points on <b>Standings</b>. Athletes, coaches and teams see their results on their own pages.', [I('public/standings', '', { mm: 40, h: 1450 })])}
+${step(31, 'Scrutineer', 'Print the results', 'Use <b>Print summary</b> on <b>Results</b>, or <b>All printouts</b> for score sheets and final results.')}
+${step(32, 'Admin', 'Check the money and the backups', 'Open <b>Payments</b> to see what is paid and what is still owed. Check there is no backup warning.')}
 `))
 
 out.push(pageNew(`
@@ -608,7 +651,10 @@ out.push(pageNew(`
 <tr><td>My entry or payment was turned down.</td><td>Open Notifications or My requests to read the reason, fix it and send it again.</td></tr>
 <tr><td>I cannot see my dancers.</td><td>Your account must be linked first. Open Link your team (or coach) and send the request.</td></tr>
 <tr><td>A round will not start.</td><td>Some entries are not paid. The secretariat records the payment or scratches the dancer.</td></tr>
-<tr><td>Results are not on the website.</td><td>The scrutineer has not published them yet.</td></tr>
+<tr><td>Results are not on the website.</td><td>The scrutineer has not published them yet, or the competition holds its results until the awarding and they have not been revealed.</td></tr>
+<tr><td>The compere screen shows nothing for a final.</td><td>The final has not been published, or its results are held until the awarding. The scrutineer or chairperson presses Reveal results.</td></tr>
+<tr><td>I opened a link and landed on the home page.</td><td>The address does not exist. Staff pages go to the staff sign-in instead.</td></tr>
+<tr><td>A page says "No data available".</td><td>There is nothing to show yet, for example a competition with no program. If it says "Couldn't load this", press Try again.</td></tr>
 <tr><td>A phone says marks are not sent.</td><td>They are saved. Move to mobile data or other Wi-Fi, or use the paper sheet.</td></tr>
 <tr><td>Two couples have the same place in a final.</td><td>The scrutineer proposes how to settle it, the chairperson confirms, then the round can be approved.</td></tr>
 <tr><td>An adjudicator's PIN is refused.</td><td>The admin makes a new one on Adjudicators and panels. A PIN only works around the competition date.</td></tr>
