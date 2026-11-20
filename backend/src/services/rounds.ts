@@ -37,6 +37,7 @@ import {
   splitIntoHeats,
   toEvent,
   toRound,
+  currentHeatGroups,
   unpaidEntries,
   MAX_SIGNATURE,
   PNG_PREFIX,
@@ -130,9 +131,8 @@ export const rounds = {
 
   getHeatAssignments(ctx: Ctx, roundId: string): HeatAssignment[] {
     const round = getRoundRow(ctx, roundId)
-    const saved = heatsOfRound(ctx, roundId)
-    if (saved.length > 0) return saved.flatMap((h) => h.competitorIds.map((competitorId) => ({ competitorId, heat: h.number })))
-    const groups = groupsFor(ctx, round, fieldOf(ctx, round))
+    const kept = currentHeatGroups(ctx, round)
+    const groups = kept.length > 0 ? kept : groupsFor(ctx, round, fieldOf(ctx, round))
     return groups.flatMap((ids, i) => ids.map((competitorId) => ({ competitorId, heat: i + 1 })))
   },
 
@@ -191,7 +191,8 @@ export const rounds = {
     if (round.recallNumber !== null && field.length <= round.recallNumber) {
       return fail(`Only ${field.length} are in this round, so recalling ${round.recallNumber} would recall everyone.`, 409)
     }
-    if (heatsOfRound(ctx, roundId).length === 0) saveHeats(ctx, roundId, groupsFor(ctx, round, field))
+    const kept = currentHeatGroups(ctx, round)
+    saveHeats(ctx, roundId, kept.length > 0 ? kept : groupsFor(ctx, round, field))
 
     ctx.db.update(t.rounds).set({ status: 'marking', onFloorAt: now() }).where(eq(t.rounds.id, roundId)).run()
     record(ctx.db, actor(ctx).id, 'Started round', `Event ${event.number}, ${round.type}`, { before: { status: round.status }, after: { status: 'marking' } })

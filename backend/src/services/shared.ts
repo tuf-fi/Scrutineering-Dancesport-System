@@ -351,14 +351,38 @@ export function saveHeats(ctx: Ctx, roundId: string, groups: string[][]) {
 export const roundAdvanced = (status: RoundStatus) =>
   status === RoundStatus.Approved || status === RoundStatus.Published
 
-// The competitors in a round: its saved heats; else everyone entered (first round) or whoever the
-// previous round recalled, once that round is decided
+// The competitors in a round: everyone entered while the first round has not started (heats saved earlier may be out
+// of date); else its saved heats; else whoever the previous round recalled, once that round is decided
 export function fieldOf(ctx: Ctx, round: typeof t.rounds.$inferSelect): string[] {
+  const previous = roundsOfEvent(ctx, round.eventId).find((r) => r.position === round.position - 1)
+  if (!previous && round.status === 'pending') return activeEntryRows(ctx, round.eventId).map((e) => e.competitorId)
   const saved = heatsOfRound(ctx, round.id).flatMap((h) => h.competitorIds)
   if (saved.length > 0) return saved
-  const previous = roundsOfEvent(ctx, round.eventId).find((r) => r.position === round.position - 1)
   if (!previous) return activeEntryRows(ctx, round.eventId).map((e) => e.competitorId)
   return []
+}
+
+// Saved heats brought up to date with the field: anyone who left (scratched) is dropped, and anyone entered since goes
+// into the smallest heat, so nobody is missing from the heats
+export function reconcileHeats(saved: string[][], field: string[]): string[][] {
+  const inField = new Set(field)
+  const groups = saved.map((ids) => ids.filter((id) => inField.has(id)))
+  const placed = new Set(groups.flat())
+  for (const id of field) {
+    if (placed.has(id)) continue
+    let smallest = 0
+    groups.forEach((g, i) => {
+      if (g.length < groups[smallest]!.length) smallest = i
+    })
+    groups[smallest]!.push(id)
+  }
+  return groups.filter((g) => g.length > 0)
+}
+
+// The heats of a round as they stand now
+export function currentHeatGroups(ctx: Ctx, round: typeof t.rounds.$inferSelect): string[][] {
+  const saved = heatsOfRound(ctx, round.id).map((h) => h.competitorIds)
+  return saved.length === 0 ? [] : reconcileHeats(saved, fieldOf(ctx, round))
 }
 
 // The scrutineer's advancement table for a competition, or the built-in default

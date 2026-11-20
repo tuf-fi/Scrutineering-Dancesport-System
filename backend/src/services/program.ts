@@ -18,7 +18,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { activeEntryRows, currentCompetition, fieldOf, heatsOfRound, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
+import { activeEntryRows, currentCompetition, currentHeatGroups, fieldOf, heatsOfRound, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
 
 type Slot = typeof t.programSlots.$inferSelect
 
@@ -172,7 +172,7 @@ function build(ctx: Ctx, competitionId: string): Program {
       roundType: slot.roundType,
       recallNumber: field?.recallNumber ?? null,
       entryCount: field?.entryCount ?? 0,
-      heats: round && round.type !== RoundType.Final ? heatsOfRound(ctx, round.id).map((h) => h.competitorIds.length) : [],
+      heats: round && round.type !== RoundType.Final ? currentHeatGroups(ctx, round).map((g) => g.length) : [],
       panel: event ? panelLetters(ctx, event.id) : [],
       adjudicators: set.letters,
       customSet: set.custom,
