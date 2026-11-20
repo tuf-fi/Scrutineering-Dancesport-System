@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router'
+import { Link } from 'react-router'
 import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { cn } from '../../lib/cn.ts'
@@ -9,13 +9,6 @@ export interface SectionItem {
   id: string
   label: string
   icon: LucideIcon
-}
-
-// Which of a page's sections is open: the one in the address (?section=), or the first
-export function useSection(sections: readonly SectionItem[]): string {
-  const [params] = useSearchParams()
-  const asked = params.get('section')
-  return sections.find((s) => s.id === asked)?.id ?? sections[0]!.id
 }
 
 // A second sidebar beside the admin one: the same look, fixed to the viewport and touching it, so a page's sections are one step away.

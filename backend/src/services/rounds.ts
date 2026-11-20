@@ -340,7 +340,7 @@ function storeMarks(
   }
   const round = getRoundRow(ctx, roundId)
   const event = getEventRow(ctx, round.eventId)
-  if (!roundAdjudicatorIds(ctx, round).includes(adjudicatorId)) return fail('This adjudicator is not judging this round.', 403)
+  if (!roundAdjudicatorIds(ctx, round).includes(adjudicatorId)) return fail('This adjudicator is not marking this round.', 403)
   if (round.status !== 'marking' && round.status !== 'review') return fail('This round is not open for marking.', 409)
   // A phone's old copy of the whole sheet must not undo a redance: that heat is marked first
   if (owedRedance(ctx, roundId, adjudicatorId)) return fail('A redance is waiting. Mark that heat first.', 409)

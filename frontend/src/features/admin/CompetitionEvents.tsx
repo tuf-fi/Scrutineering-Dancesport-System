@@ -1,4 +1,4 @@
-import { EmptyState, SkeletonList } from '../../components/ui/index.ts'
+import { EmptyState, ErrorState, SkeletonList } from '../../components/ui/index.ts'
 import { useEvents, useCatalog } from '../../hooks/index.ts'
 import { DANCE_LABEL, eventCode } from '../../lib/format.ts'
 
@@ -8,6 +8,7 @@ export function CompetitionEvents({ competitionId }: { competitionId: string }) 
   const events = useEvents(competitionId)
   const list = [...(events.data ?? [])].sort((a, b) => a.number - b.number)
 
+  if (events.isError) return <ErrorState onRetry={() => void events.refetch()} />
   if (events.isLoading) return <SkeletonList rows={5} />
   if (list.length === 0) return <EmptyState title="No events yet" description="The secretariat sets up the events of a competition." />
 

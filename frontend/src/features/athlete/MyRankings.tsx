@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router'
-import { EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
+import { EmptyState, ErrorState, Pagination, SkeletonList } from '../../components/ui/index.ts'
 import { useMyActivity, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
@@ -44,6 +44,14 @@ export function MyRankings({ title = 'My standings', note = 'Where you stand in 
     for (const s of pageItems) byDiscipline.set(s.discipline, [...(byDiscipline.get(s.discipline) ?? []), s])
     return [...byDiscipline]
   }, [pageItems])
+
+  if (activity.isError || points.isError) {
+    return (
+      <AccountSection title={title} note={note}>
+        <ErrorState onRetry={() => void Promise.all([activity.refetch(), points.refetch()])} />
+      </AccountSection>
+    )
+  }
 
   return (
     <AccountSection title={title} note={note}>

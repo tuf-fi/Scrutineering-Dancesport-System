@@ -311,7 +311,7 @@ describe('the final', () => {
     expect(list[0]!.numbers).toEqual([1, 2, 3, 4, 5, 6, 7])
   })
 
-  it('gives guests the event report: who judged, the placings and every adjudicator marks', async () => {
+  it('gives guests the event report: who marked, the placings and every adjudicator marks', async () => {
     const report = await app.ok<EventReport>('getEventReport', [eventId])
     expect(report.competition.name).toBeTruthy()
     expect(report.adjudicators.map((a) => a.letter)).toEqual(['A', 'B', 'C', 'D', 'E'])

@@ -24,7 +24,7 @@ import {
   type SkatingTable,
   type TieDecision,
 } from '@bis/shared'
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
@@ -54,11 +54,7 @@ const marksOf = (ctx: Ctx, roundId: string): Mark[] =>
 
 const peopleOf = (ctx: Ctx, ids: string[]) =>
   new Map(
-    ctx.db
-      .select()
-      .from(t.competitors)
-      .all()
-      .filter((c) => ids.includes(c.id))
+    (ids.length === 0 ? [] : ctx.db.select().from(t.competitors).where(inArray(t.competitors.id, ids)).all())
       .map((c) => [c.id, c]),
   )
 
@@ -393,7 +389,7 @@ export const scrutiny = {
   },
 }
 
-// The public sheet of an event once its final is published: who judged, the placings, and every adjudicator's marks
+// The public sheet of an event once its final is published: who marked, the placings, and every adjudicator's marks
 function eventReport(ctx: Ctx, eventId: string): EventReport {
   const event = getEventRow(ctx, eventId)
   const all = roundsOfEvent(ctx, eventId)
@@ -430,7 +426,7 @@ function eventReport(ctx: Ctx, eventId: string): EventReport {
   return {
     competition: { name: competition.name, date: competition.date, venue: competition.venue, organizer: competition.organizer, executor: competition.executor || competition.organizer },
     scrutineer: staffName(ctx, results[0]?.approvedBy ?? null) ?? '',
-    // Everyone who judged any round of the event
+    // Everyone who marked any round of the event
     adjudicators: (rounds.length > 0 ? [...new Set(rounds.flatMap((r) => roundAdjudicatorIds(ctx, r)))] : panelAdjudicatorIds(ctx, eventId))
       .map((id) => letters.get(id))
       .flatMap((a) => (a ? [{ letter: a.letter, name: a.name }] : []))

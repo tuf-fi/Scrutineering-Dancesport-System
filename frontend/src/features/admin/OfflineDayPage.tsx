@@ -4,9 +4,7 @@ import { Button, Dialog, ErrorState, PageHeader, Table, toast } from '../../comp
 import { buttonStyles } from '../../components/ui/buttonStyles.ts'
 import { useCancelOfflineDay, useLoadDayFile, useOfflineDays, useStartOfflineDay } from '../../hooks/index.ts'
 import { formatDate, formatDateTime } from '../../lib/format.ts'
-
-export const DATABASE_COPY_URL = '/api/offline/database'
-export const dayFileUrl = (competitionId: string) => `/api/offline/day?competition=${encodeURIComponent(competitionId)}`
+import { DATABASE_COPY_URL, dayFileUrl } from './offlineUrls.ts'
 
 const COUNT_LABEL: Record<string, string> = {
   rounds: 'Rounds',

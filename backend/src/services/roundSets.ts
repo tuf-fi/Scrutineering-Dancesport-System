@@ -5,8 +5,8 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { panelAdjudicatorIds, roundAdjudicatorIds, roundsOfEvent } from './shared.ts'
 
-// The adjudicators who judge each round, when a round is judged by some of the event's panel (a pool of 7 where 5 judge
-// each round). A round with no set is judged by the whole panel.
+// The adjudicators who mark each round, when a round is marked by some of the event's panel (a pool of 7 where 5 mark
+// each round). A round with no set is marked by the whole panel.
 
 const eventRow = (ctx: Ctx, id: string) => found(ctx.db.select().from(t.events).where(eq(t.events.id, id)).get(), 'Event')
 
@@ -22,7 +22,7 @@ function writeSet(ctx: Ctx, eventId: string, roundType: RoundType, ids: string[]
 }
 
 export const roundSets = {
-  // Each round's set as ids; null where the whole panel judges it
+  // Each round's set as ids; null where the whole panel marks it
   getRoundSets: (ctx: Ctx, competitionId: string) => {
     const events = ctx.db.select({ id: t.events.id }).from(t.events).where(eq(t.events.competitionId, competitionId)).all()
     const ids = new Set(events.map((e) => e.id))
@@ -35,7 +35,7 @@ export const roundSets = {
     })
   },
 
-  // Who judges one round, for its printed sheets
+  // Who marks one round, for its printed sheets
   getRoundSet(ctx: Ctx, roundId: string): string[] {
     const round = found(ctx.db.select().from(t.rounds).where(eq(t.rounds.id, String(roundId))).get(), 'Round')
     return roundAdjudicatorIds(ctx, round)
@@ -66,7 +66,7 @@ export const roundSets = {
   // different people sit out. Returns how many rounds were given a set.
   rotateRoundSets(ctx: Ctx, competitionId: string, setSize: number): number {
     found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, String(competitionId))).get(), 'Competition')
-    if (!Number.isInteger(setSize) || setSize < 1) return fail('Say how many adjudicators judge each round.')
+    if (!Number.isInteger(setSize) || setSize < 1) return fail('Say how many adjudicators mark each round.')
     const slots = ctx.db
       .select()
       .from(t.programSlots)

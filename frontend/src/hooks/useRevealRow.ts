@@ -20,6 +20,8 @@ export function useRevealRow<T>(items: T[], idOf: (item: T) => string, pageSize:
     if (index < 0) return
     done.current = target
     setPage(Math.floor(index / pageSize) + 1)
+    // Syncs with the address and with a list that loads later, so the mark can only start from here
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRevealed(target)
   }, [target, ready, items, idOf, pageSize, setPage])
 

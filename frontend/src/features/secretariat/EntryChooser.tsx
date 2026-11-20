@@ -1,7 +1,7 @@
 import type { CompetitorRow } from '@bis/shared'
 import { Dialog } from '../../components/ui/index.ts'
 import { competitorName } from '../../lib/format.ts'
-import { entryLabel } from './AthleteEntries.tsx'
+import { entryLabel } from './entryLabel.ts'
 
 // An athlete who dances in more than one entry is asked which one before something is done to it
 export function EntryChooser({

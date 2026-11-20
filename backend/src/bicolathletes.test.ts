@@ -16,6 +16,8 @@ beforeAll(async () => {
   competitionId = (await app.ok<Competition[]>('getCompetitions', [], admin))[0]!.id
   eventId = (await app.ok<Event[]>('getEvents', [competitionId], admin))[0]!.id
   teamId = (await app.ok<Team[]>('getTeams', [], admin))[0]!.id
+  // Points of an event only show once its final is published
+  app.sqlite.prepare("update rounds set status = 'published' where event_id = ? and type = 'final'").run(eventId)
 })
 afterAll(() => app.close())
 

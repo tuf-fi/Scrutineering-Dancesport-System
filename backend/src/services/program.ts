@@ -5,6 +5,7 @@ import {
   RoundStatus,
   RoundType,
   clockTime,
+  planForEntries,
   programStatuses,
   type BarkerBoard,
   type BarkerEvent,
@@ -18,7 +19,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
-import { activeEntryRows, currentCompetition, currentHeatGroups, fieldOf, heatsOfRound, planFor, roundAdvanced, roundsOfEvent } from './shared.ts'
+import { activeEntryRows, advancementOf, currentCompetition, fieldOf, heatsOfRound, planFor, reconcileHeats, roundAdvanced, roundsOfEvent } from './shared.ts'
 
 type Slot = typeof t.programSlots.$inferSelect
 
@@ -85,41 +86,78 @@ export function syncEventSlots(ctx: Ctx, event: typeof t.events.$inferSelect, ty
   changed(ctx)
 }
 
-// The letters of a round's set when one was chosen, else of the whole panel
-function setLetters(ctx: Ctx, eventId: string, roundType: string | null): { letters: string[]; custom: boolean } {
-  const custom = roundType
-    ? ctx.db
-        .select({ letter: t.adjudicators.letter })
-        .from(t.roundSets)
-        .innerJoin(t.adjudicators, eq(t.adjudicators.id, t.roundSets.adjudicatorId))
-        .where(and(eq(t.roundSets.eventId, eventId), eq(t.roundSets.roundType, roundType as RoundType)))
-        .orderBy(asc(t.adjudicators.letter))
-        .all()
-        .map((r) => r.letter)
-    : []
-  return custom.length > 0 ? { letters: custom, custom: true } : { letters: panelLetters(ctx, eventId), custom: false }
-}
+// Everything a program needs, read in a few queries instead of a few queries for every line
+function loadProgramData(ctx: Ctx, competitionId: string, eventIds: string[]) {
+  const roundsByEvent = new Map<string, Array<typeof t.rounds.$inferSelect>>()
+  const entriesByEvent = new Map<string, string[]>()
+  const heatsByRound = new Map<string, string[][]>()
+  const panelByEvent = new Map<string, string[]>()
+  const setByKey = new Map<string, string[]>()
+  if (eventIds.length > 0) {
+    const rounds = ctx.db.select().from(t.rounds).where(inArray(t.rounds.eventId, eventIds)).orderBy(asc(t.rounds.position)).all()
+    for (const r of rounds) roundsByEvent.set(r.eventId, [...(roundsByEvent.get(r.eventId) ?? []), r])
+    for (const e of ctx.db.select().from(t.entries).where(and(inArray(t.entries.eventId, eventIds), eq(t.entries.scratched, false))).all()) {
+      entriesByEvent.set(e.eventId, [...(entriesByEvent.get(e.eventId) ?? []), e.competitorId])
+    }
+    const roundIds = rounds.map((r) => r.id)
+    if (roundIds.length > 0) {
+      const heats = ctx.db.select().from(t.heats).where(inArray(t.heats.roundId, roundIds)).orderBy(asc(t.heats.number)).all()
+      const members = heats.length > 0 ? ctx.db.select().from(t.heatCompetitors).where(inArray(t.heatCompetitors.heatId, heats.map((h) => h.id))).all() : []
+      for (const h of heats) {
+        heatsByRound.set(h.roundId, [...(heatsByRound.get(h.roundId) ?? []), members.filter((m) => m.heatId === h.id).map((m) => m.competitorId)])
+      }
+    }
+    for (const r of ctx.db
+      .select({ eventId: t.panels.eventId, letter: t.adjudicators.letter })
+      .from(t.panels)
+      .innerJoin(t.panelMembers, eq(t.panelMembers.panelId, t.panels.id))
+      .innerJoin(t.adjudicators, eq(t.adjudicators.id, t.panelMembers.adjudicatorId))
+      .where(inArray(t.panels.eventId, eventIds))
+      .orderBy(asc(t.adjudicators.letter))
+      .all()) {
+      panelByEvent.set(r.eventId, [...(panelByEvent.get(r.eventId) ?? []), r.letter])
+    }
+    for (const r of ctx.db
+      .select({ eventId: t.roundSets.eventId, roundType: t.roundSets.roundType, letter: t.adjudicators.letter })
+      .from(t.roundSets)
+      .innerJoin(t.adjudicators, eq(t.adjudicators.id, t.roundSets.adjudicatorId))
+      .where(inArray(t.roundSets.eventId, eventIds))
+      .orderBy(asc(t.adjudicators.letter))
+      .all()) {
+      const key = `${r.eventId}:${r.roundType}`
+      setByKey.set(key, [...(setByKey.get(key) ?? []), r.letter])
+    }
+  }
+  const rules = advancementOf(ctx, competitionId)
+  const roundsOf = (eventId: string) => roundsByEvent.get(eventId) ?? []
 
-const panelLetters = (ctx: Ctx, eventId: string): string[] =>
-  ctx.db
-    .select({ letter: t.adjudicators.letter })
-    .from(t.panels)
-    .innerJoin(t.panelMembers, eq(t.panelMembers.panelId, t.panels.id))
-    .innerJoin(t.adjudicators, eq(t.adjudicators.id, t.panelMembers.adjudicatorId))
-    .where(eq(t.panels.eventId, eventId))
-    .orderBy(asc(t.adjudicators.letter))
-    .all()
-    .map((r) => r.letter)
+  // Who dances a round and how many are recalled from it. Before rounds are planned this follows the plan the
+  // scrutineer would get, so the program can be laid out early.
+  const fieldFor = (eventId: string, type: RoundType): { entryCount: number; recallNumber: number | null } => {
+    const entered = entriesByEvent.get(eventId)?.length ?? 0
+    const saved = roundsOf(eventId)
+    const list = saved.length > 0 ? saved.map((r) => ({ type: r.type, recall: r.recallNumber })) : planForEntries(rules, entered)
+    const i = list.findIndex((r) => r.type === type)
+    if (i < 0) return { entryCount: 0, recallNumber: null }
+    return { entryCount: i === 0 ? entered : (list[i - 1]!.recall ?? 0), recallNumber: list[i]!.recall }
+  }
 
-// Who dances a round and how many are recalled from it. Before rounds are planned this follows the plan the
-// scrutineer would get, so the program can be laid out early.
-function fieldFor(ctx: Ctx, competitionId: string, eventId: string, type: RoundType): { entryCount: number; recallNumber: number | null } {
-  const entered = activeEntryRows(ctx, eventId).length
-  const saved = roundsOfEvent(ctx, eventId)
-  const list = saved.length > 0 ? saved.map((r) => ({ type: r.type, recall: r.recallNumber })) : planFor(ctx, competitionId, entered)
-  const i = list.findIndex((r) => r.type === type)
-  if (i < 0) return { entryCount: 0, recallNumber: null }
-  return { entryCount: i === 0 ? entered : (list[i - 1]!.recall ?? 0), recallNumber: list[i]!.recall }
+  // The same rule as fieldOf, from what was read above
+  const heatSizes = (round: typeof t.rounds.$inferSelect): number[] => {
+    const saved = heatsByRound.get(round.id) ?? []
+    if (saved.length === 0) return []
+    const previous = roundsOf(round.eventId).find((r) => r.position === round.position - 1)
+    const entered = entriesByEvent.get(round.eventId) ?? []
+    const field = !previous && round.status === 'pending' ? entered : saved.flat().length > 0 ? saved.flat() : !previous ? entered : []
+    return reconcileHeats(saved, field).map((g) => g.length)
+  }
+
+  const setLetters = (eventId: string, roundType: string | null): { letters: string[]; custom: boolean } => {
+    const custom = roundType ? setByKey.get(`${eventId}:${roundType}`) : undefined
+    return custom && custom.length > 0 ? { letters: custom, custom: true } : { letters: panelByEvent.get(eventId) ?? [], custom: false }
+  }
+
+  return { roundsOf, fieldFor, heatSizes, setLetters, panelLetters: (eventId: string) => panelByEvent.get(eventId) ?? [] }
 }
 
 function build(ctx: Ctx, competitionId: string): Program {
@@ -127,14 +165,14 @@ function build(ctx: Ctx, competitionId: string): Program {
   const slots = slotsOf(ctx, competitionId)
   const start = startOf(ctx, competitionId)
   const events = new Map(ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).all().map((e) => [e.id, e]))
+  const data = loadProgramData(ctx, competitionId, [...events.keys()])
 
   // Results that were entered without rounds (an imported past competition) still mean the event is done
   const decided = new Set(
-    ctx.db.select({ eventId: t.results.eventId }).from(t.results).where(inArray(t.results.eventId, [...events.keys()])).all().map((r) => r.eventId),
+    events.size === 0 ? [] : ctx.db.select({ eventId: t.results.eventId }).from(t.results).where(inArray(t.results.eventId, [...events.keys()])).all().map((r) => r.eventId),
   )
 
-  const roundOf = (slot: Slot) =>
-    slot.eventId && slot.roundType ? roundsOfEvent(ctx, slot.eventId).find((r) => r.type === slot.roundType) : undefined
+  const roundOf = (slot: Slot) => (slot.eventId && slot.roundType ? data.roundsOf(slot.eventId).find((r) => r.type === slot.roundType) : undefined)
 
   const states = slots.map((slot) => {
     const round = roundOf(slot)
@@ -146,15 +184,16 @@ function build(ctx: Ctx, competitionId: string): Program {
   })
 
   // A competition whose day has passed and that has results is over, including its trailing breaks and the awarding, even if a round was left on the floor
-  const over = competition.date < new Date().toISOString().slice(0, 10) && states.includes(ProgramStatus.Completed)
+  const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
+  const over = competition.date < today && states.includes(ProgramStatus.Completed)
   const status = over ? states.map(() => ProgramStatus.Completed) : programStatuses(states)
 
   let elapsed = 0
   const rows = slots.map<ProgramRow>((slot, i) => {
     const event = slot.eventId ? events.get(slot.eventId) : undefined
-    const field = event && slot.roundType ? fieldFor(ctx, competitionId, event.id, slot.roundType) : null
+    const field = event && slot.roundType ? data.fieldFor(event.id, slot.roundType) : null
     const round = roundOf(slot)
-    const set = event ? setLetters(ctx, event.id, slot.roundType) : { letters: [], custom: false }
+    const set = event ? data.setLetters(event.id, slot.roundType) : { letters: [], custom: false }
     const row: ProgramRow = {
       slotId: slot.id,
       sequence: slot.sequence,
@@ -172,8 +211,8 @@ function build(ctx: Ctx, competitionId: string): Program {
       roundType: slot.roundType,
       recallNumber: field?.recallNumber ?? null,
       entryCount: field?.entryCount ?? 0,
-      heats: round && round.type !== RoundType.Final ? currentHeatGroups(ctx, round).map((g) => g.length) : [],
-      panel: event ? panelLetters(ctx, event.id) : [],
+      heats: round && round.type !== RoundType.Final ? data.heatSizes(round) : [],
+      panel: event ? data.panelLetters(event.id) : [],
       adjudicators: set.letters,
       customSet: set.custom,
       status: status[i]!,

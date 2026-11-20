@@ -29,10 +29,18 @@ import {
   type Round,
   type StaffUser,
 } from '@bis/shared'
+import { crc32 } from 'node:zlib'
 import { and, asc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
+
+// Pictures are kept as data URLs but sent as an address of their own, so a list of competitions or the home page does not
+// carry every photo. The version changes with the picture, so a browser keeps it until it changes.
+export const pictureVersion = (data: string) => `${data.length.toString(36)}${crc32(data).toString(36)}`
+export const COMPETITION_IMAGE_PATH = '/api/competition-image/'
+export const SITE_IMAGE_PATH = '/api/site-image/'
+export const competitionImageUrl = (id: string, image: string) => `${COMPETITION_IMAGE_PATH}${id}?v=${pictureVersion(image)}`
 
 export const toCompetition = (r: typeof t.competitions.$inferSelect): Competition => ({
   id: r.id,
@@ -43,7 +51,7 @@ export const toCompetition = (r: typeof t.competitions.$inferSelect): Competitio
   ...(r.executor ? { executor: r.executor } : {}),
   ...(r.entryDeadline ? { entryDeadline: r.entryDeadline } : {}),
   ...(r.feeDeadline ? { feeDeadline: r.feeDeadline } : {}),
-  ...(r.image ? { image: r.image } : {}),
+  ...(r.image ? { image: competitionImageUrl(r.id, r.image) } : {}),
   paymentRequired: r.paymentRequired,
   holdResults: r.holdResults,
   resultsRevealedAt: r.resultsRevealedAt,
@@ -236,7 +244,7 @@ export const panelAdjudicatorIds = (ctx: Ctx, eventId: string): string[] =>
     .all()
     .map((r) => r.id)
 
-// Who judges a round: its set when one was chosen, otherwise the whole panel of the event
+// Who marks a round: its set when one was chosen, otherwise the whole panel of the event
 export function roundAdjudicatorIds(ctx: Ctx, round: { eventId: string; type: string }): string[] {
   const set = ctx.db
     .select({ id: t.adjudicators.id })

@@ -10,7 +10,7 @@ export function RotateSetsDialog({ open, competitionId, onClose }: { open: boole
 
   function submit() {
     const n = Number(size)
-    if (!Number.isInteger(n) || n < 1) return setFailure('Enter how many adjudicators judge each round.')
+    if (!Number.isInteger(n) || n < 1) return setFailure('Enter how many adjudicators mark each round.')
     setFailure(null)
     rotate.mutate(n, {
       onSuccess: (done) => {

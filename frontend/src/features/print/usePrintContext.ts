@@ -18,10 +18,10 @@ export function usePrintContext(eventId: string) {
   const round = list.find((r) => r.id === asked) ?? started[started.length - 1] ?? list[0]
   const next = round ? list[list.indexOf(round) + 1] : undefined
 
-  // The adjudicators who judge this round (its set, or the whole panel); without a round, the panel
+  // The adjudicators who mark this round (its set, or the whole panel); without a round, the panel
   const set = useRoundSet(round?.id ?? '')
-  const judging = round ? set.data : panel.data?.adjudicatorIds
-  const letters = (judging ?? []).flatMap((id) => {
+  const marking = round ? set.data : panel.data?.adjudicatorIds
+  const letters = (marking ?? []).flatMap((id) => {
     const a = adjudicators.data?.find((x) => x.id === id)
     return a ? [{ id: a.id, letter: a.letter, name: a.name }] : []
   })

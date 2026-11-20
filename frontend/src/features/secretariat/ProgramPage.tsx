@@ -70,8 +70,7 @@ function StartField({
   );
 }
 
-// The scrutineer reads the program and cannot change it
-export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
+export function ProgramPage() {
   const { eventGrade } = useCatalog();
   const [chosen, setChosen] = useState<string | null>(null);
   const { list, competitionId } = useCompetitionChoice(chosen);
@@ -106,11 +105,7 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Program"
-        description={
-          readOnly
-            ? "The running order: every round, break and the awarding, with the time each starts and how each round is split into heats."
-            : "The running order: every round, break and the awarding, with the time each starts. Drag a line to move it."
-        }
+        description="The running order: every round, break and the awarding, with the time each starts. Drag a line to move it."
       />
 
       <Toolbar>
@@ -122,31 +117,28 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
         <StartField
           key={program.data?.start ?? ""}
           saved={program.data?.start ?? ""}
-          disabled={!competitionId || readOnly}
+          disabled={!competitionId}
           onSave={(value) => setStart.mutate(value || null, fail)}
         />
         <ToolbarActions>
-          {!readOnly && (
-            <Button
-              variant="secondary"
-              disabled={!competitionId || generate.isPending}
-              onClick={() =>
-                generate.mutate(undefined, {
-                  ...fail,
-                  onSuccess: () =>
-                    toast.success("Program updated from the events"),
-                })
-              }
-            >
-              {generate.isPending
-                ? "Generating…"
-                : rows.length
-                  ? "Add missing rounds"
-                  : "Generate"}
-            </Button>
-          )}
-          {!readOnly &&
-            competitionId &&
+          <Button
+            variant="secondary"
+            disabled={!competitionId || generate.isPending}
+            onClick={() =>
+              generate.mutate(undefined, {
+                ...fail,
+                onSuccess: () =>
+                  toast.success("Program updated from the events"),
+              })
+            }
+          >
+            {generate.isPending
+              ? "Generating…"
+              : rows.length
+                ? "Add missing rounds"
+                : "Generate"}
+          </Button>
+          {competitionId &&
             rows.some((r) => r.kind === ProgramKind.Round) && (
               <Button
                 variant="secondary"
@@ -164,11 +156,9 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
               Print
             </ButtonLink>
           )}
-          {!readOnly && (
-            <Button disabled={!competitionId} onClick={() => setEditing("new")}>
-              Add break
-            </Button>
-          )}
+          <Button disabled={!competitionId} onClick={() => setEditing("new")}>
+            Add break
+          </Button>
         </ToolbarActions>
       </Toolbar>
 
@@ -178,9 +168,7 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
         rowKey={(r) => r.slotId}
         minWidthClass="min-w-0"
         paginationLabel="Program pagination"
-        onReorder={
-          readOnly ? undefined : (row, target) => moveTo(row, target.sequence)
-        }
+        onReorder={(row, target) => moveTo(row, target.sequence)}
         canReorder={() => !move.isPending}
         reorderLabel={(r) =>
           `Drag ${programLineName(r)} to move it. Arrow keys move it one place.`
@@ -309,49 +297,45 @@ export function ProgramPage({ readOnly = false }: { readOnly?: boolean }) {
             cell: (r) => <ProgramStatusBadge status={r.status} />,
             hideBelow: "md",
           },
-          ...(readOnly
-            ? []
-            : [
-                {
-                  key: "actions",
-                  header: "",
-                  align: "right" as const,
-                  widthClass: "w-40",
-                  cell: (r: ProgramRow) => (
-                    <div className="flex justify-end gap-0.5">
-                      {r.kind === ProgramKind.Round && (
-                        <IconButton
-                          icon={UsersRound}
-                          label={`Choose the adjudicators of ${programLineName(r)}`}
-                          disabled={r.status !== ProgramStatus.Upcoming}
-                          onClick={() => setChoosing(r)}
-                        />
-                      )}
-                      <IconButton
-                        icon={ArrowUpDown}
-                        label={`Move ${programLineName(r)} to a position`}
-                        disabled={move.isPending}
-                        onClick={() => setPlacing(r)}
-                      />
-                      <IconButton
-                        icon={Pencil}
-                        label={`Edit ${programLineName(r)}`}
-                        onClick={() => setEditing(r)}
-                      />
-                      <IconButton
-                        icon={Trash2}
-                        tone="danger"
-                        label={`Remove ${programLineName(r)}`}
-                        onClick={() => setToRemove(r)}
-                      />
-                    </div>
-                  ),
-                },
-              ]),
+          {
+            key: "actions",
+            header: "",
+            align: "right" as const,
+            widthClass: "w-40",
+            cell: (r: ProgramRow) => (
+              <div className="flex justify-end gap-0.5">
+                {r.kind === ProgramKind.Round && (
+                  <IconButton
+                    icon={UsersRound}
+                    label={`Choose the adjudicators of ${programLineName(r)}`}
+                    disabled={r.status !== ProgramStatus.Upcoming}
+                    onClick={() => setChoosing(r)}
+                  />
+                )}
+                <IconButton
+                  icon={ArrowUpDown}
+                  label={`Move ${programLineName(r)} to a position`}
+                  disabled={move.isPending}
+                  onClick={() => setPlacing(r)}
+                />
+                <IconButton
+                  icon={Pencil}
+                  label={`Edit ${programLineName(r)}`}
+                  onClick={() => setEditing(r)}
+                />
+                <IconButton
+                  icon={Trash2}
+                  tone="danger"
+                  label={`Remove ${programLineName(r)}`}
+                  onClick={() => setToRemove(r)}
+                />
+              </div>
+            ),
+          },
         ]}
       />
 
-      {competitionId && !readOnly && (
+      {competitionId && (
         <ProgramLineDialog
           open={editing !== null}
           competitionId={competitionId}

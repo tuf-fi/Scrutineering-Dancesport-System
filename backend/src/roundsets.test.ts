@@ -5,7 +5,7 @@ import * as t from './db/schema.ts'
 import { writePaymentSettings } from './paymentSettings.ts'
 import { TEST_PHOTO, startTestApp, type TestApp } from './testing.ts'
 
-// A pool of 7 adjudicators where only some judge each round: the round's set
+// A pool of 7 adjudicators where only some mark each round: the round's set
 
 let app: TestApp
 const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)

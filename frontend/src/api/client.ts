@@ -139,7 +139,7 @@ export const getBicolAthleteIds = () => call<string[]>('getBicolAthleteIds')
 export const getRankingPoints = (filter: RankingFilter = {}) => call<RankingPoint[]>('getRankingPoints', filter)
 export const getCompetitorHistory = (competitorId: string) => call<CompetitorHistoryLine[]>('getCompetitorHistory', competitorId)
 export const getStaffUsers = () => call<StaffUser[]>('getStaffUsers')
-export const getAuditLog = () => call<AuditEntry[]>('getAuditLog')
+export const getAuditLog = (actorId?: string) => call<AuditEntry[]>('getAuditLog', actorId)
 export const getResultEventIds = (competitionId: string) => call<string[]>('getResultEventIds', competitionId)
 
 // ---- Admin ----

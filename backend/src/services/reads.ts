@@ -175,7 +175,9 @@ export const reads = {
     const familyOf = new Map(catalogOf(ctx).ageGroups.map((g) => [g.id, g.family ?? g.id]))
     const people = new Map(ctx.db.select().from(t.competitors).all().map((c) => [c.id, c]))
     const listed = new Set<string>()
-    for (const p of ctx.db.select({ competitorId: t.rankingPoints.competitorId, ageGroup: t.rankingPoints.ageGroup }).from(t.rankingPoints).all()) {
+    const hidden = hiddenEventIds(ctx)
+    for (const p of ctx.db.select({ competitorId: t.rankingPoints.competitorId, ageGroup: t.rankingPoints.ageGroup, eventId: t.rankingPoints.eventId }).from(t.rankingPoints).all()) {
+      if (hidden.has(p.eventId)) continue
       const person = people.get(p.competitorId)
       if (!person || listed.has(p.competitorId)) continue
       if (listedInBicolAthletes(familyOf.get(p.ageGroup) ?? p.ageGroup, person.names.length === 1, person.details?.dancers[0]?.gender)) listed.add(p.competitorId)
@@ -224,10 +226,12 @@ export const reads = {
 
   getStaffUsers: (ctx: Ctx) => ctx.db.select().from(t.staffUsers).orderBy(desc(sql`rowid`)).all().map(toStaff),
 
-  getAuditLog: (ctx: Ctx) =>
+  // The latest 500 entries, or the latest 500 of one account, so a quiet account's activity is never pushed out by others
+  getAuditLog: (ctx: Ctx, actorId?: string) =>
     ctx.db
       .select()
       .from(t.auditLog)
+      .where(typeof actorId === 'string' && actorId ? eq(t.auditLog.actorId, actorId) : undefined)
       .orderBy(desc(t.auditLog.at))
       .limit(500)
       .all()

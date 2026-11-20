@@ -40,7 +40,7 @@ The fees come from the registration fees the admin set (the organizer's 2026 ent
 3. **Events**: check each event's entries. **Schedule**: put the events in running order.
 4. **Rounds**: how many couples go through each round comes from the scrutineer's **Advancement** table (by number of entries). In an event's Rounds dialog, **Use the table** puts its rounds back; you can still change one event until it starts.
 5. **Heats**: split a big round into groups (choose the round and how many per heat, **Split evenly**, **Save heats**). The program and its printout show each round's heats, for example 7 | 8. The scrutineer and admin have the same page.
-6. **Program**: the columns are Time, Sequence no., Event, Round, No. of Entries (with the heats), Action (Select 6 or Rank 8), Adj., Min and Status. It prints on A4 portrait. If only some of an event's adjudicators judge each round (for example 5 of 7), press **Rotate adjudicators** and enter how many judge a round; the program shows each round's adjudicators in **Adj.** and you can change one round with its adjudicators icon. Only those adjudicators mark that round.
+6. **Program**: the columns are Time, Sequence no., Event, Round, No. of Entries (with the heats), Action (Select 6 or Rank 8), Adj., Min and Status. It prints on A4 portrait. If only some of an event's adjudicators mark each round (for example 5 of 7), press **Rotate adjudicators** and enter how many mark a round; the program shows each round's adjudicators in **Adj.** and you can change one round with its adjudicators icon. Only those adjudicators mark that round.
 
 ## On the day
 - **Late entries**: add a dancer to an event. Choose whether they paid cash at the venue; a late entry that has not paid cannot dance.

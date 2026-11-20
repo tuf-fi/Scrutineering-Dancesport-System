@@ -72,7 +72,10 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
   function toggleAll() {
     setSelected((current) => {
       const next = new Set(current)
-      for (const a of withPin) allChosen ? next.delete(a.id) : next.add(a.id)
+      for (const a of withPin) {
+        if (allChosen) next.delete(a.id)
+        else next.add(a.id)
+      }
       return next
     })
   }

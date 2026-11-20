@@ -9,16 +9,11 @@ import { useResendVerification, useSignInAthlete, useSignInMember, useSignUpAthl
 import { passwordMeetsRules } from '../../lib/passwordRules.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { DevHint } from '../auth/DevHint.tsx'
+import { ACCOUNT_COPY } from './accountCopy.ts'
 import { PasswordRules } from './PasswordRules.tsx'
 
 export type AccountMode = 'sign-in' | 'sign-up'
 export type AccountKind = 'athlete' | 'coach' | 'team'
-
-export const ACCOUNT_COPY: Record<AccountKind, { title: string; create: string; name: string; signInNote: string; createNote: string }> = {
-  athlete: { title: 'Athlete sign-in', create: 'Create your account', name: 'Full name', signInNote: 'Sign in to register and follow your results.', createNote: 'One account per athlete. Use an email you check.' },
-  coach: { title: 'Coach sign-in', create: 'Create a coach account', name: 'Full name', signInNote: 'Sign in to your coach page.', createNote: 'One account per coach. Use an email you check.' },
-  team: { title: 'Team sign-in', create: 'Create a team account', name: 'Team name', signInNote: 'Sign in to your team page.', createNote: 'One account per team. Use an email the team checks.' },
-}
 
 // The sign-in and create-account form for an athlete, a coach or a team; used on the sign-in pages and in the navbar's dialog
 export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind; mode: AccountMode; onMode: (mode: AccountMode) => void; onDone?: () => void }) {

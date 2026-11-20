@@ -25,7 +25,10 @@ describe('the home page picture', () => {
     expect((await app.call('saveHeroImage', ['data:image/svg+xml;base64,PHN2Zz4='], admin)).status).toBe(400)
 
     await app.ok('saveHeroImage', [picture], admin)
-    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: picture, signInImage: null })
+    const set = await app.ok<SiteSettings>('getSiteSettings', [])
+    expect(set.heroImage).toMatch(/^\/api\/site-image\/hero\?v=/)
+    expect(set.signInImage).toBeNull()
+    expect((await app.app.inject({ method: 'GET', url: set.heroImage! })).statusCode).toBe(200)
 
     await app.ok('saveHeroImage', [null], admin)
     expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: null })
@@ -35,7 +38,9 @@ describe('the home page picture', () => {
     expect((await app.call('saveSignInImage', [picture], secretariat)).status).toBe(403)
     expect((await app.call('saveSignInImage', ['not a picture'], admin)).status).toBe(400)
     await app.ok('saveSignInImage', [picture], admin)
-    expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: picture })
+    const set = await app.ok<SiteSettings>('getSiteSettings', [])
+    expect(set.heroImage).toBeNull()
+    expect(set.signInImage).toMatch(/^\/api\/site-image\/sign-in\?v=/)
     await app.ok('saveSignInImage', [null], admin)
     expect(await app.ok<SiteSettings>('getSiteSettings', [])).toEqual({ heroImage: null, signInImage: null })
   })

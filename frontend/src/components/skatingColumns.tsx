@@ -1,6 +1,6 @@
 import type { SkatingRow, SkatingTable } from '@bis/shared'
-import { Check } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { MajorityCell } from './MajorityCell.tsx'
 import type { Column as TableColumn } from './ui/Table.tsx'
 import { DANCE_LABEL, competitorName, ordinal } from '../lib/format.ts'
 
@@ -11,18 +11,6 @@ const RULE_LABEL: Record<NonNullable<SkatingRow['decidedBy']>, string> = {
   rule10: 'Rule 10',
   rule11: 'Rule 11',
   shared: 'Shared',
-}
-
-// The count of marks at this place or better, ticked where the place was decided
-function MajorityCell({ counts, tick, column }: { counts: number[]; tick: number | null; column: number }) {
-  const ticked = tick === column
-  // The tick hangs beside the number so every count stays centred under its header
-  return (
-    <span className={ticked ? 'relative inline-block font-semibold text-neutral-900' : undefined}>
-      {counts[column - 1] ?? ''}
-      {ticked && <Check aria-label="Place decided here" className="absolute left-full top-1/2 ml-1 size-4 -translate-y-1/2 text-success" strokeWidth={2.5} />}
-    </span>
-  )
 }
 
 // The 1, 1-2, 1-3 ... columns of the Skating System working

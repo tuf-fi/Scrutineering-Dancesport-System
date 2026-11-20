@@ -1,4 +1,5 @@
 import { SubmissionStatus, type RoundRow } from '@bis/shared'
+import { ErrorState } from '../../components/ui/index.ts'
 import { useCatalog, useCompetitionRounds, useLiveSubmissions } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { ROUND_TYPE_LABEL, eventDances } from '../../lib/format.ts'
@@ -51,6 +52,7 @@ export function CompereLive({ competitionId }: { competitionId: string }) {
   const rounds = useCompetitionRounds(competitionId)
   const onFloor = (rounds.data ?? []).filter((r) => r.onFloor)
 
+  if (rounds.isError && !rounds.data) return <ErrorState tone="dark" onRetry={() => void rounds.refetch()} />
   if (onFloor.length === 0) {
     return (
       <div className="flex flex-1 items-center">

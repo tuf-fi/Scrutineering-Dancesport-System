@@ -458,7 +458,7 @@ describe('registering from the entry form', () => {
     const box = await waitFor(() => {
       const found = within(dialog)
         .getAllByRole('checkbox')
-        .find((cb) => new RegExp(`^${code}(?!\d)`).test(cb.closest('label')?.textContent ?? ''))
+        .find((cb) => new RegExp(`^${code}(?!\\d)`).test(cb.closest('label')?.textContent ?? ''))
       if (!found) throw new Error('event not listed yet')
       return found
     })

@@ -1,7 +1,7 @@
 import { type SiteSettings } from '@bis/shared'
 import { record } from '../core/audit.ts'
 import { actor, fail, type Ctx } from '../core/context.ts'
-import { PHOTO } from './shared.ts'
+import { PHOTO, SITE_IMAGE_PATH, pictureVersion } from './shared.ts'
 
 // What the admin sets for the public home page and the sign-in pages. It lives in the settings table, so a backup carries it.
 const HERO_KEY = 'hero_image'
@@ -10,7 +10,13 @@ const MAX_HERO = 1_500_000
 
 const read = (ctx: Ctx, key: string): string | null => (ctx.sqlite.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined)?.value ?? null
 
-const settingsOf = (ctx: Ctx): SiteSettings => ({ heroImage: read(ctx, HERO_KEY), signInImage: read(ctx, SIGN_IN_KEY) })
+const urlOf = (which: string, data: string | null) => (data ? `${SITE_IMAGE_PATH}${which}?v=${pictureVersion(data)}` : null)
+
+// The pictures are sent as addresses, not inline, because every public page asks for these settings
+const settingsOf = (ctx: Ctx): SiteSettings => ({ heroImage: urlOf('hero', read(ctx, HERO_KEY)), signInImage: urlOf('sign-in', read(ctx, SIGN_IN_KEY)) })
+
+export const SITE_IMAGE_KEYS: Record<string, string> = { hero: HERO_KEY, 'sign-in': SIGN_IN_KEY }
+export const readSetting = read
 
 // A picture for one place, or null to go back to the built-in one
 function savePicture(ctx: Ctx, key: string, what: string, image: string | null): SiteSettings {

@@ -52,4 +52,4 @@ export const useCompetitorHistory = (competitorId: string) =>
 export const useStaffUsers = () =>
   useQuery({ queryKey: ['staff-users'], queryFn: api.getStaffUsers })
 
-export const useAuditLog = () => useQuery({ queryKey: ['audit-log'], queryFn: api.getAuditLog })
+export const useAuditLog = (actorId?: string) => useQuery({ queryKey: ['audit-log', actorId ?? null], queryFn: () => api.getAuditLog(actorId) })

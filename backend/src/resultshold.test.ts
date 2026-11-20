@@ -40,6 +40,17 @@ describe('holding results until the awarding', () => {
     expect(staffPoints.some((p) => p.id.startsWith(`${eventId}-p`))).toBe(true)
   })
 
+  it('keeps athletes whose only points are held off the public Bicol Athletes list', async () => {
+    const before = await app.ok<string[]>('getBicolAthleteIds', [])
+    app.db.update(t.competitions).set({ holdResults: true, resultsRevealedAt: null }).run()
+    expect(await app.ok<string[]>('getBicolAthleteIds', [])).toEqual([])
+    expect(before.length).toBeGreaterThan(0)
+    const staff = await app.ok<string[]>('getBicolAthleteIds', [], scrutineer)
+    expect(staff.length).toBe(before.length)
+    app.db.update(t.competitions).set({ holdResults: false }).where(eq(t.competitions.id, 'td-past-2')).run()
+    app.db.update(t.competitions).set({ holdResults: false }).where(eq(t.competitions.id, 'td-past-3')).run()
+  })
+
   it('tells the scrutineer how many finals are waiting', async () => {
     const release = await app.ok<ResultsRelease>('getResultsRelease', [competitionId], scrutineer)
     expect(release).toMatchObject({ hold: true, revealedAt: null, waiting: 6, total: 6 })

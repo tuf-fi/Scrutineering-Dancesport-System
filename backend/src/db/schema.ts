@@ -197,7 +197,7 @@ export const panels = sqliteTable('panels', {
     .references(() => events.id, { onDelete: 'cascade' }),
 })
 
-// The adjudicators who judge one round when it is not the whole panel (a pool of 7 where 5 judge each round). It is keyed
+// The adjudicators who mark one round when it is not the whole panel (a pool of 7 where 5 mark each round). It is keyed
 // by event and round type, as program lines are, so a set can be chosen before the round exists. No rows: the whole panel.
 export const roundSets = sqliteTable(
   'round_sets',

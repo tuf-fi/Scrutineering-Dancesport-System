@@ -3,7 +3,8 @@ import { Navigate, useSearchParams } from 'react-router'
 import { roleHome, safeNext } from '../../app/nav.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { AuthShell } from '../auth/AuthShell.tsx'
-import { ACCOUNT_COPY, AccountForm, type AccountKind, type AccountMode } from './AccountForm.tsx'
+import { AccountForm, type AccountKind, type AccountMode } from './AccountForm.tsx'
+import { ACCOUNT_COPY } from './accountCopy.ts'
 
 export function AthleteSignIn() {
   return <AccountSignIn kind="athlete" />

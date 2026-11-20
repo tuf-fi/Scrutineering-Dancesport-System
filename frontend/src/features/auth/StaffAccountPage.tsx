@@ -1,6 +1,7 @@
 import { KeyRound, PenLine, UserRound } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { SectionSidebar, useSection } from '../../app/layouts/SectionSidebar.tsx'
+import { SectionSidebar } from '../../app/layouts/SectionSidebar.tsx'
+import { useSection } from '../../app/layouts/useSection.ts'
 import { Avatars } from '../../components/Avatars.tsx'
 import { Button, Input, PageHeader, toast } from '../../components/ui/index.ts'
 import { useChangeMyStaffPassword, useMySignature, useSaveMyStaffName, useTotpStatus } from '../../hooks/index.ts'

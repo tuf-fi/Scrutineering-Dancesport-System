@@ -1,16 +1,9 @@
 import type { CompetitorRow } from '@bis/shared'
-import { ListChecks, Medal, Trophy } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { CompetitorEntries, CompetitorRankings, CompetitorResults } from '../../components/CompetitorActivity.tsx'
 import { Button } from '../../components/ui/index.ts'
 import { competitorName } from '../../lib/format.ts'
 import { CompetitorFacts } from './CompetitorFacts.tsx'
-
-// Who an entry is for, besides the athlete: alone, or with their partner
-export const entryLabel = (entry: CompetitorRow, athlete: string, plain: (name: string) => string) => {
-  const partner = entry.names.find((n) => plain(n) !== plain(athlete))
-  return partner ? `With ${partner}` : 'Solo'
-}
+import { entryLabel } from './entryLabel.ts'
 
 export interface EntryActions {
   onEnter: (entry: CompetitorRow) => void
@@ -75,9 +68,3 @@ export function ActivityOf({ athlete, entries, plain, render }: { athlete: strin
     </div>
   )
 }
-
-export const ACTIVITY = [
-  { id: 'entries', label: 'Entries', icon: ListChecks, render: (id: string) => <CompetitorEntries competitorId={id} /> },
-  { id: 'results', label: 'Results', icon: Trophy, render: (id: string) => <CompetitorResults competitorId={id} /> },
-  { id: 'rankings', label: 'Rankings', icon: Medal, render: (id: string) => <CompetitorRankings competitorId={id} /> },
-]

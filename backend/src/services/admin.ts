@@ -9,7 +9,7 @@ import { bumpSessionVersion } from '../auth/signin.ts'
 import * as t from '../db/schema.ts'
 import { newId } from '../ids.ts'
 import { recomputeAllPoints } from './ranking.ts'
-import { MAX_PHOTO, PHOTO, catalogOf, checkPhoto, clean, panelAdjudicatorIds, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
+import { COMPETITION_IMAGE_PATH, MAX_PHOTO, PHOTO, catalogOf, checkPhoto, clean, panelAdjudicatorIds, pointsRows, toCompetition, toPin, toStaff } from './shared.ts'
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]
 
@@ -64,7 +64,9 @@ export const admin = {
     if (input?.paymentRequired !== undefined && typeof input.paymentRequired !== 'boolean') return fail('Choose whether the competition needs payment.')
     if (input?.holdResults !== undefined && typeof input.holdResults !== 'boolean') return fail('Choose whether the results are held until the awarding.')
     // A missing image keeps the one already there; a competition always has one
-    const image = input?.image === undefined ? undefined : typeof input.image === 'string' && input.image ? input.image : null
+    // The address a read gives for the photo means "keep it", the same as sending none
+    const keepsPhoto = typeof input?.image === 'string' && input.image.startsWith(COMPETITION_IMAGE_PATH)
+    const image = input?.image === undefined || keepsPhoto ? undefined : typeof input.image === 'string' && input.image ? input.image : null
     if (image && (!PHOTO.test(image) || image.length > MAX_PHOTO)) return fail('Send the photo as a JPEG, PNG or WebP picture under 400 KB.')
     for (const day of [values.date, values.entryDeadline, values.feeDeadline]) {
       if (day && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail('Enter dates as year-month-day.')
@@ -85,7 +87,7 @@ export const admin = {
         ...(input.holdResults === true && !before.holdResults ? { resultsRevealedAt: null } : {}),
       }
       ctx.db.update(t.competitions).set(changes).where(eq(t.competitions.id, id)).run()
-      record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: changes })
+      record(ctx.db, user.id, 'Edited competition', values.name, { before: toCompetition(before), after: { ...changes, ...(image ? { image: 'new photo' } : {}) } })
       return toCompetition({ ...before, ...changes })
     }
     if (values.date < today) return fail(PAST)

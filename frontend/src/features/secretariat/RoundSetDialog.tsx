@@ -51,7 +51,7 @@ function SetForm({ row, competitionId, onClose }: { row: ProgramRow; competition
         ))}
       </fieldset>
       <p className="text-small text-neutral-600">
-        <span className="font-mono tabular-nums text-neutral-900">{chosen.length}</span> of {pool.length} judge this round. The others sit it out.
+        <span className="font-mono tabular-nums text-neutral-900">{chosen.length}</span> of {pool.length} mark this round. The others sit it out.
       </p>
       {failure && (
         <p role="alert" className="text-small text-danger">
@@ -70,7 +70,7 @@ function SetForm({ row, competitionId, onClose }: { row: ProgramRow; competition
   )
 }
 
-// Chooses who judges one round from the event's panel, when not everyone does
+// Chooses who marks one round from the event's panel, when not everyone does
 export function RoundSetDialog({ row, competitionId, onClose }: { row: ProgramRow | null; competitionId: string; onClose: () => void }) {
   return (
     <Dialog

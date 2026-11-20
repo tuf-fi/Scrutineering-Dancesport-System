@@ -33,11 +33,11 @@ function useProgramWrite<TVars>(competitionId: string, mutationFn: (vars: TVars)
   })
 }
 
-// Who judges each round, when it is not the whole panel
+// Who marks each round, when it is not the whole panel
 export const useRoundSets = (competitionId: string) =>
   useQuery({ queryKey: ['round-sets', competitionId], queryFn: () => api.getRoundSets(competitionId), enabled: competitionId !== '' })
 
-// The adjudicators who judge one round, for its printed sheets
+// The adjudicators who mark one round, for its printed sheets
 export const useRoundSet = (roundId: string) => useQuery({ queryKey: ['round-set', roundId], queryFn: () => api.getRoundSet(roundId), enabled: roundId !== '' })
 
 function useSetsWrite<TVars>(competitionId: string, mutationFn: (vars: TVars) => Promise<unknown>) {

@@ -1,7 +1,7 @@
 import { PayMethod, type Event } from '@bis/shared'
 import { useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { Badge, Button, EmptyState, Pagination, Select, Skeleton, SkeletonList, Table, toast } from '../../components/ui/index.ts'
+import { Badge, Button, EmptyState, ErrorState, Pagination, Select, Skeleton, SkeletonList, Table, toast } from '../../components/ui/index.ts'
 import {
   useCancelEntryRequest,
   useCompetitions,
@@ -58,6 +58,13 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
   const payWith = method || methods.data?.[0]?.name || ''
   const selectedMethod = (methods.data ?? []).find((m) => m.name === payWith)
 
+  if (entrants.isError || competitions.isError) {
+    return (
+      <AccountSection title="Enter events" note={who === 'team' ? 'Pick a dancer or couple from your team, then the events.' : 'Pick yourself or a couple you dance in, then the events.'}>
+        <ErrorState onRetry={() => void Promise.all([entrants.refetch(), competitions.refetch()])} />
+      </AccountSection>
+    )
+  }
   if (entrants.isLoading || competitions.isLoading) return <SkeletonList rows={5} className="max-w-3xl" />
 
   const intro = who === 'team' ? 'Pick a dancer or couple from your team, then the events.' : 'Pick yourself or a couple you dance in, then the events.'

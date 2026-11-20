@@ -76,10 +76,10 @@ export const ROLE_LABEL: Record<Role, string> = {
   public: 'Public',
 }
 
-// Today as "YYYY-MM-DD" in local time, to compare with competition dates
+// Today as "YYYY-MM-DD" in Philippine time, where the competitions are held and the server counts days, whatever the
+// clock of this device says
 export function todayIso() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 }
 
 // "10 October 2026"

@@ -274,7 +274,7 @@ export const getCompetitorHistory = (competitorId: string) =>
   )
 
 export const getStaffUsers = () => reply(staffUsers.map((s) => ({ ...s, twoStep: totpOf(s.id).enabled })))
-export const getAuditLog = () => reply(auditLog)
+export const getAuditLog = (actorId?: string) => reply(actorId ? auditLog.filter((e) => e.actorId === actorId) : auditLog)
 
 export const getPaymentDetails = () => reply(payments.map(paymentDetail))
 export const getAdjudicatorAssignments = (adjudicatorId: string) =>
@@ -2062,8 +2062,7 @@ export const submitEntryRequest = (requesterId: string, input: EntryRequestInput
     }
     sampleRequests.push(row)
     emitAlert([Role.Secretariat, Role.Admin], { title: 'New entry request', detail: `${competitor.names.join(' & ')} · ${who.name}`, link: '/secretariat/entry-requests' })
-    const { receipt: _receipt, eventIds: _eventIds, requesterId: _requesterId, ...shown } = row
-    return shown
+    return Object.fromEntries(Object.entries(row).filter(([key]) => !['receipt', 'eventIds', 'requesterId'].includes(key))) as Omit<typeof row, 'receipt' | 'eventIds' | 'requesterId'>
   })
 
 export const getMyEntryRequests = (requesterId: string) =>

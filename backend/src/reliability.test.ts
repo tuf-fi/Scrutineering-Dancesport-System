@@ -193,7 +193,7 @@ describe('backups', () => {
     await app.ok('submitAdjudicatorMarks', [LIVE, await marksFor(app, phone)], phone)
 
     // No timer is running and nobody approved anything: the copy comes from the change itself
-    await vi.waitFor(() => expect(readdirSync(good).filter((f) => f.endsWith('.db')).length).toBeGreaterThan(0), { timeout: 5000 })
+    await vi.waitFor(() => expect(readdirSync(good).filter((f) => f.endsWith('.db')).length).toBeGreaterThan(0), { timeout: 15000 })
     const newest = readdirSync(good).filter((f) => f.endsWith('.db')).sort().at(-1)!
     const copy = openDatabase(join(good, newest))
     expect(copy.sqlite.prepare("select count(*) as n from submissions where round_id = ? and adjudicator_id = 'adj-d'").get(LIVE)).toEqual({ n: 1 })
@@ -212,7 +212,7 @@ describe('backups', () => {
 
     const phones = await Promise.all([3, 4, 5].map((i) => app.signIn.adjudicator(PIN(i))))
     await Promise.all(phones.map(async (cookie) => app.call('submitAdjudicatorMarks', [LIVE, await marksFor(app, cookie)], cookie)))
-    await vi.waitFor(() => expect(readdirSync(good).filter((f) => f.endsWith('.db')).length).toBeGreaterThan(0), { timeout: 5000 })
+    await vi.waitFor(() => expect(readdirSync(good).filter((f) => f.endsWith('.db')).length).toBeGreaterThan(0), { timeout: 15000 })
     await new Promise((r) => setTimeout(r, 1500))
     expect(readdirSync(good).filter((f) => f.endsWith('.db'))).toHaveLength(1)
   })

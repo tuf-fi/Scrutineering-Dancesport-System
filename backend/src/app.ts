@@ -25,7 +25,8 @@ import { allowed, endpoint } from './registry.ts'
 import { pauseWhileOffline } from './services/offlineDay.ts'
 import { registerOfflineRoutes } from './offlineRoutes.ts'
 import { submissionSnapshot } from './services/rounds.ts'
-import { MAX_PHOTO, floorRounds } from './services/shared.ts'
+import { MAX_PHOTO, floorRounds, pictureVersion } from './services/shared.ts'
+import { SITE_IMAGE_KEYS } from './services/site.ts'
 
 export interface AppDeps {
   config: Config
@@ -113,6 +114,29 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
     }
     // mode tells a phone, a person or a script which server it reached: the online one or the venue laptop
     return { status: 'ok', database: true, mode: config.venue ? 'venue' : 'online', time: now() }
+  })
+
+  // ---- Pictures ----
+
+  // A competition's card photo and the home page pictures are kept as data URLs; each is sent from an address of its own
+  // so it can be cached, instead of inside every list that mentions it. The address carries a version, so it never goes stale.
+  const sendPicture = (request: FastifyRequest, reply: FastifyReply, data: string | null | undefined) => {
+    const parts = data ? /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(data) : null
+    if (!data || !parts) return reply.code(404).send({ error: 'There is no picture here.' })
+    const etag = `"${pictureVersion(data)}"`
+    reply.header('ETag', etag).header('Cache-Control', 'public, max-age=31536000, immutable')
+    if (request.headers['if-none-match'] === etag) return reply.code(304).send()
+    return reply.header('Content-Type', parts[1]).send(Buffer.from(parts[2]!, 'base64'))
+  }
+  app.get('/api/competition-image/:id', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const row = sqlite.prepare('SELECT image FROM competitions WHERE id = ?').get(id) as { image: string | null } | undefined
+    return sendPicture(request, reply, row?.image)
+  })
+  app.get('/api/site-image/:which', async (request, reply) => {
+    const key = SITE_IMAGE_KEYS[(request.params as { which: string }).which]
+    const row = key ? (sqlite.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined) : undefined
+    return sendPicture(request, reply, row?.value)
   })
 
   // ---- Sign-in ----

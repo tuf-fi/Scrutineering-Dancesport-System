@@ -25,7 +25,7 @@ export const redance = {
     if (why.length < 3 || why.length > 200) return fail('Give the reason in a few words.')
     if (openRedance(ctx, roundId)) return fail(`${PENDING} Finish it before starting another.`, 409)
     const target = heatsOfRound(ctx, roundId).find((h) => h.number === Number(heat))
-    if (!target) return fail('That heat does not exist.')
+    if (!target) return fail('That heat does not exist.', 404)
 
     const event = getEventRow(ctx, round.eventId)
     const members = new Set(target.competitorIds)
@@ -91,7 +91,7 @@ function storeRedance(ctx: Ctx, adjudicatorId: string, roundId: string, submissi
   }
   const round = getRoundRow(ctx, roundId)
   const event = getEventRow(ctx, round.eventId)
-  if (!roundAdjudicatorIds(ctx, round).includes(adjudicatorId)) return fail('This adjudicator is not judging this round.', 403)
+  if (!roundAdjudicatorIds(ctx, round).includes(adjudicatorId)) return fail('This adjudicator is not marking this round.', 403)
   const open = openRedance(ctx, roundId)
   const mine = open?.required[adjudicatorId]
   if (!open || !mine) return fail('There is no redance waiting for these marks.', 409)

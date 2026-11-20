@@ -221,7 +221,7 @@ function RankingTable({ report }: { report: EventReport }) {
   )
 }
 
-// The sheet a public visitor reads after an event: who judged, the placings, and what each adjudicator gave
+// The sheet a public visitor reads after an event: who marked, the placings, and what each adjudicator gave
 export function EventReportView({ eventId, finalRoundId }: { eventId: string; finalRoundId: string }) {
   const report = useEventReport(eventId)
   // One part is open at a time: opening another closes the open one, and pressing the open one closes it

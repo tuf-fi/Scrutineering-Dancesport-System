@@ -1,5 +1,5 @@
 import { Role } from '@bis/shared'
-import { Navigate, createBrowserRouter, useLocation, type RouteObject } from 'react-router'
+import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CategoriesPage } from '../features/admin/CategoriesPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
@@ -67,15 +67,11 @@ import { PublicLayout } from './layouts/TopNavLayout.tsx'
 import { STAFF_SIGN_IN } from './nav.ts'
 import { MemberAccountPage, MemberDancersPage, MemberEditPage, MemberEntriesPage, MemberHome, MemberRegisterPage, MemberRequestsPage, MemberLinkPage, MemberNotificationsPage, MemberPasswordPage, MemberMembershipPage, MemberPaymentsPage, MemberRankingsPage, MemberResultsPage } from '../features/athlete/MemberHome.tsx'
 import { NotFound } from './NotFound.tsx'
+import { LegacyRankings } from './LegacyRankings.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
 
 const STAFF = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
-
-// The points page used to live at /rankings; old links and bookmarks keep working
-function LegacyRankings() {
-  return <Navigate to={`/standings${useLocation().search}`} replace />
-}
 
 export const routes: RouteObject[] = [
   {

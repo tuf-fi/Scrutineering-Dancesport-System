@@ -7,8 +7,8 @@ const SHOWN = 10
 
 // The latest things a staff account did, from the audit log
 export function StaffActivity({ user }: { user: StaffUser }) {
-  const log = useAuditLog()
-  const mine = [...(log.data ?? [])].filter((e) => e.actorId === user.id).sort((a, b) => b.at.localeCompare(a.at))
+  const log = useAuditLog(user.id)
+  const mine = [...(log.data ?? [])].sort((a, b) => b.at.localeCompare(a.at))
 
   return (
     <section aria-label="Recent activity" className="flex flex-col gap-3">

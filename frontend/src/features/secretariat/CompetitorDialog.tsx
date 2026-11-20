@@ -3,6 +3,7 @@ import type { CompetitorDetails, CompetitorRow, DancerDetails, Gender } from '@b
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
 import { useTeams, useCoaches, useAddAthlete, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
+import { todayIso } from '../../lib/format.ts'
 
 const FORM_ID = 'competitor-form'
 
@@ -45,7 +46,7 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
     }
     setErrors(found)
     // Every dancer needs a date of birth, a contact number, an email and an address
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayIso()
     const dancerFound = names.map((_, i) => {
       const d = dancers[i]!
       return {

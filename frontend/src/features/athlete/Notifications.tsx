@@ -1,4 +1,3 @@
-import type { AthletePage as AthleteData } from '@bis/shared'
 import { Link } from 'react-router'
 import { Button, EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
 import { useMarkNotificationsRead, useMyNotifications } from '../../hooks/index.ts'
@@ -6,23 +5,7 @@ import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import { timeAgo } from '../../lib/timeAgo.ts'
 import { AccountSection } from './AccountSection.tsx'
-
-export interface Todo {
-  id: string
-  title: string
-  detail?: string
-  to: string
-}
-
-// What the athlete still has to do, worked out from their own account
-export function todosOf({ profile }: AthleteData): Todo[] {
-  const todos: Todo[] = []
-  if (profile.request?.rejectedReason) todos.push({ id: 'resend', title: 'Your membership payment was not confirmed', detail: `${profile.request.rejectedReason}. Ask your team to send it again.`, to: '/athlete/membership' })
-  if (!profile.birthDate || !profile.phone) {
-    todos.push({ id: 'details', title: 'Finish your details', detail: 'The secretariat needs your date of birth and contact number for entries.', to: '/athlete/edit' })
-  }
-  return todos
-}
+import type { Todo } from './todos.ts'
 
 // What the system told the athlete, newest first, and what is still left for them to do
 export function Notifications({ todos }: { todos: Todo[] }) {
