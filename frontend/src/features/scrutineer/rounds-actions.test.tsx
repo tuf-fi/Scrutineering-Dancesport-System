@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { openMenu, renderApp } from '../../test-utils.tsx'
+import { renderApp } from '../../test-utils.tsx'
 
 const scrutineer = { id: 'staff-scrutineer', name: 'Teresita Quimpo' }
 const chairperson = { id: 'staff-chairperson', name: 'Gregorio Almazan' }

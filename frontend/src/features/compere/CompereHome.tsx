@@ -1,4 +1,4 @@
-import { ProgramKind, ProgramStatus, pickCurrentCompetition, type Announcement, type Program } from '@bis/shared'
+import { ProgramStatus, pickCurrentCompetition, type Announcement, type Program } from '@bis/shared'
 import { STAFF_SIGN_IN } from '../../app/nav.ts'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -18,7 +18,7 @@ import { RevealResults } from './CompereReveal.tsx'
 import { HeatStrip, NextPanel } from './CompereNext.tsx'
 import { usePaging } from './Pager.tsx'
 import { CompereProgram } from './CompereProgram.tsx'
-import { firstOpenCall, roundKey, showRounds } from './rounds.ts'
+import { firstOpenCall, showRounds } from './rounds.ts'
 
 // Built for an LED wall: every size is in vmin so it holds on 16:9 and ultra-wide, a deep brown ground with
 // white type, no grey below brown-100 at half strength, and nothing thinner than a medium weight.
