@@ -65,7 +65,7 @@ describe('athlete accounts', () => {
     expect(page).toMatchObject({ year: 2026, fee: 500 })
   })
 
-  it('sends a new name or birth date on file to the secretariat, and an admin can correct it directly', async () => {
+  it('sends a new name or birth date on file to the secretariat, and the secretariat or an admin can correct it directly', async () => {
     const asked = await app.ok<AthleteProfile>('saveMyAthlete', [{ ...PROFILE, name: 'Anna Cruz', birthDate: '2016-01-01' }], athlete)
     // Nothing changes until it is approved
     expect(asked).toMatchObject({ name: 'Ana Cruz', birthDate: '2017-03-02' })
@@ -76,9 +76,36 @@ describe('athlete accounts', () => {
 
     app.db.insert(t.staffUsers).values({ id: 's1', name: 'admin', username: 'admin@sample.example', role: 'admin', passwordHash: hashPassword('pw-admin'), disabled: false }).run()
     const admin = await app.signIn.staff('admin', 'pw-admin')
-    expect((await app.call('correctAthlete', [waiting.id, { name: 'Ana Cruz', birthDate: '2017-03-02' }], secretariat)).status).toBe(403)
+    await app.ok('correctAthlete', [waiting.id, { name: 'Ana Cruz', birthDate: '2017-03-02' }], secretariat)
     await app.ok('correctAthlete', [waiting.id, { name: 'Ana Cruz', birthDate: '2017-03-02' }], admin)
     expect((await app.ok<AthletePage>('getMyAthlete', [], athlete)).profile).toMatchObject({ name: 'Ana Cruz', birthDate: '2017-03-02' })
+  })
+
+  it('keeps entries attached when the secretariat corrects a name', async () => {
+    const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ana Cruz')!
+    app.db.insert(t.competitors).values({ id: 'comp-ana', names: ['Ana Cruz'], teamId: 'team-1', details: null }).run()
+    await app.ok('correctAthlete', [row.id, { name: 'Anna Cruz', birthDate: '2017-03-02' }], secretariat)
+    expect(app.db.select().from(t.competitors).where(eq(t.competitors.id, 'comp-ana')).get()?.names).toEqual(['Anna Cruz'])
+    await app.ok('correctAthlete', [row.id, { name: 'Ana Cruz', birthDate: '2017-03-02' }], secretariat)
+    app.db.delete(t.competitors).where(eq(t.competitors.id, 'comp-ana')).run()
+  })
+
+  it('lets the secretariat mark a membership paid and unpaid', async () => {
+    const row = (await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.name === 'Ana Cruz')!
+    const year = new Date().getFullYear()
+    await app.ok('setMembershipPaid', [row.name, true], secretariat)
+    expect((await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.id === row.id)!.memberYear).toBe(year)
+    await app.ok('setMembershipPaid', [row.name, false], secretariat)
+    expect((await app.ok<AthleteRow[]>('getAthletes', [], secretariat)).find((a) => a.id === row.id)!.memberYear).toBeNull()
+    expect((await app.call('setMembershipPaid', [row.name, true], athlete)).status).toBe(403)
+
+    // Someone with no account, known only from an entry, can be marked paid too
+    app.db.insert(t.competitors).values({ id: 'comp-zed', names: ['Zed Walker', 'Zia Walker'], teamId: 'team-1', details: null }).run()
+    await app.ok('setMembershipPaid', ['Zed Walker', true], secretariat)
+    expect(app.db.select().from(t.competitors).where(eq(t.competitors.id, 'comp-zed')).get()?.details?.memberYear).toBe(year)
+    await app.ok('setMembershipPaid', ['Zed Walker', false], secretariat)
+    expect(app.db.select().from(t.competitors).where(eq(t.competitors.id, 'comp-zed')).get()?.details?.memberYear).toBeNull()
+    app.db.delete(t.competitors).where(eq(t.competitors.id, 'comp-zed')).run()
   })
 
   it('covers the calendar year it is paid in and ends on December 31, whatever the competition dates', async () => {

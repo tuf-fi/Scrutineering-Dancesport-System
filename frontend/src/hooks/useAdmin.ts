@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { AccountKind, PointsRow, Role } from '@bis/shared'
+import type { AccountKind, CertificateLayout, PointsRow, Role } from '@bis/shared'
 import * as api from '../api/index.ts'
 import { useAuth } from '../stores/auth.ts'
 
@@ -119,3 +119,7 @@ export const useSiteSettings = () => useQuery({ queryKey: ['site-settings'], que
 export const useSaveSignInImage = () => useWrite((image: string | null) => api.saveSignInImage(actor(), image), () => [['site-settings']])
 
 export const useSaveHeroImage = () => useWrite((image: string | null) => api.saveHeroImage(actor(), image), () => [['site-settings']])
+
+export const useCertificateLayout = (enabled = true) => useQuery({ queryKey: ['certificate-layout'], queryFn: api.getCertificateLayout, enabled, staleTime: 60_000 })
+
+export const useSaveCertificateLayout = () => useWrite((layout: CertificateLayout | null) => api.saveCertificateLayout(actor(), layout), () => [['certificate-layout']])

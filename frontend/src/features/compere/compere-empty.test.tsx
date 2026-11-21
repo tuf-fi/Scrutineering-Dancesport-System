@@ -10,7 +10,7 @@ describe('Compere with nothing to announce', () => {
     renderApp('/compere', Role.Compere, { id: 'staff-compere', name: 'Dante Ibarra' })
     expect(await screen.findByRole('heading', { level: 1, name: /Waiting for the next announcement/ })).toBeInTheDocument()
     const controls = screen.getByRole('navigation', { name: 'Announcer controls' })
+    expect(within(controls).getByRole('button', { name: /Floor/ })).toBeInTheDocument()
     expect(within(controls).getByRole('button', { name: /Program/ })).toBeInTheDocument()
-    expect(within(controls).getByRole('button', { name: 'Full screen' })).toBeInTheDocument()
   })
 })

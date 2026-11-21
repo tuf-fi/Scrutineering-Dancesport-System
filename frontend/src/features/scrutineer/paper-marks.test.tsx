@@ -34,9 +34,9 @@ describe('paper marks', () => {
     await waitFor(() => expect(within(screen.getByLabelText('Adjudicator')).queryByRole('option', { name: chosen.textContent! })).not.toBeInTheDocument())
   })
 
-  it('is not offered to the chairperson, who only watches', async () => {
+  it('is open to the chairperson too', async () => {
     renderApp('/scrutineer/paper-marks', Role.Chairperson, { id: 'staff-chairperson', name: 'Gregorio Almazan' })
-    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Paper marks' })).not.toBeInTheDocument())
+    expect(await screen.findByRole('heading', { name: 'Paper marks' })).toBeInTheDocument()
   })
 })
 

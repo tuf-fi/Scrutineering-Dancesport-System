@@ -1,6 +1,5 @@
 import {
   DISCIPLINE_DANCES,
-  Role,
   ageGroupFits,
   birthYearsFit,
   kindOf,
@@ -41,6 +40,7 @@ import {
   getPaymentRow,
   paymentDetail,
   roundsOfEvent,
+  syncPerson,
   toCompetitor,
   toEvent,
   planFor,
@@ -219,6 +219,13 @@ export const secretariat = {
   getCompetitorRows: (ctx: Ctx): CompetitorRow[] =>
     ctx.db.select().from(t.competitors).orderBy(desc(sql`rowid`)).all().map((c) => competitorRow(ctx, c)),
 
+  // Records already on file with the same dancers (on any team), so the form can ask whether this is the same person
+  findSimilarCompetitors: (ctx: Ctx, names: string[]): CompetitorRow[] => {
+    const key = (list: string[]) => list.map(plainName).sort().join('|')
+    const wanted = key(cleanNames(names))
+    return ctx.db.select().from(t.competitors).all().filter((c) => key(c.names) === wanted).map((c) => competitorRow(ctx, c))
+  },
+
   createCompetitor: (ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow => createCompetitorEntry(ctx, input),
 
   // An athlete and their entry from one form: the person for the athletes list, the competitor for the events. The person
@@ -380,6 +387,16 @@ export const secretariat = {
     return detail
   },
 
+  // Takes back a payment recorded by mistake; the team's other entries on the same payment go back to unpaid too
+  markUnpaid(ctx: Ctx, paymentId: string): PaymentDetail {
+    const payment = getPaymentRow(ctx, paymentId)
+    if (payment.status !== PaymentStatus.PaidAtVenue && payment.status !== PaymentStatus.Approved) return fail('Only a paid payment can be marked unpaid.', 409)
+    ctx.db.update(t.payments).set({ status: PaymentStatus.Unpaid, amountPaid: 0, checkedBy: actor(ctx).id, checkedAt: now() }).where(eq(t.payments.id, paymentId)).run()
+    const detail = paymentDetail(ctx, getPaymentRow(ctx, paymentId))
+    record(ctx.db, actor(ctx).id, 'Marked payment unpaid', detail.teamName, { before: { status: payment.status }, after: { status: PaymentStatus.Unpaid } })
+    return detail
+  },
+
   getSchedule: (ctx: Ctx, competitionId: string) => scheduleOf(ctx, competitionId),
 
   moveScheduledEvent(ctx: Ctx, competitionId: string, eventId: string, direction: 'up' | 'down'): ScheduleItem[] {
@@ -421,12 +438,14 @@ export const secretariat = {
       return fail('Remove their entries before changing between a solo dancer and a couple.', 409)
     }
     const details = input.details === undefined ? (competitor.details ?? null) : cleanDetails(ctx, names, input.details)
-    // Names and birth dates already on file are only corrected by an admin; a missing birth date can still be filled in
-    if (ctx.user?.role !== Role.Admin) {
-      const changed = competitor.names.some((n, i) => names[i] !== n || (competitor.details?.dancers[i]?.birthDate && details?.dancers[i]?.birthDate !== competitor.details.dancers[i]!.birthDate))
-      if (changed) return fail('Only an admin can change a name or date of birth that is already on file.', 403)
-    }
     ctx.db.update(t.competitors).set({ names, teamId: input.teamId, details }).where(eq(t.competitors.id, id)).run()
+    // A solo dancer or a couple keeps the same entries and results; the account and other entries follow the new name
+    if (names.length === competitor.names.length) {
+      competitor.names.forEach((old, i) => {
+        const born = details?.dancers[i]?.birthDate
+        if (names[i] !== old || (born && born !== competitor.details?.dancers[i]?.birthDate)) syncPerson(ctx, old, names[i]!, born)
+      })
+    }
     record(ctx.db, actor(ctx).id, 'Edited competitor', names.join(' & '), { before: { names: competitor.names, teamId: competitor.teamId }, after: { names, teamId: input.teamId } })
     return competitorRow(ctx, { ...competitor, names, teamId: input.teamId, details })
   },

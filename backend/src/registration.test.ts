@@ -95,6 +95,15 @@ describe('registering a team from the entry form', () => {
     const next = await app.ok<RegistrationQuote>('quoteRegistration', [ana.id, [events.junior]], secretariat)
     expect(next.lines).toEqual([{ label: 'E3 additional entry', amount: 200 }])
     expect((await app.call('registerCompetitor', [{ competitorId: ana.id, eventIds: [events.juv1], method: 'cash' }], secretariat)).status).toBe(409)
+
+    // The athlete's entries show the payment, and the secretariat can take it back and record it again
+    const entries = (await app.ok<{ entries: Array<{ paymentId: string | null; paymentStatus: string | null }> }>('getCompetitorActivity', [ana.id], secretariat)).entries
+    expect(entries[0]).toMatchObject({ paymentId: result.paymentId, paymentStatus: 'approved' })
+    await app.ok('markUnpaid', [result.paymentId], secretariat)
+    expect(app.sqlite.prepare('select status from payments where id = ?').get(result.paymentId)).toEqual({ status: 'unpaid' })
+    expect((await app.call('markUnpaid', [result.paymentId], secretariat)).status).toBe(409)
+    await app.ok('markPaidAtVenue', [result.paymentId], secretariat)
+    expect(app.sqlite.prepare('select status from payments where id = ?').get(result.paymentId)).toEqual({ status: 'paid_at_venue' })
   })
 
   it('leaves an entry unpaid, and warns about beginners without refusing', async () => {

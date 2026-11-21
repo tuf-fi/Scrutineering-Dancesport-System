@@ -3,6 +3,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import {
   Button,
+  Dialog,
   EmptyState,
   ErrorState,
   Input,
@@ -19,6 +20,7 @@ import {
 import { useCompetitorRows, useHeatAssignments, useRedances, useSaveHeats } from '../../hooks/index.ts'
 import { competitorName } from '../../lib/format.ts'
 import { useAuth } from '../../stores/auth.ts'
+import { HeatToolsDialog, type HeatTool } from './HeatToolsDialog.tsx'
 import { NoRounds } from './NoRounds.tsx'
 import { RedanceDialog } from './RedanceDialog.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
@@ -58,6 +60,9 @@ function HeatEditor({
   const waiting = redances.data?.find((r) => !r.doneAt)
   const [redancing, setRedancing] = useState(0)
   const [assign, setAssign] = useState(() => new Map(initial.map((a) => [a.competitorId, a.heat])))
+  const [tool, setTool] = useState<HeatTool | null>(null)
+  const [toolKey, setToolKey] = useState(0)
+  const [confirming, setConfirming] = useState(false)
   const [size, setSize] = useState(String(DEFAULT_HEAT_SIZE))
 
   const byId = useMemo(() => new Map((people.data ?? []).map((c: CompetitorRow) => [c.id, c])), [people.data])
@@ -76,13 +81,23 @@ function HeatEditor({
 
   // Splits the field evenly into the fewest heats of at most `size` competitors
   function split() {
-    const per = Math.max(1, Math.floor(Number(size)) || DEFAULT_HEAT_SIZE)
+    const per = Math.floor(Number(size))
+    if (!Number.isFinite(per) || per < 1) return void toast.error('Enter how many couples go in each heat.')
     const count = Math.ceil(rows.length / per)
     const even = Math.ceil(rows.length / count)
     setAssign(new Map(rows.map((r, i) => [r.competitorId, Math.floor(i / even) + 1])))
+    toast.success(`Split into ${count} heat${count === 1 ? '' : 's'}. Save heats to keep it.`)
+  }
+
+  const live = status === RoundStatus.Marking || status === RoundStatus.Review
+
+  function open(next: HeatTool) {
+    setToolKey((k) => k + 1)
+    setTool(next)
   }
 
   function onSave() {
+    setConfirming(false)
     save.mutate(
       { roundId, assignments: rows.map((r) => ({ competitorId: r.competitorId, heat: r.heat })) },
       { onSuccess: () => toast.success('Heats saved'), onError: (e) => toast.error(e.message) },
@@ -151,16 +166,51 @@ function HeatEditor({
                   {final ? 'Redance the final' : 'Redance a heat'}
                 </Button>
               )}
+              <Button variant="secondary" disabled={heatNumbers.length < 2} onClick={() => open('merge')}>
+                Merge heats
+              </Button>
+              <Button variant="secondary" disabled={rows.length < 2} onClick={() => open('swap')}>
+                Swap couples
+              </Button>
+              <Button variant="secondary" disabled={heatNumbers.length < 2} onClick={() => open('order')}>
+                Move a heat
+              </Button>
               <Button variant="secondary" onClick={split}>
                 Split evenly
               </Button>
-              <Button disabled={!dirty || save.isPending} onClick={onSave}>
+              <Button disabled={!dirty || save.isPending} onClick={() => (live ? setConfirming(true) : onSave())}>
                 {save.isPending ? 'Saving…' : 'Save heats'}
               </Button>
             </ToolbarActions>
           </>
         )}
       </Toolbar>
+      <HeatToolsDialog
+        key={toolKey}
+        tool={tool}
+        heats={heatNumbers}
+        couples={rows.map((r) => ({ id: r.competitorId, label: `${r.backNumber ?? '–'} · ${competitorName(r.names)}` }))}
+        map={new Map(rows.map((r) => [r.competitorId, r.heat]))}
+        onApply={setAssign}
+        onClose={() => setTool(null)}
+      />
+      <Dialog
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        className="max-w-md"
+        title="Change heats during the round?"
+        description="Adjudicators already see these heats. Their marks stay, but what they see on their phones changes now."
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button disabled={save.isPending} onClick={onSave}>
+              Save heats
+            </Button>
+          </>
+        }
+      />
       {canRedance && <RedanceDialog key={redancing} open={redancing > 0} roundId={roundId} heats={heatNumbers} final={final} onClose={() => setRedancing(0)} />}
       <Table<Row>
         loading={people.isLoading}
@@ -184,12 +234,15 @@ function HeatEditor({
                     label={`Heat for ${competitorName(r.names)}`}
                     hideLabel
                     value={r.heat}
-                    onChange={(e) => setAssign((a) => new Map(a).set(r.competitorId, Number(e.target.value)))}
+                    onChange={(e) => {
+                      setAssign((a) => new Map(a).set(r.competitorId, Number(e.target.value)))
+                      toast.success(`${competitorName(r.names)} moved to heat ${e.target.value}. Save heats to keep it.`)
+                    }}
                     className="h-8! font-mono"
                   >
                     {Array.from({ length: Math.max(...heatNumbers) + 1 }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>
-                        {n}
+                        {n > Math.max(...heatNumbers) ? `${n} (new heat)` : n}
                       </option>
                     ))}
                   </Select>

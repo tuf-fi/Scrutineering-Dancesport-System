@@ -1,9 +1,14 @@
-import { Children, Fragment, isValidElement, type ReactNode } from 'react'
+import { Children, Fragment, cloneElement, isValidElement, type ReactNode } from 'react'
 import { cn } from '../../lib/cn.ts'
 
-// A conditional group of controls is a fragment: look inside it
-const flat = (nodes: ReactNode): ReactNode[] =>
-  Children.toArray(nodes).flatMap((n) => (isValidElement<{ children?: ReactNode }>(n) && n.type === Fragment ? flat(n.props.children) : [n]))
+// A conditional group of controls is a fragment: look inside it. What was inside keeps its place in its key, so a control
+// next to the fragment and one inside it never share one.
+const flat = (nodes: ReactNode, path = ''): ReactNode[] =>
+  Children.toArray(nodes).flatMap((n) => {
+    if (!isValidElement<{ children?: ReactNode }>(n)) return [n]
+    if (n.type === Fragment) return flat(n.props.children, `${path}${n.key}/`)
+    return [path ? cloneElement(n, { key: `${path}${n.key}` }) : n]
+  })
 
 // The row above a list: the search box and filters fill the full width as a grid, two to a row on phones and as many as fit
 // on larger screens (one filter on its own is full width), and the page's buttons sit below them, at their natural width.

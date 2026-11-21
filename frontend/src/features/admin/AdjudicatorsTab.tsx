@@ -11,6 +11,7 @@ import {
   Table,
   Toolbar,
   ToolbarActions,
+  Tooltip,
   toast,
 } from '../../components/ui/index.ts'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
@@ -115,13 +116,11 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
               Generate {missing} missing
             </Button>
           )}
-          <Button
-            disabled={!lettersFree}
-            title={lettersFree ? undefined : 'All ten letters, A to J, are in use'}
-            onClick={() => setEditing('new')}
-          >
-            Add adjudicator
-          </Button>
+          <Tooltip label={lettersFree ? undefined : 'All ten letters, A to J, are in use'}>
+            <Button disabled={!lettersFree} onClick={() => setEditing('new')}>
+              Add adjudicator
+            </Button>
+          </Tooltip>
         </ToolbarActions>
       </Toolbar>
 

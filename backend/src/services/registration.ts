@@ -6,7 +6,6 @@ import {
   PaymentStatus,
   registrationFee,
   registrationWarnings,
-  Role,
   type Catalog,
   type Team,
   type TeamInput,
@@ -252,8 +251,7 @@ export const registration = {
     if (!name) return fail('Enter the coach’s name.')
     const values = { name, email: clean(input.email), phone: clean(input.phone), memberYear: year(input.memberYear), summitYear: year(input.summitYear), memberMonth: month(input.memberMonth), summitPeriod: clean(input.summitPeriod).slice(0, 60) || null, summits: summitDates(input.summits) }
     if (id) {
-      const before = found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
-      if (name !== before.name && ctx.user?.role !== Role.Admin) return fail('Only an admin can change a coach’s name.', 403)
+      found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, id)).get(), 'Coach')
       ctx.db.update(t.coaches).set(values).where(eq(t.coaches.id, id)).run()
       giveCoachMembershipId(ctx, id)
       record(ctx.db, actor(ctx).id, 'Edited coach', name)

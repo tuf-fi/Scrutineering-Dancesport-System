@@ -55,8 +55,6 @@ Only **published** results are public. A round that is still being marked or has
 | Results | `/athlete/results` | Your results, by competition |
 | Rankings | `/athlete/rankings` | Your points and where you stand |
 | Entries | `/athlete/entries` | The events you are entered in, by competition |
-| Enter events | `/athlete/register` | Pick the competition and one of your events (a solo or a couple that carries your name), see the fee and any warning, pay to GCash, Maya or the bank, attach a screenshot, and **Send entry** |
-| My requests | `/athlete/requests` | See each entry you sent as Waiting, Approved or Not approved (with the reason); **take back** a waiting one |
 | Notifications | `/athlete/notifications` | Read what the secretariat decided; unread ones also arrive as a pop-up with a sound. Press one to open the page it is about |
 | Password | `/athlete/password` | Change your password; **Sign out everywhere** |
 

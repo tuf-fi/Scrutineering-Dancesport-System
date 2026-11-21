@@ -1,0 +1,115 @@
+// The look of a certificate: one layout for every competition, edited by the scrutineer or the admin.
+export const CERTIFICATE_FONTS = {
+  sans: { label: 'Sans serif', stack: "'Manrope Variable', system-ui, sans-serif" },
+  serif: { label: 'Serif', stack: "Georgia, 'Times New Roman', serif" },
+  script: { label: 'Script', stack: "'Brush Script MT', 'Segoe Script', cursive" },
+  mono: { label: 'Monospace', stack: "'JetBrains Mono Variable', ui-monospace, monospace" },
+} as const
+
+export type CertificateFont = keyof typeof CERTIFICATE_FONTS
+export type CertificateOrientation = 'landscape' | 'portrait'
+
+// Portrait sizes in millimetres
+export const CERTIFICATE_PAPER = {
+  a4: { label: 'A4', width: 210, height: 297 },
+  a3: { label: 'A3', width: 297, height: 420 },
+  a5: { label: 'A5', width: 148, height: 210 },
+  letter: { label: 'Letter', width: 215.9, height: 279.4 },
+  legal: { label: 'Legal', width: 215.9, height: 355.6 },
+} as const
+export type CertificatePaper = keyof typeof CERTIFICATE_PAPER
+
+export const CERTIFICATE_MARGIN_MM = 12
+
+// The paper as it is printed, and the sheet drawn inside its margins (a little short, so it never spills onto a second page)
+export function certificatePage(layout: Pick<CertificateLayout, 'paper' | 'orientation'>) {
+  const p = CERTIFICATE_PAPER[layout.paper]
+  const landscape = layout.orientation === 'landscape'
+  const width = landscape ? p.height : p.width
+  const height = landscape ? p.width : p.height
+  return { width, height, sheetWidth: width - CERTIFICATE_MARGIN_MM * 2, sheetHeight: height - CERTIFICATE_MARGIN_MM * 2 - 2 }
+}
+
+export const CERTIFICATE_LINE_KEYS = ['organizer', 'title', 'competition', 'certify', 'name', 'team', 'placed', 'place', 'event', 'grade', 'number', 'venue'] as const
+export type CertificateLineKey = (typeof CERTIFICATE_LINE_KEYS)[number]
+
+// Words in braces are filled in for each finalist: {organizer} {competition} {name} {team} {place} {event} {grade} {number} {venue} {date}
+export const CERTIFICATE_TOKENS = ['organizer', 'competition', 'name', 'team', 'place', 'event', 'grade', 'number', 'venue', 'date'] as const
+
+export interface CertificateLine {
+  text: string
+  font: CertificateFont
+  size: number
+  bold: boolean
+  italic: boolean
+  uppercase: boolean
+}
+
+export interface CertificateLayout {
+  paper: CertificatePaper
+  orientation: CertificateOrientation
+  // A picture printed behind the text (border, logo), as a data URL; null for none
+  background: string | null
+  lines: Record<CertificateLineKey, CertificateLine>
+}
+
+export const CERTIFICATE_SIZE_RANGE = { min: 6, max: 72 } as const
+export const MAX_CERTIFICATE_TEXT = 200
+export const MAX_CERTIFICATE_BACKGROUND = 1_500_000
+
+const line = (text: string, size: number, o: Partial<CertificateLine> = {}): CertificateLine => ({ text, font: 'sans', size, bold: false, italic: false, uppercase: false, ...o })
+
+export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
+  paper: 'a4',
+  orientation: 'landscape',
+  background: null,
+  lines: {
+    organizer: line('{organizer}', 10, { bold: true, uppercase: true }),
+    title: line('Certificate', 26, { bold: true }),
+    competition: line('{competition}', 11),
+    certify: line('This is to certify that', 12),
+    name: line('{name}', 24, { bold: true, uppercase: true }),
+    team: line('{team}', 13),
+    placed: line('placed', 12),
+    place: line('{place}', 30, { bold: true }),
+    event: line('in {event}', 13),
+    grade: line('{grade}', 11),
+    number: line('No. {number}', 10, { font: 'mono' }),
+    venue: line('{venue}, {date}', 10),
+  },
+}
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+
+function cleanLine(input: unknown, fallback: CertificateLine): CertificateLine {
+  if (!isObject(input)) return fallback
+  const size = Number(input.size)
+  return {
+    text: typeof input.text === 'string' ? input.text.slice(0, MAX_CERTIFICATE_TEXT) : fallback.text,
+    font: typeof input.font === 'string' && input.font in CERTIFICATE_FONTS ? (input.font as CertificateFont) : fallback.font,
+    size: Number.isFinite(size) ? Math.min(CERTIFICATE_SIZE_RANGE.max, Math.max(CERTIFICATE_SIZE_RANGE.min, Math.round(size))) : fallback.size,
+    bold: typeof input.bold === 'boolean' ? input.bold : fallback.bold,
+    italic: typeof input.italic === 'boolean' ? input.italic : fallback.italic,
+    uppercase: typeof input.uppercase === 'boolean' ? input.uppercase : fallback.uppercase,
+  }
+}
+
+// Anything missing or out of range falls back to the default, so a saved or imported layout can never break printing
+export function cleanCertificateLayout(input: unknown): CertificateLayout {
+  const d = DEFAULT_CERTIFICATE_LAYOUT
+  if (!isObject(input)) return d
+  const lines = isObject(input.lines) ? input.lines : {}
+  return {
+    paper: typeof input.paper === 'string' && input.paper in CERTIFICATE_PAPER ? (input.paper as CertificatePaper) : 'a4',
+    orientation: input.orientation === 'portrait' ? 'portrait' : 'landscape',
+    background: typeof input.background === 'string' && input.background !== '' ? input.background : null,
+    lines: Object.fromEntries(CERTIFICATE_LINE_KEYS.map((k) => [k, cleanLine(lines[k], d.lines[k])])) as Record<CertificateLineKey, CertificateLine>,
+  }
+}
+
+// A line's text for one finalist; a line whose words are all blank prints nothing
+export function fillCertificateText(text: string, values: Partial<Record<(typeof CERTIFICATE_TOKENS)[number], string>>): string {
+  const used = [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1])
+  if (used.length > 0 && used.every((k) => !values[k as keyof typeof values])) return ''
+  return text.replace(/\{(\w+)\}/g, (_, k: string) => values[k as keyof typeof values] ?? '').trim()
+}

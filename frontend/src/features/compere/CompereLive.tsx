@@ -1,4 +1,5 @@
-import { SubmissionStatus, type RoundRow } from '@bis/shared'
+import { ProgramStatus, SubmissionStatus, type RoundRow } from '@bis/shared'
+import { StatusDot } from '../../components/StatusDot.tsx'
 import { ErrorState } from '../../components/ui/index.ts'
 import { useCatalog, useCompetitionRounds, useLiveSubmissions } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
@@ -48,11 +49,13 @@ function Card({ row, size }: { row: RoundRow; size: Size }) {
 }
 
 // The rounds on the floor side by side, for the wall while the announcer waits for the results
-export function CompereLive({ competitionId }: { competitionId: string }) {
+export function CompereLive({ competitionId, quiet = false }: { competitionId: string; quiet?: boolean }) {
   const rounds = useCompetitionRounds(competitionId)
   const onFloor = (rounds.data ?? []).filter((r) => r.onFloor)
 
   if (rounds.isError && !rounds.data) return <ErrorState tone="dark" onRetry={() => void rounds.refetch()} />
+  // Under the running order there is nothing to say when no round is on the floor
+  if (onFloor.length === 0 && quiet) return null
   if (onFloor.length === 0) {
     return (
       <div className="flex flex-1 items-center">
@@ -61,11 +64,22 @@ export function CompereLive({ competitionId }: { competitionId: string }) {
     )
   }
 
-  return (
+  const grid = (
     <div className={cn('grid flex-1 content-center gap-x-[4vmin]', onFloor.length >= 5 ? 'gap-y-[3vmin]' : 'gap-y-[5vmin]', onFloor.length === 1 ? 'grid-cols-1' : onFloor.length === 2 || onFloor.length === 4 ? 'grid-cols-2' : 'grid-cols-3')}>
       {onFloor.map((row) => (
         <Card key={row.roundId} row={row} size={onFloor.length === 1 ? 'solo' : onFloor.length <= 4 ? 'mid' : 'small'} />
       ))}
     </div>
+  )
+  if (!quiet) return grid
+
+  return (
+    <section aria-label="On the floor" className="flex flex-col gap-[2vmin]">
+      <h2 className="flex items-center gap-[1.2vmin] font-mono text-[1.6vmin] font-medium uppercase tracking-[0.12em] text-brown-100">
+        <StatusDot status={ProgramStatus.Current} className="size-[1.5vmin]" />
+        On the floor
+      </h2>
+      {grid}
+    </section>
   )
 }

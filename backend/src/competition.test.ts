@@ -304,8 +304,11 @@ describe('the final', () => {
     const history = await app.ok<Array<{ place: number; points: number }>>('getCompetitorHistory', [byNumber[0]!])
     expect(history).toEqual([expect.objectContaining({ place: 1, points: 200 })])
 
-    // The compere reads the recall, then the finalists, then a slide that says it is time for the results, then them from last place up
-    const list = await app.ok<Announcement[]>('getAnnouncements', [], scrutineer)
+    // The compere calls every round whether or not the scrutineer started it, then reads the recall, then the finalists,
+    // then a slide that says it is time for the results, then them from last place up
+    const all = await app.ok<Announcement[]>('getAnnouncements', [], scrutineer)
+    expect(all.filter((a) => a.kind === 'call').map((a) => a.roundType)).toEqual(['semi_final', 'final'])
+    const list = all.filter((a) => a.kind !== 'call')
     expect(list.map((a) => a.kind)).toEqual(['recall', 'finalists', 'results', ...Array(7).fill('result')])
     expect(list.filter((a) => a.kind === 'result').map((a) => a.result!.place)).toEqual([7, 6, 5, 4, 3, 2, 1])
     expect(list[0]!.numbers).toEqual([1, 2, 3, 4, 5, 6, 7])

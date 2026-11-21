@@ -53,6 +53,7 @@ const scrutineerNav: NavItem[] = [
   { to: '/scrutineer/paper-marks', label: 'Paper marks', icon: FileText, group: 'Marking and results' },
   { to: '/scrutineer/recall', label: 'Recall', icon: ListChecks, group: 'Marking and results' },
   { to: '/scrutineer/results', label: 'Results', icon: Award, group: 'Marking and results' },
+  { to: '/scrutineer/certificates', label: 'Certificates', icon: Award, group: 'Marking and results' },
   { to: '/scrutineer/security', label: 'Security', icon: ShieldCheck, group: 'System' },
 ]
 
@@ -84,20 +85,25 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/payments', label: 'Payments', icon: Wallet, group: 'Scoring and fees' },
     { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote, group: 'Scoring and fees' },
     { to: '/admin/offline-day', label: 'Offline day', icon: WifiOff, group: 'System' },
+    { to: '/admin/certificates', label: 'Certificates', icon: Award, group: 'System' },
     { to: '/admin/site', label: 'Home page', icon: ImageIcon, group: 'System' },
     { to: '/admin/staff', label: 'Staff accounts', icon: Users, group: 'System' },
     { to: '/admin/security', label: 'Security', icon: ShieldCheck, group: 'System' },
   ],
   secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/panels', label: 'Panels', icon: ClipboardCheck, group: 'The day' }, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
   scrutineer: scrutineerNav,
-  // The chairperson watches and confirms ties; starting rounds and setting heats are the scrutineer's
-  chairperson: scrutineerNav.filter((item) => !['/scrutineer', '/scrutineer/heats', '/scrutineer/schedule', '/scrutineer/program', '/scrutineer/panels', '/scrutineer/advancement', '/scrutineer/paper-marks'].includes(item.to)),
+  // The chairperson has everything the scrutineer and the compere have, the athletes list, and confirms ties
+  chairperson: [
+    ...scrutineerNav,
+    { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
+  ],
 }
 
 export const publicNav: NavItem[] = [
   { to: '/', label: 'Home', end: true },
   { to: '/competitions', label: 'Competitions' },
-  { to: '/athletes', label: 'Bicol Athletes', also: ['/competitors'] },
+  { to: '/live', label: 'Live board' },
+  { to: '/athletes', label: 'Athletes', also: ['/competitors'] },
   { to: '/results', label: 'Results' },
   { to: '/standings', label: 'Standings' },
 ]
@@ -105,8 +111,11 @@ export const publicNav: NavItem[] = [
 // The announcer has one screen; the account page's sidebar offers it so there is a way back
 export const compereNav: NavItem[] = [{ to: '/compere', label: 'Announcer', icon: Megaphone, group: 'The day' }]
 
-// The barker has one screen as well
-export const barkerNav: NavItem[] = [{ to: '/barker', label: 'Barker', icon: Megaphone, group: 'The day' }]
+// The barker has two screens: the floor now, and the next event
+export const barkerNav: NavItem[] = [
+  { to: '/barker', label: 'On the floor', icon: Megaphone, group: 'The day', end: true },
+  { to: '/barker/next', label: 'Up next', icon: Clock, group: 'The day' },
+]
 
 
 // Staff and adjudicators sign in here; it is not linked from any public page

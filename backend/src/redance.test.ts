@@ -121,6 +121,12 @@ describe('a redance of one heat', () => {
     expect(JSON.parse(audit.before).marks).toHaveLength(10)
   })
 
+  it('keeps the recall table and the scores readable while the heat waits, leaving out sheets that are not whole yet', async () => {
+    const table = await app.ok<{ submittedCount: number }>('getRecallTable', [semiId], scrutineer)
+    expect(table.submittedCount).toBe(0)
+    expect((await app.call('getSkatingTable', [semiId], scrutineer)).status).toBe(200)
+  })
+
   it('shows the adjudicator only that heat, with the count they gave it before', async () => {
     const state = await app.ok<AdjudicatorState>('getAdjudicatorState', [], phones[0])
     expect(state).toMatchObject({ status: 'marking', redance: { seq: 2, heat: 2, counts: { samba: 2, rumba: 3 } } })

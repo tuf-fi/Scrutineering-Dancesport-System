@@ -1,7 +1,7 @@
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { generateProgram, getBicolAthleteIds, getCompetitors, getEntriesByBackNumber, getProgram, setProgramStart } from '../../mocks/api.ts'
+import { generateProgram, getCompetitors, getEntriesByBackNumber, getProgram, setProgramStart } from '../../mocks/api.ts'
 import { renderApp } from '../../test-utils.tsx'
 
 // The table shows skeleton rows first, so wait until real rows (with a competitor link) arrive
@@ -191,19 +191,19 @@ describe('public site', () => {
     expect(await screen.findByRole('heading', { name: 'Standings' })).toBeInTheDocument()
   })
 
-  it('lists on Bicol Athletes only the competitors the server says qualify', async () => {
+  it('lists every athlete, not only those with ranking points', async () => {
     renderApp('/athletes')
-    expect(await screen.findByRole('heading', { name: 'Bicol Athletes' })).toBeInTheDocument()
-    const listed = new Set(await getBicolAthleteIds())
-    const list = await screen.findByRole('list', { name: 'Bicol athletes' })
+    expect(await screen.findByRole('heading', { name: 'Athletes' })).toBeInTheDocument()
+    const everyone = new Set((await getCompetitors()).map((c) => c.id))
+    const list = await screen.findByRole('list', { name: 'Athletes' })
     const links = await within(list).findAllByRole('link')
-    expect(links.length).toBeGreaterThan(0)
-    for (const link of links) expect(listed.has(link.getAttribute('href')!.split('/').pop()!)).toBe(true)
+    expect(links).toHaveLength(Math.min(everyone.size, 10))
+    for (const link of links) expect(everyone.has(link.getAttribute('href')!.split('/').pop()!)).toBe(true)
   })
 
-  it('opens an athlete from Bicol Athletes and shows their competitions, events and placings', async () => {
+  it('opens an athlete from Athletes and shows their competitions, events and placings', async () => {
     const router = renderApp('/athletes')
-    const [link] = await within(await screen.findByRole('list', { name: 'Bicol athletes' })).findAllByRole('link')
+    const [link] = await within(await screen.findByRole('list', { name: 'Athletes' })).findAllByRole('link')
     const name = link.textContent ?? ''
     await userEvent.click(link)
 
@@ -273,19 +273,7 @@ describe('program page', () => {
     expect(screen.getByLabelText('Search program')).toHaveValue('')
   })
 
-  it('offers Print and PDF that carry the search and round to the printout', async () => {
-    renderApp('/competitions/comp-sorsogon-2026/program')
-    await programRows()
-    expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print')
-    expect(screen.getByRole('link', { name: 'PDF' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print?pdf=1')
-
-    await userEvent.type(screen.getByLabelText('Search program'), 'Samba')
-    await userEvent.selectOptions(screen.getByLabelText('Round'), 'final')
-    expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', '/competitions/comp-sorsogon-2026/program/print?q=Samba&round=final')
-    expect(screen.getByRole('link', { name: 'PDF' })).toHaveAttribute('target', '_blank')
-  })
-
-  it('shows only the events of a back number, keeps it in the printout link, and clears with the filters', async () => {
+  it('shows only the events of a back number, and clears with the filters', async () => {
     // A back number that is entered in some events but not all of them
     let chosen = { number: 0, events: [] as string[] }
     for (const c of await getCompetitors()) {
@@ -304,7 +292,6 @@ describe('program page', () => {
     await programRows()
     await userEvent.type(screen.getByLabelText('Back number'), String(chosen.number))
     await waitFor(() => expect(within(screen.getByRole('list', { name: 'Running order' })).getAllByRole('listitem')).toHaveLength(Math.min(expected, 10)))
-    expect(screen.getByRole('link', { name: 'Print' })).toHaveAttribute('href', `/competitions/comp-sorsogon-2026/program/print?back=${chosen.number}`)
 
     await userEvent.clear(screen.getByLabelText('Back number'))
     await userEvent.type(screen.getByLabelText('Back number'), '999999')

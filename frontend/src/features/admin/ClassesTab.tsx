@@ -2,6 +2,7 @@ import type { ClassDef } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button, ErrorState, IconButton, SearchField, Select, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCatalog, useCompetitions, useDeleteClass, useEvents } from '../../hooks/index.ts'
 import { eventCode, eventDances } from '../../lib/format.ts'
@@ -17,6 +18,7 @@ export function ClassesTab() {
   const [query, setQuery] = useState('')
   const [competitionId, setCompetitionId] = useState('all')
   const [toDelete, setToDelete] = useState<ClassDef | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
   // The class being renamed, or 'new' while adding one
   const [editing, setEditing] = useState<ClassDef | 'new' | null>(null)
 
@@ -62,6 +64,7 @@ export function ClassesTab() {
         minWidthClass="min-w-0"
         paginationLabel="Classes pagination"
         detailTitle={(c) => `Class ${c.name}`}
+        bulk={{ noun: 'class', actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((c) => ({ id: c.name, label: c.name })), done }) }] }}
         detailExtra={(c) => {
           const list = eventsOf(c.name)
           if (list.length === 0) return null
@@ -139,6 +142,7 @@ export function ClassesTab() {
 
       <ClassDialog open={editing !== null} cls={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
 
+      <BulkDeleteDialog noun="class" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="class" target={toDelete ? { id: toDelete.name, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )

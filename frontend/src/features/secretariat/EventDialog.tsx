@@ -89,7 +89,7 @@ function EventForm({
           <option value="couple">Couple</option>
         </Select>
         <Select label="Kind" required hint="Sets the fee, the disciplines and who may enter." value={kind} onChange={(e) => pickKind(e.target.value)}>
-          {kinds.map((k) => (
+          {kinds.filter((k) => event !== null || !k.beginnersOnly).map((k) => (
             <option key={k.id} value={k.id}>
               {k.name}
             </option>

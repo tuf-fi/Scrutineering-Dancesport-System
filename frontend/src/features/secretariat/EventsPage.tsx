@@ -14,6 +14,7 @@ import {
   Toolbar,
   ToolbarActions,
 } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCompetitionEntries, useCompetitions, useDeleteEvent, useEvents, useCatalog } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
@@ -34,6 +35,7 @@ export function EventsPage() {
   // The event being edited, or 'new' while adding one
   const [editing, setEditing] = useState<Event | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Event | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
   const remove = useDeleteEvent()
 
   // Entries that still count: scratched ones are out
@@ -85,6 +87,7 @@ export function EventsPage() {
         minWidthClass="min-w-0"
         paginationLabel="Events pagination"
         detailTitle={(e) => `${eventCode(e)} ${eventDances(e)}`}
+        bulk={{ noun: 'event', actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((e) => ({ id: e.id, label: eventCode(e) })), done }) }] }}
         empty={noCompetition ? { title: 'No competition yet', description: 'Create a competition first, then add its events here.' } : { title: 'No events match', description: 'Try a different age group or search.' }}
         columns={[
           {
@@ -128,6 +131,7 @@ export function EventsPage() {
         />
       )}
 
+      <BulkDeleteDialog noun="event" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="event" target={toDelete ? { id: toDelete.id, label: eventCode(toDelete) } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )

@@ -1,11 +1,12 @@
-import { useState, type FormEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { ApiError } from '../../api/http.ts'
 import { roleHome, safeNext } from '../../app/nav.ts'
 import { PhotoInput } from '../../components/PhotoInput.tsx'
-import type { SessionUser } from '@bis/shared'
-import { Button, Input, toast } from '../../components/ui/index.ts'
-import { useResendVerification, useSignInAthlete, useSignInMember, useSignUpAthlete, useSignUpMember } from '../../hooks/index.ts'
+import type { SessionUser, SimilarAccount } from '@bis/shared'
+import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
+import { useClaimAthleteRecord, useFindSimilarAccounts, useResendVerification, useSignInAthlete, useSignInMember, useSignUpAthlete, useSignUpMember } from '../../hooks/index.ts'
 import { passwordMeetsRules } from '../../lib/passwordRules.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { DevHint } from '../auth/DevHint.tsx'
@@ -37,9 +38,23 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
   const [error, setError] = useState<string | null>(null)
   const [sentTo, setSentTo] = useState<{ session: SessionUser; email: string } | null>(null)
   const resend = useResendVerification()
+  const findSimilar = useFindSimilarAccounts()
+  const claim = useClaimAthleteRecord()
+  const queryClient = useQueryClient()
+  // Records or teams already on file under this name; set while the form asks if it is the same one
+  const [similar, setSimilar] = useState<SimilarAccount[] | null>(null)
+  const [pick, setPick] = useState('')
+  // An athlete who said "that's me" is linked to that record once the account exists
+  const linkTo = useRef<string | null>(null)
 
-  function enter(session: SessionUser) {
+  async function enter(session: SessionUser) {
     signIn(session)
+    // The link request goes in before the account page opens, so it shows there at once
+    if (linkTo.current) {
+      await claim.mutateAsync(linkTo.current).catch((e: Error) => toast.error(e.message))
+      linkTo.current = null
+      await queryClient.resetQueries({ queryKey: ['my-athlete'] })
+    }
     onDone?.()
     navigate(safeNext(params.get('next')) ?? roleHome[session.role], { replace: true })
   }
@@ -54,13 +69,29 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
     setError(null)
     if (!ready) return
     if (creating && !photo) return setPhotoError('Add a photo.')
+    // Ask first when this name is already on file, so one person or team is not added twice
+    if (creating && kind !== 'coach' && name.trim()) {
+      try {
+        const found = await findSimilar.mutateAsync({ kind, name })
+        if (found.length > 0) {
+          setPick(found[0]!.id)
+          return setSimilar(found)
+        }
+      } catch {
+        // The check is a courtesy; sign-up goes on without it
+      }
+    }
+    await create()
+  }
+
+  async function create() {
     try {
       const session = creating
         ? await signUpMutation.mutateAsync({ name, email, password, photo })
         : await signInMutation.mutateAsync({ email, password })
       // A new account first sees where the confirmation link went; it is signed in when they continue
       if (creating && session.confirmEmail) return setSentTo({ session, email })
-      enter(session)
+      await enter(session)
     } catch (e) {
       // A photo too big for the server, or one it did not accept, is the photo's problem
       if (creating && e instanceof ApiError && e.status === 413) return setPhotoError('The image exceeded the maximum size.')
@@ -84,7 +115,7 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
           We sent a confirmation link to <span className="font-semibold">{sentTo.email}</span>. Open it to confirm your address. It works for 24 hours. Check your spam folder too.
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <Button size="lg" onClick={() => enter(sentTo.session)}>
+          <Button size="lg" onClick={() => void enter(sentTo.session)}>
             Go to my account
           </Button>
           <Button
@@ -102,6 +133,74 @@ export function AccountForm({ kind, mode, onMode, onDone }: { kind: AccountKind;
 
   return (
     <div className="flex flex-col gap-8">
+      <Dialog
+        open={similar !== null}
+        onClose={() => setSimilar(null)}
+        title={kind === 'team' ? 'Is this your team?' : 'Is this you?'}
+        description={
+          kind === 'team'
+            ? `A team named ${name.trim()} is already on file. You can continue and create yours.`
+            : `${name.trim()} is already on file. If that is you, we link your account to it and the secretariat confirms it. No second record is made.`
+        }
+        actions={
+          kind === 'team' ? (
+            <>
+              <Button variant="ghost" onClick={() => setSimilar(null)}>
+                Back
+              </Button>
+              <Button
+                onClick={() => {
+                  setSimilar(null)
+                  void create()
+                }}
+              >
+                Continue
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  linkTo.current = null
+                  setSimilar(null)
+                  void create()
+                }}
+              >
+                No, a different person
+              </Button>
+              <Button
+                onClick={() => {
+                  linkTo.current = pick
+                  setSimilar(null)
+                  void create()
+                }}
+              >
+                Yes, that is me
+              </Button>
+            </>
+          )
+        }
+      >
+        {similar && similar.length > 1 && kind === 'athlete' ? (
+          <Select label="Which record" value={pick} onChange={(e) => setPick(e.target.value)}>
+            {similar.map((m) => (
+              <option key={m.id} value={m.id}>
+                {[m.name, m.teamName].filter(Boolean).join(' · ')}
+              </option>
+            ))}
+          </Select>
+        ) : (
+          <ul aria-label="Already on file" className="flex flex-col divide-y divide-neutral-200 border-y border-neutral-200">
+            {similar?.map((m) => (
+              <li key={m.id} className="flex flex-col gap-0.5 py-3">
+                <span className="font-semibold text-neutral-900">{m.name}</span>
+                {m.teamName && <span className="text-small text-neutral-600">{m.teamName}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Dialog>
       <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
         {creating && <Input label={copy.name} autoComplete={kind === 'team' ? 'organization' : 'name'} value={name} onChange={(e) => setName(e.target.value)} required autoFocus />}
         {creating && <PhotoInput name={name} value={photo} onChange={(p) => { setPhoto(p); setPhotoError(undefined) }} error={photoError} label={kind === 'team' ? 'Team picture' : 'Photo'} />}

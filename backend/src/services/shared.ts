@@ -213,6 +213,47 @@ export function cleanNames(names: unknown, what = 'competitor'): string[] {
   return list
 }
 
+const sameName = (a: string, b: string) => {
+  const key = (n: string) => n.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+  return key(a) === key(b)
+}
+
+// Entries, results and the athlete's account follow a person by name, so a corrected name or birth date is copied everywhere it is kept
+export function syncPerson(ctx: Ctx, from: string, to: string, birthDate?: string): void {
+  const born = birthDate || undefined
+  for (const c of ctx.db.select().from(t.competitors).all()) {
+    const i = c.names.findIndex((n) => sameName(n, from))
+    if (i < 0) continue
+    const names = c.names.map((n, j) => (j === i ? to : n))
+    const dancer = c.details?.dancers[i]
+    const details = c.details && dancer && born && dancer.birthDate !== born ? { ...c.details, dancers: c.details.dancers.map((d, j) => (j === i ? { ...d, birthDate: born } : d)) } : c.details
+    if (names[i] !== c.names[i] || details !== c.details) ctx.db.update(t.competitors).set({ names, details }).where(eq(t.competitors.id, c.id)).run()
+  }
+  const set = { name: to, ...(born ? { birthDate: born } : {}) }
+  for (const a of ctx.db.select().from(t.athletes).all()) if (sameName(a.name, from)) ctx.db.update(t.athletes).set(set).where(eq(t.athletes.id, a.id)).run()
+  for (const r of ctx.db.select().from(t.athleteRecords).all()) if (sameName(r.name, from)) ctx.db.update(t.athleteRecords).set(set).where(eq(t.athleteRecords.id, r.id)).run()
+  for (const q of ctx.db.select().from(t.entryRequests).all()) if (sameName(q.requesterName, from)) ctx.db.update(t.entryRequests).set({ requesterName: to }).where(eq(t.entryRequests.id, q.id)).run()
+}
+
+// A person's membership year is kept on their account, their record and each entry; this sets it on all of them by name
+export function syncMembership(ctx: Ctx, name: string, year: number | null): void {
+  const memberMonth = year === null ? null : new Date().getMonth() + 1
+  for (const c of ctx.db.select().from(t.competitors).all()) {
+    if (!c.names.some((n) => sameName(n, name))) continue
+    const details: CompetitorDetails = c.details ?? { province: '', coachId: null, dancers: [], beginner: false, memberYear: null }
+    ctx.db.update(t.competitors).set({ details: { ...details, memberYear: year, memberMonth } }).where(eq(t.competitors.id, c.id)).run()
+  }
+  for (const a of ctx.db.select().from(t.athletes).all()) {
+    if (!sameName(a.name, name)) continue
+    ctx.db.update(t.athletes).set({ memberYear: year, memberMonth, ...(year === null ? {} : { request: null }) }).where(eq(t.athletes.id, a.id)).run()
+    giveAthleteMembershipId(ctx, a.id)
+  }
+  for (const r of ctx.db.select().from(t.athleteRecords).all()) {
+    if (!sameName(r.name, name)) continue
+    ctx.db.update(t.athleteRecords).set({ memberYear: year, memberMonth, ...(year !== null && !r.membershipId ? { membershipId: nextMembershipId(ctx, 'athlete') } : {}) }).where(eq(t.athleteRecords.id, r.id)).run()
+  }
+}
+
 export const getEventRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.events).where(eq(t.events.id, id)).get(), 'Event')
 

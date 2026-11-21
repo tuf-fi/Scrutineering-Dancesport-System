@@ -14,6 +14,7 @@ const backNumbers = (ids: string[]) =>
 
 function base(event: Event, round: Round) {
   return {
+    roundId: round.id,
     eventNumber: event.number,
     dances: event.dances,
     ageGroup: event.ageGroup,
@@ -37,11 +38,12 @@ function entriesOf(type: RoundType, ids: string[]): Announcement['entries'] {
     .sort((a, b) => a.backNumber - b.backNumber)
 }
 
-// The next event to the floor: its first heat
+// The next event to the floor: every heat, in turn
 function callFor(event: Event, round: Round): Announcement[] {
-  const first = heats.find((h) => h.roundId === round.id && h.number === 1)
-  if (!first) return []
-  return [{ ...base(event, round), id: `call:${round.id}`, kind: 'call', heat: 1, numbers: backNumbers(first.competitorIds), entries: entriesOf(round.type, first.competitorIds) }]
+  return heats
+    .filter((h) => h.roundId === round.id)
+    .sort((a, b) => a.number - b.number)
+    .map((h) => ({ ...base(event, round), id: `call:${round.id}:${h.number}`, kind: 'call' as const, heat: h.number, numbers: backNumbers(h.competitorIds), entries: entriesOf(round.type, h.competitorIds) }))
 }
 
 // TODO: the real announcements come from the scrutineer publishing each round; the sample replays one finished event

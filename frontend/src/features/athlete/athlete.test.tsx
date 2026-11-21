@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { confirmMembership, getAthletes, getCompetitorHistory, getCompetitors, getTeams, rejectMembership, requestTeamMembership, saveMyAthlete, signUpAthlete } from '../../mocks/api.ts'
+import { confirmMembership, getAthletes, getCompetitorHistory, getCompetitors, getTeams, rejectMembership, requestTeamMembership, saveAthleteRecord, saveMyAthlete, signUpAthlete } from '../../mocks/api.ts'
 import { openMenu, renderApp } from '../../test-utils.tsx'
 
 // jsdom cannot decode or draw pictures, so the resizing helper is faked
@@ -84,6 +84,23 @@ describe('athlete account', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Confirm membership of Ana Lim' }))
     expect(await screen.findByText('Confirmed Ana Lim')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Confirm membership of Ana Lim' })).not.toBeInTheDocument()
+  })
+
+  it('asks if a name already on file is the same athlete, and links the new account to that record on Yes', async () => {
+    await saveAthleteRecord('staff-secretariat', { name: 'Mara Soriano', birthDate: '', phone: '', address: '', province: '', teamId: null, coachId: null, memberYear: null, memberMonth: null })
+    renderApp('/athlete')
+    await userEvent.click(await screen.findByRole('button', { name: 'Create an account' }))
+    await userEvent.type(screen.getByLabelText('Full name'), 'Mara Soriano')
+    await userEvent.type(screen.getByLabelText('Email'), 'mara@test.example')
+    await userEvent.type(screen.getByLabelText('Password'), 'A-long-password1')
+    await userEvent.type(screen.getByLabelText('Confirm password'), 'A-long-password1')
+    await userEvent.upload(screen.getByLabelText('Photo'), new File(['x'], 'me.png', { type: 'image/png' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Create account' }))
+
+    const ask = await screen.findByRole('dialog', { name: 'Is this you?' })
+    await userEvent.click(within(ask).getByRole('button', { name: 'Yes, that is me' }))
+    expect(await screen.findByRole('heading', { name: 'Mara Soriano' })).toBeInTheDocument()
+    expect(await screen.findByText(/You asked to be linked to Mara Soriano/)).toBeInTheDocument()
   })
 
   it('lets the secretariat turn a payment down with a reason', async () => {

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dry-run fixes: Scrutineer</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #111; margin: 0; }
+  h1 { font-size: 20pt; line-height: 1.1; margin: 0 0 4mm; letter-spacing: -0.02em; }
+  h2 { font-size: 13pt; text-transform: uppercase; letter-spacing: 0.04em; border-top: 1.5px solid #111; padding-top: 3mm; margin: 8mm 0 4mm; break-after: avoid; }
+  h3 { font-size: 11.5pt; margin: 5mm 0 2mm; break-after: avoid; }
+  p { margin: 0 0 3mm; }
+  .lead { font-size: 12.5pt; max-width: 150mm; }
+  .tag { font: 600 9pt/1 "Consolas", monospace; color: #8a6a00; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4mm; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 4mm; font-size: 10.5pt; }
+  th, td { text-align: left; vertical-align: top; padding: 2.2mm 3mm; border-bottom: 1px solid #bbb; }
+  th { border-bottom: 1.5px solid #111; font-size: 9.5pt; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr { break-inside: avoid; }
+  ol, ul { margin: 0 0 4mm; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  code { font-family: "Consolas", monospace; font-size: 10pt; background: #f1f1f1; padding: 0 1.2mm; }
+</style>
+</head>
+<body>
+
+<div class="tag">BOSS &middot; 20 November 2026 &middot; Changes to the scrutineer pages</div>
+<h1>Dry-run fixes: Scrutineer</h1>
+<p class="lead">Three notes from the scrutineer: certificates you can edit, full control of heats, and results that seemed to disappear after approving event 1.</p>
+
+<h2>Fixes against the dry-run notes</h2>
+<table>
+<tr><th>Note</th><th>Fix</th></tr>
+<tr><td>Certificates should be editable: font size, style, landscape or portrait</td><td>New <b>Certificates</b> page for the scrutineer and the admin. One layout for every competition: page orientation, a background picture, and for each line its wording, font, size, bold, italic and capitals. A layout can be exported to a file and imported again.</td></tr>
+<tr><td>Heats: editable beyond the given format</td><td>The scrutineer could already edit heats before approval. Added <b>Merge heats</b>, <b>Swap couples</b> and <b>Move a heat</b> next to Split evenly and the per-couple heat dropdown (its last option makes a new heat). Editing continues after the round has started.</td></tr>
+<tr><td>After approving event 1, its result data seemed gone; other events were fine</td><td>The data was not lost. The Results page followed the round on the floor, and approving takes the round off the floor, so the page jumped to another round. The page now keeps the round you are looking at.</td></tr>
+</table>
+
+<h2>Heats during a round</h2>
+<p>Heats can still be saved while a round is being marked or in review. Adjudicators' marks stay as they are. Adjudicator phones and the compere read heats live, so saving a change to a started round now asks first, then tells those screens to refresh at once. Heats cannot change after the round is approved, or while a redance waits for its marks.</p>
+
+<h2>Certificates</h2>
+<p>Words in braces are filled in for each finalist: <code>{organizer}</code> <code>{competition}</code> <code>{name}</code> <code>{team}</code> <code>{place}</code> <code>{event}</code> <code>{grade}</code> <code>{number}</code> <code>{venue}</code> <code>{date}</code>. A line left empty, or whose words are all blank (a team line for a couple with no team), is not printed. Fonts are Sans serif, Serif, Script and Monospace, so they print the same offline. The background is a JPEG, PNG or WebP picture, shrunk to fit. The built-in layout is the one used before.</p>
+
+<h2>How to test</h2>
+<h3>1. Results stay put after approving</h3>
+<ol>
+<li>Sign in as scrutineer. Open <b>Results</b> from the menu (no round in the address).</li>
+<li>Choose event 1's final while it is in review. Press <b>Approve results</b>, then <b>Approve</b>.</li>
+<li><b>Expected:</b> the page still shows event 1 with status Approved and its table. It does not switch to another event, and <b>Publish results</b> now appears for event 1.</li>
+<li>The program shows event 1 as Completed. The compere shows its results once published.</li>
+</ol>
+
+<h3>2. Heats</h3>
+<ol>
+<li>Open <b>Heats</b> and choose a round with at least 2 heats.</li>
+<li><b>Swap couples:</b> pick two couples, Apply. Their heat numbers trade. Nothing is saved yet.</li>
+<li><b>Merge heats:</b> merge heat 3 into heat 1. The heat count in the dark panel drops.</li>
+<li><b>Move a heat:</b> move heat 3 to position 1. The other heats shift.</li>
+<li>In the table, set a couple's heat to the last number (new heat) to create a heat.</li>
+<li>Press <b>Save heats</b>. On a round being marked, a box asks <i>Change heats during the round?</i>. Confirm.</li>
+<li><b>Expected:</b> &ldquo;Heats saved&rdquo;. On an adjudicator's phone for that round the heat groups update without reloading, and the compere call list follows the new heats.</li>
+<li>After the round is approved the heat controls are hidden. While a redance waits for marks they are hidden too.</li>
+</ol>
+
+<h3>3. Certificates</h3>
+<ol>
+<li>Sign in as scrutineer and open <b>Certificates</b> (admin: Certificates under System). The chairperson and secretariat do not see it.</li>
+<li>Set <b>Page</b> to Portrait. Pick the line <b>Name</b>, set Font to Serif, Size to 28 and turn on Italic. The preview on the right changes as you go.</li>
+<li>Edit the wording of <b>Opening words</b>. Clear the <b>Team</b> wording to hide that line.</li>
+<li>Choose a <b>Background</b> picture, then <b>Save layout</b>. Expected: &ldquo;Certificate layout saved&rdquo;.</li>
+<li><b>Export layout</b>, press <b>Reset</b> (back to the built-in look), then <b>Import layout</b> with the file and Save. The layout returns.</li>
+<li>Open an approved final's <b>Print certificates</b>. Expected: one page per finalist in the saved orientation, with the saved fonts, wording and background. In the print dialog the paper is A4 in the same orientation.</li>
+</ol>
+
+<h2>Files</h2>
+<ul>
+<li>frontend/src/features/scrutineer/useRoundChoice.ts , ResultsPage.tsx : round kept in the address; hooks/useScrutineer.ts : floor refreshed after approve</li>
+<li>frontend/src/features/scrutineer/HeatsPage.tsx , HeatToolsDialog.tsx , heatEdits.ts : heat tools and confirm; backend/src/services/rounds.ts : audit before and after, push to screens</li>
+<li>packages/shared/src/certificate.ts : layout type, defaults, cleaning; backend/src/services/certificate.ts : saved in settings; registry.ts : getCertificateLayout (staff), saveCertificateLayout (admin, scrutineer)</li>
+<li>frontend/src/features/scrutineer/CertificateLayoutPage.tsx : editor; features/print/CertificateSheet.tsx , CertificatesPage.tsx : printed page; app/layouts/PrintLayout.tsx : sheet width</li>
+<li>Tests: backend certificate.test.ts ; frontend certificates.test.tsx , heatEdits.test.ts , scrutineer.test.tsx , sidebar.test.tsx</li>
+</ul>
+
+<h2>Verification</h2>
+<p>Backend: 416 of 416 tests pass. Frontend: 414 of 414 tests pass. The type check shows two unused-import errors in CompereHome.tsx that were already in the working tree before this work. The Results fix is from reading the code and has no browser test of its own, so check it with test 1. The certificate page and heat tools have not been checked at phone width or in a real print dialog yet.</p>
+
+</body>
+</html>

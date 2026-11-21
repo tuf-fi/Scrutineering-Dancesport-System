@@ -12,6 +12,7 @@ import {
   Toolbar,
   ToolbarActions,
 } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCompetitions, useDeleteCompetition, useEvents } from '../../hooks/index.ts'
 import { dateParts, formatDate } from '../../lib/format.ts'
@@ -25,6 +26,7 @@ export function CompetitionsPage() {
   const [query, setQuery] = useState('')
   const [year, setYear] = useState('all')
   const [toDelete, setToDelete] = useState<Competition | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
   // The competition being edited, or 'new' while creating one
   const [editing, setEditing] = useState<Competition | 'new' | null>(null)
 
@@ -75,6 +77,7 @@ export function CompetitionsPage() {
         minWidthClass="min-w-0"
         paginationLabel="Competitions pagination"
         detailTitle={(c) => c.name}
+        bulk={{ noun: 'competition', actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((c) => ({ id: c.id, label: c.name })), done }) }] }}
         detailSections={(c) => [{ id: 'events', label: 'Events', icon: ListOrdered, content: <CompetitionEvents competitionId={c.id} /> }]}
         empty={
           needle || year !== 'all'
@@ -123,6 +126,7 @@ export function CompetitionsPage() {
         onClose={() => setEditing(null)}
       />
 
+      <BulkDeleteDialog noun="competition" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="competition" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )

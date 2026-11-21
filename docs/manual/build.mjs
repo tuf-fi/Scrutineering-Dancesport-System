@@ -84,7 +84,7 @@ out.push(pageNew(`
 <table>
 <tr><th>Role</th><th>What you do</th><th>Sign in</th><th>Use</th></tr>
 <tr><td>Visitor</td><td>Watch the program, results and standings.</td><td>None</td><td>Phone</td></tr>
-<tr><td>Athlete</td><td>Keep your details, pay membership, send your own entries.</td><td>Membership ID or email</td><td>Phone</td></tr>
+<tr><td>Athlete</td><td>Keep your details and pay membership. Your team sends your entries.</td><td>Membership ID or email</td><td>Phone</td></tr>
 <tr><td>Coach</td><td>Follow your athletes' results and entries.</td><td>Membership ID or email</td><td>Phone</td></tr>
 <tr><td>Team</td><td>Follow your dancers, pay and send their entries.</td><td>Email</td><td>Phone</td></tr>
 <tr><td>Adjudicator</td><td>Mark the dancers.</td><td>6-digit PIN</td><td>Phone</td></tr>
@@ -178,7 +178,7 @@ out.push(pageCols(
 ))
 
 // ================================================================================ ATHLETE
-out.push(divider('Athletes', 'Competitors with their own account. Use your phone or laptop.', 'Account · Edit account · Membership · Payments · Results · Standings · Entries · Enter events · My requests · Notifications · Password'))
+out.push(divider('Athletes', 'Competitors with their own account. Use your phone or laptop.', 'Account · Edit account · Membership · Payments · Results · Standings · Entries · Notifications · Password'))
 out.push(pageCols(
   feat('Create your account', 'Sign in, choose Athlete, then Create an account', 'Make your own account with your name, a photo, an email and a password of at least 8 characters. Coaches and teams do the same, choosing Coach or Team.', [
     'A photo is required. Choose a square picture; it shows in your account and the menu.',
@@ -198,27 +198,15 @@ out.push(pageCols(
     'Changing your team or coach is a request. The secretariat approves it, and your old team or coach stays until then.',
     'A new name, or a new date of birth when one is already on file, is a request too. Your current details stay until the secretariat approves it. Your first date of birth is saved straight away.',
   ], [I('athlete/edit')], true),
-  feat('Membership', 'Athlete menu: Membership', 'Pay your yearly membership.', [
-    'A membership covers the calendar year it is paid in and ends on December 31 of that year, whenever you pay. Your membership ID is given with your first confirmed payment and never changes.',
-    'See the fee and where to pay: GCash, Maya or bank.',
-    'Pay, then choose how you paid, add the reference number or screenshot and press Send payment.',
-    'It shows Waiting for the secretariat. If turned down, you see why and can send it again.',
+  feat('Membership', 'Athlete menu: Membership', 'Where your yearly membership stands.', [
+    'Your team pays the membership, so there is nothing to send from this page.',
+    'A membership covers the calendar year it is paid in and ends on December 31 of that year, whenever it is paid. Your membership ID is given with the first confirmed payment and never changes.',
+    'It shows Paid, Waiting for the secretariat (your team sent a payment that is being checked), Not confirmed (with the reason; ask your team to send it again) or Not paid.',
   ], [I('athlete/membership')], true),
-  feat('Payments', 'Athlete menu: Payments', 'Your payment history.', ['Every payment you sent and what happened to it.'], [I('athlete/payments')], true),
+  feat('Payments', 'Athlete menu: Payments', 'Your payment history.', ['Each membership payment sent for you and what the secretariat decided.'], [I('athlete/payments')], true),
   feat('Results', 'Athlete menu: My results', 'How you placed.', ['Your results, by competition.'], [I('athlete/results')], true),
   feat('Standings', 'Athlete menu: My standings', 'Where you stand.', ['Your points and your place in your category.'], [I('athlete/standings')], true),
   feat('Entries', 'Athlete menu: Entries', 'What you are entered in.', ['The events you are entered in, by competition.'], [I('athlete/entries')], true),
-  feat('Enter events', 'Athlete menu: Enter events', 'Send your own entry online.', [
-    'Pick the competition and yourself (a solo, or a couple that carries your name).',
-    'Tick your events. The fee and any warning show right away.',
-    'Pay to GCash, Maya or the bank shown, add a screenshot of the payment and press Send entry.',
-    'You cannot enter anyone else. Nothing is entered until the secretariat approves it.',
-  ], [I('athlete/register')], true),
-  feat('My requests', 'Athlete menu: My requests', 'Follow the entries you sent.', [
-    'Each shows Waiting, Approved or Not approved (with the reason).',
-    'Press Take back to cancel a waiting request.',
-    'A request cannot cover an event that is already waiting or already entered.',
-  ], [I('athlete/requests')], true),
   feat('Notifications', 'The bell at the top, or Notifications', 'What the secretariat decided.', [
     'New messages also appear as a pop-up with a sound.',
     'Press one to open the page it is about.',
@@ -470,7 +458,7 @@ out.push(page(
     'Press the cross to turn a payment down. You must give a reason, and the athlete sees it.',
     'The key gives a new password and the bin deletes an account.',
   ], [I('secretariat/athletes', '', { h: 560 }), I('secretariat/athlete-add', 'Add athlete', { maxh: 150 }), I('secretariat/import', 'Import')]),
-  feat('Entry requests', 'Menu: Entry requests', 'Entries sent online by teams and athletes.', [
+  feat('Entry requests', 'Menu: Entry requests', 'Entries sent online by teams.', [
     'Newest first, each with its date, sender, events and fee. A pop-up announces each new one.',
     'Press the small picture to see the payment screenshot and check it against the money received.',
     'The tick approves it: the dancer is entered and the payment recorded. The sender is told.',
@@ -648,7 +636,7 @@ out.push(pageNew(`
 <table>
 <tr><th>Question</th><th>Answer</th></tr>
 <tr><td>I forgot my password.</td><td>Athletes, coaches and teams: ask the secretariat for a new one. Staff: ask the admin.</td></tr>
-<tr><td>My entry or payment was turned down.</td><td>Open Notifications or My requests to read the reason, fix it and send it again.</td></tr>
+<tr><td>My entry or payment was turned down.</td><td>Teams: open Notifications or My requests to read the reason, fix it and send it again. Athletes: ask your team or the secretariat.</td></tr>
 <tr><td>I cannot see my dancers.</td><td>Your account must be linked first. Open Link your team (or coach) and send the request.</td></tr>
 <tr><td>A round will not start.</td><td>Some entries are not paid. The secretariat records the payment or scratches the dancer.</td></tr>
 <tr><td>Results are not on the website.</td><td>The scrutineer has not published them yet, or the competition holds its results until the awarding and they have not been revealed.</td></tr>

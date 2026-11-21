@@ -1,5 +1,11 @@
 import { ProgramKind, ProgramStatus, type Class, type Discipline, type Program, type ProgramRow } from '@bis/shared'
+import { ChevronDown } from 'lucide-react'
+import { useState } from 'react'
 import { StatusDot } from '../../components/StatusDot.tsx'
+import { RoundDetail } from './CompereRoundDetail.tsx'
+import type { Paging } from './Pager.tsx'
+import type { ShowRound } from './rounds.ts'
+import { cn } from '../../lib/cn.ts'
 import { useCatalog } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, eventDances, formatClock, programAction } from '../../lib/format.ts'
 
@@ -24,9 +30,7 @@ const detail = (row: ProgramRow, eventGrade: (event: { ageGroup: string; class: 
       ].join(' · ')
     : ''
 
-const WINDOW = 8
-
-function Block({ title, status, row, empty, large }: { title: string; status: ProgramStatus; row: ProgramRow | undefined; empty: string; large: boolean }) {
+function Block({ title, status, rows, empty, large }: { title: string; status: ProgramStatus; rows: ProgramRow[]; empty: string; large: boolean }) {
   const { eventGrade } = useCatalog()
   return (
     <section aria-label={title} className="flex min-w-0 flex-col gap-[1vmin]">
@@ -34,16 +38,20 @@ function Block({ title, status, row, empty, large }: { title: string; status: Pr
         <StatusDot status={status} className="size-[1.5vmin]" />
         {title}
       </h2>
-      {row ? (
-        <>
-          <p className={`text-balance font-semibold leading-[1.1] tracking-[-0.02em] text-white ${large ? 'text-[4.8vmin]' : 'text-[3.6vmin]'}`}>
-            <Name row={row} />
-          </p>
-          <p className="flex flex-wrap gap-x-[1.8vmin] text-[2vmin] font-medium text-brown-100">
-            <span className="font-mono tabular-nums text-white">{formatClock(row.startTime)}</span>
-            {detail(row, eventGrade) && <span>{detail(row, eventGrade)}</span>}
-          </p>
-        </>
+      {rows.length > 0 ? (
+        <ul className="flex flex-col gap-[2.2vmin]">
+          {rows.map((row) => (
+            <li key={row.slotId} className="flex flex-col gap-[1vmin]">
+              <p className={`text-balance font-semibold leading-[1.1] tracking-[-0.02em] text-white ${large ? 'text-[4.8vmin]' : 'text-[3.6vmin]'}`}>
+                <Name row={row} />
+              </p>
+              <p className="flex flex-wrap gap-x-[1.8vmin] text-[2vmin] font-medium text-brown-100">
+                <span className="font-mono tabular-nums text-white">{formatClock(row.startTime)}</span>
+                {detail(row, eventGrade) && <span>{detail(row, eventGrade)}</span>}
+              </p>
+            </li>
+          ))}
+        </ul>
       ) : (
         <p className="text-[3vmin] font-medium text-brown-100">{empty}</p>
       )}
@@ -65,15 +73,61 @@ function Loading() {
   )
 }
 
-// The running order for the announcer: what is on the floor, what is next, and the lines around them
-export function CompereProgram({ program, error }: { program: Program | undefined; error: boolean }) {
+function Line({ row, round, open, onToggle }: { row: ProgramRow; round?: ShowRound; open?: boolean; onToggle?: () => void }) {
+  const meta = [row.roundType ? ROUND_TYPE_LABEL[row.roundType] : '', programAction(row)].filter(Boolean).join(' · ')
+  const tone = cn(
+    'grid w-full items-center gap-x-[max(2.2vmin,0.75rem)] rounded-[1vmin] px-[max(2vmin,0.75rem)] py-[max(1.2vmin,0.6rem)] text-left',
+    round ? 'grid-cols-[max(1.4vmin,0.5rem)_max(10vmin,4.75rem)_minmax(0,1fr)_auto]' : 'grid-cols-[max(1.4vmin,0.5rem)_max(10vmin,4.75rem)_minmax(0,1fr)]',
+    row.status === ProgramStatus.Completed ? 'text-white/45' : 'text-white',
+    row.status === ProgramStatus.Current && 'bg-white/[0.06]',
+  )
+  const inner = (
+    <>
+      <StatusDot status={row.status} className="size-[max(1.4vmin,0.5rem)]" />
+      <span className="whitespace-nowrap font-mono text-[max(1.9vmin,0.8125rem)] font-medium tabular-nums text-brown-100">{formatClock(row.startTime)}</span>
+      <span className="flex min-w-0 flex-col gap-[0.3vmin]">
+        <span className="truncate text-[max(2.5vmin,0.9375rem)] font-semibold leading-tight">
+          <Name row={row} />
+        </span>
+        {meta && <span className="truncate text-[max(1.7vmin,0.75rem)] font-medium text-brown-100">{meta}</span>}
+      </span>
+      {round && <ChevronDown aria-hidden className={cn('size-[max(2.4vmin,1rem)] text-brown-100 transition-transform', open && 'rotate-180')} />}
+    </>
+  )
+  return round ? (
+    <button type="button" aria-expanded={open} onClick={onToggle} className={cn(tone, 'transition-colors hover:bg-white/10')}>
+      {inner}
+    </button>
+  ) : (
+    <div className={tone}>{inner}</div>
+  )
+}
+
+// The whole program, opening on the page of the round on the floor; a round opens to show its heats and couples
+function FullProgram({ rows, rounds, paging, onGo }: { rows: ProgramRow[]; rounds: ShowRound[]; paging: Paging; onGo: (id: string) => void }) {
+  const [open, setOpen] = useState<string | null>(null)
+  return (
+    <section aria-label="Program" className="flex flex-col gap-[2vmin]">
+      <ol className="flex flex-col gap-[0.4vmin]">
+        {rows.slice(paging.from, paging.to).map((r) => {
+          const round = r.kind === ProgramKind.Round ? rounds.find((x) => x.eventNumber === r.eventNumber && x.roundType === r.roundType) : undefined
+          const isOpen = open === r.slotId
+          return (
+            <li key={r.slotId}>
+              <Line row={r} round={round} open={isOpen} onToggle={() => setOpen(isOpen ? null : r.slotId)} />
+              {round && isOpen && <RoundDetail round={round} onGo={onGo} />}
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
+// What is next; the rounds on the floor are the live cards above it, and the whole running order is the Program page
+export function CompereProgram({ program, error, full = false, rounds = [], paging, onGo = () => {} }: { program: Program | undefined; error: boolean; full?: boolean; rounds?: ShowRound[]; paging?: Paging; onGo?: (id: string) => void }) {
   const rows = program?.rows ?? []
-  const now = rows.find((r) => r.status === ProgramStatus.Current)
-  const nextIndex = rows.findIndex((r) => r.status === ProgramStatus.Next)
-  const nowIndex = rows.findIndex((r) => r.status === ProgramStatus.Current)
-  const anchor = nowIndex >= 0 ? nowIndex : nextIndex >= 0 ? nextIndex : rows.length
-  const from = Math.max(0, anchor - 2)
-  const lines = rows.slice(from, from + WINDOW)
+  const next = rows.filter((r) => r.status === ProgramStatus.Next).slice(0, 1)
   const finished = rows.length > 0 && rows.every((r) => r.status === ProgramStatus.Completed)
 
   if (error && !program) {
@@ -94,39 +148,14 @@ export function CompereProgram({ program, error }: { program: Program | undefine
     )
   }
 
+  if (full && paging) return <FullProgram rows={rows} rounds={rounds} paging={paging} onGo={onGo} />
+
   return (
     <div className="flex flex-1 flex-col gap-[3vmin]">
       <h1 className="sr-only">Program</h1>
-      {now ? (
-        <div className="grid grid-cols-2 gap-x-[4vmin] border-b border-white/15 pb-[2.4vmin]">
-          <Block title="On the floor" status={ProgramStatus.Current} row={now} empty="" large />
-          <div className="border-l border-white/15 pl-[4vmin]">
-            <Block title="Up next" status={ProgramStatus.Next} row={rows[nextIndex]} empty={finished ? 'Nothing left' : 'Nothing queued'} large={false} />
-          </div>
-        </div>
-      ) : (
-        <div className="border-b border-white/15 pb-[2.4vmin]">
-          <Block title="Up next" status={ProgramStatus.Next} row={rows[nextIndex]} empty={finished ? 'The program is complete' : 'Nothing queued'} large />
-        </div>
-      )}
-      <section aria-label="Running order" className="flex flex-col">
-        <ol className="flex flex-col">
-          {lines.map((r) => (
-            <li
-              key={r.slotId}
-              className={`flex items-center gap-[2.2vmin] border-b border-white/10 px-[1.2vmin] py-[0.9vmin] text-[2.3vmin] font-medium ${r.status === ProgramStatus.Completed ? 'text-white/45' : 'text-white'} ${r.status === ProgramStatus.Current ? 'bg-white/[0.06]' : ''}`}
-            >
-              <StatusDot status={r.status} className="size-[1.5vmin]" />
-              <span className="w-[4vmin] shrink-0 font-mono tabular-nums text-brown-100">{r.sequence}</span>
-              <span className="w-[15vmin] shrink-0 whitespace-nowrap font-mono tabular-nums text-brown-100">{formatClock(r.startTime)}</span>
-              <span className="min-w-0 truncate">
-                <Name row={r} />
-              </span>
-              <span className="ml-auto shrink-0 pl-[2vmin] text-right text-[2vmin] text-brown-100">{[r.roundType ? ROUND_TYPE_LABEL[r.roundType] : '', programAction(r)].filter(Boolean).join(' · ')}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <div className="border-t border-white/15 pt-[2.4vmin]">
+        <Block title="Up next" status={ProgramStatus.Next} rows={next} empty={finished ? 'The program is complete' : 'Nothing queued'} large={false} />
+      </div>
     </div>
   )
 }

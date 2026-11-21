@@ -1,11 +1,15 @@
+import { certificatePage } from '@bis/shared'
 import { Outlet, useMatch, useNavigate } from 'react-router'
 import { Button } from '../../components/ui/index.ts'
+import { useCertificateLayout } from '../../hooks/index.ts'
 
 // Print pages are plain documents. On screen a slim bar offers Print; on paper only the sheet shows.
 export function PrintLayout() {
   const navigate = useNavigate()
-  // Certificates are landscape, so their sheet is as wide as an A4 turned on its side
-  const landscape = useMatch('/print/certificates/:eventId') !== null
+  // A certificate's sheet is as wide as its paper, in the size and direction the layout says
+  const certificates = useMatch('/print/certificates/:eventId') !== null
+  const layout = useCertificateLayout(certificates)
+  const paperWidth = certificates && layout.data ? certificatePage(layout.data).width : 210
 
   return (
     <div className="min-h-dvh bg-neutral-100 print:bg-white">
@@ -17,7 +21,7 @@ export function PrintLayout() {
           Print
         </Button>
       </div>
-      <div className={`mx-auto my-6 ${landscape ? 'max-w-[297mm]' : 'max-w-[210mm]'} bg-white p-6 shadow-sm sm:p-[12mm] print:my-0 print:max-w-none print:p-0 print:shadow-none`}>
+      <div style={{ maxWidth: `${paperWidth}mm` }} className={`mx-auto my-6 bg-white p-6 shadow-sm sm:p-[12mm] print:my-0 print:max-w-none print:p-0 print:shadow-none`}>
         <Outlet />
       </div>
     </div>

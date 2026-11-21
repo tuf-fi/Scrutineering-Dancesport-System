@@ -118,6 +118,25 @@ describe('athletes and their entries', () => {
     expect(await within(numberDialog).findByText(/Back number 1 is already taken/)).toBeInTheDocument()
   })
 
+  it('asks if a dancer already on file is the same person, and adds nobody on "Yes"', async () => {
+    const existing = competitors.find((c) => c.names.length === 1)!
+    const before = competitors.length
+    renderApp('/secretariat/athletes', Role.Secretariat)
+    await userEvent.click(await screen.findByRole('button', { name: 'Add athlete' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Add athlete' })
+    await userEvent.type(within(dialog).getByLabelText('Dancer'), existing.names[0]!)
+    const team = within(dialog).getByLabelText('Team')
+    await userEvent.selectOptions(team, within(team).getAllByRole('option').find((o) => (o as HTMLOptionElement).value !== existing.teamId && (o as HTMLOptionElement).value !== '')!)
+    await fillDetails(dialog)
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add athlete' }))
+
+    const ask = await screen.findByRole('dialog', { name: 'Is this the same person?' })
+    expect(within(ask).getAllByText(existing.names[0]!).length).toBeGreaterThan(0)
+    await userEvent.click(within(ask).getByRole('button', { name: 'Yes, the same' }))
+    expect(await screen.findByText(`${existing.names[0]} is already on file`)).toBeInTheDocument()
+    expect(competitors).toHaveLength(before)
+  })
+
   it('imports a CSV and reports the rows it skipped', async () => {
     renderApp('/secretariat/athletes', Role.Secretariat)
     await userEvent.click(await screen.findByRole('button', { name: 'Import CSV' }))
@@ -180,6 +199,7 @@ describe('editing and removing', () => {
     expect(await within(dialog).findByText('Choose at least one dance.')).toBeInTheDocument()
 
     expect(within(dialog).getByLabelText('Event number')).toHaveValue('55')
+    expect(within(within(dialog).getByLabelText('Kind')).queryByRole('option', { name: /Beginners/ })).toBeNull()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Samba' }))
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add event' }))
     expect(await screen.findByText('Added E55')).toBeInTheDocument()

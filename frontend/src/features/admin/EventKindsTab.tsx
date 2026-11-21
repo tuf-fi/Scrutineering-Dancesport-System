@@ -2,6 +2,7 @@ import { KIND_FIELD_LABEL, type EventKindDef } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCatalog, useDeleteEventKind, useEvents } from '../../hooks/index.ts'
 import { DISCIPLINE_LABEL } from '../../lib/format.ts'
@@ -23,6 +24,7 @@ export function EventKindsTab() {
   const remove = useDeleteEventKind()
   const [query, setQuery] = useState('')
   const [toDelete, setToDelete] = useState<EventKindDef | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
   // The kind being edited, or 'new' while adding one
   const [editing, setEditing] = useState<EventKindDef | 'new' | null>(null)
 
@@ -49,6 +51,7 @@ export function EventKindsTab() {
         minWidthClass="min-w-0"
         paginationLabel="Kinds pagination"
         detailTitle={(k) => k.name}
+        bulk={{ noun: 'event kind', actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((k) => ({ id: k.id, label: k.name })), done }) }] }}
         empty={needle ? { title: 'No kinds match', description: 'Try a different name.' } : { title: 'No kinds yet', description: 'Add one so events can be created.' }}
         columns={[
           { key: 'name', header: 'Kind', cell: (k) => <span className="font-medium text-neutral-900">{k.name}</span> },
@@ -72,6 +75,7 @@ export function EventKindsTab() {
 
       <EventKindDialog open={editing !== null} kind={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
 
+      <BulkDeleteDialog noun="event kind" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="eventKind" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )

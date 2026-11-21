@@ -1,6 +1,7 @@
 import { ProgramStatus } from '@bis/shared'
 import type { CSSProperties } from 'react'
 import { cn } from '../lib/cn.ts'
+import { Tooltip } from './ui/Tooltip.tsx'
 
 const LOOK: Record<ProgramStatus, { color: string; label: string; state: string }> = {
   [ProgramStatus.Completed]: { color: 'var(--color-status-done)', label: 'Finished', state: 'done' },
@@ -12,14 +13,15 @@ const LOOK: Record<ProgramStatus, { color: string; label: string; state: string 
 export function StatusDot({ status, className }: { status: ProgramStatus; className?: string }) {
   const look = LOOK[status]
   return (
-    <span
-      role="img"
-      aria-label={look.label}
-      title={look.label}
-      data-state={look.state}
-      style={{ '--dot': look.color } as CSSProperties}
-      className={cn('status-dot inline-block shrink-0 rounded-full', className ?? 'size-[7px]')}
-    />
+    <Tooltip label={look.label}>
+      <span
+        role="img"
+        aria-label={look.label}
+        data-state={look.state}
+        style={{ '--dot': look.color } as CSSProperties}
+        className={cn('status-dot inline-block shrink-0 rounded-full', className ?? 'size-[7px]')}
+      />
+    </Tooltip>
   )
 }
 

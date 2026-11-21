@@ -82,7 +82,7 @@ function OnTheFloor({ row, readOnly }: { row: RoundRow; readOnly: boolean }) {
       <nav aria-label="Open this round" className="flex flex-wrap items-center gap-x-1 gap-y-2">
         {links.map(([label, page], i) => (
           <Link
-            key={page}
+            key={label}
             to={`/scrutineer/${page}?round=${row.roundId}`}
             className={
               (i === 0

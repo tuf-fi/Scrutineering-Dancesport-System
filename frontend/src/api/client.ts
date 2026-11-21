@@ -2,9 +2,12 @@
 // Names and arguments match the sample API in ../mocks/api.ts, so screens and hooks do not change.
 // Writes still take the actor's id first, but the server ignores it and uses the signed-in session.
 import type {
+  SimilarAccount,
+  RoundHeats,
   ResultsRelease,
   AccountKind,
   SiteSettings,
+  CertificateLayout,
   DeleteImpact,
   DeleteKind,
   TotpSetup,
@@ -134,6 +137,8 @@ export const getCatalog = () => call<Catalog>('getCatalog')
 export const getSiteSettings = () => call<SiteSettings>('getSiteSettings')
 export const saveSignInImage = (_actorId: string, image: string | null) => call<SiteSettings>('saveSignInImage', image)
 export const saveHeroImage = (_actorId: string, image: string | null) => call<SiteSettings>('saveHeroImage', image)
+export const getCertificateLayout = () => call<CertificateLayout>('getCertificateLayout')
+export const saveCertificateLayout = (_actorId: string, layout: CertificateLayout | null) => call<CertificateLayout>('saveCertificateLayout', layout)
 export const getBarkerBoard = () => call<BarkerBoard>('getBarkerBoard')
 export const getBicolAthleteIds = () => call<string[]>('getBicolAthleteIds')
 export const getRankingPoints = (filter: RankingFilter = {}) => call<RankingPoint[]>('getRankingPoints', filter)
@@ -188,6 +193,7 @@ export const setEntryScratched = (_actorId: string, entryId: string, scratched: 
 export const getCompetitorRows = () => call<CompetitorRow[]>('getCompetitorRows')
 export const addAthlete = (_actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('addAthlete', input)
+export const findSimilarCompetitors = (names: string[]) => call<CompetitorRow[]>('findSimilarCompetitors', names)
 export const createCompetitor = (_actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   call<CompetitorRow>('createCompetitor', input)
 export const setBackNumber = (_actorId: string, competitorId: string, backNumber: number | null) =>
@@ -201,6 +207,7 @@ export const getLateEntries = (competitionId: string) => call<LateEntryRow[]>('g
 export const createLateEntry = (_actorId: string, input: { competitorId: string; eventId: string; paidInCash: boolean }) =>
   call<LateEntryRow>('createLateEntry', input)
 export const markPaidAtVenue = (_actorId: string, paymentId: string) => call<PaymentDetail>('markPaidAtVenue', paymentId)
+export const markUnpaid = (_actorId: string, paymentId: string) => call<PaymentDetail>('markUnpaid', paymentId)
 export const getSchedule = (competitionId: string) => call<ScheduleItem[]>('getSchedule', competitionId)
 export const moveScheduledEvent = (_actorId: string, competitionId: string, eventId: string, direction: 'up' | 'down') =>
   call<ScheduleItem[]>('moveScheduledEvent', competitionId, eventId, direction)
@@ -218,6 +225,7 @@ export const setRoundSet = (_actorId: string, eventId: string, roundType: RoundT
 export const rotateRoundSets = (_actorId: string, competitionId: string, setSize: number) => call<number>('rotateRoundSets', competitionId, setSize)
 export const getEntriesByBackNumber = (competitionId: string, backNumber: number) =>
   call<string[]>('getEntriesByBackNumber', competitionId, backNumber)
+export const getRoundHeats = (competitionId: string) => call<RoundHeats[]>('getRoundHeats', competitionId)
 export const setProgramStart = (_actorId: string, competitionId: string, start: string | null) =>
   call<Program>('setProgramStart', competitionId, start)
 export const generateProgram = (_actorId: string, competitionId: string) => call<Program>('generateProgram', competitionId)
@@ -365,9 +373,11 @@ export const getAthletes = () => call<AthleteRow[]>('getAthletes')
 export const getAthleteRecords = () => call<AthleteRecord[]>('getAthleteRecords')
 export const saveAthleteRecord = (_actorId: string, input: AthleteRecordInput, id?: string) => call<AthleteRecord>('saveAthleteRecord', input, id)
 export const deleteAthleteRecord = (_actorId: string, id: string) => call<void>('deleteAthleteRecord', id)
+export const findSimilarAccounts = (kind: 'athlete' | 'team', name: string) => call<SimilarAccount[]>('findSimilarAccounts', kind, name)
 export const claimAthleteRecord = (_athleteId: string, targetId: string) => call<void>('claimAthleteRecord', targetId)
 export const cancelAthleteClaim = (_athleteId: string) => call<void>('cancelAthleteClaim')
 export const confirmMembership = (_actorId: string, id: string) => call<void>('confirmMembership', id)
+export const setMembershipPaid = (_actorId: string, name: string, paid: boolean) => call<void>('setMembershipPaid', name, paid)
 export const rejectMembership = (_actorId: string, id: string, reason: string) => call<void>('rejectMembership', id, reason)
 export const correctAthlete = (_actorId: string, id: string, input: { name: string; birthDate: string }) => call<void>('correctAthlete', id, input)
 export const correctMember = (_actorId: string, id: string, input: { name: string; birthDate: string }) => call<void>('correctMember', id, input)

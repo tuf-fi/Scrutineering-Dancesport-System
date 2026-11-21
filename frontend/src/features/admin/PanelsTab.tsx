@@ -1,7 +1,7 @@
 import type { Event } from '@bis/shared'
 import { Check } from 'lucide-react'
 import { useState } from 'react'
-import { Button, EmptyState, ErrorState, SearchField, Table, Toolbar, ToolbarActions, toast } from '../../components/ui/index.ts'
+import { Button, EmptyState, ErrorState, SearchField, Table, Toolbar, ToolbarActions, Tooltip, toast } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { useAdjudicators, useEvents, usePanels, useSetPanel, useSetPanels, useCatalog } from '../../hooks/index.ts'
 import { eventCode, eventDances, letterRanges } from '../../lib/format.ts'
@@ -126,16 +126,17 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
             key: a.id,
             header: a.letter,
             headerCell: (
-              <button
-                type="button"
-                title={`Put ${a.name} on every event`}
-                aria-label={`Put ${a.name} on every event`}
-                disabled={saveMany.isPending}
-                onClick={() => applyMany([a.id], 'add')}
-                className="font-mono underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500"
-              >
-                {a.letter}
-              </button>
+              <Tooltip label={`Put ${a.name} on every event`}>
+                <button
+                  type="button"
+                  aria-label={`Put ${a.name} on every event`}
+                  disabled={saveMany.isPending}
+                  onClick={() => applyMany([a.id], 'add')}
+                  className="font-mono underline decoration-neutral-300 underline-offset-4 hover:decoration-gold-500"
+                >
+                  {a.letter}
+                </button>
+              </Tooltip>
             ),
             mono: true,
             align: 'center' as const,
@@ -145,24 +146,25 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
               const on = panelOf(e.id).includes(a.id)
               const only = on && panelOf(e.id).length === 1
               return (
-                <button
-                  type="button"
-                  aria-pressed={on}
-                  aria-label={`${eventCode(e)} ${a.name}`}
-                  title={only ? 'An event needs at least one adjudicator' : a.name}
-                  disabled={only || save.isPending}
-                  onClick={() => toggle(e, a.id)}
-                  className={cn(
-                    'group mx-auto grid size-7 place-items-center rounded-md transition-colors disabled:cursor-not-allowed',
-                    on ? 'bg-gold-400 text-black' : 'hover:bg-gold-50',
-                  )}
-                >
-                  {on ? (
-                    <Check aria-hidden className="size-3.5" strokeWidth={2.25} />
-                  ) : (
-                    <span aria-hidden className="size-1.5 rounded-full bg-neutral-200 transition-colors group-hover:bg-gold-400" />
-                  )}
-                </button>
+                <Tooltip label={only ? 'An event needs at least one adjudicator' : a.name} className="mx-auto">
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    aria-label={`${eventCode(e)} ${a.name}`}
+                    disabled={only || save.isPending}
+                    onClick={() => toggle(e, a.id)}
+                    className={cn(
+                      'group grid size-7 place-items-center rounded-md transition-colors disabled:cursor-not-allowed',
+                      on ? 'bg-gold-400 text-black' : 'hover:bg-gold-50',
+                    )}
+                  >
+                    {on ? (
+                      <Check aria-hidden className="size-3.5" strokeWidth={2.25} />
+                    ) : (
+                      <span aria-hidden className="size-1.5 rounded-full bg-neutral-200 transition-colors group-hover:bg-gold-400" />
+                    )}
+                  </button>
+                </Tooltip>
               )
             },
           })),

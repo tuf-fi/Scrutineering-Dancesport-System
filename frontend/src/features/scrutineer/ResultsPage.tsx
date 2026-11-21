@@ -12,7 +12,7 @@ import { RoundSelect } from './RoundSelect.tsx'
 import { useRoundChoice } from './useRoundChoice.ts'
 
 export function ResultsPage() {
-  const { competitionId, rounds, list, roundId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice()
+  const { competitionId, rounds, list, roundId, row, setRoundId, readOnly, isChairperson, noRounds } = useRoundChoice(true)
   const skating = useSkatingTable(roundId)
   const undecided = row?.status === RoundStatus.Marking || row?.status === RoundStatus.Review
   const finalTie = useFinalTie(roundId, Boolean(row) && row?.recallNumber === null && undecided)

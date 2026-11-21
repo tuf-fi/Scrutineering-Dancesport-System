@@ -70,7 +70,7 @@ function useWrite<TVars>(mutationFn: (vars: TVars) => Promise<void>, invalidates
 export const useSaveHeats = () =>
   useWrite(
     (v: { roundId: string; assignments: HeatAssignment[] }) => api.saveHeats(actor(), v.roundId, v.assignments),
-    ['heat-assignments', 'heats', 'competition-rounds'],
+    ['heat-assignments', 'heats', 'competition-rounds', 'marking-task', 'live-submissions', 'announcements'],
   )
 
 export const useProposeTie = () =>
@@ -87,7 +87,7 @@ export const useProposeFinalTie = () =>
 export const useConfirmFinalTie = () => useWrite((roundId: string) => api.confirmFinalTie(actor(), roundId), ['final-tie'])
 
 export const useApproveRound = () =>
-  useWrite((roundId: string) => api.approveRound(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'skating', 'recall'])
+  useWrite((roundId: string) => api.approveRound(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'skating', 'recall', 'current-round'])
 
 export const usePublishRound = () =>
   useWrite((roundId: string) => api.publishRound(actor(), roundId), ['competition-rounds', 'round', 'rounds', 'skating', 'recall'])

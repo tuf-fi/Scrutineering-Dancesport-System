@@ -41,6 +41,9 @@ export const useScratchEntry = () =>
 export const useAddAthlete = () =>
   useWrite((v: { names: string[]; teamId: string; details?: CompetitorDetails }) => api.addAthlete(actor(), v), ['competitor-rows', 'athlete-records', 'athletes'])
 
+// Asks the server which records already match these dancers; changes nothing
+export const useFindSimilarCompetitors = () => useWrite((names: string[]) => api.findSimilarCompetitors(names), [])
+
 export const useCreateCompetitor = () =>
   useWrite((v: { names: string[]; teamId: string; details?: CompetitorDetails }) => api.createCompetitor(actor(), v), ['competitor-rows'])
 
@@ -64,7 +67,10 @@ export const useCreateLateEntry = () =>
   )
 
 export const useMarkPaidAtVenue = () =>
-  useWrite((paymentId: string) => api.markPaidAtVenue(actor(), paymentId), ['payments', 'late-entries', 'entry-rows'])
+  useWrite((paymentId: string) => api.markPaidAtVenue(actor(), paymentId), ['payments', 'late-entries', 'entry-rows', 'competitor-activity'])
+
+export const useMarkUnpaid = () =>
+  useWrite((paymentId: string) => api.markUnpaid(actor(), paymentId), ['payments', 'late-entries', 'entry-rows', 'competitor-activity'])
 
 export const useMoveScheduledEvent = () =>
   useWrite(

@@ -11,7 +11,7 @@ import { confirmCascade, removeCascade } from './cascade.ts'
 import { claimOf } from './athleteRecords.ts'
 import { reads } from './reads.ts'
 import { changeMemberPassword, isMember, markMemberNotificationsRead, memberCompetitors, memberNotifications, signOutMember } from './members.ts'
-import { MIN_PASSWORD, checkPhoto, clean, giveAthleteMembershipId } from './shared.ts'
+import { MIN_PASSWORD, checkPhoto, clean, giveAthleteMembershipId, syncMembership, syncPerson } from './shared.ts'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -103,6 +103,8 @@ function activityOf(ctx: Ctx, competitorRows: Array<typeof t.competitors.$inferS
             discipline: event.discipline,
             scratched: entry.scratched,
             names: competitorRows.find((c) => c.id === entry.competitorId)?.names ?? [],
+            paymentId: entry.paymentId,
+            paymentStatus: (entry.paymentId ? ctx.db.select().from(t.payments).where(eq(t.payments.id, entry.paymentId)).get()?.status : null) ?? null,
           }))
           .sort((a, b) => b.competitionDate.localeCompare(a.competitionDate) || a.eventNumber - b.eventNumber)
   return { competitorIds, results, entries }
@@ -267,6 +269,7 @@ export const athletes = {
       .set({ teamId: change.teamId, coachId: change.coachId, ...(change.name ? { name: change.name } : {}), ...(change.birthDate ? { birthDate: change.birthDate } : {}), changeRequest: null })
       .where(eq(t.athletes.id, id))
       .run()
+    if (change.name || change.birthDate) syncPerson(ctx, row.name, change.name || row.name, change.birthDate || undefined)
     record(ctx.db, actor(ctx).id, 'Approved a profile change', row.name, { before: { name: row.name, birthDate: row.birthDate }, after: { teamId: change.teamId, coachId: change.coachId, name: change.name, birthDate: change.birthDate } })
     notifyAthlete(ctx, id, { kind: 'change_approved', title: 'Your change was approved', detail: '', link: '/athlete' })
   },
@@ -292,6 +295,21 @@ export const athletes = {
     notifyAthlete(ctx, id, { kind: 'membership_confirmed', title: `Your ${row.request.year} membership was confirmed`, detail: `Your ${row.request.method} payment was received. You are a member until December 31, ${row.request.year}.${membershipId ? ` Your membership ID is ${membershipId}.` : ''}`, link: '/athlete/membership' })
   },
 
+  // The secretariat records a membership paid at the desk, or takes it back
+  // Works for any athlete by name: with an account, with a record, or known only from an entry
+  setMembershipPaid(ctx: Ctx, name: string, paid: boolean): void {
+    const person = clean(name)
+    if (!person) return fail('Choose an athlete.')
+    const year = new Date().getFullYear()
+    if (paid) {
+      for (const a of ctx.db.select().from(t.athletes).all()) {
+        if (normal(a.name) === normal(person)) ctx.db.update(t.athletes).set({ membershipHistory: withEvent(a, { at: now(), kind: 'confirmed', year, method: 'Cash' }) }).where(eq(t.athletes.id, a.id)).run()
+      }
+    }
+    syncMembership(ctx, person, paid ? year : null)
+    record(ctx.db, actor(ctx).id, paid ? 'Marked membership paid' : 'Marked membership unpaid', person, { after: { year: paid ? year : null } })
+  },
+
   rejectMembership(ctx: Ctx, id: string, reason: string): void {
     const row = found(ctx.db.select().from(t.athletes).where(eq(t.athletes.id, id)).get(), 'Athlete')
     if (!row.request) return fail('This athlete has no payment waiting.', 409)
@@ -311,6 +329,7 @@ export const athletes = {
     const birthDate = clean(input?.birthDate)
     if (birthDate && (!DATE.test(birthDate) || Number.isNaN(Date.parse(birthDate)) || birthDate > now().slice(0, 10) || birthDate < '1900-01-01')) return fail('Enter a valid date of birth.')
     ctx.db.update(t.athletes).set({ name, birthDate }).where(eq(t.athletes.id, id)).run()
+    syncPerson(ctx, row.name, name, birthDate)
     record(ctx.db, actor(ctx).id, 'Corrected an athlete', name, { before: { name: row.name, birthDate: row.birthDate }, after: { name, birthDate } })
     return athletes.getAthletes(ctx).find((a) => a.id === id)!
   },

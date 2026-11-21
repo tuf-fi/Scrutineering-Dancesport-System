@@ -70,6 +70,9 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
               <ButtonLink to={`/competitions/${competitionId}/program`} variant={canRegister ? 'secondary' : 'primary'}>
                 Program and running order
               </ButtonLink>
+              <ButtonLink to={`/live/${competitionId}`} variant="secondary">
+                Live board
+              </ButtonLink>
             </div>
           )
         }

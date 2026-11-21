@@ -1,6 +1,7 @@
 import { Role } from '@bis/shared'
 import { fail, type Ctx } from './core/context.ts'
 import { admin } from './services/admin.ts'
+import { certificate } from './services/certificate.ts'
 import { site } from './services/site.ts'
 import { deleteImpact } from './services/cascade.ts'
 import { offlineDay } from './services/offlineDay.ts'
@@ -20,7 +21,7 @@ import { athletes } from './services/athletes.ts'
 import { entryRequests } from './services/entryRequests.ts'
 import { getTeamMembership, requestTeamMembership } from './services/teamMembership.ts'
 import { resendVerification } from './services/emailLinks.ts'
-import { cancelAthleteClaim, claimAthleteRecord, deleteAthleteRecord, getAthleteRecords, saveAthleteRecord } from './services/athleteRecords.ts'
+import { cancelAthleteClaim, claimAthleteRecord, deleteAthleteRecord, findSimilarAccounts, getAthleteRecords, saveAthleteRecord } from './services/athleteRecords.ts'
 import { approveMemberChange, approveMemberClaim, correctMember, getMemberChanges, rejectMemberChange, saveMyMember, saveMyMemberPhoto, cancelClaim, claimRecord, getMemberClaims, getMyMember, getMyRoster, rejectMemberClaim } from './services/members.ts'
 import { isStaff, toTeam } from './services/shared.ts'
 import * as t from './db/schema.ts'
@@ -30,16 +31,21 @@ type Handler = (ctx: Ctx, ...args: never[]) => unknown
 
 const STAFF: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere]
 // Staff who work the competition; the compere only reads announcements
+// Everyone with a staff account has an account page: a name, a password and two-step sign-in
+const ACCOUNT_HOLDERS: Role[] = [...STAFF, Role.Barker]
+
 const OFFICIALS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
 const ADMIN: Role[] = [Role.Admin]
 const ADMIN_OR_SECRETARIAT: Role[] = [Role.Admin, Role.Secretariat]
 // The running order is edited by the secretariat and the scrutineer, on the same copy
-const PROGRAM_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
-// Who marks each event is set by the secretariat and the scrutineer
-const PANEL_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
-// Heats are set by the secretariat and the scrutineer; a redance is the scrutineer's alone
-const HEAT_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer]
-const SCRUTINEER: Role[] = [Role.Scrutineer]
+const PROGRAM_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
+// Who marks each event is set by the secretariat, the scrutineer and the chairperson
+const PANEL_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
+// Heats are set by the secretariat, the scrutineer and the chairperson
+const HEAT_EDITORS: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson]
+// The chairperson can do everything the scrutineer can
+const SCRUTINEER: Role[] = [Role.Scrutineer, Role.Chairperson]
+const FLOOR_CONTROL: Role[] = [Role.Scrutineer, Role.Chairperson, Role.Compere]
 const SCORING: Role[] = [Role.Scrutineer, Role.Chairperson]
 
 // 'public' needs no sign-in; 'signedIn' needs any account; a list needs one of those roles
@@ -61,6 +67,7 @@ const handlers: Record<string, Handler> = {
   getDeleteImpact: deleteImpact,
   ...admin,
   ...site,
+  ...certificate,
   ...secretariat,
   ...registration,
   ...program,
@@ -86,6 +93,7 @@ const handlers: Record<string, Handler> = {
   getTeamMembership,
   requestTeamMembership,
   getAthleteRecords,
+  findSimilarAccounts,
   saveAthleteRecord,
   deleteAthleteRecord,
   claimAthleteRecord,
@@ -114,6 +122,8 @@ const access: Record<string, Access> = {
   getSiteSettings: 'public',
   saveHeroImage: ADMIN,
   saveSignInImage: ADMIN,
+  getCertificateLayout: STAFF,
+  saveCertificateLayout: [Role.Admin, Role.Scrutineer, Role.Chairperson],
   getRankingPoints: 'public',
   getBicolAthleteIds: 'public',
   getCompetitorHistory: 'public',
@@ -131,6 +141,7 @@ const access: Record<string, Access> = {
   // The barker lines the competitors up; the officials can see the same board
   getBarkerBoard: [Role.Barker, ...OFFICIALS],
   getEntriesByBackNumber: 'public',
+  getRoundHeats: 'public',
   // Public only once the round is published; staff see them as the round runs
   getRecallTable: 'public',
   getSkatingTable: 'public',
@@ -173,15 +184,15 @@ const access: Record<string, Access> = {
   deleteStaffUser: ADMIN,
   revokeSessions: ADMIN,
   resetTotp: ADMIN,
-  changeMyStaffPassword: STAFF,
-  saveMyStaffName: STAFF,
+  changeMyStaffPassword: ACCOUNT_HOLDERS,
+  saveMyStaffName: ACCOUNT_HOLDERS,
   getMySignature: STAFF,
   saveMyStaffSignature: STAFF,
   getSheetSignatures: OFFICIALS,
-  getTotpStatus: STAFF,
-  startTotpSetup: STAFF,
-  confirmTotpSetup: STAFF,
-  disableTotp: STAFF,
+  getTotpStatus: ACCOUNT_HOLDERS,
+  startTotpSetup: ACCOUNT_HOLDERS,
+  confirmTotpSetup: ACCOUNT_HOLDERS,
+  disableTotp: ACCOUNT_HOLDERS,
   resetStaffPassword: ADMIN,
   createAdjudicator: ADMIN,
   updateAdjudicator: ADMIN,
@@ -200,13 +211,14 @@ const access: Record<string, Access> = {
   getOfflineDays: ADMIN,
   startOfflineDay: ADMIN,
   cancelOfflineDay: ADMIN,
-  getBackupStatus: [Role.Admin, Role.Scrutineer],
+  getBackupStatus: [Role.Admin, Role.Scrutineer, Role.Chairperson],
 
   // Secretariat (the admin can do all of it too)
   getPayments: ADMIN_OR_SECRETARIAT,
   getPaymentDetails: ADMIN_OR_SECRETARIAT,
   setEntryScratched: ADMIN_OR_SECRETARIAT,
   createCompetitor: ADMIN_OR_SECRETARIAT,
+  findSimilarCompetitors: ADMIN_OR_SECRETARIAT,
   addAthlete: ADMIN_OR_SECRETARIAT,
   setBackNumber: ADMIN_OR_SECRETARIAT,
   assignBackNumbers: ADMIN_OR_SECRETARIAT,
@@ -214,6 +226,7 @@ const access: Record<string, Access> = {
   importCompetitorsCsv: ADMIN_OR_SECRETARIAT,
   createLateEntry: ADMIN_OR_SECRETARIAT,
   markPaidAtVenue: ADMIN_OR_SECRETARIAT,
+  markUnpaid: ADMIN_OR_SECRETARIAT,
   moveScheduledEvent: ADMIN_OR_SECRETARIAT,
   setProgramStart: PROGRAM_EDITORS,
   generateProgram: PROGRAM_EDITORS,
@@ -222,7 +235,7 @@ const access: Record<string, Access> = {
   moveProgramSlot: PROGRAM_EDITORS,
   moveProgramSlotTo: PROGRAM_EDITORS,
   moveScheduledEventTo: ADMIN_OR_SECRETARIAT,
-  setEventRounds: [Role.Admin, Role.Secretariat, Role.Scrutineer],
+  setEventRounds: [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson],
   removeProgramSlot: PROGRAM_EDITORS,
   updateCompetitor: ADMIN_OR_SECRETARIAT,
   deleteCompetitor: ADMIN_OR_SECRETARIAT,
@@ -241,15 +254,17 @@ const access: Record<string, Access> = {
   // Scrutineer and chairperson
   planRounds: SCRUTINEER,
   saveHeats: HEAT_EDITORS,
-  startRound: SCRUTINEER,
-  clearFloor: SCRUTINEER,
+  // The compere can start a round too, so the show goes on if the scrutineer's screen has a problem
+  startRound: FLOOR_CONTROL,
+  clearFloor: FLOOR_CONTROL,
   enterAdjudicatorMarks: SCRUTINEER,
   proposeTieDecision: SCRUTINEER,
   proposeFinalTie: SCRUTINEER,
   approveRound: SCRUTINEER,
   publishRound: SCRUTINEER,
-  getResultsRelease: [Role.Admin, Role.Scrutineer, Role.Chairperson],
-  revealResults: [Role.Scrutineer, Role.Chairperson],
+  getResultsRelease: [Role.Admin, Role.Scrutineer, Role.Chairperson, Role.Compere],
+  // The compere can release the held results at the awarding, so it never waits on the scrutineer
+  revealResults: [Role.Scrutineer, Role.Chairperson, Role.Compere],
   confirmTieDecision: [Role.Chairperson],
   confirmFinalTie: [Role.Chairperson],
 
@@ -275,7 +290,8 @@ const access: Record<string, Access> = {
   getEntryRequests: ADMIN_OR_SECRETARIAT,
   approveEntryRequest: ADMIN_OR_SECRETARIAT,
   rejectEntryRequest: ADMIN_OR_SECRETARIAT,
-  getAthleteRecords: [...ADMIN_OR_SECRETARIAT, Role.Athlete],
+  findSimilarAccounts: 'public',
+  getAthleteRecords: [...ADMIN_OR_SECRETARIAT, Role.Chairperson, Role.Athlete],
   saveAthleteRecord: ADMIN_OR_SECRETARIAT,
   deleteAthleteRecord: ADMIN_OR_SECRETARIAT,
   claimAthleteRecord: [Role.Athlete],
@@ -299,12 +315,13 @@ const access: Record<string, Access> = {
   markNotificationsRead: [Role.Athlete, Role.Coach, Role.Team],
   approveProfileChange: ADMIN_OR_SECRETARIAT,
   rejectProfileChange: ADMIN_OR_SECRETARIAT,
-  getAthletes: ADMIN_OR_SECRETARIAT,
+  getAthletes: [...ADMIN_OR_SECRETARIAT, Role.Chairperson],
   confirmMembership: ADMIN_OR_SECRETARIAT,
+  setMembershipPaid: ADMIN_OR_SECRETARIAT,
   rejectMembership: ADMIN_OR_SECRETARIAT,
   deleteAthlete: ADMIN_OR_SECRETARIAT,
-  correctAthlete: ADMIN,
-  correctMember: ADMIN,
+  correctAthlete: ADMIN_OR_SECRETARIAT,
+  correctMember: ADMIN_OR_SECRETARIAT,
   getMemberChanges: ADMIN_OR_SECRETARIAT,
   approveMemberChange: ADMIN_OR_SECRETARIAT,
   rejectMemberChange: ADMIN_OR_SECRETARIAT,

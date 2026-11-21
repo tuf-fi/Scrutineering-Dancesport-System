@@ -81,10 +81,14 @@ export const useAthletes = () => useQuery({ queryKey: ['athletes'], queryFn: api
 export const useAthleteRecords = (enabled = true) => useQuery({ queryKey: ['athlete-records'], queryFn: api.getAthleteRecords, enabled })
 export const useSaveAthleteRecord = () => useWrite((v: { input: AthleteRecordInput; id?: string }) => api.saveAthleteRecord(actor(), v.input, v.id), ['athlete-records'])
 export const useDeleteAthleteRecord = () => useWrite((id: string) => api.deleteAthleteRecord(actor(), id), ['athlete-records'])
+// Asks which records or teams already match a sign-up name; changes nothing
+export const useFindSimilarAccounts = () => useMutation({ mutationFn: (v: { kind: 'athlete' | 'team'; name: string }) => api.findSimilarAccounts(v.kind, v.name) })
 export const useClaimAthleteRecord = () => useWrite((targetId: string) => api.claimAthleteRecord(actor(), targetId), ['my-athlete'])
 export const useCancelAthleteClaim = () => useWrite(() => api.cancelAthleteClaim(actor()), ['my-athlete'])
 
 export const useConfirmMembership = () => useWrite((id: string) => api.confirmMembership(actor(), id), ['athletes'])
+
+export const useSetMembershipPaid = () => useWrite((v: { name: string; paid: boolean }) => api.setMembershipPaid(actor(), v.name, v.paid), ['athletes', 'athlete-records', 'competitor-rows'])
 
 export const useRejectMembership = () =>
   useWrite((v: { id: string; reason: string }) => api.rejectMembership(actor(), v.id, v.reason), ['athletes'])

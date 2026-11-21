@@ -2,7 +2,7 @@ import { monthYearText, parseMonthYear } from '@bis/shared'
 import type { CompetitorDetails, CompetitorRow, DancerDetails, Gender } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
-import { useTeams, useCoaches, useAddAthlete, useCreateCompetitor, useUpdateCompetitor } from '../../hooks/index.ts'
+import { useTeams, useCoaches, useAddAthlete, useCreateCompetitor, useFindSimilarCompetitors, useUpdateCompetitor } from '../../hooks/index.ts'
 import { todayIso } from '../../lib/format.ts'
 
 const FORM_ID = 'competitor-form'
@@ -18,6 +18,7 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
   const create = useCreateCompetitor()
   const addAthlete = useAddAthlete()
   const update = useUpdateCompetitor()
+  const findSimilar = useFindSimilarCompetitors()
   const saved = competitor?.details
   const [first, setFirst] = useState(competitor?.names[0] ?? prefillName ?? '')
   const [second, setSecond] = useState(competitor?.names[1] ?? '')
@@ -31,6 +32,8 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
   const [errors, setErrors] = useState<{ first?: string; team?: string; year?: string }>({})
   const [dancerErrors, setDancerErrors] = useState<Array<Partial<Record<keyof DancerDetails, string>>>>([{}, {}])
   const [failure, setFailure] = useState<string | null>(null)
+  // Records already on file with these dancers; set while the form asks if this is the same person
+  const [similar, setSimilar] = useState<{ matches: CompetitorRow[]; details: CompetitorDetails } | null>(null)
 
   const names = second.trim() ? [first, second] : [first]
   const setDancer = (i: number, patch: Partial<DancerDetails>) =>
@@ -68,6 +71,15 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
       memberYear: paid?.year ?? null,
       memberMonth: paid?.month ?? null,
     }
+    if (competitor) save(details)
+    else
+      findSimilar.mutate(names, {
+        onSuccess: (matches) => (matches.length > 0 ? setSimilar({ matches, details }) : save(details)),
+        onError: (e: Error) => setFailure(e.message),
+      })
+  }
+
+  function save(details: CompetitorDetails) {
     const handlers = {
       onSuccess: (c: CompetitorRow) => {
         toast.success(`${competitor ? 'Saved' : 'Added'} ${c.names.join(' & ')}`)
@@ -143,6 +155,46 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
           </fieldset>
         ))}
       </form>
+      <Dialog
+        open={similar !== null}
+        onClose={() => setSimilar(null)}
+        title="Is this the same person?"
+        description={`${names.join(' & ')} is already on file. If it is the same ${names.length > 1 ? 'couple' : 'person'}, use that record instead of adding another.`}
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const details = similar!.details
+                setSimilar(null)
+                save(details)
+              }}
+            >
+              No, a different {names.length > 1 ? 'couple' : 'person'}
+            </Button>
+            <Button
+              onClick={() => {
+                toast.success(`${names.join(' & ')} is already on file`)
+                setSimilar(null)
+                onDone()
+              }}
+            >
+              Yes, the same
+            </Button>
+          </>
+        }
+      >
+        <ul aria-label="Records on file" className="flex flex-col divide-y divide-neutral-200 border-y border-neutral-200">
+          {similar?.matches.map((m) => (
+            <li key={m.id} className="flex flex-col gap-0.5 py-3">
+              <span className="font-semibold text-neutral-900">{m.names.join(' & ')}</span>
+              <span className="text-small text-neutral-600">
+                {[m.teamName, m.details?.dancers.map((d) => d.birthDate).filter(Boolean).join(' / ')].filter(Boolean).join(' · ')}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Dialog>
       {failure && (
         <p role="alert" className="mt-4 text-small text-danger">
           {failure}

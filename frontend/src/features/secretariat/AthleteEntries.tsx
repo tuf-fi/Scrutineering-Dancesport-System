@@ -14,14 +14,16 @@ export interface EntryActions {
 }
 
 // In the athlete's side panel: each entry the athlete dances in, with what can be done to it
-export function AthleteEntries({ athlete, entries, plain, actions }: { athlete: string; entries: CompetitorRow[]; plain: (name: string) => string; actions: EntryActions }) {
+export function AthleteEntries({ athlete, entries, plain, actions }: { athlete: string; entries: CompetitorRow[]; plain: (name: string) => string; actions?: EntryActions }) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-small text-neutral-600">No entry details yet. They are needed before this athlete can be entered in events.</p>
-        <Button variant="secondary" size="sm" onClick={actions.onAddDetails}>
-          Add entry details
-        </Button>
+        {actions && (
+          <Button variant="secondary" size="sm" onClick={actions.onAddDetails}>
+            Add entry details
+          </Button>
+        )}
       </div>
     )
   }
@@ -33,20 +35,22 @@ export function AthleteEntries({ athlete, entries, plain, actions }: { athlete: 
             <h3 className="text-small font-semibold text-neutral-900">{entryLabel(entry, athlete, plain)}</h3>
             <span className="font-mono text-small tabular-nums text-neutral-600">{entry.backNumber === null ? 'No back number' : `No. ${entry.backNumber}`}</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={() => actions.onEnter(entry)}>
-              Enter in events
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => actions.onNumber(entry)}>
-              Set back number
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => actions.onEdit(entry)}>
-              Edit entry
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => actions.onDelete(entry)}>
-              Delete entry
-            </Button>
-          </div>
+          {actions && (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={() => actions.onEnter(entry)}>
+                Enter in events
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => actions.onNumber(entry)}>
+                Set back number
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => actions.onEdit(entry)}>
+                Edit entry
+              </Button>
+              <Button variant="primary" size="sm" onClick={() => actions.onDelete(entry)}>
+                Delete entry
+              </Button>
+            </div>
+          )}
           <CompetitorFacts competitor={entry} />
         </section>
       ))}

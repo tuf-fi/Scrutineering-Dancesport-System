@@ -4,23 +4,24 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useTeams, useCompetitors, useRankingPoints, useCatalog, useBicolAthleteIds } from '../../hooks/index.ts'
+import { useTeams, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import { competitorName } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
 
-const COLS = 'lg:grid-cols-[minmax(0,1.6fr)_8rem_minmax(0,1fr)_5rem_1.5rem]'
+const COLS = 'lg:grid-cols-[minmax(0,1.6fr)_8rem_minmax(0,1fr)_1.5rem]'
 
-// Bicol athletes: those with a ranking entry in Juvenile, Junior or Youth, with the age group they scored the most points in
+// Every registered athlete, with the age group they scored the most ranking points in
 export function AthleteDirectoryPage() {
   const { catalog, ageGroups, ageGroupLabel } = useCatalog()
   const competitors = useCompetitors()
   const teams = useTeams()
   const points = useRankingPoints()
-  const listed = useBicolAthleteIds()
   const [query, setQuery] = useState('')
   const [ageGroup, setAgeGroup] = useState('all')
+  const [team, setTeam] = useState('all')
+  const [kind, setKind] = useState('all')
 
   const rows = useMemo(() => {
     const teamById = new Map((teams.data ?? []).map((c) => [c.id, c.name]))
@@ -31,18 +32,16 @@ export function AthleteDirectoryPage() {
       entry.byAge.set(p.ageGroup, (entry.byAge.get(p.ageGroup) ?? 0) + p.points)
       byAthlete.set(p.competitorId, entry)
     }
-    const shown = new Set(listed.data ?? [])
     return (competitors.data ?? [])
-      .filter((c) => shown.has(c.id))
       .map((c) => {
         const scored = byAthlete.get(c.id)
         const age = scored ? [...scored.byAge].sort((a, b) => b[1] - a[1])[0]?.[0] : undefined
-        return { competitor: c, team: teamById.get(c.teamId), age, total: scored?.total ?? 0 }
+        return { competitor: c, team: teamById.get(c.teamId), age }
       })
       .sort((a, b) => competitorName(a.competitor.names).localeCompare(competitorName(b.competitor.names)))
-  }, [competitors.data, teams.data, points.data, listed.data])
+  }, [competitors.data, teams.data, points.data])
 
-  const loading = competitors.isLoading || teams.isLoading || points.isLoading || listed.isLoading
+  const loading = competitors.isLoading || teams.isLoading || points.isLoading
   // An age group is offered only when someone in the list scored in it; a retired version counts as its family
   const familyOf = (id: string) => catalog.ageGroups.find((g) => g.id === id)?.family ?? id
   const present = new Set(rows.flatMap((r) => (r.age ? [familyOf(r.age)] : [])))
@@ -51,34 +50,51 @@ export function AthleteDirectoryPage() {
   const needle = query.trim().toLowerCase()
   const visible = rows.filter(
     (r) =>
+      (team === 'all' || r.competitor.teamId === team) &&
+      (kind === 'all' || (kind === 'solo' ? r.competitor.names.length === 1 : r.competitor.names.length > 1)) &&
       (ageGroup === 'all' || (r.age !== undefined && familyOf(r.age) === familyOf(ageGroup))) &&
       (!needle || `${competitorName(r.competitor.names)} ${r.team ?? ''} `.toLowerCase().includes(needle)),
   )
-  const { page, setPage, pageSize, total, pageItems } = usePagination(visible, `${ageGroup}|${needle}`)
+  const { page, setPage, pageSize, total, pageItems } = usePagination(visible, `${ageGroup}|${team}|${kind}|${needle}`)
 
-  if (competitors.isError || teams.isError || points.isError || listed.isError) {
-    return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), teams.refetch(), points.refetch(), listed.refetch()])} />
+  if (competitors.isError || teams.isError || points.isError) {
+    return <ErrorState onRetry={() => void Promise.all([competitors.refetch(), teams.refetch(), points.refetch()])} />
   }
 
 
   return (
     <div className="flex flex-col gap-8">
       <PublicHeader
-        title="Bicol Athletes"
+        title="Athletes"
         eyebrow="Directory"
-        description="Solos and Couples athletes competition track record."
+        description="Solos and Couples athletes and their competition track record."
         aside={
           <HeaderStats>
-            <HeaderStat value={loading ? '–' : rows.length} label="Bicol athletes" />
+            <HeaderStat value={loading ? '–' : rows.length} label="Athletes" />
             <HeaderStat value={loading ? '–' : new Set((teams.data ?? []).map((c) => c.id)).size} label="Teams" />
           </HeaderStats>
         }
       />
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] sm:gap-x-4">
-        <SearchField className="col-span-2 sm:col-span-1" label="Search Bicol athletes" value={query} onChange={setQuery} />
+      <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] sm:gap-x-4">
+        <SearchField className="col-span-2 sm:col-span-full lg:col-span-2" label="Search athletes" value={query} onChange={setQuery} />
+        <Select label="Team" value={team} onChange={(e) => setTeam(e.target.value)}>
+          <option value="all">All teams</option>
+          {[...(teams.data ?? [])]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+        </Select>
+        <Select label="Type" value={kind} onChange={(e) => setKind(e.target.value)}>
+          <option value="all">Solo and couples</option>
+          <option value="solo">Solo</option>
+          <option value="couple">Couple</option>
+        </Select>
         {offered.length > 0 && (
-          <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)} className="col-span-2 sm:col-span-1">
+          <Select label="Age group" value={ageGroup} onChange={(e) => setAgeGroup(e.target.value)}>
             <option value="all">All age groups</option>
             {offered.map((a) => (
               <option key={a.id} value={a.id}>
@@ -91,7 +107,7 @@ export function AthleteDirectoryPage() {
 
       <section aria-labelledby="directory" className="flex flex-col gap-4">
         <h2 id="directory" className="text-small font-bold uppercase tracking-wide text-neutral-900">
-          All Bicol athletes
+          All athletes
         </h2>
 
         {loading ? (
@@ -105,8 +121,8 @@ export function AthleteDirectoryPage() {
           </div>
         ) : visible.length === 0 ? (
           <EmptyState
-            title={needle || ageGroup !== 'all' ? 'No Bicol athletes match' : 'No Bicol athletes yet'}
-            description={needle || ageGroup !== 'all' ? 'Try a different name, team or age group.' : 'Athletes appear here once they earn points in a ranking event.'}
+            title={needle || ageGroup !== 'all' || team !== 'all' || kind !== 'all' ? 'No athletes match' : 'No athletes yet'}
+            description={needle || ageGroup !== 'all' || team !== 'all' || kind !== 'all' ? 'Try a different name, team, type or age group.' : 'Athletes appear here once a team registers them.'}
           />
         ) : (
           <div>
@@ -114,10 +130,9 @@ export function AthleteDirectoryPage() {
               <span>Athlete</span>
               <span>Age group</span>
               <span>Represents</span>
-              <span className="text-right">Points</span>
               <span />
             </div>
-            <ul aria-label="Bicol athletes" className="border-b border-neutral-200">
+            <ul aria-label="Athletes" className="border-b border-neutral-200">
               {pageItems.map((r) => (
                 <li
                   key={r.competitor.id}
@@ -143,9 +158,6 @@ export function AthleteDirectoryPage() {
                   </div>
                   <span className="hidden text-small text-neutral-700 lg:block">{r.age ? ageGroupLabel(r.age) : '–'}</span>
                   <span className="hidden truncate text-small text-neutral-600 lg:block">{r.team}</span>
-                  <span className="flex items-baseline justify-self-end">
-                    <span className="text-[1.25rem] font-semibold leading-none tracking-[-0.03em] tabular-nums text-neutral-900">{r.total}</span>
-                  </span>
                   <ArrowUpRight
                     aria-hidden
                     className="hidden size-5 text-neutral-400 transition duration-300 group-hover:rotate-45 group-hover:text-gold-500 lg:block"
@@ -157,7 +169,7 @@ export function AthleteDirectoryPage() {
           </div>
         )}
 
-        {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="Bicol athletes pagination" />}
+        {!loading && total > pageSize && <Pagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} label="Athletes pagination" />}
       </section>
     </div>
   )

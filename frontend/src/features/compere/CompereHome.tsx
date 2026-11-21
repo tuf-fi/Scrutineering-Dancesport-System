@@ -1,6 +1,6 @@
 import { ProgramKind, ProgramStatus, pickCurrentCompetition, type Announcement, type Program } from '@bis/shared'
 import { STAFF_SIGN_IN } from '../../app/nav.ts'
-import { ChevronLeft, ChevronRight, Maximize } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis, YAxis, usePlotArea } from 'recharts'
@@ -13,20 +13,47 @@ import { AccountMenu } from '../../app/layouts/AccountMenu.tsx'
 import { useSignOut } from '../../app/useSignOut.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { CompereLive } from './CompereLive.tsx'
+import { FloorControl } from './CompereFloor.tsx'
+import { RevealResults } from './CompereReveal.tsx'
+import { HeatStrip, NextPanel } from './CompereNext.tsx'
+import { usePaging } from './Pager.tsx'
 import { CompereProgram } from './CompereProgram.tsx'
+import { firstOpenCall, roundKey, showRounds } from './rounds.ts'
 
 // Built for an LED wall: every size is in vmin so it holds on 16:9 and ultra-wide, a deep brown ground with
 // white type, no grey below brown-100 at half strength, and nothing thinner than a medium weight.
 
-const MODES: Array<{ kind: Announcement['kind']; label: string; key: string }> = [
-  { kind: 'call', label: 'Next event', key: '1' },
-  { kind: 'recall', label: 'Recalled', key: '2' },
-  { kind: 'finalists', label: 'Finalists', key: '3' },
-  { kind: 'results', label: 'Results', key: '4' },
+// Slide kinds are keys only: 1 to 3 are the places, 4 to 7 jump to a kind of slide
+const MODES: Array<{ kind: Announcement['kind']; key: string }> = [
+  { kind: 'call', key: '4' },
+  { kind: 'recall', key: '5' },
+  { kind: 'finalists', key: '6' },
+  { kind: 'results', key: '7' },
 ]
 
-const PROGRAM_KEY = '5'
-const LIVE_KEY = '6'
+type View = 'show' | 'program' | 'floor'
+const TABS: Array<{ view: View; label: string; key: string }> = [
+  { view: 'show', label: 'Show', key: '1' },
+  { view: 'program', label: 'Program', key: '2' },
+  { view: 'floor', label: 'Floor', key: '3' },
+]
+
+// Where the announcer is, kept on this device so a refresh or a dropped connection never loses the place
+const PLACE_KEY = 'bis.compere.place'
+const readPlace = () => {
+  try {
+    return localStorage.getItem(PLACE_KEY)
+  } catch {
+    return null
+  }
+}
+const savePlace = (id: string) => {
+  try {
+    localStorage.setItem(PLACE_KEY, id)
+  } catch {
+    // Without storage the place is simply not kept
+  }
+}
 
 const EYEBROW: Record<Announcement['kind'], string> = {
   call: 'Next to the floor',
@@ -83,25 +110,11 @@ function Numbers({ numbers }: { numbers: number[] }) {
   )
 }
 
-type NextLine = Pick<Announcement, 'eventNumber' | 'dances' | 'roundType' | 'ageGroup' | 'class' | 'discipline'>
-
-// The event after this one: the running order says it; the announcements are the fallback
-function nextEventOf(items: Announcement[], index: number, program: Program | undefined): NextLine | undefined {
-  const here = items[index]
-  const rows = program?.rows ?? []
-  const at = rows.findIndex((r) => r.eventNumber === here?.eventNumber && r.roundType === here?.roundType)
-  const row = at >= 0 ? rows.slice(at + 1).find((r) => r.kind === ProgramKind.Round && r.eventNumber !== null && r.status !== ProgramStatus.Completed) : undefined
-  if (row && row.eventNumber !== null && row.roundType && row.ageGroup && row.class && row.discipline) {
-    return { eventNumber: row.eventNumber, dances: row.dances, roundType: row.roundType, ageGroup: row.ageGroup, class: row.class, discipline: row.discipline }
-  }
-  return items.slice(index + 1).find((a) => a.kind !== 'result' && (a.eventNumber !== here?.eventNumber || a.roundType !== here?.roundType))
-}
-
-// More numbers, more columns and smaller type, so a long list still fits the wall
+// More numbers, smaller tiles; every size keeps a floor so a phone stays readable
 function sheetSize(count: number) {
-  if (count <= 12) return { columns: 4, text: 'text-[5vmin]', pad: 'py-[2vmin]' }
-  if (count <= 24) return { columns: 6, text: 'text-[3.8vmin]', pad: 'py-[1.4vmin]' }
-  return { columns: 8, text: 'text-[3vmin]', pad: 'py-[1vmin]' }
+  if (count <= 12) return { cell: 'max(15vmin,5.5rem)', text: 'text-[max(3.6vmin,1.435rem)]', pad: 'py-[max(2vmin,0.9rem)]' }
+  if (count <= 24) return { cell: 'max(11vmin,4.5rem)', text: 'text-[max(2.7vmin,1.23rem)]', pad: 'py-[max(1.4vmin,0.7rem)]' }
+  return { cell: 'max(9vmin,4rem)', text: 'text-[max(2.2vmin,1.025rem)]', pad: 'py-[max(1vmin,0.5rem)]' }
 }
 
 // What to do with the numbers: the heat, then how many to select (or that it is a final); or how many came through
@@ -113,17 +126,17 @@ function instruction(a: Announcement): { heat: string; word: string; count: stri
 }
 
 function entrySize(count: number) {
-  if (count <= 6) return { columns: 1, number: 'text-[4.6vmin]', name: 'text-[2.8vmin]', team: 'text-[1.8vmin]', pad: 'py-[1.3vmin]', badge: '12vmin' }
-  if (count <= 12) return { columns: 2, number: 'text-[3.6vmin]', name: 'text-[2.2vmin]', team: 'text-[1.5vmin]', pad: 'py-[1vmin]', badge: '10vmin' }
-  return { columns: 3, number: 'text-[3vmin]', name: 'text-[1.8vmin]', team: 'text-[1.3vmin]', pad: 'py-[0.8vmin]', badge: '8vmin' }
+  if (count <= 5) return { cols: '', number: 'text-[max(3.3vmin,1.435rem)]', name: 'text-[max(2vmin,0.922rem)]', team: 'text-[max(1.3vmin,0.717rem)]', pad: 'py-[max(1.3vmin,0.7rem)]', badge: 'max(12vmin,4.75rem)' }
+  if (count <= 12) return { cols: 'md:grid-cols-2', number: 'text-[max(2.6vmin,1.23rem)]', name: 'text-[max(1.6vmin,0.82rem)]', team: 'text-[max(1.1vmin,0.688rem)]', pad: 'py-[max(1vmin,0.6rem)]', badge: 'max(10vmin,4rem)' }
+  return { cols: 'md:grid-cols-2 xl:grid-cols-3', number: 'text-[max(2.2vmin,1.025rem)]', name: 'text-[max(1.3vmin,0.769rem)]', team: 'text-[max(0.9vmin,0.688rem)]', pad: 'py-[max(0.8vmin,0.5rem)]', badge: 'max(8vmin,3.5rem)' }
 }
 
 function EntryList({ entries }: { entries: Announcement['entries'] }) {
   const size = entrySize(entries.length)
   return (
-    <ul aria-label="Competitors" style={{ gridTemplateColumns: `repeat(${size.columns}, minmax(0, 1fr))` }} className="grid">
+    <ul aria-label="Competitors" className={cn('grid grid-cols-1 md:gap-x-[3vmin]', size.cols)}>
       {entries.map((e) => (
-        <li key={e.backNumber} className={cn('flex items-center gap-[2.4vmin] border-b border-white/10 px-[1.6vmin]', size.pad)}>
+        <li key={e.backNumber} className={cn('flex items-center gap-[max(2.4vmin,1rem)] border-b border-white/10', size.pad)}>
           <span style={{ width: size.badge }} className={cn('shrink-0 font-mono font-semibold leading-none tabular-nums text-white', size.number)}>
             {String(e.backNumber).padStart(3, '0')}
           </span>
@@ -137,75 +150,66 @@ function EntryList({ entries }: { entries: Announcement['entries'] }) {
   )
 }
 
-const SMALL_LABEL = 'font-mono text-[1.5vmin] font-medium uppercase tracking-[0.12em] text-brown-100'
+const SMALL_LABEL = 'font-mono text-[max(1.1vmin,0.688rem)] font-medium uppercase tracking-[0.12em] text-brown-100'
 
-// The sheet the announcer reads from: the event and the one after it, the back numbers as tiles, and what to do with them
-function Sheet({ item, next }: { item: Announcement; next: NextLine | undefined }) {
+// The sheet the announcer reads from: the event, what to do, the couples; the next event stays on the right
+function Sheet({ item, items, program, onGo }: { item: Announcement; items: Announcement[]; program: Program | undefined; onGo: (id: string) => void }) {
   const { eventGrade } = useCatalog()
   const size = sheetSize(item.numbers.length)
   const todo = instruction(item)
 
   return (
-    <div className="flex flex-1 flex-col gap-[3.2vmin]">
-      <h1 className="sr-only">{EYEBROW[item.kind]}</h1>
+    <div className="grid flex-1 grid-cols-1 content-start gap-x-[3.5vmin] gap-y-[5vmin] md:grid-cols-[minmax(0,1fr)_34vmin]">
+      <div className="flex min-w-0 flex-col gap-[max(2.4vmin,1.1rem)]">
+        <h1 className="sr-only">{EYEBROW[item.kind]}</h1>
 
-      <section aria-label="Next event" className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-[2.4vmin] rounded-[1vmin] bg-white/[0.07] px-[2vmin] py-[1.4vmin]">
-        <span className="w-[9vmin] border-r border-white/20 font-mono text-[1.5vmin] font-medium uppercase leading-snug tracking-[0.12em] text-white/70">Next event</span>
-        {next ? (
-          <p className="flex min-w-0 flex-col gap-[0.5vmin]">
-            <span className="text-[2.6vmin] font-semibold leading-none text-white">
-              <span className="mr-[1vmin] font-mono font-medium tabular-nums text-white/60">E{next.eventNumber}</span>
-              {ROUND_TYPE_LABEL[next.roundType]}
-              <span aria-hidden className="mx-[1vmin] text-white/40">·</span>
-              {eventDances(next)}
+        <div className="flex flex-wrap items-end justify-between gap-x-[4vmin] gap-y-[1.6vmin] border-b border-white/15 pb-[max(2vmin,0.9rem)]">
+          <p className="flex min-w-0 flex-col gap-[0.8vmin]">
+            <span className="flex flex-wrap items-baseline gap-x-[1.4vmin] text-[max(2.9vmin,1.23rem)] font-semibold leading-tight tracking-[-0.03em] text-white">
+              <span className="font-mono font-medium tabular-nums text-gold-400">E{item.eventNumber}</span>
+              {eventDances(item)}
             </span>
-            <span className="text-[1.8vmin] font-medium text-white/60">{eventGrade(next)}</span>
+            <span className="text-[max(1.4vmin,0.717rem)] font-medium text-brown-100">
+              {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventGrade(item)}
+            </span>
           </p>
+
+          <p aria-label="What to do" className="flex items-end gap-x-[max(4vmin,1.5rem)]">
+            {todo.heat && (
+              <span className="flex flex-col gap-[0.6vmin]">
+                <span className={SMALL_LABEL}>{item.kind === 'call' && item.redance ? 'Redance, heat' : 'Heat'}</span>
+                <span className="font-mono text-[max(3vmin,1.435rem)] font-semibold leading-none tabular-nums text-white">{todo.heat}</span>
+              </span>
+            )}
+            {todo.count ? (
+              <span className="flex flex-col gap-[0.6vmin]">
+                <span className={SMALL_LABEL}>{todo.word}</span>
+                <span className="font-mono text-[max(3vmin,1.435rem)] font-semibold leading-none tabular-nums text-white">{todo.count}</span>
+              </span>
+            ) : (
+              <span className="text-[max(3vmin,1.435rem)] font-semibold leading-none text-white">{todo.word}</span>
+            )}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-x-[3vmin] gap-y-[1.4vmin] empty:hidden">
+          <HeatStrip item={item} items={items} onGo={onGo} />
+          <FloorControl item={item} program={program} />
+        </div>
+
+        {item.entries.length > 0 ? (
+          <EntryList entries={item.entries} />
         ) : (
-          <span className="text-[2vmin] font-medium text-white/60">None after this one</span>
+          <ul aria-label="Back numbers" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${size.cell}, 1fr))` }} className="grid gap-[max(1.2vmin,0.5rem)]">
+            {item.numbers.map((n) => (
+              <li key={n} className={cn('rounded-[1vmin] bg-white/[0.06] text-center font-mono font-medium leading-none tabular-nums text-white', size.text, size.pad)}>
+                {String(n).padStart(3, '0')}
+              </li>
+            ))}
+          </ul>
         )}
-      </section>
-
-      <div className="flex flex-wrap items-center justify-between gap-x-[4vmin] gap-y-[1.2vmin] border-b border-white/15 pb-[1.8vmin]">
-        <p className="flex min-w-0 flex-col gap-[0.8vmin]">
-          <span className="flex items-baseline gap-[1.4vmin] text-[4vmin] font-semibold leading-none tracking-[-0.03em] text-white">
-            <span className="font-mono font-medium tabular-nums text-gold-400">E{item.eventNumber}</span>
-            {eventDances(item)}
-          </span>
-          <span className="text-[2vmin] font-medium text-brown-100">
-            {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventGrade(item)}
-          </span>
-        </p>
-
-        <p aria-label="What to do" className="flex items-center gap-x-[4vmin]">
-          {todo.heat && (
-            <span className="flex items-center gap-[1.4vmin]">
-              <span className={SMALL_LABEL}>{item.kind === 'call' && item.redance ? 'Redance, heat' : 'Heat'}</span>
-              <span className="font-mono text-[4.2vmin] font-semibold leading-none tabular-nums text-white">{todo.heat}</span>
-            </span>
-          )}
-          <span className="flex items-center gap-[1.4vmin]">
-            <span className={SMALL_LABEL}>{todo.word}</span>
-            {todo.count && <span className="font-mono text-[4.2vmin] font-semibold leading-none tabular-nums text-gold-400">{todo.count}</span>}
-          </span>
-        </p>
       </div>
-
-      {item.entries.length > 0 ? (
-        <EntryList entries={item.entries} />
-      ) : (
-        <ul aria-label="Back numbers" className="flex flex-wrap pl-px pt-px">
-          {item.numbers.map((n) => (
-            <li
-              key={n}
-              style={{ width: `calc(100% / ${size.columns})` }}
-              className={cn('-ml-px -mt-px border border-white/15 text-center font-mono font-medium leading-none tabular-nums text-white', size.text, size.pad)}
-            >
-              {String(n).padStart(3, '0')}
-            </li>
-          ))}
-        </ul>
-      )}
+      <NextPanel item={item} items={items} program={program} onGo={onGo} />
     </div>
   )
 }
@@ -301,16 +305,18 @@ function PlotProbe({ onPlot }: { onPlot: (area: { x: number; y: number; width: n
 function Board({ item, results, shown, host }: { item: Announcement; results: Announcement[]; shown: Set<string>; host: HTMLElement | null }) {
   const board = [...results].sort((a, b) => a.result!.place - b.result!.place)
   const podium = isPodium(item)
-  const bars = [2, 1, 3]
-    .map((place) => board.find((a) => a.result!.place === place))
-    .filter((a): a is Announcement => Boolean(a))
-    .map((a) => ({
-      id: a.id,
-      place: ordinal(a.result!.place),
-      height: 4 - a.result!.place,
-      out: shown.has(a.id),
-      now: a.id === item.id,
-    }))
+  // One bar per placed couple: 2nd, 1st, 3rd with a clean podium, or left to right when places tie
+  const top = board.filter((a) => a.result!.place <= 3)
+  const podiumItems = top.length === 3 && top.every((a, i) => a.result!.place === i + 1) ? [top[1]!, top[0]!, top[2]!] : top
+  const slots = Math.max(1, podiumItems.length)
+  const slotOf = (id: string) => Math.max(0, podiumItems.findIndex((a) => a.id === id))
+  const bars = podiumItems.map((a) => ({
+    id: a.id,
+    place: ordinal(a.result!.place),
+    height: 4 - a.result!.place,
+    out: shown.has(a.id),
+    now: a.id === item.id,
+  }))
   // The rows of 1st to 3rd slowly fade out and fold away where they are, while the bars come up on the left
   const rows = board
 
@@ -333,7 +339,7 @@ function Board({ item, results, shown, host }: { item: Announcement; results: An
     const room = host.getBoundingClientRect()
     setGeo({ top: chart.top - room.top, left: chart.left - room.left, width: chart.width, vmin })
   }, [podium, host, plot])
-  const barIndex = Math.max(0, [2, 1, 3].indexOf(item.result!.place))
+  const barIndex = slotOf(item.id)
   // The winner is at the centre until it flies to its bar
   const atCentre = podium && !(placedFor === item.id && plot && geo)
   // Where the room for the winner block is, in the slide's own coordinates
@@ -355,7 +361,6 @@ function Board({ item, results, shown, host }: { item: Announcement; results: An
       observer?.disconnect()
     }
   }, [host, item.id, podium])
-  const podiumItems = [2, 1, 3].map((place) => board.find((a) => a.result!.place === place)).filter((a): a is Announcement => Boolean(a))
 
   return (
     <>
@@ -367,7 +372,7 @@ function Board({ item, results, shown, host }: { item: Announcement; results: An
               <BarChart data={bars} margin={{ top: 0, right: 0, bottom: 0, left: 0 }} barCategoryGap="6%">
                 <PlotProbe onPlot={setPlot} />
                 <YAxis hide domain={[0, 3]} />
-                <XAxis dataKey="place" axisLine={false} tickLine={false} interval={0} tick={{ fill: 'currentColor', fontSize: '1.8vmin' }} className="text-brown-100" />
+                <XAxis dataKey="id" tickFormatter={(id: string) => bars.find((b) => b.id === id)?.place ?? ''} axisLine={false} tickLine={false} interval={0} tick={{ fill: 'currentColor', fontSize: '1.8vmin' }} className="text-brown-100" />
                 <Bar dataKey="height" radius={0}>
                   {bars.map((d) => (
                     <Cell key={d.id} style={{ fill: d.now ? 'var(--color-gold-400)' : d.out ? 'rgb(255 255 255 / 0.28)' : 'rgb(255 255 255 / 0.08)' }} />
@@ -395,7 +400,7 @@ function Board({ item, results, shown, host }: { item: Announcement; results: An
                     result={a.result!}
                     phase="bar"
                     style={{
-                      left: geo.left + (geo.width * ([2, 1, 3].indexOf(a.result!.place) + 0.5)) / 3,
+                      left: geo.left + (geo.width * (slotOf(a.id) + 0.5)) / slots,
                       top: geo.top + plot.y + plot.height * (1 - (4 - a.result!.place) / 3) - 4,
                     }}
                     still
@@ -417,7 +422,7 @@ function Board({ item, results, shown, host }: { item: Announcement; results: An
                 phase={podium && placedFor === item.id && plot && geo ? 'bar' : 'big'}
                 style={
                   podium && placedFor === item.id && plot && geo
-                    ? { left: geo.left + (geo.width * (barIndex + 0.5)) / 3, top: geo.top + plot.y + plot.height * (1 - (4 - item.result!.place) / 3) - 4 }
+                    ? { left: geo.left + (geo.width * (barIndex + 0.5)) / slots, top: geo.top + plot.y + plot.height * (1 - (4 - item.result!.place) / 3) - 4 }
                     : { left: zone.x, top: zone.y }
                 }
               />
@@ -461,54 +466,70 @@ export function CompereHome() {
   const announcements = useAnnouncements()
   const data = announcements.data
   const competitions = useCompetitions()
-  const [asked, setAsked] = useState(0)
-  // Key 5 shows the running order instead of a slide; any slide control brings the slides back
-  const [view, setView] = useState<'slides' | 'program' | 'live'>('slides')
+  // The announcer's own place, by slide id so it holds when slides come and go; until they move, the show is followed
+  const [pinned, setPinned] = useState<string | null>(readPlace)
+  // Show is the slides; Program and Floor are whole screens of their own, and any slide control brings the slides back
+  const [view, setView] = useState<View>('show')
   const [awake, setAwake] = useState(true)
   const [host, setHost] = useState<HTMLDivElement | null>(null)
   const items = useMemo(() => data ?? [], [data])
-  const index = Math.min(asked, Math.max(0, items.length - 1))
-  const current = items[index]
   const latest = pickCurrentCompetition(competitions.data ?? [])
   const competitionName = latest?.name
   const program = useProgram(latest?.id ?? '')
+  const programRows = program.data?.rows ?? []
+  const paging = usePaging(programRows.length, programRows.findIndex((r) => r.status === ProgramStatus.Current || r.status === ProgramStatus.Next), view === 'program')
+  const rounds = useMemo(() => showRounds(items), [items])
+  const pinnedAt = pinned ? items.findIndex((a) => a.id === pinned) : -1
+  const index = pinnedAt >= 0 ? pinnedAt : firstOpenCall(items, program.data)
+  const current = items[index]
   // Before the first announcement the running order is what the announcer needs, if there is one
-  const showLive = view === 'live'
-  const showProgram = !showLive && (view === 'program' || (!current && (program.data?.rows.length ?? 0) > 0))
-  // Both are whole screens of their own, not slides
-  const offSlides = showLive || showProgram
+  const showEvents = view === 'program'
+  const showFloor = view === 'floor' || (view === 'show' && !current && (program.data?.rows.length ?? 0) > 0)
+  const offSlides = showFloor || showEvents
 
-  // While the live board is up, results that get published bring the Results slide up by themselves
+  // Results that arrive while the announcer is elsewhere mark Program with a dot, until they look
+  const resultsCount = items.filter((a) => a.kind === 'results').length
+  const [seenCount, setSeenCount] = useState<number | null>(null)
+  useEffect(() => {
+    if (!data) return
+    if (seenCount === null || view === 'program') setSeenCount(resultsCount)
+  }, [data, resultsCount, view, seenCount])
+  const newResults = seenCount !== null && resultsCount > seenCount && view !== 'program'
+
+  // Results that get published bring the Results slide up by themselves while the live board is up
   const seenResults = useRef<Set<string> | null>(null)
   useEffect(() => {
     if (!data) return
     const ids = new Set(items.filter((a) => a.kind === 'results').map((a) => a.id))
     const seen = seenResults.current
     seenResults.current = ids
-    if (!seen || view !== 'live') return
-    const fresh = items.findIndex((a) => a.kind === 'results' && !seen.has(a.id))
-    if (fresh >= 0) {
-      setView('slides')
-      setAsked(fresh)
+    if (!seen || view !== 'floor') return
+    const fresh = items.find((a) => a.kind === 'results' && !seen.has(a.id))
+    if (fresh) {
+      setView('show')
+      setPinned(fresh.id)
     }
   }, [data, items, view])
 
+  const open = useCallback((id: string) => {
+    setView('show')
+    setPinned(id)
+    savePlace(id)
+  }, [])
   const go = useCallback(
     (to: number) => {
-      setView('slides')
-      setAsked(Math.max(0, Math.min(items.length - 1, to)))
+      const target = items[Math.max(0, Math.min(items.length - 1, to))]
+      if (target) open(target.id)
     },
-    [items.length],
+    [items, open],
   )
   const jump = useCallback(
     (kind: Announcement['kind']) => {
-      const newest = items.findLastIndex((a) => a.kind === kind)
-      if (newest >= 0) {
-        setView('slides')
-        setAsked(newest)
-      }
+      // The next event is the first call not yet done; the others are the newest of their kind
+      const at = kind === 'call' ? firstOpenCall(items, program.data) : items.findLastIndex((a) => a.kind === kind)
+      if (at >= 0 && items[at]?.kind === kind) open(items[at]!.id)
     },
-    [items],
+    [items, open, program.data],
   )
   const fullscreen = useCallback(() => {
     if (document.fullscreenElement) void document.exitFullscreen()
@@ -537,10 +558,11 @@ export function CompereHome() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return
       const target = e.target instanceof Element ? e.target : null
       if (target?.closest('input,select,textarea')) return
       const mode = MODES.find((m) => m.key === e.key)
+      const tab = TABS.find((x) => x.key === e.key)
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'Enter') {
         // A focused button handles its own Enter and Space
         if (target?.closest('button') && (e.key === ' ' || e.key === 'Enter')) return
@@ -552,8 +574,7 @@ export function CompereHome() {
       } else if (e.key === 'Home') go(0)
       else if (e.key === 'End') go(items.length - 1)
       else if (mode) jump(mode.kind)
-      else if (e.key === PROGRAM_KEY) setView('program')
-      else if (e.key === LIVE_KEY) setView('live')
+      else if (tab) setView(tab.view)
       else if (e.key.toLowerCase() === 'f') fullscreen()
     }
     window.addEventListener('keydown', onKey)
@@ -564,44 +585,29 @@ export function CompereHome() {
   const controls = (
   <nav
     aria-label="Announcer controls"
-    className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-white/10 bg-brown-950 px-[4.5vmin] text-small text-brown-100"
+    className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between gap-3 whitespace-nowrap border-b border-white/10 bg-brown-950 px-[4.5vmin] text-small text-brown-100"
   >
-    <div className="flex items-center gap-1">
-      {MODES.map((m) => (
-        <button
-          key={m.kind}
-          type="button"
-          onClick={() => jump(m.kind)}
-          disabled={!items.some((a) => a.kind === m.kind)}
-          className={cn(
-            'rounded-md px-3 py-2 transition-colors hover:text-white disabled:opacity-30',
-            !offSlides && (current?.kind === 'result' ? 'results' : current?.kind) === m.kind ? 'font-semibold text-gold-400' : 'text-brown-100',
-          )}
-        >
-          <span className="mr-2 font-mono text-xs opacity-70">{m.key}</span>
-          {m.label}
-        </button>
-      ))}
-      <button
-        type="button"
-        onClick={() => setView('program')}
-        className={cn('rounded-md px-3 py-2 transition-colors hover:text-white', showProgram ? 'font-semibold text-gold-400' : 'text-brown-100')}
-      >
-        <span className="mr-2 font-mono text-xs opacity-70">{PROGRAM_KEY}</span>
-        Program
-      </button>
-      <button
-        type="button"
-        onClick={() => setView('live')}
-        className={cn('rounded-md px-3 py-2 transition-colors hover:text-white', showLive ? 'font-semibold text-gold-400' : 'text-brown-100')}
-      >
-        <span className="mr-2 font-mono text-xs opacity-70">{LIVE_KEY}</span>
-        Live
-      </button>
+    <div className="flex shrink-0 items-center gap-1">
+      {TABS.map((x) => {
+        const active = x.view === 'floor' ? showFloor : x.view === 'program' ? showEvents : !offSlides
+        return (
+          <button
+            key={x.view}
+            type="button"
+            aria-current={active ? 'page' : undefined}
+            onClick={() => setView(x.view)}
+            className={cn('relative rounded-md px-3 py-2 transition-colors hover:text-white', active ? 'font-semibold text-gold-400' : 'text-brown-100')}
+          >
+            <span className="mr-2 font-mono text-xs opacity-70">{x.key}</span>
+            {x.label}
+            {x.view === 'program' && newResults && <span role="img" aria-label="New results" className="absolute right-1 top-1.5 size-2 rounded-full bg-gold-400" />}
+          </button>
+        )
+      })}
     </div>
-    <div className="flex items-center gap-1">
+    <div className="flex shrink-0 items-center gap-1">
       {!offSlides && (
-        <p aria-label="Up next" className="mr-3 flex items-baseline gap-2 border-r border-white/10 pr-4 text-small">
+        <p aria-label="Up next" className="mr-3 hidden items-baseline gap-2 border-r md:flex border-white/10 pr-4 text-small">
           <span className="font-mono text-xs uppercase tracking-[0.12em] text-brown-100">Up next</span>
           {items[index + 1] ? (
             <span className="font-semibold text-white">
@@ -619,9 +625,6 @@ export function CompereHome() {
       <button type="button" aria-label="Next announcement" disabled={items.length === 0 || (index === items.length - 1 && !offSlides)} onClick={() => go(index + 1)} className="grid size-10 place-items-center rounded-md hover:text-white disabled:opacity-30">
         <ChevronRight aria-hidden className="size-5" />
       </button>
-      <button type="button" aria-label="Full screen" onClick={fullscreen} className="grid size-10 place-items-center rounded-md hover:text-white">
-        <Maximize aria-hidden className="size-4" />
-      </button>
       <span aria-hidden className="mx-2 h-6 w-px bg-white/10" />
       {user && <AccountMenu name={user.name} profile={{ to: '/account', label: 'My account' }} onSignOut={signOut} />}
     </div>
@@ -636,7 +639,7 @@ export function CompereHome() {
     )
   }
 
-  if (!current && !showProgram && !showLive) {
+  if (!current && !showFloor && !showEvents) {
     return (
       <div className="relative flex flex-1 items-center">
         {controls}
@@ -652,30 +655,28 @@ export function CompereHome() {
 
   return (
     <div ref={setHost} className={cn('relative flex flex-1 flex-col gap-[3.5vmin]', !awake && 'cursor-none')}>
-      {!offSlides && (
-        <div aria-hidden className="fixed inset-x-0 top-0 h-[0.5vmin] bg-white/10">
-          <div className="h-full bg-gold-400 transition-[width] duration-300" style={{ width: `${((index + 1) / items.length) * 100}%` }} />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between gap-6">
+      {/* The fixed Up next panel takes the right edge of a sheet, so the name and the count stop at its left edge */}
+      <div className={cn('flex items-center justify-between gap-6', !offSlides && current.kind !== 'result' && current.kind !== 'results' && 'md:pr-[37.5vmin]')}>
         <img src={logo} alt="BIS" className="h-[7vmin] w-auto select-none" />
         <div className="flex items-baseline gap-[3vmin] text-[2.1vmin] font-medium text-brown-100">
           <span>{competitionName}</span>
-          {!offSlides && (
+          {(!offSlides || (showEvents && paging.pages > 1)) && (
             <span className="font-mono tabular-nums text-white" role="status">
-              {index + 1} / {items.length}
+              {showEvents ? `${paging.page + 1} / ${paging.pages}` : `${index + 1} / ${items.length}`}
             </span>
           )}
         </div>
       </div>
 
-      {showLive ? (
-        <div key="live" className="flex flex-1 animate-fade-in flex-col">
-          <CompereLive competitionId={latest?.id ?? ''} />
+      <RevealResults competitionId={latest?.id ?? ''} />
+
+      {showEvents ? (
+        <div key="program" className="flex flex-1 animate-fade-in flex-col gap-[2.4vmin]">
+<CompereProgram full program={program.data} error={program.isError} rounds={rounds} paging={paging} onGo={open} />
         </div>
-      ) : showProgram || !current ? (
-        <div key="program" className="flex flex-1 animate-fade-in flex-col">
+      ) : showFloor || !current ? (
+        <div key="floor" className="flex flex-1 animate-fade-in flex-col gap-[4vmin]">
+          <CompereLive competitionId={latest?.id ?? ''} quiet />
           <CompereProgram program={program.data} error={program.isError} />
         </div>
       ) : (
@@ -692,7 +693,7 @@ export function CompereHome() {
                 <View item={current} />
               </>
             ) : (
-              <Sheet item={current} next={nextEventOf(items, index, program.data)} />
+              <Sheet item={current} items={items} program={program.data} onGo={open} />
             )}
           </div>
 

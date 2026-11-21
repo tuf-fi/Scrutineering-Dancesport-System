@@ -34,6 +34,7 @@ import { groupsFor, submissionSnapshot } from './rounds.ts'
 import {
   backNumbers,
   currentCompetition,
+  currentHeatGroups,
   fieldOf,
   getEventRow,
   getRoundRow,
@@ -72,26 +73,31 @@ function tieDecisionOf(ctx: Ctx, roundId: string): TieDecision | null {
 }
 
 // The engine only needs the adjudicators who have submitted, so a round in progress gives a provisional tally
+// An adjudicator whose sheet is only part there (a heat is being danced again and they have not marked it yet) is left out
+// until it is whole, so the table stays provisional instead of failing
 function callbackFor(ctx: Ctx, round: typeof t.rounds.$inferSelect, recall: number) {
   const roundMarks = marksOf(ctx, round.id).filter((m) => m.kind === 'x')
   const field = fieldOf(ctx, round)
+  const dances = dancesIn(roundMarks)
+  const whole = (id: string) => dances.every((dance) => roundMarks.filter((m) => m.adjudicatorId === id && m.dance === dance).length === recall)
+  const counted = roundAdjudicatorIds(ctx, round).filter((id) => roundMarks.some((m) => m.adjudicatorId === id) && whole(id))
   const result = tallyCallback({
     competitorIds: field,
-    adjudicatorIds: roundAdjudicatorIds(ctx, round).filter((id) => roundMarks.some((m) => m.adjudicatorId === id)),
-    dances: dancesIn(roundMarks),
+    adjudicatorIds: counted,
+    dances,
     recallNumber: recall,
-    marks: roundMarks.map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, dance: m.dance })),
+    marks: roundMarks.filter((m) => counted.includes(m.adjudicatorId)).map((m) => ({ adjudicatorId: m.adjudicatorId, competitorId: m.competitorId, dance: m.dance })),
   })
-  return { result, field }
+  return { result, field, counted }
 }
 
 function recallTable(ctx: Ctx, roundId: string): RecallTable {
   const round = getRoundRow(ctx, roundId)
   if (round.recallNumber === null) return fail('A final is placed, not recalled.', 409)
   const recall = round.recallNumber
-  const { result, field } = callbackFor(ctx, round, recall)
+  const { result, field, counted } = callbackFor(ctx, round, recall)
   const panel = roundAdjudicatorIds(ctx, round)
-  const submitted = new Set(marksOf(ctx, roundId).map((m) => m.adjudicatorId))
+  const submitted = new Set(counted)
   const numbers = backNumbers(ctx, field)
   const people = peopleOf(ctx, field)
   const stored = result.tie ? tieDecisionOf(ctx, roundId) : null
@@ -572,9 +578,13 @@ function announcements(ctx: Ctx): Announcement[] {
   const eventById = new Map(events.map((e) => [e.id, e]))
   const allRounds = events.flatMap((e) => roundsOfEvent(ctx, e.id))
   const call: Announcement[] = []
-  const done: Array<{ at: string; items: Announcement[] }> = []
+  // The day: calls, then who goes through and who is in each final. The awarding is last and holds only the results
+  const order = (eventNumber: number, position: number) => `${String(eventNumber).padStart(4, '0')}#${String(position).padStart(2, '0')}`
+  const day: Array<{ at: string; items: Announcement[] }> = []
+  const awards: Array<{ at: string; items: Announcement[] }> = []
 
   const base = (event: Event, round: Round) => ({
+    roundId: round.id,
     eventNumber: event.number,
     dances: event.dances,
     ageGroup: event.ageGroup,
@@ -600,18 +610,35 @@ function announcements(ctx: Ctx): Announcement[] {
   const numbersOf = (ids: string[]) =>
     [...backNumbers(ctx, ids).values()].filter((n): n is number => typeof n === 'number').sort((a, b) => a - b)
 
-  // The rounds on the floor: each heat is called in turn
-  for (const round of allRounds.filter((r) => r.onFloorAt !== null)) {
+  // The compere leads the show: every round with a known field is called in program order, every heat in turn,
+  // whether or not the scrutineer has started it
+  const lines = new Map(
+    ctx.db.select().from(t.programSlots).where(eq(t.programSlots.competitionId, competition.id)).all()
+      .filter((s) => s.eventId && s.roundType)
+      .map((s) => [`${s.eventId}:${s.roundType}`, s.sequence] as const),
+  )
+  const inShowOrder = [...allRounds].sort(
+    (a, b) =>
+      (lines.get(`${a.eventId}:${a.type}`) ?? Infinity) - (lines.get(`${b.eventId}:${b.type}`) ?? Infinity) ||
+      (eventById.get(a.eventId)?.number ?? 0) - (eventById.get(b.eventId)?.number ?? 0) ||
+      a.position - b.position,
+  )
+  for (const round of inShowOrder) {
     const row = eventById.get(round.eventId)
-    if (row && round.status !== 'pending') {
-      for (const heat of heatsOfRound(ctx, round.id)) {
-        call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}`, kind: 'call', heat: heat.number, numbers: numbersOf(heat.competitorIds), entries: entriesOf(round.type, heat.competitorIds) })
-        // A heat danced again is called again
-        for (const again of ctx.db.select().from(t.redances).where(and(eq(t.redances.roundId, round.id), eq(t.redances.heat, heat.number))).orderBy(asc(t.redances.seq)).all()) {
-          call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat.number}:redance${again.seq}`, kind: 'call', heat: heat.number, redance: true, numbers: numbersOf(heat.competitorIds), entries: entriesOf(round.type, heat.competitorIds) })
-        }
+    if (!row) continue
+    const kept = currentHeatGroups(ctx, round)
+    const groups = kept.length > 0 ? kept : groupsFor(ctx, round, fieldOf(ctx, round))
+    const saved = heatsOfRound(ctx, round.id).length > 0
+    groups.forEach((ids, i) => {
+      if (ids.length === 0) return
+      const heat = i + 1
+      call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat}`, kind: 'call', heat, numbers: numbersOf(ids), entries: entriesOf(round.type, ids) })
+      // A heat danced again is called again
+      if (!saved) return
+      for (const again of ctx.db.select().from(t.redances).where(and(eq(t.redances.roundId, round.id), eq(t.redances.heat, heat))).orderBy(asc(t.redances.seq)).all()) {
+        call.push({ ...base(toEvent(row), toRound(round)), id: `call:${round.id}:${heat}:redance${again.seq}`, kind: 'call', heat, redance: true, numbers: numbersOf(ids), entries: entriesOf(round.type, ids) })
       }
-    }
+    })
   }
 
   const holding = competition.holdResults
@@ -626,7 +653,7 @@ function announcements(ctx: Ctx): Announcement[] {
     if (round.recallNumber !== null) {
       const next = roundsOfEvent(ctx, round.eventId).find((r) => r.position === round.position + 1)
       const through = next ? heatsOfRound(ctx, next.id).flatMap((h) => h.competitorIds) : []
-      done.push({ at: round.publishedAt ?? '', items: [{ ...base(event, roundOut), id: `recall:${round.id}`, kind: 'recall', numbers: numbersOf(through), entries: entriesOf(next?.type ?? round.type, through) }] })
+      day.push({ at: order(event.number, round.position), items: [{ ...base(event, roundOut), id: `recall:${round.id}`, kind: 'recall', numbers: numbersOf(through), entries: entriesOf(next?.type ?? round.type, through) }] })
       continue
     }
     const placed = ctx.db
@@ -651,8 +678,10 @@ function announcements(ctx: Ctx): Announcement[] {
         }
       }),
     ]
-    done.push({ at: holding ? `${competition.resultsRevealedAt}#${String(event.number).padStart(4, '0')}` : (round.publishedAt ?? ''), items })
+    day.push({ at: order(event.number, round.position), items: items.slice(0, 1) })
+    awards.push({ at: order(event.number, round.position), items: items.slice(1) })
   }
 
-  return [...call, ...done.flatMap((d) => d.items)]
+  const inOrder = (list: typeof day) => [...list].sort((a, b) => a.at.localeCompare(b.at)).flatMap((d) => d.items)
+  return [...call, ...inOrder(day), ...inOrder(awards)]
 }

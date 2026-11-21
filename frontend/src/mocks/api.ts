@@ -2,9 +2,12 @@ import { ApiError } from '../api/http.ts'
 import {
   DEFAULT_FEE_SCHEDULE,
   type DeleteImpact,
+  type SimilarAccount,
   type DeleteImpactItem,
   type DeleteKind,
   type SiteSettings,
+  type CertificateLayout,
+  cleanCertificateLayout,
   DISCIPLINE_DANCES,
   PIN_LENGTH,
   PayMethod,
@@ -201,6 +204,14 @@ export const getCatalog = () => reply(catalog())
 let heroImage: string | null = null
 let signInImage: string | null = null
 export const getSiteSettings = () => reply<SiteSettings>({ heroImage, signInImage })
+let certificateLayout: CertificateLayout = cleanCertificateLayout(null)
+export const getCertificateLayout = () => reply<CertificateLayout>(certificateLayout)
+export const saveCertificateLayout = (actorId: string, layout: CertificateLayout | null) =>
+  settle<CertificateLayout>(() => {
+    certificateLayout = cleanCertificateLayout(layout)
+    record(actorId, layout ? 'Changed the certificate layout' : 'Reset the certificate layout', 'Certificates')
+    return certificateLayout
+  })
 export const saveHeroImage = (actorId: string, image: string | null) =>
   settle<SiteSettings>(() => {
     heroImage = image
@@ -820,6 +831,14 @@ function cleanNames(names: string[]) {
   return cleaned
 }
 
+export const findSimilarCompetitors = (names: string[]) =>
+  settle<CompetitorRow[]>(() => {
+    const plain = (n: string) => n.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+    const key = (list: string[]) => list.map(plain).sort().join('|')
+    const wanted = key(cleanNames(names))
+    return competitors.filter((c) => key(c.names) === wanted).map(competitorRow)
+  })
+
 export const createCompetitor = (actorId: string, input: { names: string[]; teamId: string; details?: CompetitorDetails }) =>
   settle<CompetitorRow>(() => {
     const names = cleanNames(input.names)
@@ -1135,6 +1154,19 @@ export const markPaidAtVenue = (actorId: string, paymentId: string) =>
     return detail
   })
 
+export const markUnpaid = (actorId: string, paymentId: string) =>
+  settle<PaymentDetail>(() => {
+    const payment = found(payments.find((p) => p.id === paymentId), 'Payment')
+    if (payment.status !== PaymentStatus.PaidAtVenue && payment.status !== PaymentStatus.Approved) throw new Error('Only a paid payment can be marked unpaid.')
+    payment.status = PaymentStatus.Unpaid
+    payment.amountPaid = 0
+    payment.checkedBy = actorId
+    payment.checkedAt = new Date().toISOString()
+    const detail = paymentDetail(payment)
+    record(actorId, 'Marked payment unpaid', detail.teamName)
+    return detail
+  })
+
 // The order events run in; starts as event number order
 const scheduleOrder = new Map<string, string[]>()
 
@@ -1246,6 +1278,17 @@ export const getEntriesByBackNumber = (competitionId: string, backNumber: number
           events.find((ev) => ev.id === e.eventId)?.competitionId === competitionId,
       )
       .map((e) => e.eventId),
+  )
+export const getRoundHeats = (competitionId: string) =>
+  reply(
+    rounds.flatMap((r) => {
+      const event = events.find((e) => e.id === r.eventId)
+      if (event?.competitionId !== competitionId) return []
+      const groups = heats.filter((h) => h.roundId === r.id).sort((a, b) => a.number - b.number)
+      const numbers = (ids: string[]) =>
+        ids.flatMap((id) => competitors.find((c) => c.id === id)?.backNumber ?? []).sort((a, b) => a - b)
+      return [{ eventId: r.eventId, roundType: r.type, heats: groups.map((h) => numbers(h.competitorIds)) }]
+    }),
   )
 export const setProgramStart = (actorId: string, competitionId: string, start: string | null) =>
   settle<Program>(() => {
@@ -2292,6 +2335,19 @@ export const deleteAthleteRecord = (actorId: string, id: string) =>
     record(actorId, 'Deleted athlete', row.name)
   })
 
+export const findSimilarAccounts = (kind: 'athlete' | 'team', name: string) =>
+  reply<SimilarAccount[]>(
+    (() => {
+      const plain = (n: string) => n.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+      const wanted = plain(name)
+      if (!wanted) return []
+      if (kind === 'team') return teams.filter((x) => plain(x.name) === wanted).map((x) => ({ id: x.id, name: x.name, teamName: null }))
+      return athleteRecords
+        .filter((r) => plain(r.name) === wanted)
+        .map((r) => ({ id: r.id, name: r.name, teamName: teams.find((x) => x.id === r.teamId)?.name ?? null }))
+    })(),
+  )
+
 export const claimAthleteRecord = (athleteId: string, targetId: string) =>
   settle<void>(() => {
     const athlete = athleteOf(athleteId)
@@ -2370,6 +2426,8 @@ async function activityOf(mine: typeof competitors): Promise<MyActivity> {
           discipline: event.discipline,
           scratched: e.scratched,
           names: mine.find((c) => c.id === e.competitorId)?.names ?? [],
+          paymentId: e.paymentId ?? null,
+          paymentStatus: payments.find((p) => p.id === e.paymentId)?.status ?? null,
         },
       ]
     })
@@ -2398,6 +2456,31 @@ export const confirmMembership = (actorId: string, id: string) =>
     athlete.request = null
     record(actorId, 'Confirmed membership', athlete.name)
     notifyAthlete(id, { kind: 'membership_confirmed', title: `Your ${confirmed.year} membership was confirmed`, detail: `Your ${confirmed.method} payment was received. You are a member until December ${confirmed.year}.`, link: '/athlete/membership' })
+  })
+
+export const setMembershipPaid = (actorId: string, name: string, paid: boolean) =>
+  settle<void>(() => {
+    const year = new Date().getFullYear()
+    const memberYear = paid ? year : null
+    const memberMonth = paid ? new Date().getMonth() + 1 : null
+    const person = normalName(name)
+    for (const c of competitors.filter((x) => x.names.some((n) => normalName(n) === person))) {
+      c.details = { ...(c.details ?? { province: '', coachId: null, dancers: [], beginner: false, memberYear: null }), memberYear, memberMonth }
+    }
+    for (const athlete of sampleAthletes.filter((a) => normalName(a.name) === person)) {
+      if (paid) {
+        athlete.history.push({ at: new Date().toISOString(), kind: 'confirmed', year, method: 'Cash' })
+        athlete.membershipId ??= `A-${String(sampleAthletes.filter((a) => a.membershipId).length + 1).padStart(5, '0')}`
+        athlete.request = null
+      }
+      athlete.memberYear = memberYear
+      athlete.memberMonth = memberMonth
+    }
+    for (const r of athleteRecords.filter((x) => normalName(x.name) === person)) {
+      r.memberYear = memberYear
+      r.memberMonth = memberMonth
+    }
+    record(actorId, paid ? 'Marked membership paid' : 'Marked membership unpaid', name)
   })
 
 export const rejectMembership = (actorId: string, id: string, reason: string) =>

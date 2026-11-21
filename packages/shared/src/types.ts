@@ -99,6 +99,20 @@ export interface Team {
   contactPhone: string
 }
 
+// A record or team already on file with the name typed on a sign-up form; names and team only
+export interface SimilarAccount {
+  id: Id
+  name: string
+  teamName: string | null
+}
+
+// The heats of a round as back numbers, for the public live board; a final is one group
+export interface RoundHeats {
+  eventId: Id
+  roundType: RoundType
+  heats: number[][]
+}
+
 export interface Competitor {
   id: Id
   // A couple has two names; a solo dancer has one
@@ -778,6 +792,9 @@ export interface MyEntry {
   scratched: boolean
   // Who is entered: the athlete's name, with a partner if there is one
   names: string[]
+  // The team payment that covers this entry; null when the entry needs none
+  paymentId: Id | null
+  paymentStatus: PaymentStatus | null
 }
 
 // What the database holds about the competitors that carry an athlete's name. Nothing is confirmed by hand.
@@ -1006,6 +1023,7 @@ export interface Announcement {
   id: Id
   // results: the slide that says it is time for the results, before the first place is read
   kind: 'call' | 'recall' | 'finalists' | 'results' | 'result'
+  roundId: Id
   eventNumber: number
   dances: Dance[]
   ageGroup: AgeGroup

@@ -17,6 +17,14 @@ export const useProgram = (competitionId: string) =>
     refetchInterval: usePoll(POLL_MS),
   })
 
+// The heats of every round, for the public live board
+export const useRoundHeats = (competitionId: string) =>
+  useQuery({
+    queryKey: ['round-heats', competitionId],
+    queryFn: () => api.getRoundHeats(competitionId),
+    enabled: competitionId !== '',
+  })
+
 // The events a back number is entered in; nothing is asked until the number is a whole number
 export const useEntriesByBackNumber = (competitionId: string, backNumber: number | null) =>
   useQuery({

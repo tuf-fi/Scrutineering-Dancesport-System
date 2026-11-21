@@ -3,7 +3,9 @@ import {
   RoundStatus,
   SubmissionStatus,
   checkRoundPlan,
+  type RoundHeats,
   type RoundPlanInput,
+  type RoundType,
   type AdjudicatorState,
   type AdjudicatorSubmission,
   type HeatAssignment,
@@ -129,6 +131,20 @@ export const rounds = {
     return rows.sort((a, b) => (a.sequence ?? Infinity) - (b.sequence ?? Infinity) || a.eventNumber - b.eventNumber)
   },
 
+  // Every round's heats as back numbers, for the public live board
+  getRoundHeats(ctx: Ctx, competitionId: string): RoundHeats[] {
+    const events = ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).all()
+    return events.flatMap((event) =>
+      roundsOfEvent(ctx, event.id).map((round) => {
+        const kept = currentHeatGroups(ctx, round)
+        const groups = kept.length > 0 ? kept : groupsFor(ctx, round, fieldOf(ctx, round))
+        const numbers = backNumbers(ctx, groups.flat())
+        const heats = groups.map((ids) => ids.flatMap((id) => numbers.get(id) ?? []).sort((a, b) => a - b))
+        return { eventId: event.id, roundType: round.type as RoundType, heats }
+      }),
+    )
+  },
+
   getHeatAssignments(ctx: Ctx, roundId: string): HeatAssignment[] {
     const round = getRoundRow(ctx, roundId)
     const kept = currentHeatGroups(ctx, round)
@@ -149,8 +165,16 @@ export const rounds = {
     const numbers = [...new Set(list.map((a) => a.heat))].sort((a, b) => a - b)
     if (numbers.some((n) => !Number.isInteger(n) || n < 1)) return fail('Heat numbers start at 1.')
     // Heats are renumbered from 1 so there are no gaps
+    const before = currentHeatGroups(ctx, round).length
     saveHeats(ctx, roundId, numbers.map((n) => list.filter((a) => a.heat === n).map((a) => a.competitorId)))
-    record(ctx.db, actor(ctx).id, 'Set heats', roundId, { after: { heats: numbers.length } })
+    record(ctx.db, actor(ctx).id, 'Set heats', roundId, { before: { heats: before }, after: { heats: numbers.length } })
+    // Phones and the compere read heats live, so tell them a started round changed
+    if (round.status === RoundStatus.Marking || round.status === RoundStatus.Review || round.onFloorAt !== null) {
+      ctx.defer(() => {
+        ctx.hub.floor(roundId)
+        ctx.hub.submissions(roundId, submissionSnapshot(ctx, roundId))
+      })
+    }
   },
 
   getCurrentRoundId(ctx: Ctx, competitionId?: string): string {

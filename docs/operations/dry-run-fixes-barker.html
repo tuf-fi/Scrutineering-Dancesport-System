@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dry-run fixes: Barker</title>
+<style>
+  @page { size: A4; margin: 16mm 0 14mm; }
+  @page :first { margin: 0 0 14mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #1a1a1a; margin: 0; }
+  .hero { background: #000; color: #fff; padding: 20mm 20mm 14mm; }
+  .tag { font: 500 8.5pt/1 "Consolas", monospace; color: #d4a017; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 8mm; }
+  h1 { font-size: 30pt; line-height: 1.05; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 6mm; }
+  .lead { font-size: 12pt; line-height: 1.5; color: #d6d6d6; max-width: 140mm; margin: 0; }
+  .page { padding: 4mm 20mm 14mm; }
+  h2 { font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; border-top: 1px solid #000; padding-top: 3mm; margin: 11mm 0 5mm; break-after: avoid; }
+  p { margin: 0 0 3mm; }
+  table { border-collapse: collapse; width: 100%; }
+  th { text-align: left; font: 500 8pt/1 "Consolas", monospace; text-transform: uppercase; letter-spacing: 0.12em; color: #777; padding: 0 4mm 3mm 0; border-bottom: 1px solid #000; }
+  td { vertical-align: top; padding: 4mm 4mm 4mm 0; border-bottom: 1px solid #e2e2e2; }
+  td:first-child { width: 38%; color: #555; }
+  tr { break-inside: avoid; }
+  .dot { display: inline-block; width: 2.6mm; height: 2.6mm; border-radius: 50%; margin-right: 1.5mm; vertical-align: -0.2mm; }
+  .live { background: #1f9d55; }
+  .next { background: #d4a017; }
+  ol { list-style: none; counter-reset: s; margin: 0; padding: 0; }
+  ol li { counter-increment: s; display: grid; grid-template-columns: 9mm 1fr; padding: 3mm 0; border-bottom: 1px solid #e2e2e2; break-inside: avoid; }
+  ol li::before { content: counter(s, decimal-leading-zero); font: 500 9pt/1.7 "Consolas", monospace; color: #b8860b; }
+  ul { margin: 0; padding: 0; list-style: none; }
+  ul li { padding: 3mm 0; border-bottom: 1px solid #e2e2e2; }
+  code { font-family: "Consolas", monospace; font-size: 9.5pt; background: #f3f3f3; border-radius: 1mm; padding: 0.3mm 1.4mm; }
+  .note { border: 1px solid #e2e2e2; border-radius: 2.5mm; padding: 4mm 5mm; margin: 0; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="tag">BOSS &middot; 21 November 2026 &middot; Barker page</div>
+  <h1>Dry-run fixes:<br>Barker</h1>
+  <p class="lead">Each event on the barker page now has a colored circle, the same one the compere uses, so the barker sees at a glance what is on the floor and what is next.</p>
+</header>
+
+<main class="page">
+
+<h2>Fixes against the dry-run notes</h2>
+<table>
+<tr><th>Note</th><th>Fix</th></tr>
+<tr><td>Add colored circles</td><td>A <b>status circle</b> sits before each event number, using the compere's circle so colors and wording match. <span class="dot live"></span><b>On the floor</b> for events being danced now, <span class="dot next"></span><b>Up next</b> for the next event. Hovering a circle shows its name.</td></tr>
+<tr><td>Good to go</td><td>No change made. The page already lists the back numbers and names to line up. A ready mark per competitor or heat was not built; say so if it is wanted.</td></tr>
+</table>
+
+<h2>How to test</h2>
+<ol>
+<li><div>Sign in as the barker (or any staff account) and open <b>Barker</b> from the menu.</div></li>
+<li><div>Under <b>On the floor now</b>, each event has a circle in the on-the-floor color before its number.</div></li>
+<li><div>Under <b>Next event</b>, the event has a circle in the up-next color.</div></li>
+<li><div>Compare with the compere's Floor screen: the same status shows the same color.</div></li>
+<li><div>With no round on the floor and none waiting, the page shows <i>Nothing to call</i> and no circles.</div></li>
+</ol>
+
+<h2>Files</h2>
+<ul>
+<li><code>frontend/src/features/barker/BarkerPage.tsx</code> : status circle on each event, from <code>components/StatusDot.tsx</code></li>
+</ul>
+
+<h2>Verification</h2>
+<p class="note">Frontend barker tests: 2 of 2 pass. The page has not been checked in a browser, at phone width (390px) or on a laptop (1280px) yet.</p>
+
+</main>
+</body>
+</html>

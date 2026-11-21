@@ -314,7 +314,9 @@ export const program = {
     const missing = events
       .flatMap((event) => {
         const types = roundsOfEvent(ctx, event.id).map((r) => r.type)
-        const planned = types.length > 0 ? types : planFor(ctx, competitionId, activeEntryRows(ctx, event.id).length).map((p) => p.type)
+        // An event nobody entered has no rounds to plan, so it gets no line
+        const entered = activeEntryRows(ctx, event.id).length
+        const planned = types.length > 0 ? types : entered === 0 ? [] : planFor(ctx, competitionId, entered).map((p) => p.type)
         return planned.map((type) => ({ event, type }))
       })
       .filter(({ event, type }) => !has.has(`${event.id}:${type}`))

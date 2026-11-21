@@ -42,6 +42,15 @@ export interface Column<T> {
   group?: string
 }
 
+// One thing to do to every ticked row at once
+export interface BulkAction<T> {
+  label: string
+  icon?: LucideIcon
+  tone?: 'default' | 'danger'
+  // Gets the ticked rows; call done() once the work is over to clear the ticks
+  run: (rows: T[], done: () => void) => void
+}
+
 interface TableProps<T> {
   columns: Column<T>[]
   rows: T[]
@@ -72,6 +81,8 @@ interface TableProps<T> {
   variant?: 'card' | 'plain'
   // Tighter cells, for tables with many narrow columns
   dense?: boolean
+  // Adds a checkbox in front of each row and, once some are ticked, a bar with these actions above the table
+  bulk?: { noun: string; actions: BulkAction<T>[]; canSelect?: (row: T) => boolean }
   className?: string
 }
 
@@ -103,9 +114,21 @@ export function Table<T>({
   paginationLabel,
   variant = 'card',
   dense = false,
+  bulk,
   className,
 }: TableProps<T>) {
   const plain = variant === 'plain'
+  const [picked, setPicked] = useState<Set<string>>(new Set())
+  const selectable = bulk ? rows.filter((r) => bulk.canSelect?.(r) !== false) : []
+  const chosen = selectable.filter((r) => picked.has(rowKey(r)))
+  const allPicked = selectable.length > 0 && chosen.length === selectable.length
+  const togglePick = (key: string) =>
+    setPicked((prev) => {
+      const next = new Set(prev)
+      if (!next.delete(key)) next.add(key)
+      return next
+    })
+  const toggleAllPicked = () => setPicked(allPicked ? new Set() : new Set(selectable.map(rowKey)))
   // Go back to the first page whenever the rows change because of a filter or a search
   const resetKey = `${rows.length}|${rows[0] ? rowKey(rows[0]) : ''}|${rows.length ? rowKey(rows[rows.length - 1]) : ''}`
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, resetKey)
@@ -158,6 +181,35 @@ export function Table<T>({
 
   return (
     <div className="flex flex-col gap-4">
+      {bulk && chosen.length > 0 && (
+        <div role="region" aria-label="Group actions" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-gold-300 bg-gold-50 px-4 py-2.5">
+          <p role="status" className="text-small text-neutral-900">
+            <span className="font-mono tabular-nums">{chosen.length}</span> {bulk.noun} selected
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {bulk.actions.map((a) => {
+              const Icon = a.icon
+              return (
+                <button
+                  key={a.label}
+                  type="button"
+                  onClick={() => a.run(chosen, () => setPicked(new Set()))}
+                  className={cn(
+                    'inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-md border bg-white px-3 text-small font-medium transition-colors',
+                    a.tone === 'danger' ? 'border-neutral-200 text-danger hover:border-danger' : 'border-neutral-200 text-neutral-900 hover:border-gold-500',
+                  )}
+                >
+                  {Icon && <Icon aria-hidden className="size-4" strokeWidth={1.75} />}
+                  {a.label}
+                </button>
+              )
+            })}
+          </div>
+          <button type="button" onClick={() => setPicked(new Set())} className="ml-auto text-small text-neutral-600 underline underline-offset-4 hover:text-neutral-900">
+            Clear
+          </button>
+        </div>
+      )}
       <div className={cn(!plain && 'overflow-hidden rounded-2xl border border-neutral-200 bg-white')}>
       <div className={cn('no-scrollbar overflow-auto', className)}>
         <table className={cn('w-full border-collapse text-small', minWidthClass)}>
@@ -166,6 +218,21 @@ export function Table<T>({
               {onReorder && (
                 <th scope="col" className="sticky top-0 z-10 w-10 border-b border-neutral-200 bg-neutral-50 pl-4">
                   <span className="sr-only">Reorder</span>
+                </th>
+              )}
+              {bulk && (
+                <th scope="col" className="sticky top-0 z-10 w-12 border-b border-neutral-200 bg-neutral-50 pl-6 text-left">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select every ${bulk.noun} in the list`}
+                    checked={allPicked}
+                    disabled={selectable.length === 0}
+                    ref={(el) => {
+                      if (el) el.indeterminate = chosen.length > 0 && !allPicked
+                    }}
+                    onChange={toggleAllPicked}
+                    className="size-4 align-middle accent-gold-500"
+                  />
                 </th>
               )}
               {visible.map((c) => (
@@ -191,6 +258,7 @@ export function Table<T>({
               ? Array.from({ length: 5 }, (_, i) => (
                   <tr key={i}>
                     {onReorder && <td />}
+                    {bulk && <td />}
                     {visible.map((c) => (
                       <td
                         key={c.key}
@@ -245,6 +313,18 @@ export function Table<T>({
                         >
                           <GripVertical aria-hidden className="size-4" />
                         </button>
+                      </td>
+                    )}
+                    {bulk && (
+                      <td className="w-12 pl-6 pr-0">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${detailTitle ? detailTitle(row) : rowKey(row)}`}
+                          checked={picked.has(rowKey(row))}
+                          disabled={bulk.canSelect?.(row) === false}
+                          onChange={() => togglePick(rowKey(row))}
+                          className="size-4 align-middle accent-gold-500 disabled:opacity-30"
+                        />
                       </td>
                     )}
                     {visible.map((c) => (

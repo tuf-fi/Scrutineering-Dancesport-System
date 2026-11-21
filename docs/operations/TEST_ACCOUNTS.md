@@ -47,3 +47,25 @@ The PINs above are the sample ones. On a real database an admin makes new PINs f
 ## Public
 
 The public site (program, results, rankings) needs no account.
+
+## One competition with every scenario
+
+For trying every screen with believable data, three commands in `backend/` build and check one competition, "Bicol Grand Prix 2026", dated today. The server must be running for the last two.
+
+```
+pnpm db:clean-slate -- --yes --catalog   removes every competition, team, coach, athlete and member account, and puts the age groups, kinds and classes back to the defaults; staff, adjudicators, the points table and the fees stay
+pnpm db:scenario                         builds the competition through the real server, signing in as each role
+pnpm db:verify                           checks the data and opens every page as every role; it fails on any error
+```
+
+Take a backup of `data/bis.db` first. The server allows five sign-ups an hour from one address and the scenario makes four, so restart the server before running it a second time.
+
+What the competition holds:
+
+- **Events:** 14, in every age group (Juvenile 1 to Senior), solo and couple, Latin and Standard, and every kind: standard, Beginners, Ranking (a ranking event counts points), Inter-elementary (not counted), Closed to Albay, and one with nobody entered.
+- **Finished and published:** a solo event with a semi-final and final; a final only; one that goes through all five rounds (Round 1, Round 2, Quarter-final, Semi-final, Final) with heats and a rotating set of five of seven adjudicators; a semi-final where two couples finish level on the cut-off so seven go through when six were asked for; and a final where two couples tie and the scrutineer keeps the shared place, confirmed by the chairperson.
+- **Live now:** a semi-final in review (everyone has marked, waiting for the scrutineer), one with a heat being danced again (a redance waiting for its marks), and one being marked with three of five adjudicators in, one of them typed from a paper sheet.
+- **Waiting to start:** events with unpaid entries (which cannot start), a Beginners event, an event with late entries (one paid in cash, one unpaid), and an event open for entries.
+- **Entries and money:** every way of paying (GCash, Maya, bank, cash), unpaid entries, a coach's membership collected with an entry, scratched entries, and a couple whose partners are different ages (the older partner decides the group).
+- **Accounts:** the team account `team@sample.example` (linked; one entry approved, one turned down, one waiting), `team2@sample.example` (asking to be linked, waiting), the coach account `coach@sample.example` (linked), the athlete account `athlete@sample.example` (with a team change waiting for the secretariat), and the barker `barker@sample.example`. All use the password `bis2026`.
+- **The day:** a program with start time, breaks and the awarding, and PINs for the adjudicators of this competition (print them from Adjudicators and panels).

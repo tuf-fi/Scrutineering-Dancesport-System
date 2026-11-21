@@ -40,6 +40,7 @@ import { LivePage } from '../features/scrutineer/LivePage.tsx'
 import { RecallPage } from '../features/scrutineer/RecallPage.tsx'
 import { ResultsPage } from '../features/scrutineer/ResultsPage.tsx'
 import { RoundsPage } from '../features/scrutineer/RoundsPage.tsx'
+import { CertificateLayoutPage } from '../features/scrutineer/CertificateLayoutPage.tsx'
 import { AdvancementPage } from '../features/scrutineer/AdvancementPage.tsx'
 import { PanelsPage } from '../features/secretariat/PanelsPage.tsx'
 import { CertificatesPage } from '../features/print/CertificatesPage.tsx'
@@ -57,6 +58,8 @@ import { CoachesPage } from '../features/secretariat/CoachesPage.tsx'
 import { LateEntriesPage } from '../features/secretariat/LateEntriesPage.tsx'
 import { SecurityPage } from '../features/account/SecurityPage.tsx'
 import { ProgramPage as ProgramPublicPage } from '../features/public/ProgramPage.tsx'
+import { LivePublicPage } from '../features/public/LivePublicPage.tsx'
+import { LiveNowPage } from '../features/public/LiveNowPage.tsx'
 import { ProgramPage } from '../features/secretariat/ProgramPage.tsx'
 import { SchedulePage } from '../features/secretariat/SchedulePage.tsx'
 import { AdjudicatorLayout } from './layouts/AdjudicatorLayout.tsx'
@@ -193,6 +196,7 @@ export const routes: RouteObject[] = [
               { path: 'fees', element: <FeesPage /> },
               { path: 'offline-day', element: <OfflineDayPage /> },
               { path: 'site', element: <SitePage /> },
+              { path: 'certificates', element: <CertificateLayoutPage /> },
               { path: 'security', element: <SecurityPage /> },
             ],
           },
@@ -200,25 +204,31 @@ export const routes: RouteObject[] = [
       },
       {
         path: '/secretariat',
-        element: <RequireRole roles={[Role.Secretariat, Role.Admin]} signInPath={STAFF_SIGN_IN} />,
+        element: <RequireRole roles={[Role.Secretariat, Role.Admin, Role.Chairperson]} signInPath={STAFF_SIGN_IN} />,
         children: [
           {
             element: <StaffLayout />,
             children: [
-              { index: true, element: <EventsPage /> },
-              { path: 'events/:eventId', element: <EventPage /> },
-              { path: 'teams', element: <TeamsPage /> },
-              { path: 'coaches', element: <CoachesPage /> },
+              // The chairperson only sees the athletes list here
               { path: 'athletes', element: <AthletesPage /> },
-              { path: 'account-links', element: <AccountLinksPage /> },
-              { path: 'profile-changes', element: <ProfileChangesPage /> },
-              { path: 'entry-requests', element: <EntryRequestsPage /> },
-              { path: 'late-entries', element: <LateEntriesPage /> },
-              { path: 'schedule', element: <SchedulePage /> },
-              { path: 'heats', element: <HeatsPage /> },
-              { path: 'program', element: <ProgramPage /> },
-              { path: 'panels', element: <PanelsPage /> },
-              { path: 'security', element: <SecurityPage /> },
+              {
+                element: <RequireRole roles={[Role.Secretariat, Role.Admin]} signInPath={STAFF_SIGN_IN} />,
+                children: [
+                  { index: true, element: <EventsPage /> },
+                  { path: 'events/:eventId', element: <EventPage /> },
+                  { path: 'teams', element: <TeamsPage /> },
+                  { path: 'coaches', element: <CoachesPage /> },
+                  { path: 'account-links', element: <AccountLinksPage /> },
+                  { path: 'profile-changes', element: <ProfileChangesPage /> },
+                  { path: 'entry-requests', element: <EntryRequestsPage /> },
+                  { path: 'late-entries', element: <LateEntriesPage /> },
+                  { path: 'schedule', element: <SchedulePage /> },
+                  { path: 'heats', element: <HeatsPage /> },
+                  { path: 'program', element: <ProgramPage /> },
+                  { path: 'panels', element: <PanelsPage /> },
+                  { path: 'security', element: <SecurityPage /> },
+                ],
+              },
             ],
           },
         ],
@@ -230,18 +240,14 @@ export const routes: RouteObject[] = [
           {
             element: <StaffLayout />,
             children: [
-              {
-                element: <RequireRole roles={[Role.Scrutineer]} signInPath={STAFF_SIGN_IN} />,
-                children: [
-                  { index: true, element: <RoundsPage /> },
-                  { path: 'heats', element: <HeatsPage /> },
-                  { path: 'paper-marks', element: <PaperMarksPage /> },
-                  { path: 'schedule', element: <SchedulePage /> },
-                  { path: 'program', element: <ProgramPage /> },
-                  { path: 'panels', element: <PanelsPage /> },
-                  { path: 'advancement', element: <AdvancementPage /> },
-                ],
-              },
+              { index: true, element: <RoundsPage /> },
+              { path: 'heats', element: <HeatsPage /> },
+              { path: 'paper-marks', element: <PaperMarksPage /> },
+              { path: 'schedule', element: <SchedulePage /> },
+              { path: 'program', element: <ProgramPage /> },
+              { path: 'panels', element: <PanelsPage /> },
+              { path: 'advancement', element: <AdvancementPage /> },
+              { path: 'certificates', element: <CertificateLayoutPage /> },
               { path: 'live', element: <LivePage /> },
               { path: 'recall', element: <RecallPage /> },
               { path: 'results', element: <ResultsPage /> },
@@ -254,14 +260,14 @@ export const routes: RouteObject[] = [
       { path: '/mc', element: <Navigate to="/compere" replace /> },
       {
         path: '/compere',
-        element: <RequireRole roles={[Role.Compere]} signInPath={STAFF_SIGN_IN} />,
+        element: <RequireRole roles={[Role.Compere, Role.Chairperson]} signInPath={STAFF_SIGN_IN} />,
         children: [{ element: <CompereLayout />, children: [{ index: true, element: <CompereHome /> }] }],
       },
 
       {
         path: '/barker',
         element: <RequireRole roles={[Role.Barker, ...STAFF]} signInPath={STAFF_SIGN_IN} />,
-        children: [{ element: <StaffLayout />, children: [{ index: true, element: <BarkerPage /> }] }],
+        children: [{ element: <StaffLayout />, children: [{ index: true, element: <BarkerPage view="floor" /> }, { path: 'next', element: <BarkerPage view="next" /> }] }],
       },
 
       {
@@ -308,6 +314,8 @@ export const routes: RouteObject[] = [
           { path: 'competitions', element: <PublicCompetitionsPage /> },
           { path: 'competitions/:competitionId', element: <CompetitionPage /> },
           { path: 'competitions/:competitionId/program', element: <ProgramPublicPage /> },
+          { path: 'live/:competitionId', element: <LivePublicPage /> },
+          { path: 'live', element: <LiveNowPage /> },
           { path: 'competitions/:competitionId/events/:eventId', element: <EventResultsPage /> },
           { path: 'results', element: <PublicCompetitionsPage results /> },
           { path: 'results/:competitionId', element: <CompetitionPage resultsOnly /> },

@@ -1,4 +1,4 @@
-import { membershipPaidText, type AthleteRecord, type AthleteRow, type CompetitorRow } from '@bis/shared'
+import { membershipPaidText, Role, type AthleteRecord, type AthleteRow, type CompetitorRow } from '@bis/shared'
 import { Check, ListPlus, Pencil, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
@@ -16,6 +16,7 @@ import {
   useEvents,
   useTeams,
   useConfirmMembership,
+  useSetMembershipPaid,
   useCorrectAthlete,
   useDeleteAthlete,
   useRejectMembership,
@@ -41,15 +42,16 @@ type Row =
   | { key: string; kind: 'record'; name: string; r: AthleteRecord }
   | { key: string; kind: 'dancer'; name: string; teamName: string }
 
-// Paid for this year; a dancer known only from an entry form has not paid
-const isPaid = (row: Row) => membershipPaidText(row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear, new Date().getFullYear()) === 'Paid'
-
 const plain = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
 
 // Paid for this year, or not
 function MembershipCell({ year }: { year: number | null }) {
   const text = membershipPaidText(year, new Date().getFullYear())
-  return <span>{text}</span>
+  return (
+    <Badge tone={text === 'Paid' ? 'success' : 'neutral'} dot>
+      {text}
+    </Badge>
+  )
 }
 
 function PaymentCell({ athlete, onView }: { athlete: AthleteRow; onView: (athlete: AthleteRow) => void }) {
@@ -72,12 +74,14 @@ function PaymentCell({ athlete, onView }: { athlete: AthleteRow; onView: (athlet
 }
 
 export function AthletesPage() {
+  // The chairperson sees the list but cannot change anything
+  const readOnly = useAuth((s) => s.user?.role) === Role.Chairperson
   const athletes = useAthletes()
   const confirm = useConfirmMembership()
+  const setPaid = useSetMembershipPaid()
   const reject = useRejectMembership()
   const remove = useDeleteAthlete()
   const correct = useCorrectAthlete()
-  const isAdmin = useAuth((s) => s.user?.role === 'admin')
   const [toCorrect, setToCorrect] = useState<AthleteRow | null>(null)
   const [fixName, setFixName] = useState('')
   const [fixBirth, setFixBirth] = useState('')
@@ -110,6 +114,7 @@ export function AthletesPage() {
       },
       { replace: true },
     )
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const [adding, setAdding] = useState(false)
   const [importing, setImporting] = useState(false)
   const [entering, setEntering] = useState<CompetitorRow | null>(null)
@@ -141,7 +146,6 @@ export function AthletesPage() {
     ...(records.data ?? []).map((x): Row => ({ key: x.id, kind: 'record', name: x.name, r: x })),
     ...dancers.values(),
   ].sort((x, y) => x.name.localeCompare(y.name))
-  const paid = all.filter(isPaid).length
 
   // The entries an athlete dances in (a solo, a couple), found by name
   const entriesOf = new Map<string, CompetitorRow[]>()
@@ -149,6 +153,10 @@ export function AthletesPage() {
     for (const name of c.names) entriesOf.set(plain(name), [...(entriesOf.get(plain(name)) ?? []), c])
   }
   const entriesFor = (row: Row) => entriesOf.get(plain(row.name)) ?? []
+  // An athlete with no account or record is paid when an entry says so
+  const yearOf = (row: Row) => (row.kind === 'account' ? row.a.memberYear : row.kind === 'record' ? row.r.memberYear : Math.max(0, ...entriesFor(row).map((c) => c.details?.memberYear ?? 0)) || null)
+  const isPaid = (row: Row) => membershipPaidText(yearOf(row), new Date().getFullYear()) === 'Paid'
+  const paid = all.filter(isPaid).length
   const missing = (competitors.data ?? []).filter((c) => c.backNumber === null).length
   // With a competition (and event) chosen: what each entry is entered in
   const eventNumber = new Map((events.data ?? []).map((e) => [e.id, e.number]))
@@ -177,6 +185,26 @@ export function AthletesPage() {
     const text = [...own, ...entriesFor(row).flatMap((c) => [...c.names, c.backNumber === null ? '' : String(c.backNumber)])]
     return !needle || text.some((v) => v.toLowerCase().includes(needle))
   })
+
+  const chosen = rows.filter((row) => selected.has(row.key))
+  const allChosen = rows.length > 0 && chosen.length === rows.length
+  const toggleRow = (key: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (!next.delete(key)) next.add(key)
+      return next
+    })
+  const toggleAll = () => setSelected(allChosen ? new Set() : new Set(rows.map((row) => row.key)))
+  function markChosen(paid: boolean) {
+    const count = chosen.length
+    Promise.all(chosen.map((row) => setPaid.mutateAsync({ name: row.name, paid }))).then(
+      () => {
+        toast.success(`${count} athlete${count === 1 ? '' : 's'} marked ${paid ? 'paid' : 'not paid'}`)
+        setSelected(new Set())
+      },
+      (e: Error) => toast.error(e.message),
+    )
+  }
 
   function assignAll() {
     assign.mutate(undefined, {
@@ -243,17 +271,29 @@ export function AthletesPage() {
             ))}
           </Select>
         </div>
-        <ToolbarActions>
-          {missing > 0 && (
-            <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
-              {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
+        {!readOnly && (
+          <ToolbarActions>
+            {chosen.length > 0 && (
+              <>
+                <Button variant="secondary" disabled={setPaid.isPending} onClick={() => markChosen(true)}>
+                  {`Mark ${chosen.length} paid`}
+                </Button>
+                <Button variant="secondary" disabled={setPaid.isPending} onClick={() => markChosen(false)}>
+                  {`Mark ${chosen.length} not paid`}
+                </Button>
+              </>
+            )}
+            {missing > 0 && (
+              <Button variant="secondary" disabled={assign.isPending} onClick={assignAll}>
+                {`Assign ${missing} back number${missing === 1 ? '' : 's'}`}
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setImporting(true)}>
+              Import CSV
             </Button>
-          )}
-          <Button variant="secondary" onClick={() => setImporting(true)}>
-            Import CSV
-          </Button>
-          <Button onClick={() => setAdding(true)}>Add athlete</Button>
-        </ToolbarActions>
+            <Button onClick={() => setAdding(true)}>Add athlete</Button>
+          </ToolbarActions>
+        )}
       </Toolbar>
 
       {!athletes.isLoading && !records.isLoading && !competitors.isLoading && (
@@ -276,7 +316,7 @@ export function AthletesPage() {
             athlete={row.name}
             entries={entriesFor(row)}
             plain={plain}
-            actions={{ onEnter: setEntering, onNumber: setNumbering, onEdit: setEditingEntry, onDelete: setEntryToDelete, onAddDetails: () => setEntryFor(row.name) }}
+            actions={readOnly ? undefined : { onEnter: setEntering, onNumber: setNumbering, onEdit: setEditingEntry, onDelete: setEntryToDelete, onAddDetails: () => setEntryFor(row.name) }}
           />
         )}
         detailSections={(row) => ACTIVITY.map((a) => ({ id: a.id, label: a.label, icon: a.icon, content: <ActivityOf athlete={row.name} entries={entriesFor(row)} plain={plain} render={a.render} /> }))}
@@ -286,6 +326,27 @@ export function AthletesPage() {
             : { title: 'No athletes yet', description: 'Athletes appear here once they make an account, are added, or are entered in a competition.' }
         }
         columns={[
+          ...(readOnly
+            ? []
+            : [
+                {
+                  key: 'select',
+                  header: '',
+                  detail: false as const,
+                  widthClass: 'w-12',
+                  headerCell: <input type="checkbox" aria-label="Select every athlete in the list" checked={allChosen} onChange={toggleAll} className="size-4 accent-gold-500" />,
+                  cell: (row: Row) => (
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${row.name}`}
+                      checked={selected.has(row.key)}
+                      onChange={() => toggleRow(row.key)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="size-4 accent-gold-500"
+                    />
+                  ),
+                },
+              ]),
           { key: 'name', header: 'Athlete', cell: (row) => <span className="font-medium">{row.name}</span> },
           { key: 'id', header: 'Membership ID', cell: (row) => (row.kind === 'account' ? row.a.membershipId : row.kind === 'record' ? row.r.membershipId : null) ?? '–', mono: true, muted: true, hideBelow: 'sm' },
           { key: 'email', header: 'Email', cell: (row) => (row.kind === 'account' ? row.a.email : '–'), muted: true, hideBelow: '2xl' },
@@ -293,7 +354,7 @@ export function AthletesPage() {
           {
             key: 'member',
             header: 'Membership',
-            cell: (row) => <MembershipCell year={row.kind === 'dancer' ? null : row.kind === 'account' ? row.a.memberYear : row.r.memberYear} />,
+            cell: (row) => <MembershipCell year={yearOf(row)} />,
             mono: true,
             muted: true,
           },
@@ -322,8 +383,9 @@ export function AthletesPage() {
             key: 'actions',
             header: '',
             align: 'right',
-            widthClass: 'w-52',
+            widthClass: readOnly ? 'w-0' : 'w-52',
             cell: (row) => {
+              if (readOnly) return null
               const entries = entriesFor(row)
               const enter =
                 entries.length > 0 ? (
@@ -333,11 +395,37 @@ export function AthletesPage() {
                     onClick={() => (entries.length === 1 ? setEntering(entries[0]!) : setChoosing({ name: row.name, entries }))}
                   />
                 ) : null
-              if (row.kind === 'dancer') return <div className="flex justify-end gap-0.5">{enter}</div>
+              const paidButton = (
+                <IconButton
+                  icon={isPaid(row) ? X : Check}
+                  tone={isPaid(row) ? 'danger' : undefined}
+                  label={isPaid(row) ? `Mark membership of ${row.name} as unpaid` : `Mark membership of ${row.name} as paid`}
+                  disabled={setPaid.isPending}
+                  onClick={() =>
+                    setPaid.mutate(
+                      { name: row.name, paid: !isPaid(row) },
+                      {
+                        onSuccess: () => toast.success(`${row.name} marked ${isPaid(row) ? 'unpaid' : 'paid'}`),
+                        onError: (e) => toast.error(e.message),
+                      },
+                    )
+                  }
+                />
+              )
+              if (row.kind === 'dancer') {
+                return (
+                  <div className="flex justify-end gap-0.5">
+                    {enter}
+                    {paidButton}
+                    {entries[0] && <IconButton icon={Pencil} label={`Edit ${row.name}`} onClick={() => setEditingEntry(entries[0]!)} />}
+                  </div>
+                )
+              }
               if (row.kind === 'record') {
                 return (
                   <div className="flex justify-end gap-0.5">
                     {enter}
+                    {paidButton}
                     <IconButton icon={Pencil} label={`Edit ${row.name}`} onClick={() => setEditingRecord(row.r)} />
                     <IconButton icon={Trash2} tone="danger" label={`Delete ${row.name}`} onClick={() => setRecordToDelete(row.r)} />
                   </div>
@@ -363,17 +451,16 @@ export function AthletesPage() {
                       <IconButton icon={X} tone="danger" label={`Turn down payment of ${a.name}`} onClick={() => setRejecting(a)} />
                     </>
                   )}
-                  {isAdmin && (
-                    <IconButton
-                      icon={Pencil}
-                      label={`Correct name or date of birth of ${a.name}`}
-                      onClick={() => {
-                        setToCorrect(a)
-                        setFixName(a.name)
-                        setFixBirth(a.birthDate)
-                      }}
-                    />
-                  )}
+                  {!(a.request && isWaiting(a)) && paidButton}
+                  <IconButton
+                    icon={Pencil}
+                    label={`Correct name or date of birth of ${a.name}`}
+                    onClick={() => {
+                      setToCorrect(a)
+                      setFixName(a.name)
+                      setFixBirth(a.birthDate)
+                    }}
+                  />
                   <IconButton icon={Trash2} tone="danger" label={`Delete ${a.name}`} onClick={() => setToDelete(a)} />
                 </div>
               )
@@ -451,7 +538,7 @@ export function AthletesPage() {
         open={toCorrect !== null}
         onClose={() => setToCorrect(null)}
         title={`Correct ${toCorrect?.name ?? ''}`}
-        description="Athletes cannot change these themselves. Results and rankings follow the name, and the birth date decides the age group."
+        description="Results, entries and rankings stay linked to the athlete, and the birth date decides the age group."
         actions={
           <>
             <Button variant="ghost" onClick={() => setToCorrect(null)}>

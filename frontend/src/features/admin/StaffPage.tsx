@@ -15,6 +15,7 @@ import {
   ToolbarActions,
   toast,
 } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useDeleteStaff, useResetStaffPassword, useResetTotp, useStaffUsers } from '../../hooks/index.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
@@ -36,6 +37,7 @@ export function StaffPage() {
   const [editing, setEditing] = useState<StaffUser | 'new' | null>(null)
   const [confirmReset, setConfirmReset] = useState<StaffUser | null>(null)
   const [toDelete, setToDelete] = useState<StaffUser | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
   const [signOut, setSignOut] = useState<SignOutTarget | null>(null)
   const [toResetTotp, setToResetTotp] = useState<StaffUser | null>(null)
   const resetTotp = useResetTotp()
@@ -94,6 +96,11 @@ export function StaffPage() {
         minWidthClass="min-w-0"
         paginationLabel="Staff pagination"
         detailTitle={(u) => u.name}
+        bulk={{
+          noun: 'account',
+          canSelect: (u) => u.id !== me?.id,
+          actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((u) => ({ id: u.id, label: u.name })), done }) }],
+        }}
         detailSections={(u) => [{ id: 'activity', label: 'Activity', icon: History, content: <StaffActivity user={u} /> }]}
         empty={
           needle || role !== 'all'
@@ -200,6 +207,7 @@ export function StaffPage() {
         }
       />
 
+      <BulkDeleteDialog noun="account" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="staff" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
 
       <TempPasswordDialog

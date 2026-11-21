@@ -36,14 +36,16 @@ describe('heats', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Split evenly' }))
     expect(screen.getByRole('status')).toHaveTextContent('3 heats')
     await userEvent.click(screen.getByRole('button', { name: 'Save heats' }))
+    // The round is being marked, so saving asks first
+    const confirm = await screen.findByRole('dialog', { name: 'Change heats during the round?' })
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Save heats' }))
     expect(await screen.findByText('Heats saved')).toBeInTheDocument()
 
     cleanup()
     renderApp('/scrutineer/heats', Role.Chairperson, chairperson)
     await openMenu()
     expect(await screen.findByRole('link', { name: 'Live board' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Save heats' })).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Per heat')).not.toBeInTheDocument()
+    expect(await screen.findByLabelText('Per heat')).toBeInTheDocument()
   })
 })
 

@@ -1,11 +1,11 @@
-import { Role, type AthleteRecord, type AthleteRecordInput, type MemberClaimRow } from '@bis/shared'
+import { Role, type AthleteRecord, type AthleteRecordInput, type MemberClaimRow, type SimilarAccount } from '@bis/shared'
 import { eq, isNotNull } from 'drizzle-orm'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { requireVerified } from './emailLinks.ts'
-import { clean, giveAthleteMembershipId, nextMembershipId } from './shared.ts'
+import { clean, giveAthleteMembershipId, nextMembershipId, syncPerson } from './shared.ts'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -33,6 +33,22 @@ export function getAthleteRecords(ctx: Ctx): AthleteRecord[] {
   return all.map((r) => ({ id: r.id, name: r.name, birthDate: '', phone: '', address: '', province: '', teamId: null, coachId: null, memberYear: null, memberMonth: null, membershipId: null }))
 }
 
+const plain = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
+
+// Before a sign-up: athlete records or teams already on file with this name, so the form can ask if it is the same one
+export function findSimilarAccounts(ctx: Ctx, kind: 'athlete' | 'team', name: string): SimilarAccount[] {
+  const wanted = plain(String(name ?? ''))
+  if (!wanted) return []
+  const teams = new Map(ctx.db.select().from(t.teams).all().map((x) => [x.id, x.name]))
+  if (kind === 'team') return [...teams].filter(([, n]) => plain(n) === wanted).map(([id, n]) => ({ id, name: n, teamName: null }))
+  return ctx.db
+    .select()
+    .from(t.athleteRecords)
+    .all()
+    .filter((r) => plain(r.name) === wanted)
+    .map((r) => ({ id: r.id, name: r.name, teamName: r.teamId ? (teams.get(r.teamId) ?? null) : null }))
+}
+
 export function saveAthleteRecord(ctx: Ctx, input: AthleteRecordInput, id?: string): AthleteRecord {
   const name = clean(input?.name)
   if (!name) return fail('Enter the athlete’s name.')
@@ -52,6 +68,7 @@ export function saveAthleteRecord(ctx: Ctx, input: AthleteRecordInput, id?: stri
   if (id) {
     const before = found(recordRow(ctx, id), 'Athlete')
     ctx.db.update(t.athleteRecords).set(values).where(eq(t.athleteRecords.id, id)).run()
+    if (before.name !== name || (birthDate && birthDate !== before.birthDate)) syncPerson(ctx, before.name, name, birthDate)
     give(id, before.membershipId)
     record(ctx.db, actor(ctx).id, 'Edited athlete', name)
     return toRecord(found(recordRow(ctx, id), 'Athlete'))

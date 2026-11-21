@@ -3,6 +3,7 @@ import { ArrowUpRight, Pencil, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button, ErrorState, IconButton, PageHeader, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useTeams, useCompetitorRows, useDeleteTeam } from '../../hooks/index.ts'
 import { TeamDialog } from './TeamDialog.tsx'
@@ -16,6 +17,7 @@ export function TeamsPage() {
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState<Team | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Team | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
 
   if (teams.isError) return <ErrorState onRetry={() => void teams.refetch()} />
 
@@ -42,6 +44,7 @@ export function TeamsPage() {
         minWidthClass="min-w-0"
         paginationLabel="Teams pagination"
         detailTitle={(c) => c.name}
+        bulk={{ noun: 'team', actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((c) => ({ id: c.id, label: c.name })), done }) }] }}
         detailSections={(c) => [{ id: 'competitors', label: 'Competitors', icon: Users, content: <TeamMembers team={c} section={section} /> }]}
         empty={needle ? { title: 'No teams match', description: 'Try a different name.' } : { title: 'No teams yet', description: 'Add the teams named on the entry forms.' }}
         columns={[
@@ -84,6 +87,7 @@ export function TeamsPage() {
       />
 
       <TeamDialog open={editing !== null} team={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
+      <BulkDeleteDialog noun="team" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="team" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )

@@ -2,6 +2,7 @@ import type { AgeGroupDef } from '@bis/shared'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button, ErrorState, IconButton, SearchField, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { BulkDeleteDialog, type BulkTarget } from '../../components/BulkDeleteDialog.tsx'
 import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCatalog, useDeleteAgeGroup, useEvents } from '../../hooks/index.ts'
 import { AgeGroupDialog } from './AgeGroupDialog.tsx'
@@ -12,6 +13,7 @@ export function AgeGroupsTab() {
   const remove = useDeleteAgeGroup()
   const [query, setQuery] = useState('')
   const [toDelete, setToDelete] = useState<AgeGroupDef | null>(null)
+  const [bulkDelete, setBulkDelete] = useState<BulkTarget | null>(null)
   // The age group being edited, or 'new' while adding one
   const [editing, setEditing] = useState<AgeGroupDef | 'new' | null>(null)
 
@@ -44,6 +46,7 @@ export function AgeGroupsTab() {
         minWidthClass="min-w-0"
         paginationLabel="Age groups pagination"
         detailTitle={(g) => g.name}
+        bulk={{ noun: 'age group', actions: [{ label: 'Delete', icon: Trash2, tone: 'danger', run: (picked, done) => setBulkDelete({ rows: picked.map((g) => ({ id: g.id, label: g.name })), done }) }] }}
         empty={needle ? { title: 'No age groups match', description: 'Try a different name.' } : { title: 'No age groups yet', description: 'Add one so events can be created.' }}
         columns={[
           { key: 'name', header: 'Age group', cell: (g) => <span className="font-medium text-neutral-900">{g.name}</span> },
@@ -68,6 +71,7 @@ export function AgeGroupsTab() {
 
       <AgeGroupDialog open={editing !== null} group={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />
 
+      <BulkDeleteDialog noun="age group" target={bulkDelete} remove={remove} onClose={() => setBulkDelete(null)} />
       <DeleteDialog kind="ageGroup" target={toDelete ? { id: toDelete.id, label: toDelete.name } : null} remove={remove} onClose={() => setToDelete(null)} />
     </div>
   )

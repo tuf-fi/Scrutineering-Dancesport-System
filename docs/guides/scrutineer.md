@@ -4,7 +4,8 @@ You run the rounds from your laptop. Keep its window open all day.
 
 ## Before the first round
 - **Advancement** is the table that says which rounds an event dances and how many couples go through each, by the number of entries. **Plan rounds** uses it. To change one event only, edit that event's rounds under **Schedule**, until it has started.
-- **Heats**: split a big round into groups (for example 12 | 12 | 8). The program and its printout show the split. The secretariat and admin can set heats too.
+- **Heats**: split a big round into groups (for example 12 | 12 | 8). The program and its printout show the split. The secretariat and admin can set heats too. You can also merge heats, swap two couples and move a heat, and change heats after the round has started (the phones and the compere update at once). Heats are locked once the round is approved.
+- **Certificates**: set the page (landscape or portrait), a background picture, and the wording, font and size of each line. The layout can be exported and imported. It applies to every competition.
 - `https://<the site address>/api/health` says ok. No warning about a backup folder at the top of the screen.
 - **Rounds**: press **Plan rounds** once. Every event gets its rounds.
 - Every adjudicator is signed in on a phone.
