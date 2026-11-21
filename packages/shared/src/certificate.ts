@@ -30,7 +30,7 @@ export function certificatePage(layout: Pick<CertificateLayout, 'paper' | 'orien
   return { width, height, sheetWidth: width - CERTIFICATE_MARGIN_MM * 2, sheetHeight: height - CERTIFICATE_MARGIN_MM * 2 - 2 }
 }
 
-export const CERTIFICATE_LINE_KEYS = ['organizer', 'title', 'competition', 'certify', 'name', 'team', 'placed', 'place', 'event', 'grade', 'number', 'venue'] as const
+export const CERTIFICATE_LINE_KEYS = ['organizer', 'title', 'competition', 'certify', 'name', 'team', 'placed', 'place', 'grade', 'venue'] as const
 export type CertificateLineKey = (typeof CERTIFICATE_LINE_KEYS)[number]
 
 // Words in braces are filled in for each finalist: {organizer} {competition} {name} {team} {place} {event} {grade} {number} {venue} {date}
@@ -50,12 +50,16 @@ export interface CertificateLine {
   y: number
 }
 
-// Who signs. The chairperson's name and signature come from their account unless the layout sets its own.
-export const CERTIFICATE_SIGNATORY_KEYS = ['organizer', 'chairperson', 'president'] as const
-export type CertificateSignatoryKey = (typeof CERTIFICATE_SIGNATORY_KEYS)[number]
-export const CERTIFICATE_SIGNATORY_ROLE: Record<CertificateSignatoryKey, string> = { organizer: 'Organizer', chairperson: 'Chairperson of Adjudicators', president: 'PDSF President' }
+// Who signs: any number of people, in the order they print. The organizer's name falls back to the competition's organizer and the
+// chairperson's name and signature to the ones saved on their account; anyone else is only what is typed here.
+export type CertificateSignatoryKind = 'organizer' | 'chairperson' | 'person'
+export const MAX_CERTIFICATE_SIGNATORIES = 6
 
 export interface CertificateSignatory {
+  id: string
+  kind: CertificateSignatoryKind
+  // The words printed under the signature, for example "Organizer"
+  title: string
   // Empty for the organizer means the competition's organizer
   name: string
   // A small PNG data URL; null prints an empty line to sign by hand
@@ -76,7 +80,7 @@ export interface CertificateLayout {
   // A picture printed behind the text (border, logo), as a data URL; null for none
   background: string | null
   lines: Record<CertificateLineKey, CertificateLine>
-  signatories: Record<CertificateSignatoryKey, CertificateSignatory>
+  signatories: CertificateSignatory[]
 }
 
 // How far an element may be dragged from its place, in millimetres
@@ -91,7 +95,13 @@ export const MAX_CERTIFICATE_BACKGROUND = 1_500_000
 
 const line = (text: string, size: number, o: Partial<CertificateLine> = {}): CertificateLine => ({ text, font: 'sans', size, bold: false, italic: false, uppercase: false, color: DEFAULT_CERTIFICATE_COLOR, x: 0, y: 0, ...o })
 
-const BLANK_SIGNATORY: CertificateSignatory = { name: '', signature: null, x: 0, y: 0, signX: 0, signY: 0, nameX: 0, nameY: 0 }
+export const blankSignatory = (id: string, kind: CertificateSignatoryKind, title = ''): CertificateSignatory => ({ id, kind, title, name: '', signature: null, x: 0, y: 0, signX: 0, signY: 0, nameX: 0, nameY: 0 })
+
+const DEFAULT_SIGNATORIES = (): CertificateSignatory[] => [
+  blankSignatory('organizer', 'organizer', 'Organizer'),
+  blankSignatory('chairperson', 'chairperson', 'Chairperson of Adjudicators'),
+  blankSignatory('president', 'person', 'PDSF President'),
+]
 
 export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
   paper: 'a4',
@@ -106,12 +116,10 @@ export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
     team: line('{team}', 13),
     placed: line('placed', 12),
     place: line('{place}', 30, { bold: true }),
-    event: line('in {event}', 13),
     grade: line('{grade}', 11),
-    number: line('No. {number}', 10, { font: 'mono' }),
     venue: line('{venue}, {date}', 10),
   },
-  signatories: { organizer: { ...BLANK_SIGNATORY }, chairperson: { ...BLANK_SIGNATORY }, president: { ...BLANK_SIGNATORY } },
+  signatories: DEFAULT_SIGNATORIES(),
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -134,9 +142,12 @@ function cleanLine(input: unknown, fallback: CertificateLine): CertificateLine {
   }
 }
 
-function cleanSignatory(input: unknown): CertificateSignatory {
-  if (!isObject(input)) return { ...BLANK_SIGNATORY }
+function cleanSignatory(input: unknown, fallback: CertificateSignatory): CertificateSignatory {
+  if (!isObject(input)) return fallback
   return {
+    id: fallback.id,
+    kind: fallback.kind,
+    title: typeof input.title === 'string' ? input.title.trim().slice(0, 100) : fallback.title,
     name: typeof input.name === 'string' ? input.name.trim().slice(0, 100) : '',
     signature: typeof input.signature === 'string' && SIGNATURE_PNG.test(input.signature) && input.signature.length <= MAX_CERTIFICATE_SIGNATURE ? input.signature : null,
     x: offset(input.x),
@@ -158,8 +169,27 @@ export function cleanCertificateLayout(input: unknown): CertificateLayout {
     orientation: input.orientation === 'portrait' ? 'portrait' : 'landscape',
     background: typeof input.background === 'string' && input.background !== '' ? input.background : null,
     lines: Object.fromEntries(CERTIFICATE_LINE_KEYS.map((k) => [k, cleanLine(lines[k], d.lines[k])])) as Record<CertificateLineKey, CertificateLine>,
-    signatories: Object.fromEntries(CERTIFICATE_SIGNATORY_KEYS.map((k) => [k, cleanSignatory(isObject(input.signatories) ? input.signatories[k] : null)])) as Record<CertificateSignatoryKey, CertificateSignatory>,
+    signatories: cleanSignatories(input.signatories),
   }
+}
+
+const KINDS: CertificateSignatoryKind[] = ['organizer', 'chairperson', 'person']
+
+// A list of signatories. A layout saved before the list existed holds the organizer, chairperson and president by name.
+function cleanSignatories(input: unknown): CertificateSignatory[] {
+  if (Array.isArray(input)) {
+    const seen = new Set<string>()
+    return input.filter(isObject).slice(0, MAX_CERTIFICATE_SIGNATORIES).map((s, i) => {
+      let id = typeof s.id === 'string' ? s.id.replace(/[^\w-]/g, '').slice(0, 40) : ''
+      if (!id || seen.has(id)) id = `signatory-${i + 1}`
+      while (seen.has(id)) id += 'x'
+      seen.add(id)
+      const kind = KINDS.find((k) => k === s.kind) ?? 'person'
+      return cleanSignatory(s, blankSignatory(id, kind, ''))
+    })
+  }
+  if (isObject(input)) return DEFAULT_SIGNATORIES().map((d) => cleanSignatory(input[d.id], d))
+  return DEFAULT_SIGNATORIES()
 }
 
 // A line's text for one finalist; a line whose words are all blank prints nothing

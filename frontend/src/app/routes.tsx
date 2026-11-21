@@ -71,6 +71,7 @@ import { STAFF_SIGN_IN } from './nav.ts'
 import { MemberAccountPage, MemberDancersPage, MemberEditPage, MemberEntriesPage, MemberHome, MemberRegisterPage, MemberRequestsPage, MemberLinkPage, MemberNotificationsPage, MemberPasswordPage, MemberMembershipPage, MemberPaymentsPage, MemberRankingsPage, MemberResultsPage } from '../features/athlete/MemberHome.tsx'
 import { NotFound } from './NotFound.tsx'
 import { LegacyRankings } from './LegacyRankings.tsx'
+import { StaffNotificationsPage } from '../features/auth/StaffNotificationsPage.tsx'
 import { RequireRole } from './RequireRole.tsx'
 import { RootLayout } from './RootLayout.tsx'
 
@@ -274,6 +275,13 @@ export const routes: RouteObject[] = [
         path: '/barker',
         element: <RequireRole roles={[Role.Barker, ...STAFF]} signInPath={STAFF_SIGN_IN} />,
         children: [{ element: <StaffLayout />, children: [{ index: true, element: <BarkerPage view="floor" /> }, { path: 'next', element: <BarkerPage view="next" /> }] }],
+      },
+
+      {
+        // What the system told this staff member, kept after its pop-up is gone
+        path: '/notifications',
+        element: <RequireRole roles={[...STAFF, Role.Compere, Role.Barker]} signInPath={STAFF_SIGN_IN} />,
+        children: [{ element: <StaffLayout />, children: [{ index: true, element: <StaffNotificationsPage /> }] }],
       },
 
       {

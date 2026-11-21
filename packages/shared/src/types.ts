@@ -753,7 +753,7 @@ export interface AthleteRow {
 // Something the system tells an athlete: a payment decided on, a change approved or turned down
 export interface AthleteNotification {
   id: Id
-  kind: 'membership_confirmed' | 'membership_rejected' | 'change_approved' | 'change_rejected' | 'link_approved' | 'link_rejected' | 'entry_approved' | 'entry_rejected'
+  kind: 'membership_confirmed' | 'membership_rejected' | 'change_approved' | 'change_rejected' | 'link_approved' | 'link_rejected' | 'entry_approved' | 'entry_rejected' | 'alert'
   title: string
   detail: string
   // Where in the athlete's account it leads

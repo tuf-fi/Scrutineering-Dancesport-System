@@ -88,7 +88,7 @@ export function NotificationBell() {
           </div>
 
           {list.length === 0 ? (
-            <p className="px-4 py-8 text-center text-small text-neutral-600">Nothing yet. Updates from the secretariat show up here.</p>
+            <p className="px-4 py-8 text-center text-small text-neutral-600">Nothing yet. New updates show up here.</p>
           ) : (
             <ul className="no-scrollbar max-h-96 overflow-y-auto">
               {list.slice(0, SHOWN).map((n) => (
@@ -115,7 +115,7 @@ export function NotificationBell() {
             </ul>
           )}
 
-          <Link to={`/${role}/notifications`} onClick={() => setOpen(false)} className="block border-t border-neutral-200 px-4 py-3 text-center text-small font-semibold text-neutral-900 transition-colors hover:bg-gold-50">
+          <Link to={role === 'athlete' || role === 'coach' || role === 'team' ? `/${role}/notifications` : '/notifications'} onClick={() => setOpen(false)} className="block border-t border-neutral-200 px-4 py-3 text-center text-small font-semibold text-neutral-900 transition-colors hover:bg-gold-50">
             See all notifications
           </Link>
         </div>

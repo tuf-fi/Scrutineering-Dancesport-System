@@ -21,6 +21,7 @@ import type { Db, Sqlite } from './db/client.ts'
 import { now } from './ids.ts'
 import { createSocketHub, SESSION_COOKIE } from './realtime/socket.ts'
 import type { Hub } from './realtime/hub.ts'
+import { keepAlert } from './services/staffAlerts.ts'
 import { allowed, endpoint } from './registry.ts'
 import { pauseWhileOffline } from './services/offlineDay.ts'
 import { registerOfflineRoutes } from './offlineRoutes.ts'
@@ -65,7 +66,15 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
     const claims = verifyToken(token)
     return claims ? resolveSession(baseContext(null), claims) : null
   }
-  const hub = givenHub ?? createSocketHub(app.server, resolveToken)
+  const liveHub = givenHub ?? createSocketHub(app.server, resolveToken)
+  // Staff alerts are kept before they are sent, so they can still be read once the pop-up is gone
+  const hub: Hub = {
+    ...liveHub,
+    alert: (roles, note) => {
+      keepAlert(db, roles, note)
+      liveHub.alert(roles, note)
+    },
+  }
   // A backup folder that stops (or starts) working is shown on the scrutineer's screen at once
   backups.onChange(() => hub.changed('backups'))
 

@@ -1,4 +1,4 @@
-import { ChevronRight, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { Bell, ChevronRight, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
 import { usingMocks } from '../../api/mode.ts'
 import { Avatars } from '../../components/Avatars.tsx'
@@ -7,6 +7,7 @@ import { Brand } from '../../components/Brand.tsx'
 import { cn } from '../../lib/cn.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { useScrollActive } from '../../hooks/useScrollActive.ts'
+import { useMyNotifications } from '../../hooks/index.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { useConnection } from '../../stores/connection.ts'
 import { useUi } from '../../stores/ui.ts'
@@ -94,6 +95,27 @@ function ConnectionRow({ collapsed }: { collapsed: boolean }) {
     >
       {content}
     </button>
+  )
+}
+
+// Opens the staff's notifications, with how many are still unread
+function NotificationsRow({ collapsed }: { collapsed: boolean }) {
+  const unread = (useMyNotifications().data ?? []).filter((n) => n.readAt === null).length
+  const label = unread > 0 ? `Notifications, ${unread} new` : 'Notifications'
+  return (
+    <NavLink
+      to="/notifications"
+      aria-label={label}
+      className={({ isActive }) => cn(footerRow, collapsed ? 'justify-center' : 'px-3', isActive ? 'bg-white text-neutral-900' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900')}
+    >
+      <span className="relative grid size-[18px] shrink-0 place-items-center">
+        <Bell aria-hidden className="size-[18px]" strokeWidth={1.75} />
+        {collapsed && unread > 0 && <span aria-hidden className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-gold-400" />}
+      </span>
+      <span className={cn('flex-1', collapsed && 'sr-only')}>Notifications</span>
+      {!collapsed && unread > 0 && <span aria-hidden className="rounded-full bg-gold-400 px-1.5 font-mono text-[0.625rem] font-semibold leading-4 text-black">{unread > 9 ? '9+' : unread}</span>}
+      {collapsed && <Tip>{label}</Tip>}
+    </NavLink>
   )
 }
 
@@ -211,6 +233,7 @@ export function Sidebar({ items }: { items: NavItem[] }) {
       </nav>
 
       <div className="flex flex-col gap-0.5 border-t border-neutral-200 px-3 py-2.5">
+        <NotificationsRow collapsed={collapsed} />
         <ConnectionRow collapsed={collapsed} />
         <button
           type="button"

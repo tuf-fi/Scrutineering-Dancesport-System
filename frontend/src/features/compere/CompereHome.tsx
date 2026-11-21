@@ -10,6 +10,7 @@ import { useAnnouncements, useCompetitions, useProgram, useCatalog } from '../..
 import { cn } from '../../lib/cn.ts'
 import { ROUND_TYPE_LABEL, eventDances, ordinal } from '../../lib/format.ts'
 import { AccountMenu } from '../../app/layouts/AccountMenu.tsx'
+import { NotificationBell } from '../../app/layouts/NotificationBell.tsx'
 import { useSignOut } from '../../app/useSignOut.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { CompereLive } from './CompereLive.tsx'
@@ -626,6 +627,7 @@ export function CompereHome() {
         <ChevronRight aria-hidden className="size-5" />
       </button>
       <span aria-hidden className="mx-2 h-6 w-px bg-white/10" />
+      <NotificationBell />
       {user && <AccountMenu name={user.name} profile={{ to: '/account', label: 'My account' }} onSignOut={signOut} />}
     </div>
   </nav>  )

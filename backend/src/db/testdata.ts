@@ -204,6 +204,25 @@ export function addTestData(db: Db): TestDataReport {
           .onConflictDoNothing()
           .run()
       })
+      // Each adjudicator's placings for the final, so the public result tables have a Skating System working to show.
+      // Most agree with the result; some swap two couples, so the majority columns have real counts.
+      const order = field.map((_, i) => field[(i + round + n) % field.length]!)
+      panel.forEach((adj, j) => {
+        db.insert(t.submissions).values({ roundId: `${eventId}-final`, adjudicatorId: adj.id, submittedAt: at(comp.date) }).onConflictDoNothing().run()
+        spec.dances.forEach((dance, d) => {
+          const placed = [...order]
+          if ((j + d) % 3 === 0 && placed.length > 1) {
+            const k = (j + d) % (placed.length - 1)
+            ;[placed[k], placed[k + 1]] = [placed[k + 1]!, placed[k]!]
+          }
+          placed.forEach((c, idx) => {
+            db.insert(t.marks)
+              .values({ id: `${eventId}-m-${adj.id}-${dance}-${c.id}`, roundId: `${eventId}-final`, adjudicatorId: adj.id, competitorId: c.id, dance, kind: 'placing', placing: idx + 1, submittedAt: at(comp.date) })
+              .onConflictDoNothing()
+              .run()
+          })
+        })
+      })
     })
   }
   // The results are signed off by a scrutineer account when there is one, so their signature prints on the certificates

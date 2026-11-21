@@ -8,7 +8,7 @@ import { AccountSection } from './AccountSection.tsx'
 import type { Todo } from './todos.ts'
 
 // What the system told the athlete, newest first, and what is still left for them to do
-export function Notifications({ todos }: { todos: Todo[] }) {
+export function Notifications({ todos, note = 'Decisions from the secretariat about your payments and changes. New ones appear here as they happen.' }: { todos: Todo[]; note?: string }) {
   const notes = useMyNotifications()
   const mark = useMarkNotificationsRead()
   const list = notes.data ?? []
@@ -35,7 +35,7 @@ export function Notifications({ todos }: { todos: Todo[] }) {
         </AccountSection>
       )}
 
-      <AccountSection title="Notifications" note="Decisions from the secretariat about your payments and changes. New ones appear here as they happen.">
+      <AccountSection title="Notifications" note={note}>
         {unread > 0 && (
           <div>
             <Button variant="secondary" size="sm" disabled={mark.isPending} onClick={() => mark.mutate(undefined)}>
@@ -47,7 +47,7 @@ export function Notifications({ todos }: { todos: Todo[] }) {
         {notes.isLoading ? (
           <SkeletonList rows={5} />
         ) : list.length === 0 ? (
-          <EmptyState title="Nothing yet" description="When the secretariat confirms a payment or decides on a change, you will see it here and hear a chime." />
+          <EmptyState title="Nothing yet" description="When something needs you, it shows up here and you hear a chime." />
         ) : (
           <ul aria-label="Notifications" className="border-b border-neutral-200">
             {pageItems.map((n) => {

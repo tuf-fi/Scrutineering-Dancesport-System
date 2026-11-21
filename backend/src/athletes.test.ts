@@ -238,8 +238,8 @@ describe('the athlete account beyond the basics', () => {
     await app.ok('markNotificationsRead', [], dana)
     expect((await app.ok<AthleteNotification[]>('getMyNotifications', [], dana)).every((n) => n.readAt !== null)).toBe(true)
 
-    // Someone else's athlete id in the list changes nothing, and the secretariat has no notifications
-    expect((await app.call('getMyNotifications', [], secretariat)).status).toBe(403)
+    // Staff read their own alerts here, never an athlete's
+    expect(await app.ok('getMyNotifications', [], secretariat)).toEqual(expect.any(Array))
   })
 
   it('signs the athlete out on every device', async () => {

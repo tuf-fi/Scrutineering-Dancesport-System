@@ -1,7 +1,8 @@
 import {
   CERTIFICATE_FONTS,
   CERTIFICATE_PAPER,
-  CERTIFICATE_SIGNATORY_ROLE,
+  MAX_CERTIFICATE_SIGNATORIES,
+  blankSignatory,
   MAX_CERTIFICATE_OFFSET,
   CERTIFICATE_LINE_KEYS,
   CERTIFICATE_SIZE_RANGE,
@@ -14,9 +15,8 @@ import {
   type CertificateOrientation,
   type CertificatePaper,
   type CertificateSignatory,
-  type CertificateSignatoryKey,
 } from '@bis/shared'
-import { Bold, CaseUpper, Italic, RectangleHorizontal, RectangleVertical, RotateCcw, Undo2, Upload, X, type LucideIcon } from 'lucide-react'
+import { Bold, CaseUpper, Italic, RectangleHorizontal, RectangleVertical, Plus, RotateCcw, Undo2, Upload, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button, Dialog, ErrorState, Input, PageHeader, Select, Skeleton, toast } from '../../components/ui/index.ts'
 import { useCertificateLayout, useSaveCertificateLayout } from '../../hooks/index.ts'
@@ -34,9 +34,7 @@ const LINE_LABEL: Record<CertificateLineKey, string> = {
   team: 'Team',
   placed: 'Placed words',
   place: 'Place',
-  event: 'Event',
   grade: 'Grade',
-  number: 'Back number',
   venue: 'Venue and date',
 }
 
@@ -44,7 +42,7 @@ const LINE_LABEL: Record<CertificateLineKey, string> = {
 const SAMPLE = {
   organizer: 'Bicol Dancesport Association',
   competition: 'Bicol Open Dancesport Championship',
-  name: 'Juan Dela Cruz & Maria Santos',
+  name: 'Juan Dela Cruz &' + String.fromCharCode(10) + 'Maria Santos',
   team: 'Naga Dance Team',
   place: '1st',
   event: 'E12 Waltz, Tango, Quickstep',
@@ -117,23 +115,32 @@ function Preview({ sheetMm, children }: { sheetMm: number; children: (zoom: numb
   )
 }
 
-// One person who signs: their name and a picture of their signature
-function SignatoryRow({ role, note, value, onChange }: { role: string; note: string; value: CertificateSignatory; onChange: (v: CertificateSignatory) => void }) {
+// One person who signs: the words under the signature, their name and a picture of their signature
+function SignatoryRow({ index, value, onChange, onRemove }: { index: number; value: CertificateSignatory; onChange: (v: CertificateSignatory) => void; onRemove: () => void }) {
   const file = useRef<HTMLInputElement>(null)
+  const who = value.title.trim() || `Signatory ${index + 1}`
+  const note =
+    value.kind === 'organizer'
+      ? "Leave empty to use the competition's organizer."
+      : value.kind === 'chairperson'
+        ? "Leave empty to use the name and signature saved on the chairperson's account."
+        : undefined
   async function upload(chosen: File | undefined) {
     if (!chosen) return
     try {
       onChange({ ...value, signature: await signatureImage(chosen) })
-      toast.success(`${role} signature added. Save the layout to use it.`)
+      toast.success(`${who} signature added. Save the layout to use it.`)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Could not read that picture.')
     }
   }
+  const moved = value.x !== 0 || value.y !== 0 || value.signX !== 0 || value.signY !== 0 || value.nameX !== 0 || value.nameY !== 0
   return (
-    <div className="flex flex-col gap-3">
-      <Input label={`${role} name`} value={value.name} maxLength={100} hint={note} onChange={(e) => onChange({ ...value, name: e.target.value })} />
-      <div className="flex items-center gap-3">
-        {value.signature && <img src={value.signature} alt={`${role} signature`} className="h-10 max-w-32 rounded-md border border-neutral-200 bg-white object-contain p-1" />}
+    <div role="group" aria-label={`Signatory ${index + 1}`} className="flex flex-col gap-3 rounded-lg border border-neutral-200 p-3">
+      <Input label="Title" value={value.title} maxLength={100} hint="The words printed under the signature, for example Organizer." onChange={(e) => onChange({ ...value, title: e.target.value })} />
+      <Input label="Name" value={value.name} maxLength={100} hint={note} onChange={(e) => onChange({ ...value, name: e.target.value })} />
+      <div className="flex flex-wrap items-center gap-2">
+        {value.signature && <img src={value.signature} alt={`${who} signature`} className="h-10 max-w-32 rounded-md border border-neutral-200 bg-white object-contain p-1" />}
         <Button type="button" variant="secondary" size="sm" onClick={() => file.current?.click()}>
           <Upload aria-hidden className="size-4" />
           {value.signature ? 'Change signature' : 'Upload signature'}
@@ -145,22 +152,26 @@ function SignatoryRow({ role, note, value, onChange }: { role: string; note: str
             size="sm"
             onClick={() => {
               onChange({ ...value, signature: null })
-              toast.success(`${role} signature removed. Save the layout to keep it.`)
+              toast.success(`${who} signature removed. Save the layout to keep it.`)
             }}
           >
-            Remove
+            Remove signature
           </Button>
         )}
-        {(value.x !== 0 || value.y !== 0 || value.signX !== 0 || value.signY !== 0 || value.nameX !== 0 || value.nameY !== 0) && (
+        {moved && (
           <Button type="button" variant="secondary" size="sm" onClick={() => onChange({ ...value, x: 0, y: 0, signX: 0, signY: 0, nameX: 0, nameY: 0 })}>
             Reset position
           </Button>
         )}
+        <Button type="button" variant="secondary" size="sm" onClick={onRemove}>
+          <X aria-hidden className="size-4" />
+          Remove signatory
+        </Button>
         <input
           ref={file}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          aria-label={`${role} signature file`}
+          aria-label="Signature file"
           className="sr-only"
           onChange={(e) => {
             void upload(e.target.files?.[0])
@@ -177,7 +188,8 @@ function Editor({ saved }: { saved: CertificateLayout }) {
   const [draft, setDraft] = useState(saved)
   const [key, setKey] = useState<CertificateLineKey>('name')
   const [editing, setEditing] = useState(0)
-  const [asking, setAsking] = useState<'background' | 'reset' | null>(null)
+  // What the confirmation box is about: the background, the whole layout, or one signatory (by id)
+  const [asking, setAsking] = useState<string | null>(null)
   const importer = useRef<HTMLInputElement>(null)
   const line = draft.lines[key]
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved)
@@ -215,14 +227,25 @@ function Editor({ saved }: { saved: CertificateLayout }) {
     const to = (v: number, by: number) => Math.round(Math.min(MAX_CERTIFICATE_OFFSET, Math.max(-MAX_CERTIFICATE_OFFSET, v + by)) * 10) / 10
     setDraft((d) => {
       if (kind === 'line') return { ...d, lines: { ...d.lines, [name]: { ...d.lines[name as CertificateLineKey], x: to(d.lines[name as CertificateLineKey].x, dx), y: to(d.lines[name as CertificateLineKey].y, dy) } } }
-      const s = d.signatories[name as CertificateSignatoryKey]
       // The block moves with its picture and name; the picture and the name can also move on their own
-      const moved = kind === 'sign' ? { x: to(s.x, dx), y: to(s.y, dy) } : kind === 'picture' ? { signX: to(s.signX, dx), signY: to(s.signY, dy) } : { nameX: to(s.nameX, dx), nameY: to(s.nameY, dy) }
-      return { ...d, signatories: { ...d.signatories, [name]: { ...s, ...moved } } }
+      return {
+        ...d,
+        signatories: d.signatories.map((s) => {
+          if (s.id !== name) return s
+          const moved = kind === 'sign' ? { x: to(s.x, dx), y: to(s.y, dy) } : kind === 'picture' ? { signX: to(s.signX, dx), signY: to(s.signY, dy) } : { nameX: to(s.nameX, dx), nameY: to(s.nameY, dy) }
+          return { ...s, ...moved }
+        }),
+      }
     })
   }
 
-  const setSignatory = (k: CertificateSignatoryKey, v: CertificateSignatory) => setDraft((d) => ({ ...d, signatories: { ...d.signatories, [k]: v } }))
+  const setSignatory = (id: string, v: CertificateSignatory) => setDraft((d) => ({ ...d, signatories: d.signatories.map((s) => (s.id === id ? v : s)) }))
+  const addSignatory = () =>
+    setDraft((d) => {
+      let n = d.signatories.length + 1
+      while (d.signatories.some((s) => s.id === `signatory-${n}`)) n++
+      return { ...d, signatories: [...d.signatories, blankSignatory(`signatory-${n}`, 'person')] }
+    })
 
   const orient = (orientation: CertificateOrientation) => () => setDraft((d) => ({ ...d, orientation }))
 
@@ -302,7 +325,7 @@ function Editor({ saved }: { saved: CertificateLayout }) {
             <Input
               label="Wording"
               readOnly
-              value={fillCertificateText(line.text, SAMPLE) || 'Hidden'}
+              value={fillCertificateText(line.text, SAMPLE).replaceAll(String.fromCharCode(10), ' ') || 'Hidden'}
               onClick={() => setEditing((n) => n + 1)}
               onKeyDown={(e) => e.key === 'Enter' && setEditing((n) => n + 1)}
               className="cursor-pointer"
@@ -370,26 +393,17 @@ function Editor({ saved }: { saved: CertificateLayout }) {
           </Section>
 
           <Section title="Signatures">
-            <SignatoryRow
-              role={CERTIFICATE_SIGNATORY_ROLE.organizer}
-              note="Leave the name empty to use the competition's organizer."
-              value={draft.signatories.organizer}
-              onChange={(v) => setSignatory('organizer', v)}
-            />
-            <SignatoryRow
-              role={CERTIFICATE_SIGNATORY_ROLE.chairperson}
-              note="Leave empty to use the name and signature saved on the chairperson's account."
-              value={draft.signatories.chairperson}
-              onChange={(v) => setSignatory('chairperson', v)}
-            />
-            <SignatoryRow
-              role={CERTIFICATE_SIGNATORY_ROLE.president}
-              note="Enter the name and upload the signature once."
-              value={draft.signatories.president}
-              onChange={(v) => setSignatory('president', v)}
-            />
+            {draft.signatories.length === 0 && <p className="text-small text-neutral-600">Nobody signs these certificates yet.</p>}
+            {draft.signatories.map((sig, i) => (
+              <SignatoryRow key={sig.id} index={i} value={sig} onChange={(v) => setSignatory(sig.id, v)} onRemove={() => setAsking(`signatory:${sig.id}`)} />
+            ))}
+            <div>
+              <Button type="button" size="sm" disabled={draft.signatories.length >= MAX_CERTIFICATE_SIGNATORIES} onClick={addSignatory}>
+                <Plus aria-hidden className="size-4" />
+                Add signatory
+              </Button>
+            </div>
           </Section>
-
           </div>
 
           <div className="flex flex-wrap gap-2 border-t border-neutral-200 p-5 lg:pr-20">
@@ -421,11 +435,13 @@ function Editor({ saved }: { saved: CertificateLayout }) {
         open={asking !== null}
         onClose={() => setAsking(null)}
         className="max-w-md"
-        title={asking === 'reset' ? 'Go back to the built-in layout?' : 'Remove the background?'}
+        title={asking === 'reset' ? 'Go back to the built-in layout?' : asking?.startsWith('signatory:') ? 'Remove this signatory?' : 'Remove the background?'}
         description={
           asking === 'reset'
             ? 'Your saved wording, fonts, page and background are replaced by the built-in layout for every competition.'
-            : 'The certificate prints on plain paper. Save the layout to keep this.'
+            : asking?.startsWith('signatory:')
+              ? 'Their title, name and signature are taken off the certificates. Save the layout to keep this.'
+              : 'The certificate prints on plain paper. Save the layout to keep this.'
         }
         actions={
           <>
@@ -436,7 +452,11 @@ function Editor({ saved }: { saved: CertificateLayout }) {
               disabled={save.isPending}
               onClick={() => {
                 if (asking === 'reset') persist(null, 'Back to the built-in layout')
-                else {
+                else if (asking?.startsWith('signatory:')) {
+                  const id = asking.slice('signatory:'.length)
+                  setDraft((d) => ({ ...d, signatories: d.signatories.filter((s) => s.id !== id) }))
+                  toast.success('Signatory removed. Save the layout to keep it.')
+                } else {
                   setDraft((d) => ({ ...d, background: null }))
                   toast.success('Background removed. Save the layout to keep it.')
                 }

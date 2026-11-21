@@ -91,6 +91,19 @@ describe('entering a competition online', () => {
     expect((await app.call('getMyEntryRequests', [], athlete)).status).toBe(403)
   })
 
+  it('keeps the alert for each staff role to read later, with its own read mark', async () => {
+    const mine = await app.ok<Array<{ id: string; title: string; link: string | null; readAt: string | null }>>('getMyNotifications', [], secretariat)
+    const alert = mine.find((n) => n.title === 'New entry request')!
+    expect(alert).toMatchObject({ link: '/secretariat/entry-requests', readAt: null })
+    // The admin is told too; a role it was not for is not
+    expect((await app.ok<Array<{ title: string }>>('getMyNotifications', [], admin)).some((n) => n.title === 'New entry request')).toBe(true)
+    expect((await app.ok<Array<{ title: string }>>('getMyNotifications', [], team)).some((n) => n.title === 'New entry request')).toBe(false)
+    await app.ok('markNotificationsRead', [[alert.id]], secretariat)
+    expect((await app.ok<Array<{ id: string; readAt: string | null }>>('getMyNotifications', [], secretariat)).find((n) => n.id === alert.id)!.readAt).not.toBeNull()
+    // Reading it is personal
+    expect((await app.ok<Array<{ id: string; readAt: string | null }>>('getMyNotifications', [], admin)).find((n) => n.id === alert.id)!.readAt).toBeNull()
+  })
+
   it('lets the requester take a waiting request back', async () => {
     const solo = (await entrantsOf(team)).find((r) => r.names.length === 1)!.competitorId
     const [waiting] = await app.ok<EntryRequest[]>('getMyEntryRequests', [], team)

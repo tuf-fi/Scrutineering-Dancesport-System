@@ -5,6 +5,7 @@ import { Link, NavLink, useLocation } from 'react-router'
 import { Avatars } from '../../components/Avatars.tsx'
 import { Brand } from '../../components/Brand.tsx'
 import { ConnectionStatus } from '../../components/ConnectionStatus.tsx'
+import { NotificationBell } from './NotificationBell.tsx'
 import { useScrollActive } from '../../hooks/useScrollActive.ts'
 import { cn } from '../../lib/cn.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
@@ -38,6 +39,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
         <Brand size="sm" plate={false} />
       </Link>
       {!online && <ConnectionStatus />}
+      <NotificationBell />
       <RadixDialog.Root open={open} onOpenChange={setOpen}>
         <RadixDialog.Trigger asChild>
           <button type="button" aria-label="Open menu" className="-mr-1 grid size-10 place-items-center rounded-md text-white/80 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-gold-300">

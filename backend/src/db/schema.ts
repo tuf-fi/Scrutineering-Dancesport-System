@@ -666,6 +666,33 @@ export const notifications = sqliteTable(
   (t) => [index('notifications_by_athlete').on(t.athleteId, t.createdAt)],
 )
 
+// What the system tells staff, kept so it can be read again after its pop-up is gone; roles lists who it is for
+export const staffAlerts = sqliteTable(
+  'staff_alerts',
+  {
+    id: id(),
+    roles: text('roles', { mode: 'json' }).$type<Role[]>().notNull(),
+    title: text('title').notNull(),
+    detail: text('detail').notNull().default(''),
+    link: text('link'),
+    createdAt: text('created_at').notNull(),
+  },
+  (t) => [index('staff_alerts_by_time').on(t.createdAt)],
+)
+
+// Who has seen which staff alert
+export const staffAlertReads = sqliteTable(
+  'staff_alert_reads',
+  {
+    alertId: text('alert_id')
+      .notNull()
+      .references(() => staffAlerts.id, { onDelete: 'cascade' }),
+    userId: text('user_id').notNull(),
+    readAt: text('read_at').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.alertId, t.userId] })],
+)
+
 export const auditLog = sqliteTable(
   'audit_log',
   {

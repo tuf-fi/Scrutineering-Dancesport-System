@@ -52,11 +52,29 @@ describe('moving the elements', () => {
     expect(name.style.transform).toBe('')
   })
 
-  it('has a name and signature for the organizer, the chairperson and the PDSF president', async () => {
+  it('starts with the organizer, the chairperson and the PDSF president, who can each be edited', async () => {
     renderApp('/scrutineer/certificates', Role.Scrutineer)
-    for (const role of ['Organizer', 'Chairperson of Adjudicators', 'PDSF President']) {
-      expect(await screen.findByLabelText(`${role} name`)).toBeInTheDocument()
-      expect(screen.getByLabelText(`${role} signature file`)).toBeInTheDocument()
-    }
+    const first = await screen.findByRole('group', { name: 'Signatory 1' })
+    expect(within(first).getByLabelText('Title')).toHaveValue('Organizer')
+    expect(within(screen.getByRole('group', { name: 'Signatory 2' })).getByLabelText('Title')).toHaveValue('Chairperson of Adjudicators')
+    const third = screen.getByRole('group', { name: 'Signatory 3' })
+    expect(within(third).getByLabelText('Title')).toHaveValue('PDSF President')
+    expect(within(third).getByLabelText('Name')).toBeInTheDocument()
+    expect(within(third).getByLabelText('Signature file')).toBeInTheDocument()
+  })
+
+  it('adds a signatory, and removes one after asking', async () => {
+    renderApp('/scrutineer/certificates', Role.Scrutineer)
+    await screen.findByRole('group', { name: 'Signatory 3' })
+    await userEvent.click(screen.getByRole('button', { name: 'Add signatory' }))
+    const added = await screen.findByRole('group', { name: 'Signatory 4' })
+    await userEvent.type(within(added).getByLabelText('Title'), 'Guest of Honor')
+    expect(within(added).getByLabelText('Title')).toHaveValue('Guest of Honor')
+
+    await userEvent.click(within(added).getByRole('button', { name: 'Remove signatory' }))
+    const ask = await screen.findByRole('dialog', { name: 'Remove this signatory?' })
+    await userEvent.click(within(ask).getByRole('button', { name: 'Remove' }))
+    await waitFor(() => expect(screen.queryByRole('group', { name: 'Signatory 4' })).not.toBeInTheDocument())
+    expect(screen.getByRole('group', { name: 'Signatory 3' })).toBeInTheDocument()
   })
 })

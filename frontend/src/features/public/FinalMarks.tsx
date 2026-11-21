@@ -15,7 +15,7 @@ export function FinalMarks({ roundId }: { roundId: string }) {
       {!table.data ? (
         <SkeletonList rows={5} />
       ) : (
-        <SkatingTables table={table.data} variant="plain" />
+        <SkatingTables table={table.data} variant="plain" ticks={false} />
       )}
     </section>
   )

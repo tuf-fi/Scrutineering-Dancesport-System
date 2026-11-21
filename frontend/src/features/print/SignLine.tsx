@@ -22,8 +22,12 @@ export function SignLine({ role, signer, date, center = true, plain = false, par
       </div>
       <p className="font-semibold">{role}</p>
       <p className="text-[9pt]">{plain ? 'Name and Signature' : `Name and signature${signer.name.trim() ? `: ${signer.name.trim()}` : ''}`}</p>
-      <div className={`mt-3 flex h-6 items-end border-b border-neutral-900 ${center ? 'justify-center' : ''}`}>{date}</div>
-      <p className="text-[9pt]">Date</p>
+      {!plain && (
+        <>
+          <div className={`mt-3 flex h-6 items-end border-b border-neutral-900 ${center ? 'justify-center' : ''}`}>{date}</div>
+          <p className="text-[9pt]">Date</p>
+        </>
+      )}
     </div>
   )
 }

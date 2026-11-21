@@ -48,7 +48,7 @@ export function danceRows(table: SkatingTable, index: number): SkatingRow[] {
 }
 
 // One dance's own marks from each adjudicator
-export function danceColumns(table: SkatingTable, index: number): Column[] {
+export function danceColumns(table: SkatingTable, index: number, ticks = true): Column[] {
   const isPlacing = table.kind === 'placing'
   return [
     backColumn,
@@ -61,13 +61,13 @@ export function danceColumns(table: SkatingTable, index: number): Column[] {
       align: 'center' as const,
       group: isPlacing ? 'Placings' : 'X marks',
     })),
-    ...(isPlacing ? majorityColumns(table.rows.length, (r) => r.byDance[index]?.majority ?? [], (r) => r.byDance[index]?.placedColumn ?? null) : []),
+    ...(isPlacing ? majorityColumns(table.rows.length, (r) => r.byDance[index]?.majority ?? [], (r) => (ticks ? (r.byDance[index]?.placedColumn ?? null) : null)) : []),
     ...(isPlacing ? [{ key: 'result', header: 'Dance result', cell: (r: SkatingRow) => ordinal(r.byDance[index]?.place ?? 0), mono: true, bold: true, align: 'center' as const }] : []),
     ...(isPlacing ? [] : [{ key: 'x', header: 'X', cell: (r: SkatingRow) => sumOf(r.byDance[index]?.marks ?? {}), mono: true, bold: true, align: 'center' as const }]),
   ]
 }
 
-export function skatingColumns(table: SkatingTable): Column[] {
+export function skatingColumns(table: SkatingTable, ticks = true): Column[] {
   const isPlacing = table.kind === 'placing'
   const dances = table.rows[0]?.dancePlaces ?? []
   const many = isMultiDance(table)
@@ -107,7 +107,7 @@ export function skatingColumns(table: SkatingTable): Column[] {
       align: 'center' as const,
       group: isPlacing ? 'Placings' : 'X marks',
     })),
-    ...(isPlacing ? majorityColumns(table.places, (r) => r.majority, (r) => r.placedColumn) : []),
+    ...(isPlacing ? majorityColumns(table.places, (r) => r.majority, (r) => (ticks ? r.placedColumn : null)) : []),
     ...(dances.length > 0
       ? [{ key: 'total', header: 'Total', cell: (r: SkatingRow) => r.dancePlaces.reduce((sum, d) => sum + d.place, 0), mono: true, align: 'center' as const }]
       : []),

@@ -32,7 +32,7 @@ describe('staff sidebar', () => {
     renderApp('/admin/competitions', Role.Admin)
     const nav = await sidebar()
     // The person at the top is a link to their own account page; the rest are the sections, in groups
-    const links = nav.getAllByRole('link').filter((l) => l.getAttribute('href') !== '/account')
+    const links = nav.getAllByRole('link').filter((l) => !['/account', '/notifications'].includes(l.getAttribute('href') ?? ''))
     expect(nav.getByRole('link', { name: /Amelia Rosales/ })).toHaveAttribute('href', '/account')
     expect(links.map((l) => l.textContent)).toEqual([
       'Competitions',
@@ -157,7 +157,7 @@ describe('staff sidebar', () => {
     [Role.Chairperson, '/scrutineer/live', ['Schedule', 'Program', 'Live board', 'Paper marks', 'Recall', 'Results', 'Security', 'Athletes']],
   ])('gives the %s their own sections with icons', async (role, path, labels) => {
     renderApp(path, role)
-    const links = (await sidebar()).getAllByRole('link').filter((l) => l.getAttribute('href') !== '/account')
+    const links = (await sidebar()).getAllByRole('link').filter((l) => !['/account', '/notifications'].includes(l.getAttribute('href') ?? ''))
     expect(links.map((l) => l.textContent)).toEqual(labels)
     for (const link of links) expect(link.querySelector('svg')).not.toBeNull()
   })

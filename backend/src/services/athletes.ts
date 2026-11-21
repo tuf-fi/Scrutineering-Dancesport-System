@@ -11,6 +11,7 @@ import { confirmCascade, removeCascade } from './cascade.ts'
 import { claimOf } from './athleteRecords.ts'
 import { reads } from './reads.ts'
 import { changeMemberPassword, isMember, markMemberNotificationsRead, memberCompetitors, memberNotifications, signOutMember } from './members.ts'
+import { markStaffNotificationsRead, staffNotifications } from './staffAlerts.ts'
 import { MIN_PASSWORD, checkPhoto, clean, giveAthleteMembershipId, syncMembership, syncPerson } from './shared.ts'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -41,6 +42,8 @@ const toProfile = (r: AthleteRowDb): AthleteProfile => ({
 // A name compared without case, dots or extra spaces, so "Ana  M. Cruz" matches "ana m cruz"
 const normal = (name: string) => name.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
 
+
+const isStaffAccount = (ctx: Ctx) => ctx.user !== null && ctx.user.role !== Role.Athlete && ctx.user.role !== Role.Coach && ctx.user.role !== Role.Team
 
 // Tells an athlete something: kept for their Notifications page and pushed to the screens they have open
 function notifyAthlete(ctx: Ctx, athleteId: string, note: Pick<AthleteNotification, 'kind' | 'title' | 'detail' | 'link'>) {
@@ -195,6 +198,7 @@ export const athletes = {
   },
 
   getMyNotifications(ctx: Ctx): AthleteNotification[] {
+    if (isStaffAccount(ctx)) return staffNotifications(ctx)
     if (isMember(ctx)) return memberNotifications(ctx)
     const row = mine(ctx)
     return ctx.db.select().from(t.notifications).where(eq(t.notifications.athleteId, row.id)).orderBy(desc(t.notifications.createdAt)).limit(50).all()
@@ -202,6 +206,7 @@ export const athletes = {
 
   // Marks the given ones as seen, or every unseen one when none are given
   markNotificationsRead(ctx: Ctx, ids?: string[]): void {
+    if (isStaffAccount(ctx)) return markStaffNotificationsRead(ctx, ids)
     if (isMember(ctx)) return markMemberNotificationsRead(ctx, ids)
     const row = mine(ctx)
     const own = and(eq(t.notifications.athleteId, row.id), isNull(t.notifications.readAt))

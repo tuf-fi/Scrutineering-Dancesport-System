@@ -57,7 +57,14 @@ export const useMyNotifications = () => {
   const queryClient = useQueryClient()
   useEffect(() => {
     if (id === '') return
-    return api.subscribeNotifications(() => void queryClient.invalidateQueries({ queryKey: ['my-notifications'] }))
+    const refetch = () => void queryClient.invalidateQueries({ queryKey: ['my-notifications'] })
+    // Staff are told through alerts; the server keeps each one, so the list refetches when one arrives
+    const stopNotes = api.subscribeNotifications(refetch)
+    const stopAlerts = api.subscribeAlerts(refetch)
+    return () => {
+      stopNotes()
+      stopAlerts()
+    }
   }, [id, queryClient])
   return useQuery({ queryKey: ['my-notifications', id], queryFn: () => api.getMyNotifications(id), enabled: id !== '' })
 }

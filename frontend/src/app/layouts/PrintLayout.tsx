@@ -12,7 +12,7 @@ export function PrintLayout() {
   const paperWidth = certificates && layout.data ? certificatePage(layout.data).width : 210
 
   return (
-    <div className="min-h-dvh bg-neutral-100 print:bg-white">
+    <div className="min-h-dvh bg-neutral-100 print:min-h-0 print:bg-white">
       <div className="print:hidden sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-2.5 sm:px-8">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           Back

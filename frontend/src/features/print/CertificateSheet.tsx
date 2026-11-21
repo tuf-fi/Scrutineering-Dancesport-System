@@ -1,13 +1,10 @@
 import {
   CERTIFICATE_FONTS,
-  CERTIFICATE_SIGNATORY_KEYS,
-  CERTIFICATE_SIGNATORY_ROLE,
   certificatePage,
   fillCertificateText,
   type CERTIFICATE_TOKENS,
   type CertificateLayout,
   type CertificateLineKey,
-  type CertificateSignatoryKey,
 } from '@bis/shared'
 import { useRef, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { SignLine, type SignParts } from './SignLine.tsx'
@@ -16,7 +13,7 @@ import type { Signer } from './signers.ts'
 export type CertificateValues = Partial<Record<(typeof CERTIFICATE_TOKENS)[number], string>>
 
 export interface CertificateSignature {
-  key: CertificateSignatoryKey
+  id: string
   role: string
   signer: Signer
   x: number
@@ -28,22 +25,24 @@ export interface CertificateSignature {
 }
 
 // A line is 'line:name', a signature block is 'sign:president', and its picture and printed name are 'picture:president' and 'name:president'
-export type MoveTarget = `line:${CertificateLineKey}` | `sign:${CertificateSignatoryKey}` | `picture:${CertificateSignatoryKey}` | `name:${CertificateSignatoryKey}`
+export type MoveTarget = `line:${CertificateLineKey}` | `sign:${string}` | `picture:${string}` | `name:${string}`
 
-// The organizer and the PDSF president sign from the layout. The chairperson signs with the name and signature saved on their
-// account, unless the layout sets its own.
+// Each signatory prints what the layout holds. An organizer with no name signs as the competition's organizer, and a chairperson with
+// no name or signature signs with the ones saved on their account.
 export function certificateSignatures(layout: CertificateLayout, organizerName: string, chairperson: Signer): CertificateSignature[] {
-  const s = layout.signatories
-  const signers: Record<CertificateSignatoryKey, Signer> = {
-    organizer: { name: s.organizer.name || organizerName, signature: s.organizer.signature },
-    chairperson: { name: s.chairperson.name || chairperson.name, signature: s.chairperson.signature ?? chairperson.signature },
-    president: { name: s.president.name, signature: s.president.signature },
-  }
-  return CERTIFICATE_SIGNATORY_KEYS.map((key) => ({ key, role: CERTIFICATE_SIGNATORY_ROLE[key], signer: signers[key], x: s[key].x, y: s[key].y, signX: s[key].signX, signY: s[key].signY, nameX: s[key].nameX, nameY: s[key].nameY }))
+  return layout.signatories.map((s) => {
+    const signer: Signer =
+      s.kind === 'organizer'
+        ? { name: s.name || organizerName, signature: s.signature }
+        : s.kind === 'chairperson'
+          ? { name: s.name || chairperson.name, signature: s.signature ?? chairperson.signature }
+          : { name: s.name, signature: s.signature }
+    return { id: s.id, role: s.title, signer, x: s.x, y: s.y, signX: s.signX, signY: s.signY, nameX: s.nameX, nameY: s.nameY }
+  })
 }
 
 const HEADER: CertificateLineKey[] = ['organizer', 'title', 'competition']
-const BODY: CertificateLineKey[] = ['certify', 'name', 'team', 'placed', 'place', 'event', 'grade', 'number']
+const BODY: CertificateLineKey[] = ['certify', 'name', 'team', 'placed', 'place', 'grade']
 const MM_PX = 96 / 25.4
 
 // One certificate page, drawn from the layout. The printed page and the editor's preview both use it. In the editor every line
@@ -115,6 +114,8 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
         fontStyle: l.italic ? 'italic' : 'normal',
         textTransform: l.uppercase ? 'uppercase' : 'none',
         lineHeight: 1.2,
+        // A new line in the words (the second athlete of a couple) starts a new line on the certificate
+        whiteSpace: 'pre-line',
         color: l.color,
         ...shift(l.x, l.y),
       }
@@ -151,19 +152,19 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
       <div className="relative flex flex-col items-center gap-3 text-center">{lines(BODY)}</div>
       <footer className="relative flex flex-col gap-4">
         <div className="flex flex-col items-center text-center">{lines(['venue'])}</div>
-        <div className="grid gap-10" style={{ gridTemplateColumns: `repeat(${signatures.length}, minmax(0, 1fr))` }}>
-          {signatures.map(({ key, role, signer, x, y, signX, signY, nameX, nameY }) => {
+        <div className="grid gap-10" style={{ gridTemplateColumns: `repeat(${Math.max(signatures.length, 1)}, minmax(0, 1fr))` }}>
+          {signatures.map(({ id, role, signer, x, y, signX, signY, nameX, nameY }) => {
             // The picture and the name carry their own shift on top of the block's; in print they are plain
             const parts: SignParts = {
-              signature: { style: shift(signX, signY), ...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature picture`, className: grab, ...drag(`picture:${key}`) } : {}) },
-              name: { style: shift(nameX, nameY), ...(onMove ? { role: 'button', 'aria-label': `Move the ${role} name`, className: grab, ...drag(`name:${key}`) } : {}) },
+              signature: { style: shift(signX, signY), ...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature picture`, className: grab, ...drag(`picture:${id}`) } : {}) },
+              name: { style: shift(nameX, nameY), ...(onMove ? { role: 'button', 'aria-label': `Move the ${role} name`, className: grab, ...drag(`name:${id}`) } : {}) },
             }
             return (
               <div
-                key={key}
+                key={id}
                 style={shift(x, y)}
                 {...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature block` } : {})}
-                {...drag(`sign:${key}`)}
+                {...drag(`sign:${id}`)}
                 className={onMove ? grab : ''}
               >
                 <SignLine role={role} signer={signer} date={date} center plain parts={parts} />
