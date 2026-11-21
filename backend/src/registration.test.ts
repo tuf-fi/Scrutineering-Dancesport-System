@@ -97,13 +97,20 @@ describe('registering a team from the entry form', () => {
     expect((await app.call('registerCompetitor', [{ competitorId: ana.id, eventIds: [events.juv1], method: 'cash' }], secretariat)).status).toBe(409)
 
     // The athlete's entries show the payment, and the secretariat can take it back and record it again
-    const entries = (await app.ok<{ entries: Array<{ paymentId: string | null; paymentStatus: string | null }> }>('getCompetitorActivity', [ana.id], secretariat)).entries
+    const entries = (await app.ok<{ entries: Array<{ entryId: string; paymentId: string | null; paymentStatus: string | null }> }>('getCompetitorActivity', [ana.id], secretariat)).entries
     expect(entries[0]).toMatchObject({ paymentId: result.paymentId, paymentStatus: 'approved' })
     await app.ok('markUnpaid', [result.paymentId], secretariat)
     expect(app.sqlite.prepare('select status from payments where id = ?').get(result.paymentId)).toEqual({ status: 'unpaid' })
     expect((await app.call('markUnpaid', [result.paymentId], secretariat)).status).toBe(409)
     await app.ok('markPaidAtVenue', [result.paymentId], secretariat)
     expect(app.sqlite.prepare('select status from payments where id = ?').get(result.paymentId)).toEqual({ status: 'paid_at_venue' })
+
+    // Taking the athlete out of one event leaves the other, and a paid payment stays
+    const first = entries[0]!.entryId
+    await app.ok('deleteEntry', [first], secretariat)
+    expect(app.sqlite.prepare('select count(*) as n from entries where payment_id = ?').get(result.paymentId)).toEqual({ n: 1 })
+    expect(app.sqlite.prepare('select count(*) as n from payments where id = ?').get(result.paymentId)).toEqual({ n: 1 })
+    expect((await app.call('deleteEntry', [first], secretariat)).status).toBe(404)
   })
 
   it('leaves an entry unpaid, and warns about beginners without refusing', async () => {

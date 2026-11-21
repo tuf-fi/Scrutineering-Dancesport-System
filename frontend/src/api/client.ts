@@ -252,6 +252,7 @@ export const quoteRegistration = (competitorId: string, eventIds: string[], coac
   call<RegistrationQuote>('quoteRegistration', competitorId, eventIds, ...(coachFees ? [coachFees] : []))
 export const registerCompetitor = (_actorId: string, input: RegistrationInput) => call<RegistrationResult>('registerCompetitor', input)
 export const deleteLateEntry = (_actorId: string, entryId: string) => call<void>('deleteLateEntry', entryId)
+export const deleteEntry = (_actorId: string, entryId: string) => call<void>('deleteEntry', entryId)
 export const updateLateEntry = (_actorId: string, entryId: string, input: { eventId: string; paidInCash: boolean }) =>
   call<LateEntryRow>('updateLateEntry', entryId, input)
 export const saveEvent = (_actorId: string, competitionId: string, input: EventInput, id?: string) =>

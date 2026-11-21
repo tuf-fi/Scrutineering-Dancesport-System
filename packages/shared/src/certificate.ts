@@ -43,6 +43,26 @@ export interface CertificateLine {
   bold: boolean
   italic: boolean
   uppercase: boolean
+  // #rrggbb
+  color: string
+  // Moved from its place in the flow, in millimetres, by dragging it in the editor
+  x: number
+  y: number
+}
+
+// Who signs. The chairperson's name and signature come from their account unless the layout sets its own.
+export const CERTIFICATE_SIGNATORY_KEYS = ['organizer', 'chairperson', 'president'] as const
+export type CertificateSignatoryKey = (typeof CERTIFICATE_SIGNATORY_KEYS)[number]
+export const CERTIFICATE_SIGNATORY_ROLE: Record<CertificateSignatoryKey, string> = { organizer: 'Organizer', chairperson: 'Chairperson of Adjudicators', president: 'PDSF President' }
+
+export interface CertificateSignatory {
+  // Empty for the organizer means the competition's organizer
+  name: string
+  // A small PNG data URL; null prints an empty line to sign by hand
+  signature: string | null
+  // Moved from its place, in millimetres
+  x: number
+  y: number
 }
 
 export interface CertificateLayout {
@@ -51,13 +71,22 @@ export interface CertificateLayout {
   // A picture printed behind the text (border, logo), as a data URL; null for none
   background: string | null
   lines: Record<CertificateLineKey, CertificateLine>
+  signatories: Record<CertificateSignatoryKey, CertificateSignatory>
 }
+
+// How far an element may be dragged from its place, in millimetres
+export const MAX_CERTIFICATE_OFFSET = 300
+export const MAX_CERTIFICATE_SIGNATURE = 140_000
+export const SIGNATURE_PNG = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/
+export const DEFAULT_CERTIFICATE_COLOR = '#171412'
 
 export const CERTIFICATE_SIZE_RANGE = { min: 6, max: 72 } as const
 export const MAX_CERTIFICATE_TEXT = 200
 export const MAX_CERTIFICATE_BACKGROUND = 1_500_000
 
-const line = (text: string, size: number, o: Partial<CertificateLine> = {}): CertificateLine => ({ text, font: 'sans', size, bold: false, italic: false, uppercase: false, ...o })
+const line = (text: string, size: number, o: Partial<CertificateLine> = {}): CertificateLine => ({ text, font: 'sans', size, bold: false, italic: false, uppercase: false, color: DEFAULT_CERTIFICATE_COLOR, x: 0, y: 0, ...o })
+
+const BLANK_SIGNATORY: CertificateSignatory = { name: '', signature: null, x: 0, y: 0 }
 
 export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
   paper: 'a4',
@@ -77,9 +106,12 @@ export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
     number: line('No. {number}', 10, { font: 'mono' }),
     venue: line('{venue}, {date}', 10),
   },
+  signatories: { organizer: { ...BLANK_SIGNATORY }, chairperson: { ...BLANK_SIGNATORY }, president: { ...BLANK_SIGNATORY } },
 }
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+
+const offset = (v: unknown) => (Number.isFinite(Number(v)) ? Math.round(Math.min(MAX_CERTIFICATE_OFFSET, Math.max(-MAX_CERTIFICATE_OFFSET, Number(v))) * 10) / 10 : 0)
 
 function cleanLine(input: unknown, fallback: CertificateLine): CertificateLine {
   if (!isObject(input)) return fallback
@@ -91,6 +123,19 @@ function cleanLine(input: unknown, fallback: CertificateLine): CertificateLine {
     bold: typeof input.bold === 'boolean' ? input.bold : fallback.bold,
     italic: typeof input.italic === 'boolean' ? input.italic : fallback.italic,
     uppercase: typeof input.uppercase === 'boolean' ? input.uppercase : fallback.uppercase,
+    color: typeof input.color === 'string' && /^#[0-9a-f]{6}$/i.test(input.color) ? input.color.toLowerCase() : fallback.color,
+    x: offset(input.x),
+    y: offset(input.y),
+  }
+}
+
+function cleanSignatory(input: unknown): CertificateSignatory {
+  if (!isObject(input)) return { ...BLANK_SIGNATORY }
+  return {
+    name: typeof input.name === 'string' ? input.name.trim().slice(0, 100) : '',
+    signature: typeof input.signature === 'string' && SIGNATURE_PNG.test(input.signature) && input.signature.length <= MAX_CERTIFICATE_SIGNATURE ? input.signature : null,
+    x: offset(input.x),
+    y: offset(input.y),
   }
 }
 
@@ -104,6 +149,7 @@ export function cleanCertificateLayout(input: unknown): CertificateLayout {
     orientation: input.orientation === 'portrait' ? 'portrait' : 'landscape',
     background: typeof input.background === 'string' && input.background !== '' ? input.background : null,
     lines: Object.fromEntries(CERTIFICATE_LINE_KEYS.map((k) => [k, cleanLine(lines[k], d.lines[k])])) as Record<CertificateLineKey, CertificateLine>,
+    signatories: Object.fromEntries(CERTIFICATE_SIGNATORY_KEYS.map((k) => [k, cleanSignatory(isObject(input.signatories) ? input.signatories[k] : null)])) as Record<CertificateSignatoryKey, CertificateSignatory>,
   }
 }
 

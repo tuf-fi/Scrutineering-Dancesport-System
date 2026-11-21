@@ -1,6 +1,6 @@
 import { ListChecks, Medal, Trophy } from 'lucide-react'
 import { CompetitorEntries, CompetitorRankings, CompetitorResults } from '../../components/CompetitorActivity.tsx'
-import { EntryPayments } from './EntryPayments.tsx'
+import { EntryEvents } from './EntryEvents.tsx'
 
 export const ACTIVITY = [
   {
@@ -9,7 +9,7 @@ export const ACTIVITY = [
     icon: ListChecks,
     render: (id: string) => (
       <>
-        <EntryPayments competitorId={id} />
+        <EntryEvents competitorId={id} />
         <CompetitorEntries competitorId={id} />
       </>
     ),

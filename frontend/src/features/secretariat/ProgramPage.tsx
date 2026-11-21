@@ -32,6 +32,7 @@ import {
   eventCode,
   eventDances,
   formatClock,
+  adjudicatorSets,
   letterRanges,
   programAction,
   programLineName,
@@ -100,6 +101,7 @@ export function ProgramPage() {
     );
 
   const rows = program.data?.rows ?? [];
+  const setName = adjudicatorSets(rows);
 
   return (
     <div className="flex flex-col gap-6">
@@ -266,15 +268,16 @@ export function ProgramPage() {
           },
           {
             key: "adj",
-            header: "Adj.",
+            header: "Adjudicators",
             cell: (r) =>
               r.kind === ProgramKind.Round ? (
                 <span
+                  title={`Adjudicators ${letterRanges(r.adjudicators)}`}
                   className={
                     r.customSet ? "font-semibold text-neutral-900" : undefined
                   }
                 >
-                  {letterRanges(r.adjudicators)}
+                  {setName(r.adjudicators)}
                 </span>
               ) : (
                 ""

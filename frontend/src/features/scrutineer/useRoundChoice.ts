@@ -40,8 +40,8 @@ export function useRoundChoice(pin = false) {
     floorId: current.data ?? '',
     row: list.find((r) => r.roundId === roundId),
     setRoundId: (id: string) => setParams({ round: id }, { replace: true }),
-    // The chairperson can do everything the scrutineer can
-    readOnly: false,
+    // The admin only looks at the rounds; the chairperson can do everything the scrutineer can
+    readOnly: role === Role.Admin,
     isChairperson: role === Role.Chairperson,
   }
 }

@@ -3,7 +3,7 @@ import { useParams } from 'react-router'
 import { EmptyState } from '../../components/ui/index.ts'
 import { useCatalog, useCertificateLayout } from '../../hooks/index.ts'
 import { competitorName, eventCode, eventDances, ordinal, placeRange, sheetDate } from '../../lib/format.ts'
-import { CertificateSheet } from './CertificateSheet.tsx'
+import { CertificateSheet, certificateSignatures } from './CertificateSheet.tsx'
 import { PrintState } from './PrintState.tsx'
 import { useFinalRows } from './useFinalRows.ts'
 import { usePrintContext } from './usePrintContext.ts'
@@ -37,7 +37,7 @@ export function CertificatesPage() {
                   <CertificateSheet
                     key={r.id}
                     layout={layout.data}
-                    signers={signers}
+                    signatures={certificateSignatures(layout.data, competition.organizer, signers.chairperson)}
                     date={date}
                     label={`Certificate, ${name}`}
                     pageBreak={i < rows.length - 1}

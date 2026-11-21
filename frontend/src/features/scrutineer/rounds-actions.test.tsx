@@ -27,11 +27,11 @@ describe('starting rounds', () => {
     expect(screen.queryByRole('button', { name: 'Start E11 Final' })).not.toBeInTheDocument()
   })
 
-  it('gives the chairperson the rounds controls too', async () => {
+  it('keeps the rounds page from the chairperson', async () => {
     cleanup()
     renderApp('/scrutineer', Role.Chairperson, chairperson)
-    await waitFor(() => expect(bodyRows()[0]).toHaveTextContent(/\d/))
-    expect((await screen.findAllByRole('button', { name: /^Start E\d+ / })).length).toBeGreaterThan(0)
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Rounds' })).not.toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /^Start E\d+ / })).not.toBeInTheDocument()
   })
 })
 

@@ -196,6 +196,7 @@ export const routes: RouteObject[] = [
               { path: 'fees', element: <FeesPage /> },
               { path: 'offline-day', element: <OfflineDayPage /> },
               { path: 'site', element: <SitePage /> },
+              { path: 'results', element: <ResultsPage /> },
               { path: 'certificates', element: <CertificateLayoutPage /> },
               { path: 'security', element: <SecurityPage /> },
             ],
@@ -240,14 +241,19 @@ export const routes: RouteObject[] = [
           {
             element: <StaffLayout />,
             children: [
-              { index: true, element: <RoundsPage /> },
-              { path: 'heats', element: <HeatsPage /> },
+              {
+                element: <RequireRole roles={[Role.Scrutineer]} signInPath={STAFF_SIGN_IN} />,
+                children: [
+                  { index: true, element: <RoundsPage /> },
+                  { path: 'heats', element: <HeatsPage /> },
+                  { path: 'panels', element: <PanelsPage /> },
+                  { path: 'advancement', element: <AdvancementPage /> },
+                  { path: 'certificates', element: <CertificateLayoutPage /> },
+                ],
+              },
               { path: 'paper-marks', element: <PaperMarksPage /> },
               { path: 'schedule', element: <SchedulePage /> },
               { path: 'program', element: <ProgramPage /> },
-              { path: 'panels', element: <PanelsPage /> },
-              { path: 'advancement', element: <AdvancementPage /> },
-              { path: 'certificates', element: <CertificateLayoutPage /> },
               { path: 'live', element: <LivePage /> },
               { path: 'recall', element: <RecallPage /> },
               { path: 'results', element: <ResultsPage /> },

@@ -114,6 +114,16 @@ export function letterRanges(letters: string[]): string {
     .join(', ')
 }
 
+// Names each different group of adjudicators in the program, in the order they first appear: Set A, Set B, Set C...
+export function adjudicatorSets(rows: Array<{ adjudicators: string[] }>): (letters: string[]) => string {
+  const names = new Map<string, string>()
+  for (const r of rows) {
+    const key = [...r.adjudicators].sort().join('')
+    if (key && !names.has(key)) names.set(key, `Set ${names.size < 26 ? String.fromCharCode(65 + names.size) : names.size + 1}`)
+  }
+  return (letters) => names.get([...letters].sort().join('')) ?? ''
+}
+
 // "₱1,300"
 export const formatPeso = (amount: number) =>
   new Intl.NumberFormat('en-PH', {

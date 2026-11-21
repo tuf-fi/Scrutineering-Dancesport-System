@@ -1,26 +1,98 @@
-import { CERTIFICATE_FONTS, certificatePage, fillCertificateText, type CertificateLayout, type CertificateLineKey, CERTIFICATE_TOKENS } from '@bis/shared'
-import type { CSSProperties } from 'react'
+import {
+  CERTIFICATE_FONTS,
+  CERTIFICATE_SIGNATORY_KEYS,
+  CERTIFICATE_SIGNATORY_ROLE,
+  certificatePage,
+  fillCertificateText,
+  type CERTIFICATE_TOKENS,
+  type CertificateLayout,
+  type CertificateLineKey,
+  type CertificateSignatoryKey,
+} from '@bis/shared'
+import { useRef, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { SignLine } from './SignLine.tsx'
-import { SIGNERS, type Signers } from './signers.ts'
+import type { Signer } from './signers.ts'
 
 export type CertificateValues = Partial<Record<(typeof CERTIFICATE_TOKENS)[number], string>>
 
+export interface CertificateSignature {
+  key: CertificateSignatoryKey
+  role: string
+  signer: Signer
+  x: number
+  y: number
+}
+
+// A line is 'line:name', a signature block is 'sign:president'
+export type MoveTarget = `line:${CertificateLineKey}` | `sign:${CertificateSignatoryKey}`
+
+// The organizer and the PDSF president sign from the layout. The chairperson signs with the name and signature saved on their
+// account, unless the layout sets its own.
+export function certificateSignatures(layout: CertificateLayout, organizerName: string, chairperson: Signer): CertificateSignature[] {
+  const s = layout.signatories
+  const signers: Record<CertificateSignatoryKey, Signer> = {
+    organizer: { name: s.organizer.name || organizerName, signature: s.organizer.signature },
+    chairperson: { name: s.chairperson.name || chairperson.name, signature: s.chairperson.signature ?? chairperson.signature },
+    president: { name: s.president.name, signature: s.president.signature },
+  }
+  return CERTIFICATE_SIGNATORY_KEYS.map((key) => ({ key, role: CERTIFICATE_SIGNATORY_ROLE[key], signer: signers[key], x: s[key].x, y: s[key].y }))
+}
+
 const HEADER: CertificateLineKey[] = ['organizer', 'title', 'competition']
 const BODY: CertificateLineKey[] = ['certify', 'name', 'team', 'placed', 'place', 'event', 'grade', 'number']
+const MM_PX = 96 / 25.4
 
-// One certificate page, drawn from the layout. The printed page and the editor's preview both use it.
-export function CertificateSheet({ layout, values, signers, date, label, pageBreak, selected, onSelect }: {
+// One certificate page, drawn from the layout. The printed page and the editor's preview both use it. In the editor every line
+// and signature can be dragged (or nudged with the arrow keys) to where it should be.
+export function CertificateSheet({ layout, values, signatures, date, label, pageBreak, selected, onSelect, onMove, zoom = 1 }: {
   layout: CertificateLayout
   values: CertificateValues
-  signers: Signers
+  signatures: CertificateSignature[]
   date: string
   label: string
   pageBreak?: boolean
-  // The editor's preview lets a line be picked by clicking it
   selected?: CertificateLineKey
   onSelect?: (key: CertificateLineKey) => void
+  // Called with how far to move, in millimetres
+  onMove?: (target: MoveTarget, dx: number, dy: number) => void
+  // How much the sheet is shrunk on screen, so a drag in pixels becomes millimetres
+  zoom?: number
 }) {
   const page = certificatePage(layout)
+  const last = useRef<{ x: number; y: number } | null>(null)
+
+  const drag = (target: MoveTarget, select?: () => void) => {
+    if (!onMove) return {}
+    return {
+      onPointerDown: (e: PointerEvent<HTMLElement>) => {
+        select?.()
+        e.currentTarget.setPointerCapture(e.pointerId)
+        last.current = { x: e.clientX, y: e.clientY }
+      },
+      onPointerMove: (e: PointerEvent<HTMLElement>) => {
+        if (!last.current) return
+        onMove(target, (e.clientX - last.current.x) / zoom / MM_PX, (e.clientY - last.current.y) / zoom / MM_PX)
+        last.current = { x: e.clientX, y: e.clientY }
+      },
+      onPointerUp: () => {
+        last.current = null
+      },
+      onPointerCancel: () => {
+        last.current = null
+      },
+      onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
+        const step = e.shiftKey ? 5 : 1
+        const move = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key]
+        if (!move) return
+        e.preventDefault()
+        onMove(target, move[0]!, move[1]!)
+      },
+      tabIndex: 0,
+    }
+  }
+  const shift = (x: number, y: number): CSSProperties => (x || y ? { transform: `translate(${x}mm, ${y}mm)` } : {})
+  const grab = 'cursor-grab touch-none rounded-sm outline-offset-4 transition-colors hover:bg-gold-50 active:cursor-grabbing'
+
   const lines = (keys: CertificateLineKey[]) =>
     keys.map((key) => {
       const l = layout.lines[key]
@@ -33,8 +105,10 @@ export function CertificateSheet({ layout, values, signers, date, label, pageBre
         fontStyle: l.italic ? 'italic' : 'normal',
         textTransform: l.uppercase ? 'uppercase' : 'none',
         lineHeight: 1.2,
+        color: l.color,
+        ...shift(l.x, l.y),
       }
-      if (!onSelect) {
+      if (!onMove) {
         return (
           <p key={key} style={style}>
             {text}
@@ -46,11 +120,10 @@ export function CertificateSheet({ layout, values, signers, date, label, pageBre
           key={key}
           style={style}
           role="button"
-          tabIndex={0}
+          aria-label={`Move ${text}`}
           aria-pressed={selected === key}
-          onClick={() => onSelect(key)}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect(key)}
-          className={`cursor-pointer rounded-sm px-2 outline-offset-4 transition-colors hover:bg-gold-50 ${selected === key ? 'bg-gold-50 outline outline-2 outline-gold-500' : ''}`}
+          {...drag(`line:${key}`, () => onSelect?.(key))}
+          className={`${grab} px-2 ${selected === key ? 'bg-gold-50 outline outline-2 outline-gold-500' : ''}`}
         >
           {text}
         </p>
@@ -67,10 +140,18 @@ export function CertificateSheet({ layout, values, signers, date, label, pageBre
       <header className="relative flex flex-col items-center gap-2 text-center">{lines(HEADER)}</header>
       <div className="relative flex flex-col items-center gap-3 text-center">{lines(BODY)}</div>
       <footer className="relative flex flex-col gap-4">
-        <div className="text-center">{lines(['venue'])}</div>
-        <div className="grid grid-cols-2 gap-16">
-          {SIGNERS.map(({ key, role }) => (
-            <SignLine key={key} role={role} signer={signers[key]} date={date} center />
+        <div className="flex flex-col items-center text-center">{lines(['venue'])}</div>
+        <div className="grid gap-10" style={{ gridTemplateColumns: `repeat(${signatures.length}, minmax(0, 1fr))` }}>
+          {signatures.map(({ key, role, signer, x, y }) => (
+            <div
+              key={key}
+              style={shift(x, y)}
+              {...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature` } : {})}
+              {...drag(`sign:${key}`)}
+              className={onMove ? grab : ''}
+            >
+              <SignLine role={role} signer={signer} date={date} center plain />
+            </div>
           ))}
         </div>
       </footer>

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button, EmptyState, ErrorState, SearchField, Table, Toolbar, ToolbarActions, Tooltip, toast } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { useAdjudicators, useEvents, usePanels, useSetPanel, useSetPanels, useCatalog } from '../../hooks/index.ts'
-import { eventCode, eventDances, letterRanges } from '../../lib/format.ts'
+import { adjudicatorSets, eventCode, eventDances, letterRanges } from '../../lib/format.ts'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { PanelsApplyDialog } from './PanelsApplyDialog.tsx'
 
@@ -40,6 +40,8 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
   }
 
   const everyEvent = (events.data ?? []).map((e) => e.id)
+  const lettersOf = (eventId: string) => panelOf(eventId).map((id) => everyone.find((a) => a.id === id)?.letter ?? '')
+  const setName = adjudicatorSets((events.data ?? []).map((e) => ({ adjudicators: lettersOf(e.id) })))
 
   // Says what was left alone, since an event that has started keeps its panel
   function applyMany(adjudicatorIds: string[], mode: 'replace' | 'add', eventIds = everyEvent) {
@@ -192,10 +194,10 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
             align: 'right' as const,
             mono: true,
             muted: true,
-            widthClass: 'w-24',
+            widthClass: 'w-28',
             cell: (e) => {
-              const ids = panelOf(e.id)
-              return ids.length ? letterRanges(ids.map((id) => everyone.find((a) => a.id === id)?.letter ?? '')) : 'None'
+              const letters = lettersOf(e.id)
+              return letters.length ? <span title={`Adjudicators ${letterRanges(letters)}`}>{setName(letters)}</span> : 'None'
             },
           },
         ]}

@@ -81,6 +81,7 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
     { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Setup' },
     ...entriesNav,
     ...dayNav,
+    { to: '/admin/results', label: 'Results', icon: Award, group: 'The day' },
     { to: '/admin/points', label: 'Points table', icon: ListOrdered, group: 'Scoring and fees' },
     { to: '/admin/payments', label: 'Payments', icon: Wallet, group: 'Scoring and fees' },
     { to: '/admin/fees', label: 'Fees and payment details', icon: Banknote, group: 'Scoring and fees' },
@@ -92,9 +93,9 @@ export const staffNav: Record<StaffRole, NavItem[]> = {
   ],
   secretariat: [...entriesNav, ...dayNav, { to: '/secretariat/panels', label: 'Panels', icon: ClipboardCheck, group: 'The day' }, { to: '/secretariat/security', label: 'Security', icon: ShieldCheck, group: 'System' }],
   scrutineer: scrutineerNav,
-  // The chairperson has everything the scrutineer and the compere have, the athletes list, and confirms ties
+  // The chairperson watches, marks on paper, decides ties, reads results, and sees the program and the athletes; setting up and running the rounds is the scrutineer's
   chairperson: [
-    ...scrutineerNav,
+    ...scrutineerNav.filter((item) => ['/scrutineer/schedule', '/scrutineer/program', '/scrutineer/live', '/scrutineer/paper-marks', '/scrutineer/recall', '/scrutineer/results', '/scrutineer/security'].includes(item.to)),
     { to: '/secretariat/athletes', label: 'Athletes', icon: IdCard, group: 'Entries' },
   ],
 }

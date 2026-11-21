@@ -1,11 +1,13 @@
-import { RoundStatus, SubmissionStatus, type AdjudicatorSubmission, type RoundRow } from '@bis/shared'
+import { ProgramStatus, RoundStatus, SubmissionStatus, type AdjudicatorSubmission, type RoundRow } from '@bis/shared'
 import { ArrowUpRight, Check } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
+import { StatusDot } from '../../components/StatusDot.tsx'
 import { ROUND_STATUS_LABEL } from '../../components/RoundStatusBadge.tsx'
 import { ErrorState, DarkPanel, PageHeader, Skeleton, glass } from '../../components/ui/index.ts'
 import { useAdjudicators, useLiveSubmissions, useRedances, useCatalog } from '../../hooks/index.ts'
-import { eventCode, eventDances } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { UpNext } from './FloorOverview.tsx'
 import { GoToFloor } from './GoToFloor.tsx'
 import { NoRounds } from './NoRounds.tsx'
 import { RoundSelect } from './RoundSelect.tsx'
@@ -59,7 +61,7 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
   const done = submissions.length > 0 && submitted === submissions.length
 
   return (
-    <DarkPanel aria-label="On the floor" className="flex flex-col gap-6 p-4 sm:gap-8 sm:p-6 lg:p-8">
+    <DarkPanel aria-label={`On the floor: ${eventCode({ number: row.eventNumber })}`} className="flex flex-col gap-6 p-4 sm:gap-8 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between gap-4">
         {select}
         <p className="flex items-center gap-2.5 text-small font-semibold">
@@ -145,20 +147,39 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
 }
 
 export function LivePage() {
-  const { rounds, list, roundId, floorId, row, setRoundId, noRounds, readOnly } = useRoundChoice()
+  const { rounds, list, roundId, floorId, row, setRoundId, noRounds, readOnly, isChairperson } = useRoundChoice()
 
   if (rounds.isError) return <ErrorState onRetry={() => void rounds.refetch()} />
   if (noRounds) return <NoRounds title="Live board" description="Each adjudicator's phone, updating as marks come in." canPlan={!readOnly} />
 
+  // The chairperson sees a board for every event on the floor, then what is coming
+  const onFloor = isChairperson ? list.filter((r) => r.onFloor).sort((a, b) => a.eventNumber - b.eventNumber) : []
+  const description = onFloor.length > 1 ? `${onFloor.length} events are on the floor. Each adjudicator's phone, updating as marks come in.` : "Each adjudicator's phone, updating as marks come in."
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Live board" description="Each adjudicator's phone, updating as marks come in." />
-      {row ? <Board key={roundId} row={row} final={row.recallNumber === null} select={
+      <PageHeader title="Live board" description={description} />
+      {isChairperson && <UpNext rounds={list} />}
+      {onFloor.length > 0 ? (
+        onFloor.map((r) => (
+          <div key={r.roundId} className="flex flex-col gap-3">
+            <p className="flex items-center gap-2.5 text-small font-bold uppercase tracking-wide text-neutral-900">
+              <StatusDot status={ProgramStatus.Current} className="size-2" />
+              Ongoing
+            </p>
+            <Board row={r} final={r.recallNumber === null} select={<p className="text-small font-semibold text-brown-100">{ROUND_TYPE_LABEL[r.type]}</p>} />
+          </div>
+        ))
+      ) : row ? (
+        <Board key={roundId} row={row} final={row.recallNumber === null} select={
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <RoundSelect inline rounds={list} value={roundId} onChange={setRoundId} />
               <GoToFloor floorId={floorId} roundId={roundId} onGo={setRoundId} />
             </div>
-          } /> : <Skeleton className="h-96 w-full" />}
+          } />
+      ) : (
+        <Skeleton className="h-96 w-full" />
+      )}
     </div>
   )
 }

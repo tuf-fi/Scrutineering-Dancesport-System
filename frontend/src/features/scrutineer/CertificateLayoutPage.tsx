@@ -1,6 +1,8 @@
 import {
   CERTIFICATE_FONTS,
   CERTIFICATE_PAPER,
+  CERTIFICATE_SIGNATORY_ROLE,
+  MAX_CERTIFICATE_OFFSET,
   CERTIFICATE_LINE_KEYS,
   CERTIFICATE_SIZE_RANGE,
   certificatePage,
@@ -11,13 +13,16 @@ import {
   type CertificateLineKey,
   type CertificateOrientation,
   type CertificatePaper,
+  type CertificateSignatory,
+  type CertificateSignatoryKey,
 } from '@bis/shared'
-import { Bold, CaseUpper, Italic, RectangleHorizontal, RectangleVertical, RotateCcw, Upload, X, type LucideIcon } from 'lucide-react'
+import { Bold, CaseUpper, Italic, RectangleHorizontal, RectangleVertical, RotateCcw, Undo2, Upload, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button, Dialog, ErrorState, Input, PageHeader, Select, Skeleton, toast } from '../../components/ui/index.ts'
 import { useCertificateLayout, useSaveCertificateLayout } from '../../hooks/index.ts'
 import { certificateDesign } from '../../lib/certificateDesign.ts'
-import { CertificateSheet } from '../print/CertificateSheet.tsx'
+import { signatureImage } from '../../lib/image.ts'
+import { CertificateSheet, certificateSignatures, type MoveTarget } from '../print/CertificateSheet.tsx'
 import { WordingDialog } from './WordingDialog.tsx'
 
 const LINE_LABEL: Record<CertificateLineKey, string> = {
@@ -48,7 +53,7 @@ const SAMPLE = {
   venue: 'Naga City',
   date: '20 November 2026',
 }
-const NO_SIGNERS = { scrutineer: { name: 'Scrutineer', signature: null }, chairperson: { name: 'Chairperson', signature: null } }
+const PLACEHOLDER_CHAIRPERSON = { name: 'Chairperson', signature: null }
 
 // The sheet is drawn in millimetres; this is its width in CSS pixels, so the preview can shrink to fit its column
 const MM_PX = 96 / 25.4
@@ -88,7 +93,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 // Shrinks the sheet to the width of the column it sits in
-function Preview({ sheetMm, children }: { sheetMm: number; children: ReactNode }) {
+function Preview({ sheetMm, children }: { sheetMm: number; children: (zoom: number) => ReactNode }) {
   const box = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   useEffect(() => {
@@ -106,7 +111,62 @@ function Preview({ sheetMm, children }: { sheetMm: number; children: ReactNode }
   return (
     <div ref={box}>
       <div style={{ zoom }} className="[&>article]:bg-white [&>article]:shadow-md">
-        {children}
+        {children(zoom)}
+      </div>
+    </div>
+  )
+}
+
+// One person who signs: their name and a picture of their signature
+function SignatoryRow({ role, note, value, onChange }: { role: string; note: string; value: CertificateSignatory; onChange: (v: CertificateSignatory) => void }) {
+  const file = useRef<HTMLInputElement>(null)
+  async function upload(chosen: File | undefined) {
+    if (!chosen) return
+    try {
+      onChange({ ...value, signature: await signatureImage(chosen) })
+      toast.success(`${role} signature added. Save the layout to use it.`)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not read that picture.')
+    }
+  }
+  return (
+    <div className="flex flex-col gap-3">
+      <Input label={`${role} name`} value={value.name} maxLength={100} hint={note} onChange={(e) => onChange({ ...value, name: e.target.value })} />
+      <div className="flex items-center gap-3">
+        {value.signature && <img src={value.signature} alt={`${role} signature`} className="h-10 max-w-32 rounded-md border border-neutral-200 bg-white object-contain p-1" />}
+        <Button type="button" variant="secondary" size="sm" onClick={() => file.current?.click()}>
+          <Upload aria-hidden className="size-4" />
+          {value.signature ? 'Change signature' : 'Upload signature'}
+        </Button>
+        {value.signature && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              onChange({ ...value, signature: null })
+              toast.success(`${role} signature removed. Save the layout to keep it.`)
+            }}
+          >
+            Remove
+          </Button>
+        )}
+        {(value.x !== 0 || value.y !== 0) && (
+          <Button type="button" variant="secondary" size="sm" onClick={() => onChange({ ...value, x: 0, y: 0 })}>
+            Reset position
+          </Button>
+        )}
+        <input
+          ref={file}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          aria-label={`${role} signature file`}
+          className="sr-only"
+          onChange={(e) => {
+            void upload(e.target.files?.[0])
+            e.target.value = ''
+          }}
+        />
       </div>
     </div>
   )
@@ -124,7 +184,7 @@ function Editor({ saved }: { saved: CertificateLayout }) {
 
   const setLine = (patch: Partial<CertificateLine>) => setDraft((d) => ({ ...d, lines: { ...d.lines, [key]: { ...d.lines[key], ...patch } } }))
   const style = (field: 'bold' | 'italic' | 'uppercase', label: string, icon: LucideIcon) => (
-    <Segment on={line[field]} label={label} icon={icon} onClick={() => setLine({ [field]: !line[field] })} />
+    <Segment on={line[field]} label={label} icon={icon} text={label} onClick={() => setLine({ [field]: !line[field] })} />
   )
 
   function persist(layout: CertificateLayout | null, message: string) {
@@ -149,6 +209,19 @@ function Editor({ saved }: { saved: CertificateLayout }) {
     }
   }
 
+  // Dragging moves a line or a signature by this many millimetres, never off the sheet
+  function moveElement(target: MoveTarget, dx: number, dy: number) {
+    const [kind, name] = target.split(':') as ['line' | 'sign', string]
+    const to = (v: number, by: number) => Math.round(Math.min(MAX_CERTIFICATE_OFFSET, Math.max(-MAX_CERTIFICATE_OFFSET, v + by)) * 10) / 10
+    setDraft((d) =>
+      kind === 'line'
+        ? { ...d, lines: { ...d.lines, [name]: { ...d.lines[name as CertificateLineKey], x: to(d.lines[name as CertificateLineKey].x, dx), y: to(d.lines[name as CertificateLineKey].y, dy) } } }
+        : { ...d, signatories: { ...d.signatories, [name]: { ...d.signatories[name as CertificateSignatoryKey], x: to(d.signatories[name as CertificateSignatoryKey].x, dx), y: to(d.signatories[name as CertificateSignatoryKey].y, dy) } } },
+    )
+  }
+
+  const setSignatory = (k: CertificateSignatoryKey, v: CertificateSignatory) => setDraft((d) => ({ ...d, signatories: { ...d.signatories, [k]: v } }))
+
   const orient = (orientation: CertificateOrientation) => () => setDraft((d) => ({ ...d, orientation }))
 
   return (
@@ -161,15 +234,19 @@ function Editor({ saved }: { saved: CertificateLayout }) {
       <div className="flex flex-col gap-8">
         <div aria-label="Preview" className="flex flex-col gap-3 lg:pr-[24rem]">
           <Preview sheetMm={certificatePage(draft).sheetWidth}>
-            <CertificateSheet
-              layout={draft}
-              values={SAMPLE}
-              signers={NO_SIGNERS}
-              date={SAMPLE.date}
-              label="Certificate preview"
-              selected={key}
-              onSelect={setKey}
-            />
+            {(zoom) => (
+              <CertificateSheet
+                layout={draft}
+                values={SAMPLE}
+                signatures={certificateSignatures(draft, SAMPLE.organizer, PLACEHOLDER_CHAIRPERSON)}
+                date={SAMPLE.date}
+                label="Certificate preview"
+                selected={key}
+                onSelect={setKey}
+                onMove={moveElement}
+                zoom={zoom}
+              />
+            )}
           </Preview>
         </div>
 
@@ -181,7 +258,7 @@ function Editor({ saved }: { saved: CertificateLayout }) {
             </Button>
           </div>
           <div className="flex flex-col divide-y divide-neutral-200 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <p className="p-5 text-small text-neutral-600">Click a line to edit it. Names, places, dates and signatures here are placeholders, just to view the layout.</p>
+          <p className="p-5 text-small text-neutral-600">Click a line to edit it, or drag it to move it (the arrow keys nudge it). Names, places, dates and signatures here are placeholders, just to view the layout.</p>
 
           <Section title="Page">
             <Select label="Paper" value={draft.paper} onChange={(e) => setDraft((d) => ({ ...d, paper: e.target.value as CertificatePaper }))}>
@@ -258,11 +335,57 @@ function Editor({ saved }: { saved: CertificateLayout }) {
                 className="font-mono tabular-nums"
               />
             </div>
-            <Segmented label="Style" className="self-start">
-              {style('bold', 'Bold', Bold)}
-              {style('italic', 'Italic', Italic)}
-              {style('uppercase', 'Capitals', CaseUpper)}
-            </Segmented>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-small font-medium text-neutral-700">Style</span>
+              <Segmented label="Style" className="self-start">
+                {style('bold', 'Bold', Bold)}
+                {style('italic', 'Italic', Italic)}
+                {style('uppercase', 'Capitals', CaseUpper)}
+              </Segmented>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-small font-medium text-neutral-700">Color</span>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  aria-label="Font color"
+                  title="Font color"
+                  value={line.color}
+                  onChange={(e) => setLine({ color: e.target.value })}
+                  className="h-9 w-12 cursor-pointer rounded-md border border-neutral-200 bg-white p-1"
+                />
+                <span className="font-mono text-small uppercase tabular-nums text-neutral-600">{line.color}</span>
+              </div>
+            </div>
+            {(line.x !== 0 || line.y !== 0) && (
+              <div>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setLine({ x: 0, y: 0 })}>
+                  <Undo2 aria-hidden className="size-4" />
+                  Reset position
+                </Button>
+              </div>
+            )}
+          </Section>
+
+          <Section title="Signatures">
+            <SignatoryRow
+              role={CERTIFICATE_SIGNATORY_ROLE.organizer}
+              note="Leave the name empty to use the competition's organizer."
+              value={draft.signatories.organizer}
+              onChange={(v) => setSignatory('organizer', v)}
+            />
+            <SignatoryRow
+              role={CERTIFICATE_SIGNATORY_ROLE.chairperson}
+              note="Leave empty to use the name and signature saved on the chairperson's account."
+              value={draft.signatories.chairperson}
+              onChange={(v) => setSignatory('chairperson', v)}
+            />
+            <SignatoryRow
+              role={CERTIFICATE_SIGNATORY_ROLE.president}
+              note="Enter the name and upload the signature once."
+              value={draft.signatories.president}
+              onChange={(v) => setSignatory('president', v)}
+            />
           </Section>
 
           </div>

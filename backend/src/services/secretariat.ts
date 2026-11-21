@@ -457,6 +457,21 @@ export const secretariat = {
     record(ctx.db, actor(ctx).id, 'Deleted competitor', competitor.names.join(' & '), { before: { removed: impactSummary(impact) } })
   },
 
+  // Takes an athlete out of one event, whoever entered them; the athlete and their other entries stay
+  deleteEntry(ctx: Ctx, entryId: string): void {
+    const entry = found(ctx.db.select().from(t.entries).where(eq(t.entries.id, entryId)).get(), 'Entry')
+    const event = getEventRow(ctx, entry.eventId)
+    checkNotStarted(ctx, event.id)
+    const names = entryRow(ctx, entry).names.join(' & ')
+    ctx.db.delete(t.entries).where(eq(t.entries.id, entryId)).run()
+    // A payment nobody has paid and no entry uses any more goes with it; a paid one stays for the secretariat to settle
+    if (entry.paymentId && !ctx.db.select().from(t.entries).where(eq(t.entries.paymentId, entry.paymentId)).get()) {
+      const payment = getPaymentRow(ctx, entry.paymentId)
+      if (payment.status === PaymentStatus.Unpaid || payment.status === PaymentStatus.Rejected) ctx.db.delete(t.payments).where(eq(t.payments.id, payment.id)).run()
+    }
+    record(ctx.db, actor(ctx).id, 'Removed entry', `Event ${event.number}, ${names}`, { before: { scratched: entry.scratched, paymentId: entry.paymentId } })
+  },
+
   deleteLateEntry(ctx: Ctx, entryId: string): void {
     const entry = lateEntry(ctx, entryId)
     const event = getEventRow(ctx, entry.eventId)

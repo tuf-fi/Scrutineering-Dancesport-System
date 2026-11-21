@@ -11,6 +11,6 @@ describe('a round screen with no round on the floor', () => {
   it('shows a round instead of a loading placeholder', async () => {
     await api.clearFloor('staff-scrutineer')
     renderApp('/scrutineer/live', Role.Scrutineer, scrutineer)
-    expect(await screen.findByRole('region', { name: 'On the floor' })).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: /^On the floor/ })).toBeInTheDocument()
   })
 })

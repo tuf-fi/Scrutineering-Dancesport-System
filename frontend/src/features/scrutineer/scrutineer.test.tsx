@@ -43,9 +43,8 @@ describe('heats', () => {
 
     cleanup()
     renderApp('/scrutineer/heats', Role.Chairperson, chairperson)
-    await openMenu()
-    expect(await screen.findByRole('link', { name: 'Live board' })).toBeInTheDocument()
-    expect(await screen.findByLabelText('Per heat')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Heats' })).not.toBeInTheDocument())
+    expect(screen.queryByLabelText('Per heat')).not.toBeInTheDocument()
   })
 })
 
@@ -69,6 +68,20 @@ describe('live board', () => {
     expect(await screen.findByRole('link', { name: /Review the recall/ }, { timeout: 13_000 })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('7 of 7')
   }, 20_000)
+})
+
+describe('chairperson live board', () => {
+  it('shows a board for each event on the floor with the ongoing and up next events on top, not on the scrutineer’s', async () => {
+    renderApp('/scrutineer/live', Role.Chairperson, chairperson)
+    expect((await screen.findAllByRole('region', { name: /^On the floor: E\d+/ })).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Ongoing')).length).toBeGreaterThan(0)
+    expect(screen.getByRole('region', { name: 'Up next' })).toBeInTheDocument()
+
+    cleanup()
+    renderApp('/scrutineer/live', Role.Scrutineer, scrutineer)
+    await screen.findByText('A')
+    expect(screen.queryByRole('region', { name: 'Up next' })).not.toBeInTheDocument()
+  })
 })
 
 describe('results', () => {

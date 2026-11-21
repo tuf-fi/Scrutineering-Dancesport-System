@@ -13,7 +13,7 @@ import {
   eventDances,
   formatClock,
   formatDate,
-  letterRanges,
+  adjudicatorSets,
   programAction,
   todayIso,
 } from '../../lib/format.ts'
@@ -40,6 +40,7 @@ export function ProgramPage() {
   // A competition held on an earlier day is finished: every line reads Completed, whatever the round states say
   const past = competition.data ? competition.data.date < todayIso() : false
   const all = (program.data?.rows ?? []).map((r) => (past && r.kind === ProgramKind.Round ? { ...r, status: ProgramStatus.Completed } : r))
+  const setName = adjudicatorSets(all)
   const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data ?? []), ageGroupLabel)
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, `${query}|${round}|${back}`)
 
@@ -162,7 +163,7 @@ export function ProgramPage() {
                   </div>
                   <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
                     {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}
-                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">Adj. {letterRanges(r.adjudicators)}</span>}
+                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">Adjudicators: {setName(r.adjudicators)}</span>}
                   </p>
                   <span className="hidden text-center font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}
                     <HeatSplit heats={r.heats} className="text-xs" />

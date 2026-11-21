@@ -240,6 +240,7 @@ const access: Record<string, Access> = {
   updateCompetitor: ADMIN_OR_SECRETARIAT,
   deleteCompetitor: ADMIN_OR_SECRETARIAT,
   deleteLateEntry: ADMIN_OR_SECRETARIAT,
+  deleteEntry: ADMIN_OR_SECRETARIAT,
   updateLateEntry: ADMIN_OR_SECRETARIAT,
   saveEvent: ADMIN_OR_SECRETARIAT,
   getCoaches: [...OFFICIALS, Role.Athlete, Role.Coach],

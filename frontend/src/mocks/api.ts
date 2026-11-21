@@ -1359,6 +1359,20 @@ function lateEntry(entryId: string) {
   return entry
 }
 
+export const deleteEntry = (actorId: string, entryId: string) =>
+  settle<void>(() => {
+    const entry = found(entries.find((e) => e.id === entryId), 'Entry')
+    const event = found(events.find((e) => e.id === entry.eventId), 'Event')
+    const names = entryRow(entry).names.join(' & ')
+    entries.splice(entries.indexOf(entry), 1)
+    const payment = payments.find((p) => p.id === entry.paymentId)
+    if (payment) {
+      payment.entryIds = payment.entryIds.filter((id) => id !== entryId)
+      if (payment.entryIds.length === 0 && (payment.status === PaymentStatus.Unpaid || payment.status === PaymentStatus.Rejected)) payments.splice(payments.indexOf(payment), 1)
+    }
+    record(actorId, 'Removed entry', `Event ${event.number}, ${names}`)
+  })
+
 export const deleteLateEntry = (actorId: string, entryId: string) =>
   settle<void>(() => {
     const entry = lateEntry(entryId)

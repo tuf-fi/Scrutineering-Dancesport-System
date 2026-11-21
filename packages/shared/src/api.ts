@@ -18,6 +18,7 @@ export const API_FUNCTIONS = [
   'deleteCompetitor',
   'deleteEvent',
   'deleteLateEntry',
+  'deleteEntry',
   'deleteStaffUser',
   'enterAdjudicatorMarks',
   'generatePins',

@@ -55,13 +55,14 @@ describe('printouts', () => {
     expect(screen.getByText('Chairperson of Adjudicators')).toBeInTheDocument()
   })
 
-  it('prints a certificate for each placed finalist, signed by the scrutineer and the chairperson', async () => {
+  it('prints a certificate for each placed finalist, signed by the organizer, the chairperson and the PDSF president', async () => {
     renderApp(`/print/certificates/${E12}`, Role.Scrutineer, staff)
     const certificates = await screen.findAllByRole('article', { name: /^Certificate, / }, { timeout: 4000 })
     expect(certificates).toHaveLength(6)
     expect(within(certificates[0]!).getByText('1st')).toBeInTheDocument()
-    expect(within(certificates[0]!).getByText('Scrutineer')).toBeInTheDocument()
+    expect(within(certificates[0]!).getByText('Organizer')).toBeInTheDocument()
     expect(within(certificates[0]!).getByText('Chairperson of Adjudicators')).toBeInTheDocument()
+    expect(within(certificates[0]!).getByText('PDSF President')).toBeInTheDocument()
     // Nothing to sign on the page: the signatures come from the accounts
     expect(screen.queryByRole('region', { name: 'Signatures' })).not.toBeInTheDocument()
   })

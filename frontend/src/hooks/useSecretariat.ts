@@ -98,6 +98,12 @@ export const useUpdateCompetitor = () =>
 export const useDeleteCompetitor = () =>
   useWrite((v: { id: string; cascade?: boolean }) => api.deleteCompetitor(actor(), v.id, v.cascade), ['competitor-rows'])
 
+export const useDeleteEntry = () =>
+  useWrite(
+    (entryId: string) => api.deleteEntry(actor(), entryId),
+    ['late-entries', 'entry-rows', 'competition-entries', 'competitor-rows', 'payments', 'competitor-activity'],
+  )
+
 export const useDeleteLateEntry = () =>
   useWrite(
     (entryId: string) => api.deleteLateEntry(actor(), entryId),

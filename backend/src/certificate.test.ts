@@ -45,3 +45,34 @@ describe('the certificate paper', () => {
     await app.ok('saveCertificateLayout', [null], who.admin)
   })
 })
+
+describe('the certificate colors and signatories', () => {
+  it('keeps a valid font color and signature, and drops a bad color or a signature that is not a small PNG', async () => {
+    const layout = structuredClone(DEFAULT_CERTIFICATE_LAYOUT)
+    layout.lines.name.color = '#B3261E'
+    layout.lines.title.color = 'red'
+    layout.signatories.president = { name: 'Atty. Dela Cruz', signature: PICTURE, x: 0, y: 0 }
+    layout.signatories.organizer = { name: '', signature: 'data:image/jpeg;base64,AAAA', x: 0, y: 0 }
+    const saved = await app.ok<CertificateLayout>('saveCertificateLayout', [layout], who.scrutineer)
+    expect(saved.lines.name.color).toBe('#b3261e')
+    expect(saved.lines.title.color).toBe(DEFAULT_CERTIFICATE_LAYOUT.lines.title.color)
+    expect(saved.signatories.president).toEqual({ name: 'Atty. Dela Cruz', signature: PICTURE, x: 0, y: 0 })
+    expect(saved.signatories.organizer.signature).toBeNull()
+    await app.ok('saveCertificateLayout', [null], who.admin)
+  })
+})
+
+describe('moved elements and a chairperson signature set on the layout', () => {
+  it('keeps where a line and a signature were dragged, within the sheet, and a chairperson name and signature set on the layout', async () => {
+    const layout = structuredClone(DEFAULT_CERTIFICATE_LAYOUT)
+    layout.lines.name.x = 12.34
+    layout.lines.name.y = -5
+    layout.lines.title.x = 99999
+    layout.signatories.chairperson = { name: 'Hon. Santos', signature: PICTURE, x: -20, y: 3 }
+    const saved = await app.ok<CertificateLayout>('saveCertificateLayout', [layout], who.admin)
+    expect(saved.lines.name).toMatchObject({ x: 12.3, y: -5 })
+    expect(saved.lines.title.x).toBe(300)
+    expect(saved.signatories.chairperson).toEqual({ name: 'Hon. Santos', signature: PICTURE, x: -20, y: 3 })
+    await app.ok('saveCertificateLayout', [null], who.admin)
+  })
+})

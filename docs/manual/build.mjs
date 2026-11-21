@@ -485,11 +485,11 @@ out.push(page(
   ], [I('secretariat/heats', '', { h: 640 })]),
   feat('Program', 'Menu: Program', 'The running order with start times.', [
     'Press Generate to build it from the events: every round, break and the awarding.',
-    'Columns: Time, Sequence no., Event, Round, No. of Entries (with the heats of each round), Action (Select 6 or Rank 8), Adj., Min and Status.',
+    'Columns: Time, Sequence no., Event, Round, No. of Entries (with the heats of each round), Action (Select 6 or Rank 8), Adjudicators, Min and Status.',
     'Set Starts at to the first start time.',
     'Add break puts in a break. Use the arrows, pencil and bin on a line to move, edit or remove it.',
     'Add missing rounds fills in rounds added later. Print prints it on A4 portrait, with a sequence number on every line and the heats of each round.',
-    'Adj. shows who marks each round. When only some of the panel mark a round (5 of 7, say), press Rotate adjudicators and enter how many, or use the adjudicators icon on a round to choose them. Only those adjudicators mark that round, and it cannot change once the round has started.',
+    'Adjudicators shows who marks each round as a set: Set A, Set B and so on, one name for each different group of adjudicators, in the order they first appear. When only some of the panel mark a round (5 of 7, say), press Rotate adjudicators and enter how many, or use the adjudicators icon on a round to choose them. Only those adjudicators mark that round, and it cannot change once the round has started.',
     'Visitors see the program on the website.',
   ], [I('secretariat/program-empty', 'Before it is generated', { h: 420 }), I('secretariat/program', 'After pressing Generate', { h: 640 }), I('secretariat/program-break', 'Add break')]),
   feat('Printouts', 'All printouts', 'Heat lists, recall lists, score sheets and blank sheets, plus the program.', [], [I('secretariat/print-index', '', { h: 560 }), I('secretariat/print-heats', 'Heat list', { y: 60, h: 700 })]),
@@ -521,7 +521,7 @@ out.push(page(
     'Hand the cards out privately. A new PIN signs that adjudicator\'s phone out.',
   ], [I('admin/pin-select', '', { h: 480 }), I('admin/pin-cards', '', { y: 40, h: 700 })]),
   feat('Panels', 'Adjudicators and panels, Panels tab', 'Choose which adjudicators mark each event.', [
-    'A grid of events by adjudicator. Tick the adjudicators for each event; the Panel column summarises them.',
+    'A grid of events by adjudicator. Tick the adjudicators for each event; the Panel column names each different group of adjudicators as a set (Set A, Set B and so on).',
   ], [I('admin/panels', '', { h: 640 })]),
   feat('Points table', 'Menu: Points table', 'The ranking points for each place.', [
     'Edit the points for 1st to 7th and for the semi-final and quarter-final, then Save changes.',

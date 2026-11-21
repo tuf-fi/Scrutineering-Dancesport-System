@@ -8,7 +8,7 @@ import {
   eventCode,
   eventDances,
   formatClock,
-  letterRanges,
+  adjudicatorSets,
   programAction,
   sheetDate,
 } from '../../lib/format.ts'
@@ -53,6 +53,7 @@ export function ProgramPrintPage() {
   if (!competition.data || !program.data || (number !== null && !mine.data)) return <Skeleton className="h-96 w-full" />
 
   const all = program.data.rows
+  const setName = adjudicatorSets(all)
   const rows = filterProgram(all, query, round, number === null ? null : new Set(mine.data), ageGroupLabel)
   const filtered = rows.length !== all.length
   const filter = [
@@ -100,7 +101,7 @@ export function ProgramPrintPage() {
                 <th className={`${th} ${keep}`}>Round</th>
                 <th className={`${thCenter} ${keep}`}>No. of Entries</th>
                 <th className={`${th} ${keep}`}>Action</th>
-                <th className={`${th} ${keep}`}>Adj.</th>
+                <th className={`${th} ${keep}`}>Adjudicators</th>
               </tr>
             </thead>
             <tbody>
@@ -121,7 +122,7 @@ export function ProgramPrintPage() {
                       <HeatSplit heats={r.heats} className="text-[8pt]" />
                     </td>
                     <td className={`${td} ${keep}`}>{programAction(r)}</td>
-                    <td className={`${td} ${num} ${keep}`}>{letterRanges(r.adjudicators)}</td>
+                    <td className={`${td} ${num} ${keep}`}>{setName(r.adjudicators)}</td>
                   </tr>
                 ) : (
                   <tr key={r.slotId} className="break-inside-avoid border-b border-neutral-300 font-semibold">
