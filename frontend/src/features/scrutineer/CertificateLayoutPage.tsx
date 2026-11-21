@@ -4,7 +4,6 @@ import {
   CERTIFICATE_LINE_KEYS,
   CERTIFICATE_SIZE_RANGE,
   certificatePage,
-  cleanCertificateLayout,
   fillCertificateText,
   type CertificateFont,
   type CertificateLayout,
@@ -13,11 +12,11 @@ import {
   type CertificateOrientation,
   type CertificatePaper,
 } from '@bis/shared'
-import { Bold, CaseUpper, ImageUp, Italic, RectangleHorizontal, RectangleVertical, RotateCcw, Upload, X, type LucideIcon } from 'lucide-react'
+import { Bold, CaseUpper, Italic, RectangleHorizontal, RectangleVertical, RotateCcw, Upload, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Button, Dialog, ErrorState, Input, PageHeader, Select, Skeleton, toast } from '../../components/ui/index.ts'
 import { useCertificateLayout, useSaveCertificateLayout } from '../../hooks/index.ts'
-import { heroPhoto } from '../../lib/image.ts'
+import { certificateDesign } from '../../lib/certificateDesign.ts'
 import { CertificateSheet } from '../print/CertificateSheet.tsx'
 import { WordingDialog } from './WordingDialog.tsx'
 
@@ -53,14 +52,6 @@ const NO_SIGNERS = { scrutineer: { name: 'Scrutineer', signature: null }, chairp
 
 // The sheet is drawn in millimetres; this is its width in CSS pixels, so the preview can shrink to fit its column
 const MM_PX = 96 / 25.4
-
-const readText = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(new Error('Could not read that file.'))
-    reader.readAsText(file)
-  })
 
 // One row of joined buttons where exactly one (or each, for styles) is on
 function Segmented({ label, className = '', children }: { label: string; className?: string; children: ReactNode }) {
@@ -128,7 +119,6 @@ function Editor({ saved }: { saved: CertificateLayout }) {
   const [editing, setEditing] = useState(0)
   const [asking, setAsking] = useState<'background' | 'reset' | null>(null)
   const importer = useRef<HTMLInputElement>(null)
-  const background = useRef<HTMLInputElement>(null)
   const line = draft.lines[key]
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved)
 
@@ -147,24 +137,15 @@ function Editor({ saved }: { saved: CertificateLayout }) {
     })
   }
 
-  async function chooseBackground(file: File | undefined) {
+  // The designed certificate becomes the background, and the page turns to match it
+  async function importDesign(file: File | undefined) {
     if (!file) return
     try {
-      const picture = await heroPhoto(file, 1754)
-      setDraft((d) => ({ ...d, background: picture }))
-      toast.success('Background added. Save the layout to use it.')
+      const { picture, portrait } = await certificateDesign(file)
+      setDraft((d) => ({ ...d, background: picture, orientation: portrait ? 'portrait' : 'landscape' }))
+      toast.success('Design imported. Save the layout to use it.')
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Could not read that picture.')
-    }
-  }
-
-  async function importLayout(file: File | undefined) {
-    if (!file) return
-    try {
-      setDraft(cleanCertificateLayout(JSON.parse(await readText(file))))
-      toast.success('Layout imported. Save it to use it.')
-    } catch {
-      toast.error('That file is not a certificate layout.')
+      toast.error(e instanceof Error ? e.message : 'Could not read that file.')
     }
   }
 
@@ -216,10 +197,6 @@ function Editor({ saved }: { saved: CertificateLayout }) {
                 <Segment on={draft.orientation === 'portrait'} label="Portrait" icon={RectangleVertical} text="Portrait" onClick={orient('portrait')} />
               </Segmented>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="secondary" size="sm" onClick={() => background.current?.click()}>
-                  <ImageUp aria-hidden className="size-4" />
-                  {draft.background ? 'Change background' : 'Background'}
-                </Button>
                 {draft.background && (
                   <Button
                     type="button"
@@ -233,17 +210,6 @@ function Editor({ saved }: { saved: CertificateLayout }) {
                 )}
               </div>
             </div>
-            <input
-              ref={background}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              aria-label="Certificate background"
-              className="sr-only"
-              onChange={(e) => {
-                void chooseBackground(e.target.files?.[0])
-                e.target.value = ''
-              }}
-            />
           </Section>
 
           <Section title="Line">
@@ -302,6 +268,7 @@ function Editor({ saved }: { saved: CertificateLayout }) {
           </div>
 
           <div className="flex flex-wrap gap-2 border-t border-neutral-200 p-5 lg:pr-20">
+            <p className="w-full text-small text-neutral-600">Import a designed certificate as the background: JPG, JPEG, PNG, WebP or PDF (first page), up to 10 MB.</p>
             <Button size="sm" onClick={() => importer.current?.click()}>
               <Upload aria-hidden className="size-4" />
               Import layout
@@ -313,11 +280,11 @@ function Editor({ saved }: { saved: CertificateLayout }) {
             <input
               ref={importer}
               type="file"
-              accept="application/json,.json"
-              aria-label="Layout file"
+              accept="image/jpeg,image/png,image/webp,application/pdf,.jpg,.jpeg,.png,.webp,.pdf"
+              aria-label="Certificate design"
               className="sr-only"
               onChange={(e) => {
-                void importLayout(e.target.files?.[0])
+                void importDesign(e.target.files?.[0])
                 e.target.value = ''
               }}
             />
