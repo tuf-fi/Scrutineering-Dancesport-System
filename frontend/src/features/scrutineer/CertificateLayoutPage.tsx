@@ -151,8 +151,8 @@ function SignatoryRow({ role, note, value, onChange }: { role: string; note: str
             Remove
           </Button>
         )}
-        {(value.x !== 0 || value.y !== 0) && (
-          <Button type="button" variant="secondary" size="sm" onClick={() => onChange({ ...value, x: 0, y: 0 })}>
+        {(value.x !== 0 || value.y !== 0 || value.signX !== 0 || value.signY !== 0 || value.nameX !== 0 || value.nameY !== 0) && (
+          <Button type="button" variant="secondary" size="sm" onClick={() => onChange({ ...value, x: 0, y: 0, signX: 0, signY: 0, nameX: 0, nameY: 0 })}>
             Reset position
           </Button>
         )}
@@ -211,13 +211,15 @@ function Editor({ saved }: { saved: CertificateLayout }) {
 
   // Dragging moves a line or a signature by this many millimetres, never off the sheet
   function moveElement(target: MoveTarget, dx: number, dy: number) {
-    const [kind, name] = target.split(':') as ['line' | 'sign', string]
+    const [kind, name] = target.split(':') as ['line' | 'sign' | 'picture' | 'name', string]
     const to = (v: number, by: number) => Math.round(Math.min(MAX_CERTIFICATE_OFFSET, Math.max(-MAX_CERTIFICATE_OFFSET, v + by)) * 10) / 10
-    setDraft((d) =>
-      kind === 'line'
-        ? { ...d, lines: { ...d.lines, [name]: { ...d.lines[name as CertificateLineKey], x: to(d.lines[name as CertificateLineKey].x, dx), y: to(d.lines[name as CertificateLineKey].y, dy) } } }
-        : { ...d, signatories: { ...d.signatories, [name]: { ...d.signatories[name as CertificateSignatoryKey], x: to(d.signatories[name as CertificateSignatoryKey].x, dx), y: to(d.signatories[name as CertificateSignatoryKey].y, dy) } } },
-    )
+    setDraft((d) => {
+      if (kind === 'line') return { ...d, lines: { ...d.lines, [name]: { ...d.lines[name as CertificateLineKey], x: to(d.lines[name as CertificateLineKey].x, dx), y: to(d.lines[name as CertificateLineKey].y, dy) } } }
+      const s = d.signatories[name as CertificateSignatoryKey]
+      // The block moves with its picture and name; the picture and the name can also move on their own
+      const moved = kind === 'sign' ? { x: to(s.x, dx), y: to(s.y, dy) } : kind === 'picture' ? { signX: to(s.signX, dx), signY: to(s.signY, dy) } : { nameX: to(s.nameX, dx), nameY: to(s.nameY, dy) }
+      return { ...d, signatories: { ...d.signatories, [name]: { ...s, ...moved } } }
+    })
   }
 
   const setSignatory = (k: CertificateSignatoryKey, v: CertificateSignatory) => setDraft((d) => ({ ...d, signatories: { ...d.signatories, [k]: v } }))
@@ -258,7 +260,7 @@ function Editor({ saved }: { saved: CertificateLayout }) {
             </Button>
           </div>
           <div className="flex flex-col divide-y divide-neutral-200 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <p className="p-5 text-small text-neutral-600">Click a line to edit it, or drag it to move it (the arrow keys nudge it). Names, places, dates and signatures here are placeholders, just to view the layout.</p>
+          <p className="p-5 text-small text-neutral-600">Click a line to edit it, or drag it to move it (the arrow keys nudge it). Each signature block, its signature picture and its name can be dragged on their own. Names, places, dates and signatures here are placeholders, just to view the layout.</p>
 
           <Section title="Page">
             <Select label="Paper" value={draft.paper} onChange={(e) => setDraft((d) => ({ ...d, paper: e.target.value as CertificatePaper }))}>

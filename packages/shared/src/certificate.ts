@@ -60,9 +60,14 @@ export interface CertificateSignatory {
   name: string
   // A small PNG data URL; null prints an empty line to sign by hand
   signature: string | null
-  // Moved from its place, in millimetres
+  // The whole block moved from its place, in millimetres
   x: number
   y: number
+  // The signature picture and the printed name moved further, on their own, inside the block
+  signX: number
+  signY: number
+  nameX: number
+  nameY: number
 }
 
 export interface CertificateLayout {
@@ -86,7 +91,7 @@ export const MAX_CERTIFICATE_BACKGROUND = 1_500_000
 
 const line = (text: string, size: number, o: Partial<CertificateLine> = {}): CertificateLine => ({ text, font: 'sans', size, bold: false, italic: false, uppercase: false, color: DEFAULT_CERTIFICATE_COLOR, x: 0, y: 0, ...o })
 
-const BLANK_SIGNATORY: CertificateSignatory = { name: '', signature: null, x: 0, y: 0 }
+const BLANK_SIGNATORY: CertificateSignatory = { name: '', signature: null, x: 0, y: 0, signX: 0, signY: 0, nameX: 0, nameY: 0 }
 
 export const DEFAULT_CERTIFICATE_LAYOUT: CertificateLayout = {
   paper: 'a4',
@@ -136,6 +141,10 @@ function cleanSignatory(input: unknown): CertificateSignatory {
     signature: typeof input.signature === 'string' && SIGNATURE_PNG.test(input.signature) && input.signature.length <= MAX_CERTIFICATE_SIGNATURE ? input.signature : null,
     x: offset(input.x),
     y: offset(input.y),
+    signX: offset(input.signX),
+    signY: offset(input.signY),
+    nameX: offset(input.nameX),
+    nameY: offset(input.nameY),
   }
 }
 

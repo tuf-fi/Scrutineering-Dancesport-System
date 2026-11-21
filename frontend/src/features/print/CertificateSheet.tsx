@@ -10,7 +10,7 @@ import {
   type CertificateSignatoryKey,
 } from '@bis/shared'
 import { useRef, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { SignLine } from './SignLine.tsx'
+import { SignLine, type SignParts } from './SignLine.tsx'
 import type { Signer } from './signers.ts'
 
 export type CertificateValues = Partial<Record<(typeof CERTIFICATE_TOKENS)[number], string>>
@@ -21,10 +21,14 @@ export interface CertificateSignature {
   signer: Signer
   x: number
   y: number
+  signX: number
+  signY: number
+  nameX: number
+  nameY: number
 }
 
-// A line is 'line:name', a signature block is 'sign:president'
-export type MoveTarget = `line:${CertificateLineKey}` | `sign:${CertificateSignatoryKey}`
+// A line is 'line:name', a signature block is 'sign:president', and its picture and printed name are 'picture:president' and 'name:president'
+export type MoveTarget = `line:${CertificateLineKey}` | `sign:${CertificateSignatoryKey}` | `picture:${CertificateSignatoryKey}` | `name:${CertificateSignatoryKey}`
 
 // The organizer and the PDSF president sign from the layout. The chairperson signs with the name and signature saved on their
 // account, unless the layout sets its own.
@@ -35,7 +39,7 @@ export function certificateSignatures(layout: CertificateLayout, organizerName: 
     chairperson: { name: s.chairperson.name || chairperson.name, signature: s.chairperson.signature ?? chairperson.signature },
     president: { name: s.president.name, signature: s.president.signature },
   }
-  return CERTIFICATE_SIGNATORY_KEYS.map((key) => ({ key, role: CERTIFICATE_SIGNATORY_ROLE[key], signer: signers[key], x: s[key].x, y: s[key].y }))
+  return CERTIFICATE_SIGNATORY_KEYS.map((key) => ({ key, role: CERTIFICATE_SIGNATORY_ROLE[key], signer: signers[key], x: s[key].x, y: s[key].y, signX: s[key].signX, signY: s[key].signY, nameX: s[key].nameX, nameY: s[key].nameY }))
 }
 
 const HEADER: CertificateLineKey[] = ['organizer', 'title', 'competition']
@@ -64,20 +68,25 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
   const drag = (target: MoveTarget, select?: () => void) => {
     if (!onMove) return {}
     return {
+      // Stopped here so dragging the picture or the name does not also drag the block around them
       onPointerDown: (e: PointerEvent<HTMLElement>) => {
+        e.stopPropagation()
         select?.()
         e.currentTarget.setPointerCapture(e.pointerId)
         last.current = { x: e.clientX, y: e.clientY }
       },
       onPointerMove: (e: PointerEvent<HTMLElement>) => {
+        e.stopPropagation()
         if (!last.current) return
         onMove(target, (e.clientX - last.current.x) / zoom / MM_PX, (e.clientY - last.current.y) / zoom / MM_PX)
         last.current = { x: e.clientX, y: e.clientY }
       },
-      onPointerUp: () => {
+      onPointerUp: (e: PointerEvent<HTMLElement>) => {
+        e.stopPropagation()
         last.current = null
       },
-      onPointerCancel: () => {
+      onPointerCancel: (e: PointerEvent<HTMLElement>) => {
+        e.stopPropagation()
         last.current = null
       },
       onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
@@ -85,6 +94,7 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
         const move = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key]
         if (!move) return
         e.preventDefault()
+        e.stopPropagation()
         onMove(target, move[0]!, move[1]!)
       },
       tabIndex: 0,
@@ -142,17 +152,24 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
       <footer className="relative flex flex-col gap-4">
         <div className="flex flex-col items-center text-center">{lines(['venue'])}</div>
         <div className="grid gap-10" style={{ gridTemplateColumns: `repeat(${signatures.length}, minmax(0, 1fr))` }}>
-          {signatures.map(({ key, role, signer, x, y }) => (
-            <div
-              key={key}
-              style={shift(x, y)}
-              {...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature` } : {})}
-              {...drag(`sign:${key}`)}
-              className={onMove ? grab : ''}
-            >
-              <SignLine role={role} signer={signer} date={date} center plain />
-            </div>
-          ))}
+          {signatures.map(({ key, role, signer, x, y, signX, signY, nameX, nameY }) => {
+            // The picture and the name carry their own shift on top of the block's; in print they are plain
+            const parts: SignParts = {
+              signature: { style: shift(signX, signY), ...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature picture`, className: grab, ...drag(`picture:${key}`) } : {}) },
+              name: { style: shift(nameX, nameY), ...(onMove ? { role: 'button', 'aria-label': `Move the ${role} name`, className: grab, ...drag(`name:${key}`) } : {}) },
+            }
+            return (
+              <div
+                key={key}
+                style={shift(x, y)}
+                {...(onMove ? { role: 'button', 'aria-label': `Move the ${role} signature block` } : {})}
+                {...drag(`sign:${key}`)}
+                className={onMove ? grab : ''}
+              >
+                <SignLine role={role} signer={signer} date={date} center plain parts={parts} />
+              </div>
+            )
+          })}
         </div>
       </footer>
     </article>
