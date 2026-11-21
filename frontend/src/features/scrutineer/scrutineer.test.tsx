@@ -2,7 +2,7 @@ import { Role } from '@bis/shared'
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { openMenu, renderApp } from '../../test-utils.tsx'
+import { renderApp } from '../../test-utils.tsx'
 
 // The sample round state is shared across tests in this file, so they run in order as one session:
 // the live round starts with three of seven adjudicators in and finishes during the live board test
