@@ -449,7 +449,7 @@ out.push(page(
   feat('Coaches', 'Menu: Coaches', 'The coaches on the entry forms.', ['Add, edit and delete. Enter the year their membership and the Coaches Summit were paid.', 'The membership ID (C-00001) is given automatically when the coach\'s membership is first recorded or paid. It cannot be typed in or changed.', 'Summits attended: add the date of each Coaches Summit the coach attended, and remove one added by mistake. The newest shows first.', 'Only an admin can change a coach\'s name. The same coach name cannot be added twice.'], [I('secretariat/coaches', '', { h: 560 }), I('secretariat/coach-add')]),
   feat('Athletes', 'Menu: Athletes', 'Every athlete in one list, paid or not: athletes with an account, athletes you added, and dancers who are only on an entry form.', [
     'Add athlete: a dancer and partner (leave the partner empty for a solo), team, province, coach and the membership paid for. Each dancer\'s date of birth, contact number, email and address are required; gender is optional and is used for the Solo Junior Female entries on the Bicol Athletes list. The same dancers cannot be added twice to one team.',
-    'Import CSV: add many from a spreadsheet file that follows the entry form columns. The coach must already be added.',
+    'Import CSV: add many from a CSV file (in Excel, Save As, CSV; an .xlsx file is not read). One row for each entry, with these columns in this order: Dancer, Partner (empty for a solo), Team, Province, Coach, Beginner (yes or no), then for the dancer and again for the partner: Date of birth, Contact no., Email, Address. A first row of titles is skipped. Only the first three are needed. The team and the coach must already be added.',
     'Assign back numbers: gives every entry a number. In an athlete\'s side panel, Set back number sets one by hand. An athlete in more than one entry (a solo and a couple) is asked which one.',
     'Filter by paid or not paid, competition, event and team; the line under the filters counts everyone.',
     'Payment waiting: check it against the money received, then press the tick to confirm. Their membership is then recorded for the year, and they get their membership ID (A-00001) with the first one.',
@@ -497,7 +497,7 @@ out.push(page(
 ))
 
 // ================================================================================ ADMIN
-out.push(divider('Admin', 'You set the system up. Use a laptop.', 'Competitions · Kinds and age groups · Adjudicators and panels · Points table · Payments · Fees · Staff accounts · Security · plus every secretariat screen'))
+out.push(divider('Admin', 'You set the system up. Use a laptop.', 'Competitions · Past competition · Kinds and age groups · Adjudicators and panels · Points table · Payments · Fees · Staff accounts · Security · plus every secretariat screen'))
 out.push(page(
   feat('Competitions', 'Menu: Competitions', 'Create and manage the competitions.', [
     'New competition: name, date, organizer, venue and a card photo (required). The date cannot be before today: a finished competition cannot be added or moved into the past. A competition already held can still have its other details corrected.',
@@ -506,6 +506,26 @@ out.push(page(
     'Hold the results until the awarding: finals are published as usual but stay private. Guests, Standings and the compere see nothing until the scrutineer or chairperson presses Reveal results. Leave it off to show each result as soon as it is published.',
     'Search, filter by year, edit and delete. A competition with events cannot be deleted.',
   ], [I('admin/competitions', '', { h: 560 }), I('admin/competition-new')]),
+  feat('Past competition', 'Menu: Past competition', 'Add a competition that was held before the system existed, so its results, ranking points and athlete history show like any other.', [
+    'Press Download template. It is an Excel file (.xlsx) with a Read me sheet and one sheet for each kind of row listed below. Fill it in and keep the column titles as they are: sheets and columns are found by name, in any order. Only .xlsx files are read.',
+    'Press Import previous record and choose the file, then Choose the card photo (every competition has one).',
+    'The system checks the whole file first and keeps nothing yet. Each thing to fix is listed with its sheet and row. A warning does not stop the import: it means the marks work out a different placing from the printed one, and the printed placing is kept.',
+    'When the list is clean, press Import it. All of the competition is saved, or none of it.',
+    'Dancers are matched to the ones already in the system by team and name, so their history joins up. Adjudicators are matched by name, and a new one gets a free letter. Imported dancers get no back number.',
+    'The age groups and classes used in Events must already exist under Kinds and age groups. Only the admin can import.',
+  ]),
+  `<table class="xl">
+<tr><th>Sheet</th><th>One row is</th><th>Columns</th></tr>
+<tr><td>Competition</td><td>The competition (one row)</td><td>name, date (year-month-day, such as 2024-03-16), venue, organizer, executor (optional)</td></tr>
+<tr><td>Events</td><td>One event</td><td>event_no, age_group, class, discipline (Latin or Standard), dances (with commas, such as waltz, tango), solo (yes or no), kind, province, uses_points (yes or no). The last three are optional.</td></tr>
+<tr><td>Competitors</td><td>One couple or solo dancer</td><td>back_number, name_1, name_2 (empty for a solo), team, birth_date (optional)</td></tr>
+<tr><td>Entries</td><td>Who entered which event (optional)</td><td>event_no, back_number. Dancers named in Rounds, Marks or Placings are entered by themselves.</td></tr>
+<tr><td>Adjudicators</td><td>One adjudicator</td><td>letter, name</td></tr>
+<tr><td>Rounds</td><td>One dancer in one round</td><td>event_no, round, back_number. The round is round_1, round_2, quarter_final, semi_final or final. Needed for every event that has marks.</td></tr>
+<tr><td>Marks</td><td>One mark</td><td>event_no, round, adjudicator (the letter), back_number, dance, mark. The mark is X before the final and a placing (1, 2, 3 and so on) in the final. Every dance has its own rows.</td></tr>
+<tr><td>Placings</td><td>One printed final placing (optional)</td><td>event_no, back_number, place. An event with only placings shows its results without the round detail.</td></tr>
+</table>
+<p class="xn">Dances are written as samba, cha_cha_cha, rumba, paso_doble, jive, waltz, tango, viennese_waltz, foxtrot or quickstep. Each adjudicator marks the same number of X in every dance of a round, and gives every finalist a different placing in each dance.</p>`,
   feat('Kinds and age groups', 'Menu: Kinds and age groups', 'The kinds of event and the age groups the system uses.', [
     'Kinds set which disciplines their events are danced in and who may enter, for example Beginners only or Closed to one province. Age groups set a name, how it is printed and the years of birth the group covers.',
     'A change never rewrites the past. Once an event in an age group has started, saving a change makes a new version and keeps the old one for those events, their results and sheets. Events still to run, and competitors, move to the new version.',
@@ -732,6 +752,10 @@ const css = `
   .chain div:first-child::before { content: '●'; }
   .chain b { width: 32mm; flex: 0 0 auto; }
   .chain span { color: var(--muted); }
+
+  table.xl { margin-top: 3mm; font-size: 8pt; }
+  table.xl td:first-child { font-weight: 700; white-space: nowrap; }
+  .xn { font-size: 8pt; color: #3d3730; margin: 2mm 0 0; }
 
   /* steps */
   .step { display: grid; grid-template-columns: 12mm 1fr; padding: 4mm 0; border-bottom: 1px solid var(--line); break-inside: avoid; }

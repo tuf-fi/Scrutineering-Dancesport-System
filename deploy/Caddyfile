@@ -1,3 +1,8 @@
+# www sends people to the main address (needs a DNS record for www too)
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}
+
 {$DOMAIN} {
 	encode zstd gzip
 
