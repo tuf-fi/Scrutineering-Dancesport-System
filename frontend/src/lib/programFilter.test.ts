@@ -35,7 +35,7 @@ describe('filterProgram for my entries', () => {
 describe('programPrintPath', () => {
   it('carries only the filters that are set', () => {
     expect(programPrintPath('c1', '', 'all')).toBe('/competitions/c1/program/print')
-    expect(programPrintPath('c1', ' Samba ', 'final', true)).toBe('/competitions/c1/program/print?q=Samba&round=final&pdf=1')
-    expect(programPrintPath('c1', '', 'all', false, ' 42 ')).toBe('/competitions/c1/program/print?back=42')
+    expect(programPrintPath('c1', ' Samba ', 'final')).toBe('/competitions/c1/program/print?q=Samba&round=final')
+    expect(programPrintPath('c1', '', 'all', ' 42 ')).toBe('/competitions/c1/program/print?back=42')
   })
 })

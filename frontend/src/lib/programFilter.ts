@@ -22,12 +22,11 @@ export function filterProgram(
 }
 
 // The address of the printout for a competition, carrying the filter so paper matches the screen
-export function programPrintPath(competitionId: string, query: string, round: string, pdf = false, back = ''): string {
+export function programPrintPath(competitionId: string, query: string, round: string, back = ''): string {
   const params = new URLSearchParams()
   if (query.trim()) params.set('q', query.trim())
   if (round !== 'all') params.set('round', round)
   if (back.trim()) params.set('back', back.trim())
-  if (pdf) params.set('pdf', '1')
   const text = params.toString()
   return `/competitions/${competitionId}/program/print${text ? `?${text}` : ''}`
 }

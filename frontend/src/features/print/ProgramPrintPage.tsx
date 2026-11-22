@@ -1,5 +1,5 @@
 import { ProgramKind } from '@bis/shared'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
 import { useCompetition, useEntriesByBackNumber, useProgram, useCatalog } from '../../hooks/index.ts'
@@ -26,8 +26,8 @@ function stamp(at: Date) {
   return `${sheetDate(date)}, ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
-// The whole running order on A4, however many lines it has. Print and PDF both open this page; PDF asks for the
-// print dialog at once, where "Save as PDF" is the destination.
+// The whole running order on A4, however many lines it has. The bar above offers Print and Download PDF; the print
+// dialog opens only when one is pressed, and "Save as PDF" is the destination there.
 export function ProgramPrintPage() {
   const { ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
@@ -40,12 +40,6 @@ export function ProgramPrintPage() {
   const back = params.get('back') ?? ''
   const number = /^\d+$/.test(back.trim()) ? Number(back) : null
   const mine = useEntriesByBackNumber(competitionId, number)
-  const pdf = params.get('pdf') === '1'
-  const ready = Boolean(competition.data && program.data && (number === null || mine.data))
-
-  useEffect(() => {
-    if (pdf && ready) window.print()
-  }, [pdf, ready])
 
   if (competition.isError || program.isError || mine.isError) {
     return <ErrorState onRetry={() => void Promise.all([competition.refetch(), program.refetch(), mine.refetch()])} />
@@ -83,8 +77,8 @@ export function ProgramPrintPage() {
         ))}
       </dl>
 
-      <p className="print:hidden border-b border-neutral-300 px-3 py-2 text-neutral-600">
-        {pdf ? 'In the print dialog, choose Save as PDF as the destination.' : 'Use the Print button above, or save it as a PDF from the print dialog.'}
+      <p data-pdf-skip className="print:hidden border-b border-neutral-300 px-3 py-2 text-neutral-600">
+        Use Print or Download PDF above.
       </p>
 
       <div className="px-3 py-3">

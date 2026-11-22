@@ -1,8 +1,13 @@
 import { Role } from '@bis/shared'
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { generateProgram, getAdjudicators, getCompetitors, getEntriesByBackNumber, setProgramStart } from '../../mocks/api.ts'
+import { downloadPdf } from '../../lib/pdf.ts'
 import { renderApp } from '../../test-utils.tsx'
+
+// The browser draws the pages; the tests only check that the button asks for it
+vi.mock('../../lib/pdf.ts', () => ({ downloadPdf: vi.fn(async () => {}) }))
 
 const staff = { id: 'staff-scrutineer', name: 'Teresita Quimpo' }
 const E12 = 'comp-sorsogon-2026:e12'
@@ -138,11 +143,16 @@ describe('program printout', () => {
     expect(sheetRows().length).toBeGreaterThan(0)
   })
 
-  it('opens the print dialog at once for the PDF link', async () => {
+  it('opens the print dialog only for Print, and Download PDF saves a file instead', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => {})
-    renderApp(`/competitions/${COMP}/program/print?pdf=1`)
-    await waitFor(() => expect(print).toHaveBeenCalledTimes(1))
-    expect(screen.getByText('In the print dialog, choose Save as PDF as the destination.')).toBeInTheDocument()
+    renderApp(`/competitions/${COMP}/program/print`)
+    await screen.findByText(/lines?( of \d+, filtered by .*)?\.$/)
+    expect(print).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Download PDF' }))
+    await waitFor(() => expect(downloadPdf).toHaveBeenCalledWith(expect.any(HTMLElement), 'program', 210))
+    expect(print).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Print' }))
+    expect(print).toHaveBeenCalledTimes(1)
     print.mockRestore()
   })
 })

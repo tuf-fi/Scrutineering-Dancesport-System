@@ -29,7 +29,7 @@ export function BlankSheetsPage() {
         return (
           <div className="flex flex-col">
             {adjudicators.map((a, i) => (
-              <div key={a.id} className={`bg-white p-6 shadow-md sm:p-[12mm] print:p-0 print:shadow-none ${i < adjudicators.length - 1 ? 'print-page-break mb-8 print:mb-0' : ''}`}>
+              <div key={a.id} data-pdf-page className={`bg-white p-6 shadow-md sm:p-[12mm] print:p-0 print:shadow-none ${i < adjudicators.length - 1 ? 'print-page-break mb-8 print:mb-0' : ''}`}>
                 <PrintSheet
                   title={`Adjudicator mark sheet: ${round ? ROUND_TYPE_LABEL[round.type] : ''}`}
                   event={event}

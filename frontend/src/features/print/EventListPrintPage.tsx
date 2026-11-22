@@ -1,5 +1,4 @@
-import type { Event } from '@bis/shared'
-import { useEffect } from 'react'
+﻿import type { Competition, Event } from '@bis/shared'
 import { useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
 import { useCatalog, useCompetition, useEventList } from '../../hooks/index.ts'
@@ -44,42 +43,44 @@ function paginate(events: Event[], rows: EventListRow[]): Chunk[][] {
 
 // Every event with the back numbers and athletes entered, on A4 pages shown one by one
 export function EventListPrintPage() {
-  const { ageGroupLabel } = useCatalog()
   const { competitionId = '' } = useParams()
   const [params] = useSearchParams()
   const competition = useCompetition(competitionId)
   const list = useEventList(competitionId)
-  const pdf = params.get('pdf') === '1'
-  const ready = Boolean(competition.data) && !list.isLoading
-
-  // PDF opens the print dialog at once; "Save as PDF" is the destination there
-  useEffect(() => {
-    if (pdf && ready) window.print()
-  }, [pdf, ready])
 
   if (competition.isError || list.isError) return <ErrorState onRetry={() => void Promise.all([competition.refetch(), list.retry()])} />
   if (!competition.data || list.isLoading) return <Skeleton className="h-96 w-full" />
 
   const rows = filterEventList(list.rows, params.get('event') ?? 'all', params.get('q') ?? '')
   const events = list.events.filter((e) => rows.some((r) => r.event.id === e.id))
-  const pages = paginate(events, rows)
 
   return (
     <div className="flex flex-col">
-      <p className="print:hidden mb-4 px-6 text-neutral-600 sm:px-0">
-        {pdf ? 'In the print dialog, choose Save as PDF as the destination.' : 'Use the Print button above, or save it as a PDF from the print dialog.'}
+      <p data-pdf-skip className="print:hidden mb-4 px-6 text-neutral-600 sm:px-0">
+        Use Print or Download PDF above.
       </p>
+      <EventListSheets competition={competition.data} events={events} rows={rows} />
+    </div>
+  )
+}
 
+// The A4 pages themselves, also drawn off screen when the list is saved as a PDF from the admin page
+export function EventListSheets({ competition, events, rows }: { competition: Competition; events: Event[]; rows: EventListRow[] }) {
+  const { ageGroupLabel } = useCatalog()
+  const pages = paginate(events, rows)
+
+  return (
+    <>
       {pages.map((chunks, i) => (
-        <div key={i} className={`bg-white p-6 shadow-md sm:p-[12mm] print:p-0 print:shadow-none ${i < pages.length - 1 ? 'print-page-break mb-8 print:mb-0' : ''}`}>
+        <div key={i} data-pdf-page className={`bg-white p-6 shadow-md sm:p-[12mm] print:p-0 print:shadow-none ${i < pages.length - 1 ? 'print-page-break mb-8 print:mb-0' : ''}`}>
           <article aria-label={`Page ${i + 1} of ${pages.length}`} className="flex flex-col border-2 border-neutral-900 text-[10pt] leading-snug text-neutral-900 sm:min-h-[273mm] print:min-h-0">
             {i === 0 ? (
               <>
-                <h1 className="print-exact border-b-2 border-neutral-900 bg-neutral-200 px-3 py-1.5 text-[15pt] font-bold">Event list: {competition.data.name}</h1>
+                <h1 className="print-exact border-b-2 border-neutral-900 bg-neutral-200 px-3 py-1.5 text-[15pt] font-bold">Event list: {competition.name}</h1>
                 <dl className="grid grid-cols-2 gap-x-6 border-b-2 border-neutral-900 px-3 py-2.5">
                   {[
-                    ['Date', sheetDate(competition.data.date)],
-                    ['Location', competition.data.venue],
+                    ['Date', sheetDate(competition.date)],
+                    ['Location', competition.venue],
                   ].map(([label, value]) => (
                     <div key={label} className="flex flex-col">
                       <dt className="text-[8pt] text-neutral-600">{label}</dt>
@@ -89,7 +90,7 @@ export function EventListPrintPage() {
                 </dl>
               </>
             ) : (
-              <p className="border-b border-neutral-300 px-3 py-1.5 text-[8pt] text-neutral-600">Event list: {competition.data.name}</p>
+              <p className="border-b border-neutral-300 px-3 py-1.5 text-[8pt] text-neutral-600">Event list: {competition.name}</p>
             )}
 
             <div className="flex flex-col gap-5 px-3 py-3">
@@ -97,7 +98,7 @@ export function EventListPrintPage() {
               {chunks.map(({ event, rows: chunk, continued }) => (
                 <section key={`${event.id}-${continued}`} className="break-inside-avoid">
                   <h2 className="mb-1 font-bold">
-                    {eventCode(event)} · {eventDances(event)} · {ageGroupLabel(event.ageGroup)} · {event.class}
+                    {eventCode(event)} Â· {eventDances(event)} Â· {ageGroupLabel(event.ageGroup)} Â· {event.class}
                     {continued && <span className="font-normal text-neutral-600"> (continued)</span>}
                   </h2>
                   <table className="w-full table-fixed border-collapse">
@@ -133,6 +134,6 @@ export function EventListPrintPage() {
           </article>
         </div>
       ))}
-    </div>
+    </>
   )
 }

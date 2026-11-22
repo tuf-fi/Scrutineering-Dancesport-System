@@ -144,6 +144,7 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
   return (
     <article
       aria-label={label}
+      data-pdf-page
       style={{ width: `${page.sheetWidth}mm`, height: `${page.sheetHeight}mm` }}
       className={`certificate-page relative flex mx-auto max-w-full flex-col justify-between overflow-hidden bg-white shadow-md px-[16mm] py-[9mm] text-neutral-900 ${pageBreak ? 'print-page-break' : ''}`}
     >
