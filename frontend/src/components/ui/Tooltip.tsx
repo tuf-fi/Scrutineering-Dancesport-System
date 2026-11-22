@@ -9,6 +9,15 @@ interface TooltipProps {
   className?: string
 }
 
+// Focus a script gives (a dialog opening on its first button) is not keyboard focus, so it shows no tooltip
+const keyboardFocus = (el: EventTarget) => {
+  try {
+    return (el as Element).matches(':focus-visible')
+  } catch {
+    return true
+  }
+}
+
 // Our hover and focus tooltip, in place of the browser's `title`. It sits in a portal so a table's scroll box never clips it
 export function Tooltip({ label, children, className }: TooltipProps) {
   const id = useId()
@@ -29,7 +38,7 @@ export function Tooltip({ label, children, className }: TooltipProps) {
       aria-describedby={at ? id : undefined}
       onMouseEnter={(e) => show(e.currentTarget)}
       onMouseLeave={hide}
-      onFocus={(e) => show(e.currentTarget)}
+      onFocus={(e) => keyboardFocus(e.target) && show(e.currentTarget)}
       onBlur={hide}
       onKeyDown={(e) => e.key === 'Escape' && hide()}
       onClick={hide}

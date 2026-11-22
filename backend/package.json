@@ -23,6 +23,7 @@
     "db:demo-floor":"tsx --env-file-if-exists=.env src/db/demofloor-cli.ts",
     "db:testdata": "tsx --env-file-if-exists=.env src/db/testdata-cli.ts",
     "db:testaccounts": "tsx --env-file-if-exists=.env src/db/testaccounts-cli.ts",
+    "staff:create": "tsx --env-file-if-exists=.env src/db/create-staff-cli.ts",
     "admin:create": "tsx --env-file-if-exists=.env src/db/create-admin-cli.ts",
     "results:compare": "tsx --env-file-if-exists=.env src/db/compare-results-cli.ts"
   },

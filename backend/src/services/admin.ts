@@ -1,4 +1,4 @@
-import { FeeMode, PIN_LENGTH, Role, staffEmailFor, checkAgeGroup, checkClass, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type ClassDef, type ClassInput, type Competition, type CompetitionInput, type Panel, type PanelsResult, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
+import { FeeMode, PIN_LENGTH, Role, checkAgeGroup, checkClass, checkEventKind, freshId, type AccountKind, type Adjudicator, type AdjudicatorPin, type AgeGroupDef, type AgeGroupInput, type ClassDef, type ClassInput, type Competition, type CompetitionInput, type Panel, type PanelsResult, type EventKindDef, type EventKindInput, type PointsRow, type StaffUser } from '@bis/shared'
 import { and, eq, inArray, ne, notInArray } from 'drizzle-orm'
 import { randomInt } from 'node:crypto'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -212,15 +212,11 @@ export const admin = {
   },
 
   createStaffUser(ctx: Ctx, input: { name: string; username: string; role: Role; photo: string }): { user: StaffUser; tempPassword: string } {
+    const username = clean(input?.username).toLowerCase()
     const name = clean(input?.name)
-    const role = staffRole(input?.role)
-    // In production the email is the role's own, so it is filled in rather than typed
-    const domain = ctx.config.staffEmailDomain
-    const typed = clean(input?.username).toLowerCase()
-    const username = domain ? staffEmailFor(role, domain) : typed
-    if (domain && typed && typed !== username) return fail(`The email of a ${role} is ${username}.`)
     if (!name || !username) return fail('Enter a name and an email.')
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) return fail('Enter a valid email address.')
+    const role = staffRole(input.role)
     const photo = checkPhoto(input?.photo)
     if (ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) return fail('That email is already used by another account.', 409)
     const tempPassword = temporaryPassword()
@@ -239,13 +235,9 @@ export const admin = {
     // A missing photo keeps the one already there; an account is never left without one
     const photo = input?.photo === undefined ? user.photo : checkPhoto(input.photo)
     if (!photo) return fail('Add a photo.')
-    // A new role means the role's own email
-    const domain = ctx.config.staffEmailDomain
-    const username = domain && role !== user.role ? staffEmailFor(role, domain) : user.username
-    if (username !== user.username && ctx.db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) return fail(`${username} is already used by another account.`, 409)
-    ctx.db.update(t.staffUsers).set({ name, role, photo, username }).where(eq(t.staffUsers.id, id)).run()
-    record(ctx.db, actor(ctx).id, 'Edited staff account', name, { before: { name: user.name, role: user.role, username: user.username }, after: { name, role, username } })
-    return toStaff({ ...user, name, role, photo, username })
+    ctx.db.update(t.staffUsers).set({ name, role, photo }).where(eq(t.staffUsers.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Edited staff account', name, { before: { name: user.name, role: user.role }, after: { name, role } })
+    return toStaff({ ...user, name, role, photo })
   },
 
   deleteStaffUser(ctx: Ctx, id: string, cascade?: boolean): { id: string } {

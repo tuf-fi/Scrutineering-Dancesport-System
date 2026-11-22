@@ -13,11 +13,7 @@ const read = (ctx: Ctx, key: string): string | null => (ctx.sqlite.prepare('SELE
 const urlOf = (which: string, data: string | null) => (data ? `${SITE_IMAGE_PATH}${which}?v=${pictureVersion(data)}` : null)
 
 // The pictures are sent as addresses, not inline, because every public page asks for these settings
-const settingsOf = (ctx: Ctx): SiteSettings => ({
-  heroImage: urlOf('hero', read(ctx, HERO_KEY)),
-  signInImage: urlOf('sign-in', read(ctx, SIGN_IN_KEY)),
-  staffEmailDomain: ctx.config.staffEmailDomain,
-})
+const settingsOf = (ctx: Ctx): SiteSettings => ({ heroImage: urlOf('hero', read(ctx, HERO_KEY)), signInImage: urlOf('sign-in', read(ctx, SIGN_IN_KEY)) })
 
 export const SITE_IMAGE_KEYS: Record<string, string> = { hero: HERO_KEY, 'sign-in': SIGN_IN_KEY }
 export const readSetting = read

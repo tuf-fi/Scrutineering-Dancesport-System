@@ -1162,8 +1162,6 @@ export interface SiteSettings {
   heroImage: string | null
   // The picture beside the sign-in forms; null for the built-in one
   signInImage: string | null
-  // When set, a staff account's email is its role at this domain and cannot be typed; null leaves it free
-  staffEmailDomain: string | null
 }
 
 // ---- The public report of one event, in the order of the printed result sheet ----

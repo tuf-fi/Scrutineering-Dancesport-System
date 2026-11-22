@@ -559,7 +559,7 @@ out.push(page(
   ], [I('admin/fees', 'Registration fees', { h: 640 }), I('admin/fees-late', 'Late entry fees', { h: 460 }), I('admin/fees-accounts', 'Accounts', { h: 520 }), I('admin/payment-method-add')]),
   feat('Staff accounts', 'Menu: Staff accounts', 'Create and manage the people who run the system.', [
     'Add account: name, email, photo (required) and role (secretariat, scrutineer, chairperson, compere, barker or admin).',
-    'The email is filled in from the role and cannot be typed: admin@boss2026.com, secretariat@boss2026.com, scrutineer@boss2026.com, chairperson@boss2026.com, compere@boss2026.com or barker@boss2026.com. Changing the role of an account changes its email to match, and the person signs in with the new one.',
+    'The email is the role followed by @boss2026.com: admin@boss2026.com, secretariat@boss2026.com, scrutineer@boss2026.com, chairperson@boss2026.com, compere@boss2026.com or barker@boss2026.com. The system does not force it, so type it when you add the account.',
     'A temporary password appears once. Give it to the person in person.',
     'Row icons: edit, reset password, reset two-step sign-in (if on), sign out everywhere, delete.',
     'Open an account to read its activity log.',
