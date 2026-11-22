@@ -1,7 +1,7 @@
 import { RoundStatus } from '@bis/shared'
 import { useParams } from 'react-router'
 import { EmptyState, ErrorState, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEvent, useRounds, useCatalog } from '../../hooks/index.ts'
+import { useCompetition, useDocumentTitle, useEvent, useRounds, useCatalog } from '../../hooks/index.ts'
 import { eventCode, eventDances, formatDate } from '../../lib/format.ts'
 import { EventReportView } from './EventReport.tsx'
 import { PublicHeader } from './PublicHeader.tsx'
@@ -12,6 +12,7 @@ export function EventResultsPage() {
   const event = useEvent(eventId)
   const competition = useCompetition(competitionId)
   const rounds = useRounds(eventId)
+  useDocumentTitle(event.data ? `${eventCode(event.data)} ${eventDances(event.data)}` : 'Results')
 
   if (event.isError) return <ErrorState onRetry={() => void event.refetch()} />
   if (!event.data || !competition.data) return <Skeleton className="h-24 w-full max-w-xl" />

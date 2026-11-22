@@ -174,6 +174,14 @@ Do not update during a competition. The app restarts for a few seconds, and phon
 
 **Rolling back:** `git log --oneline`, `git checkout <the previous commit>`, `docker compose up -d --build`. Database changes only move forward. If the release changed the database layout, restore the backup taken before it (see Restore) instead of only rolling the code back.
 
+## Search engines (SEO)
+
+The server makes `https://<DOMAIN>/robots.txt` and `https://<DOMAIN>/sitemap.xml` itself, and sets each page's title, description and link-preview picture from `PUBLIC_URL` (default `https://DOMAIN`). Sign-in, staff and dancer pages are marked `noindex`. After going live, once:
+
+1. Sign in at search.google.com/search-console and add your domain as a property (it asks for a DNS TXT record in GoDaddy to prove you own it).
+2. Open **Sitemaps** and submit `sitemap.xml`.
+3. Check a competition link in the Facebook Sharing Debugger (developers.facebook.com/tools/debug) to see its preview card.
+
 ## Maintenance mode
 
 While it is on, the public sees an "Under maintenance" page (HTTP 503) instead of the site. Staff who opened the bypass link keep using the real site, so you can test an update on the live server before opening it up. The page is `deploy/maintenance/maintenance.html`; the switch is the file `deploy/maintenance/on`, which Caddy checks on every request, so no restart is needed.

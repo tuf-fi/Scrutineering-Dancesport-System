@@ -5,7 +5,7 @@ import { useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
 import { StatusDot, StatusLegend } from '../../components/StatusDot.tsx'
 import { ButtonLink, EmptyState, ErrorState, Input, Skeleton } from '../../components/ui/index.ts'
-import { useCatalog, useCompetition, useEntriesByBackNumber, useRoundHeats, useProgram } from '../../hooks/index.ts'
+import { useCatalog, useCompetition, useDocumentTitle, useEntriesByBackNumber, useRoundHeats, useProgram } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { ROUND_TYPE_LABEL, eventCode, eventDances, formatClock, formatDate, programAction, todayIso } from '../../lib/format.ts'
 import { OnTheFloor } from './OnTheFloor.tsx'
@@ -82,6 +82,7 @@ export function LivePublicPage() {
   const { competitionId = '' } = useParams()
   const competition = useCompetition(competitionId)
   const program = useProgram(competitionId)
+  useDocumentTitle(competition.data ? `Live: ${competition.data.name}` : 'Live')
   const [back, setBack] = useState('')
   const [openSlot, setOpenSlot] = useState<string | null>(null)
   const number = /^\d+$/.test(back.trim()) ? Number(back) : null

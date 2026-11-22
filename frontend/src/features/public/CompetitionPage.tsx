@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ButtonLink, EmptyState, ErrorState, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEvents, useResultEventIds, useCatalog } from '../../hooks/index.ts'
+import { useCompetition, useDocumentTitle, useEvents, useResultEventIds, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { useRevealRow } from '../../hooks/useRevealRow.ts'
 import { cn } from '../../lib/cn.ts'
@@ -20,6 +20,7 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
   const { competitionId = '' } = useParams()
   const user = useAuth((s) => s.user)
   const competition = useCompetition(competitionId)
+  useDocumentTitle(competition.data?.name ?? 'Competition')
   const events = useEvents(competitionId)
   const withResults = useResultEventIds(competitionId)
   const [query, setQuery] = useState('')

@@ -4,7 +4,7 @@ import { Avatars } from '../../components/Avatars.tsx'
 import { ResultsByCompetition } from '../../components/ResultsByCompetition.tsx'
 import { Link, useLocation, useParams } from 'react-router'
 import { ButtonLink, EmptyState, ErrorState, Pagination, Skeleton } from '../../components/ui/index.ts'
-import { useTeams, useCompetitorHistory, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
+import { useDocumentTitle, useTeams, useCompetitorHistory, useCompetitors, useRankingPoints, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { competitorName } from '../../lib/format.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
@@ -26,6 +26,7 @@ export function CompetitorPage() {
   const points = useRankingPoints()
 
   const competitor = competitors.data?.find((c) => c.id === id)
+  useDocumentTitle('Dancer')
   const team = teams.data?.find((c) => c.id === competitor?.teamId)
 
   const standings = useMemo<CategoryStanding[]>(() => {

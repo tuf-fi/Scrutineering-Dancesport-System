@@ -27,6 +27,7 @@ import { pauseWhileOffline } from './services/offlineDay.ts'
 import { registerOfflineRoutes } from './offlineRoutes.ts'
 import { submissionSnapshot } from './services/rounds.ts'
 import { MAX_PHOTO, floorRounds, pictureVersion } from './services/shared.ts'
+import { registerSeo } from './seo.ts'
 import { SITE_IMAGE_KEYS } from './services/site.ts'
 
 export interface AppDeps {
@@ -350,10 +351,15 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
   // ---- The built frontend, so other devices only need a browser ----
 
   const frontend = config.frontendDir ? resolve(config.frontendDir) : null
-  if (frontend && existsSync(resolve(frontend, 'index.html'))) {
+  const hasFrontend = !!frontend && existsSync(resolve(frontend, 'index.html'))
+  // robots.txt, sitemap.xml and the per-address tags of the page that search engines and link previews read
+  const sendPage = registerSeo(app, { sqlite, origin: config.mail.publicUrl, indexPath: hasFrontend ? resolve(frontend!, 'index.html') : null })
+  if (frontend && hasFrontend && sendPage) {
     await app.register(fastifyStatic, {
       root: frontend,
       wildcard: false,
+      // The page itself goes through sendPage, which fills in its tags for the address asked
+      index: false,
       // The page must always be checked with the server, or a phone could keep an old version for good. Files with a
       // hash in their name never change, so they are kept.
       setHeaders: (res, path) => {
@@ -362,7 +368,7 @@ export async function buildApp({ config, sqlite, db, hub: givenHub, mailer = cre
       },
     })
     app.setNotFoundHandler((request, reply) => {
-      if (request.method === 'GET' && !request.url.startsWith('/api/')) return reply.sendFile('index.html')
+      if (request.method === 'GET' && !request.url.startsWith('/api/')) return sendPage(request, reply)
       return reply.code(404).send({ error: 'Unknown request.' })
     })
   } else {

@@ -4,7 +4,7 @@ import { useParams } from 'react-router'
 import { ProgramStatusBadge } from '../../components/ProgramStatusBadge.tsx'
 import { StatusDot, StatusLegend } from '../../components/StatusDot.tsx'
 import { Button, EmptyState, ErrorState, Input, Pagination, SearchField, Select, Skeleton } from '../../components/ui/index.ts'
-import { useCompetition, useEntriesByBackNumber, useProgram, useCatalog } from '../../hooks/index.ts'
+import { useCompetition, useDocumentTitle, useEntriesByBackNumber, useProgram, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
 import { cn } from '../../lib/cn.ts'
 import {
@@ -30,6 +30,7 @@ export function ProgramPage() {
   const { competitionId = '' } = useParams()
   const competition = useCompetition(competitionId)
   const program = useProgram(competitionId)
+  useDocumentTitle(competition.data ? `${competition.data.name} program` : 'Program')
   const [query, setQuery] = useState('')
   const [round, setRound] = useState('all')
   const [back, setBack] = useState('')
