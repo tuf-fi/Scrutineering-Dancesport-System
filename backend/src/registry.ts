@@ -10,6 +10,7 @@ import { advancement } from './services/advancement.ts'
 import { roundSets } from './services/roundSets.ts'
 import { signatures } from './services/signatures.ts'
 import { program } from './services/program.ts'
+import { pastImport } from './services/pastImport.ts'
 import { reads } from './services/reads.ts'
 import { rounds } from './services/rounds.ts'
 import { scrutiny } from './services/scrutiny.ts'
@@ -71,6 +72,7 @@ const handlers: Record<string, Handler> = {
   ...secretariat,
   ...registration,
   ...program,
+  ...pastImport,
   ...security,
   ...offlineDay,
   ...signatures,
@@ -224,6 +226,7 @@ const access: Record<string, Access> = {
   assignBackNumbers: ADMIN_OR_SECRETARIAT,
   importCompetitors: ADMIN_OR_SECRETARIAT,
   importCompetitorsCsv: ADMIN_OR_SECRETARIAT,
+  importPastCompetition: ADMIN,
   createLateEntry: ADMIN_OR_SECRETARIAT,
   markPaidAtVenue: ADMIN_OR_SECRETARIAT,
   markUnpaid: ADMIN_OR_SECRETARIAT,

@@ -75,7 +75,7 @@ function tieDecisionOf(ctx: Ctx, roundId: string): TieDecision | null {
 // The engine only needs the adjudicators who have submitted, so a round in progress gives a provisional tally
 // An adjudicator whose sheet is only part there (a heat is being danced again and they have not marked it yet) is left out
 // until it is whole, so the table stays provisional instead of failing
-function callbackFor(ctx: Ctx, round: typeof t.rounds.$inferSelect, recall: number) {
+export function callbackFor(ctx: Ctx, round: typeof t.rounds.$inferSelect, recall: number) {
   const roundMarks = marksOf(ctx, round.id).filter((m) => m.kind === 'x')
   const field = fieldOf(ctx, round)
   const dances = dancesIn(roundMarks)
@@ -513,7 +513,7 @@ function assertFinalTieSettled(ctx: Ctx, round: typeof t.rounds.$inferSelect) {
 }
 
 // Works out the final places and the places of everyone cut before it, and stores them
-function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: typeof t.events.$inferSelect, approvedBy: string) {
+export function writeResults(ctx: Ctx, round: typeof t.rounds.$inferSelect, event: typeof t.events.$inferSelect, approvedBy: string) {
   const final = finalOf(ctx, round)
 
   const sequence = roundsOfEvent(ctx, event.id)

@@ -10,5 +10,33 @@
 		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 	}
 
-	reverse_proxy app:4000
+	# Maintenance: visit /maintenance-bypass/<MAINTENANCE_BYPASS> once to keep using the real site while it is on
+	@bypass path /maintenance-bypass/{$MAINTENANCE_BYPASS}
+	handle @bypass {
+		header Set-Cookie "bis_maintenance_bypass={$MAINTENANCE_BYPASS}; Path=/; Max-Age=28800; Secure; HttpOnly; SameSite=Lax"
+		redir * / 303
+	}
+
+	# On while the file maintenance/on exists (see PRODUCTION.md, Maintenance mode)
+	@maintenance {
+		file {
+			root /srv/maintenance
+			try_files on
+		}
+		not header Cookie *bis_maintenance_bypass={$MAINTENANCE_BYPASS}*
+	}
+	handle @maintenance {
+		root * /srv/maintenance
+		@page not path /logo.png
+		rewrite @page /maintenance.html
+		header Cache-Control "no-store"
+		header Retry-After "600"
+		file_server {
+			status 503
+		}
+	}
+
+	handle {
+		reverse_proxy app:4000
+	}
 }

@@ -106,6 +106,7 @@ export const API_FUNCTIONS = [
   'submitRedanceMarks',
   'importCompetitors',
   'importCompetitorsCsv',
+  'importPastCompetition',
   'markPaidAtVenue',
   'markUnpaid',
   'moveScheduledEvent',

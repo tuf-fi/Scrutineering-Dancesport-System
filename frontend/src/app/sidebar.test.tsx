@@ -36,6 +36,7 @@ describe('staff sidebar', () => {
     expect(nav.getByRole('link', { name: /Amelia Rosales/ })).toHaveAttribute('href', '/account')
     expect(links.map((l) => l.textContent)).toEqual([
       'Competitions',
+      'Past competition',
       'Kinds, classes and age groups',
       'Adjudicators and panels',
       'Events',

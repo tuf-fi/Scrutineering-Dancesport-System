@@ -38,6 +38,7 @@ flowchart LR
 | The web server, headers and security policy | `deploy/Caddyfile` |
 | Your settings (never commit this) | `deploy/.env`, copied from `deploy/.env.example` |
 | The offsite copy script | `deploy/offsite.sh` |
+| The maintenance page and switch | `deploy/maintenance/` (`maintenance.html`; the file `on` exists only while it is on) |
 | The database and backups | The `bis-data` Docker volume, at `/data` inside the app container |
 | Certificates | The `caddy-data` Docker volume |
 | `deploy/docker-compose.override.yml` | For a developer's computer only: it publishes port 4000 on the machine's own loopback address. It is loaded automatically, so remove it or ignore it on the server; it is harmless there because it only listens on 127.0.0.1 |
@@ -82,6 +83,7 @@ nano .env
 | --- | --- |
 | `DOMAIN` | The address people will use, for example `bis.example.com` |
 | `DATA_KEY` | The output of `openssl rand -hex 32`. **Keep a copy outside the server**; if it is lost, staff set up two-step sign-in again |
+| `MAINTENANCE_BYPASS` | Required. The output of `openssl rand -hex 16`. It is the secret staff use to keep working while maintenance mode is on (see Maintenance mode) |
 | `COOKIE_SECRET` | Leave empty and the server makes and keeps its own |
 | `ADJUDICATOR_PIN_DAYS` | `1`: a PIN works one day either side of the competition date. Never `off` in production |
 | `BREVO_API_KEY`, `MAIL_FROM`, `PUBLIC_URL` | Email for confirming new accounts and for forgot password (see the table in README.md). Set these before opening sign-up to the public. |
@@ -171,6 +173,22 @@ docker compose logs --tail 50 app
 Do not update during a competition. The app restarts for a few seconds, and phones keep their marks and send them again, but there is no reason to risk it.
 
 **Rolling back:** `git log --oneline`, `git checkout <the previous commit>`, `docker compose up -d --build`. Database changes only move forward. If the release changed the database layout, restore the backup taken before it (see Restore) instead of only rolling the code back.
+
+## Maintenance mode
+
+While it is on, the public sees an "Under maintenance" page (HTTP 503) instead of the site. Staff who opened the bypass link keep using the real site, so you can test an update on the live server before opening it up. The page is `deploy/maintenance/maintenance.html`; the switch is the file `deploy/maintenance/on`, which Caddy checks on every request, so no restart is needed.
+
+**Turn it on, update, test, turn it off** (on the server, in `deploy/`):
+
+1. Make sure `MAINTENANCE_BYPASS` is set in `.env` (see Set up, step 3). The first time, run `docker compose up -d` after adding it.
+2. Take a backup and check it opens (see Backups).
+3. Turn maintenance on: `touch maintenance/on`
+4. Open `https://<DOMAIN>/maintenance-bypass/<your MAINTENANCE_BYPASS value>` in your browser, once. It keeps you on the real site for 8 hours. Anyone without it, including a private window, sees the maintenance page.
+5. Update: `git pull`, then `docker compose up -d --build`, then `curl https://<DOMAIN>/api/health`.
+6. Test the change in the browser where you opened the bypass link. Remove any test data you made (name it `ZZTEST` so you can find it).
+7. Turn maintenance off: `rm maintenance/on`. The public sees the site again at once.
+
+Check it from outside: `curl -I https://<DOMAIN>/` answers `503` while it is on and `200` when it is off. Uptime monitors will report the site as down while it is on. Keep the bypass link private, and change `MAINTENANCE_BYPASS` in `.env` (then `docker compose up -d`) if it leaks. To stop everyone, staff included, stop `app` instead: `docker compose stop app`.
 
 ## Backups
 

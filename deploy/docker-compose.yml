@@ -29,8 +29,10 @@ services:
       - "443:443"
     environment:
       DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+      MAINTENANCE_BYPASS: ${MAINTENANCE_BYPASS:?Set MAINTENANCE_BYPASS in .env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./maintenance:/srv/maintenance:ro
       - caddy-data:/data
 
   # Copies the newest backups to another place every day. Start it with: docker compose --profile offsite up -d

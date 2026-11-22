@@ -10,6 +10,7 @@ import {
   Clock,
   ClipboardCheck,
   ClipboardList,
+  History,
   Image as ImageIcon,
   IdCard,
   Inbox,
@@ -78,6 +79,7 @@ const dayNav: NavItem[] = [
 export const staffNav: Record<StaffRole, NavItem[]> = {
   admin: [
     { to: '/admin/competitions', label: 'Competitions', icon: Trophy, group: 'Setup' },
+    { to: '/admin/past-competition', label: 'Past competition', icon: History, group: 'Setup' },
     { to: '/admin/categories', label: 'Kinds, classes and age groups', icon: Layers, group: 'Setup' },
     { to: '/admin/adjudicators', label: 'Adjudicators and panels', icon: ClipboardCheck, group: 'Setup' },
     ...entriesNav,

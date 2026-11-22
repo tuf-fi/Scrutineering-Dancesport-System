@@ -49,6 +49,8 @@ import type {
   AuditEntry,
   BackupStatus,
   OfflineDayCounts,
+  PastImportReport,
+  PastWorkbook,
   OfflineDayInfo,
   PaymentSettings,
   Team,
@@ -203,6 +205,8 @@ export const importCompetitors = (_actorId: string, rows: Array<{ names: string[
   call<ImportResult>('importCompetitors', rows)
 // The server reads the file itself, so quoted fields with commas come through intact
 export const importCompetitorsCsv = (_actorId: string, text: string) => call<ImportResult>('importCompetitorsCsv', text)
+export const importPastCompetition = (_actorId: string, book: PastWorkbook, dryRun: boolean) =>
+  call<PastImportReport>('importPastCompetition', book, dryRun)
 export const getLateEntries = (competitionId: string) => call<LateEntryRow[]>('getLateEntries', competitionId)
 export const createLateEntry = (_actorId: string, input: { competitorId: string; eventId: string; paidInCash: boolean }) =>
   call<LateEntryRow>('createLateEntry', input)

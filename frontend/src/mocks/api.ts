@@ -2,6 +2,8 @@ import { ApiError } from '../api/http.ts'
 import {
   DEFAULT_FEE_SCHEDULE,
   type DeleteImpact,
+  type PastImportReport,
+  type PastWorkbook,
   type SimilarAccount,
   type DeleteImpactItem,
   type DeleteKind,
@@ -958,6 +960,16 @@ export const importCompetitors = (actorId: string, rows: CompetitorCsvRow[]) =>
 // The real server reads the uploaded file itself; the sample reads it here with the same parser
 export const importCompetitorsCsv = (actorId: string, text: string) =>
   importCompetitors(actorId, parseCompetitorCsv(text))
+
+// The sample has no server to check a workbook against, so it only says so
+export const importPastCompetition = (_actorId: string, _book: PastWorkbook, _dryRun: boolean) =>
+  reply<PastImportReport>({
+    imported: false,
+    errors: [{ sheet: 'File', row: 0, message: 'Importing is not available in the sample.' }],
+    warnings: [],
+    counts: { events: 0, competitors: 0, adjudicators: 0, rounds: 0, marks: 0, results: 0, newTeams: 0, newAdjudicators: 0 },
+    competitionName: '',
+  })
 
 // TODO: a competitor's age group comes from their birth date in the real system; new sample competitors have none
 function checkEligible(competitorId: string, event: { number: number; isSolo: boolean; ageGroup: AgeGroup; kind?: string; province?: string }) {

@@ -5,6 +5,8 @@ const buttonVariants = {
   secondary: 'border border-neutral-300 text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100',
   ghost: 'text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200',
   danger: 'bg-danger text-white hover:bg-[#9a1f19] active:bg-[#821a15]',
+  // Red text with no fill, for a quiet remove
+  'danger-ghost': 'text-danger hover:bg-danger-soft active:bg-danger-soft',
 } as const
 
 const buttonSizes = {
