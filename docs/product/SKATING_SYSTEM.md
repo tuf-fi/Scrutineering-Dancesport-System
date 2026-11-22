@@ -43,10 +43,12 @@ Places are given one at a time, starting with 1st. For the place being given, ca
 
 Only the best couple takes the place. The others that also had a majority are weighed again for the next place, from their own column.
 
-## Step 4: Several dances (Rules 9 to 11)
+## Step 4: Several dances (Rules 10 and 11)
 
-1. **Rule 9, add the dance places.** Place the couples in each dance with Step 3. Add each couple's dance places. The **lowest total** wins 1st, and so on down.
-2. **Rule 10, equal totals, one place at a time.** For the place under review, take the couples tied for it. Count each couple's **dance places** that are that place **or better**. The couple with the **most** takes it. If those counts are equal, the **lower sum** of those dance places takes it.
+**This competition's rule, which differs from the official Rule 9:** the summary still shows each couple's total of dance places, but the total does **not** decide the final rank. The rank is decided by counting places, below. This was asked for by the organisers; the official Skating System ranks by the lowest total first.
+
+1. **Place the dances.** Place the couples in each dance with Step 3.
+2. **Rule 10, one place at a time.** For the place under review, take the couples still to be placed. Count each couple's **dance places** that are that place **or better**. The couple with the **most** takes it (1st: the most 1sts; 2nd: the most 2nds or better; and so on). If those counts are equal, the **lower sum** of those dance places takes it.
 3. **Rule 11, still equal.** Treat **every adjudicator's marks from every dance** as the marks of one single dance, and apply Steps 3 (Rules 5 to 8) to the tied couples to pick the best. The others go back to Rule 10 for the next place.
 4. **Still equal after Rule 11.** The couples share the place and use the average.
 

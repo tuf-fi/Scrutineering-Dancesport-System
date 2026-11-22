@@ -28,6 +28,10 @@ const majorityColumns = (count: number, counts: (r: SkatingRow) => number[], tic
 
 type Column = TableColumn<SkatingRow>
 
+// A shared place (2.5) counts as the next whole place, as Rule 10 does
+const summaryCounts = (columns: number) => (r: SkatingRow) =>
+  Array.from({ length: columns }, (_, i) => r.byDance.filter((d) => d.place !== null && Math.ceil(d.place) <= i + 1).length)
+
 const placeColumn = (cell: (r: SkatingRow) => ReactNode): Column => ({ key: 'place', header: 'Place', cell, widthClass: 'w-20', mono: true })
 const backColumn: Column = { key: 'back', header: 'Back no.', cell: (r) => r.backNumber ?? '–', mono: true }
 const whoColumn: Column = { key: 'who', header: 'Competitor', cell: (r) => <span className="font-medium">{competitorName(r.names)}</span>, hideBelow: 'md', detail: false }
@@ -90,6 +94,8 @@ export function skatingColumns(table: SkatingTable, ticks = true): Column[] {
         group: isPlacing ? 'Dance places' : 'X marks per dance',
       })),
       { key: 'total', header: isPlacing ? 'Total' : 'X', cell: (r) => (isPlacing ? r.dancePlaces.reduce((sum, d) => sum + d.place, 0) : r.total), mono: true, bold: !isPlacing, align: 'center' },
+      // How many dance places are this place or better: the count that ranks the final, ticked where each place was decided
+      ...(isPlacing ? majorityColumns(table.rows.length, summaryCounts(table.rows.length), (r) => (ticks ? Math.floor(r.place) : null)) : []),
       { key: 'final', header: isPlacing ? 'Final rank' : 'Rank', cell: (r) => (isPlacing ? ordinal(r.place) : r.place), mono: true, bold: true, align: 'center' },
       ...rule,
     ]

@@ -59,7 +59,9 @@ describe('printouts', () => {
     renderApp(`/print/certificates/${E12}`, Role.Scrutineer, staff)
     const certificates = await screen.findAllByRole('article', { name: /^Certificate, / }, { timeout: 4000 })
     expect(certificates).toHaveLength(6)
-    expect(within(certificates[0]!).getByText('1st')).toBeInTheDocument()
+    // Printed from last place up, so 1st is the final page
+    expect(within(certificates[0]!).getByText('6th')).toBeInTheDocument()
+    expect(within(certificates[5]!).getByText('1st')).toBeInTheDocument()
     expect(within(certificates[0]!).getByText('Organizer')).toBeInTheDocument()
     expect(within(certificates[0]!).getByText('Chairperson of Adjudicators')).toBeInTheDocument()
     expect(within(certificates[0]!).getByText('PDSF President')).toBeInTheDocument()

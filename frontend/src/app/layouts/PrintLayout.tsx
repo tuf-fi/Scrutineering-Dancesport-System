@@ -29,7 +29,8 @@ export function PrintLayout() {
   // These printouts are made of whole pages, each drawn as a sheet of its own. The rest flow over as many A4 pages as they need,
   // so a dashed line shows about where the printer starts a new page.
   const blankSheets = useMatch('/print/blank-sheets/:eventId') !== null
-  const paged = certificates || blankSheets
+  const eventList = useMatch('/print/event-list/:competitionId') !== null
+  const paged = certificates || blankSheets || eventList
 
   return (
     <div className="min-h-dvh bg-neutral-100 print:min-h-0 print:bg-white">

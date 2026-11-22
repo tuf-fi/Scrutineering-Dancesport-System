@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 import { Dance } from '@bis/shared'
 import { combineDances, placeFinal, ScoringError, type PlacingMark } from './index.ts'
 
@@ -9,8 +9,8 @@ function summary(table: Record<string, number[]>) {
   return Object.fromEntries([...combineDances(ids, dances)].map(([id, p]) => [id, p.place]))
 }
 
-describe('final summary (Rules 9 and 10)', () => {
-  it('Rule 9: lowest total wins', () => {
+describe('final summary (most places, not the total)', () => {
+  it('the most places of the place under review wins, even against a lower total', () => {
     expect(
       summary({
         '91': [1, 1, 1, 1, 1],
@@ -22,7 +22,11 @@ describe('final summary (Rules 9 and 10)', () => {
         '97': [7, 6, 7, 6, 4],
         '98': [8, 8, 8, 8, 8],
       }),
-    ).toEqual({ '91': 1, '92': 2, '93': 3, '94': 4, '95': 5, '96': 6, '97': 7, '98': 8 })
+    ).toEqual({ '91': 1, '92': 2, '93': 3, '95': 4, '94': 5, '96': 6, '97': 7, '98': 8 })
+  })
+
+  it('more 1sts beat a lower total: 1, 1, 4 is ahead of 2, 2, 1', () => {
+    expect(summary({ a: [2, 2, 1], b: [1, 1, 4], c: [3, 3, 2], d: [4, 4, 3] })).toEqual({ b: 1, a: 2, c: 3, d: 4 })
   })
 
   it('Rule 10: equal totals go to the most 1st places, then the lower sum of 3rd and higher', () => {
@@ -82,7 +86,7 @@ describe('multi-dance final', () => {
     // A and B each win a dance and total 3. Over all six marks A has 6 in "2nd and higher", B 5
     expect(result.rows.map((r) => [r.competitorId, r.place, r.decidedBy])).toEqual([
       ['A', 1, 'rule11'],
-      ['B', 2, 'rule10'],
+      ['B', 2, 'total'],
       ['C', 3, 'total'],
     ])
     expect(result.rows[0]!.dancePlaces).toEqual({ waltz: 1, tango: 2 })
@@ -104,7 +108,7 @@ describe('multi-dance final', () => {
     expect(result.rows[0]!.dancePlaces).toEqual({ waltz: 1, tango: 2, foxtrot: 1, quickstep: 2 })
     expect(result.rows.map((r) => [r.competitorId, r.total, r.place, r.decidedBy])).toEqual([
       ['P', 6, 1, 'rule11'],
-      ['Q', 6, 2, 'rule10'],
+      ['Q', 6, 2, 'total'],
     ])
   })
 

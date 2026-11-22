@@ -1,12 +1,12 @@
 import { ArrowUpRight, Download } from 'lucide-react'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { Button, ButtonLink, ErrorState, PageHeader, SearchField, Select, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
+import { ButtonLink, ErrorState, PageHeader, SearchField, Select, Table, Toolbar, ToolbarActions } from '../../components/ui/index.ts'
 import { useCatalog, useEventList } from '../../hooks/index.ts'
 import type { EventListRow } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import { eventCode, eventDances } from '../../lib/format.ts'
-import { downloadCsv, eventListCsv, filterEventList } from '../../lib/eventList.ts'
+import { filterEventList } from '../../lib/eventList.ts'
 
 // Every event with the back numbers and the athletes entered, to print or download
 export function EventListPage() {
@@ -17,8 +17,10 @@ export function EventListPage() {
   const [query, setQuery] = useState('')
   const eventId = events.some((e) => e.id === params.get('event')) ? (params.get('event') as string) : 'all'
   const shown = filterEventList(rows, eventId, query)
-  const competition = competitions.find((c) => c.id === competitionId)
-  const printQuery = new URLSearchParams({ ...(eventId !== 'all' ? { event: eventId } : {}), ...(query.trim() ? { q: query.trim() } : {}) }).toString()
+  const printPath = (extra = '') => {
+    const q = new URLSearchParams({ ...(eventId !== 'all' ? { event: eventId } : {}), ...(query.trim() ? { q: query.trim() } : {}) }).toString()
+    return `/print/event-list/${competitionId}${q || extra ? `?${[q, extra].filter(Boolean).join('&')}` : ''}`
+  }
 
   if (isError) return <ErrorState onRetry={retry} />
 
@@ -26,7 +28,7 @@ export function EventListPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Event list" description="Every event with the back numbers and the athletes entered. Print it or download it for Excel." />
+      <PageHeader title="Event list" description="Every event with the back numbers and the athletes entered. Print it or save it as a PDF." />
       <Toolbar>
         <SearchField label="Search athletes" placeholder="Name, team or back number" value={query} onChange={setQuery} />
         <Select label="Event" value={eventId} onChange={(e) => pick({ event: e.target.value })}>
@@ -47,15 +49,11 @@ export function EventListPage() {
           </Select>
         )}
         <ToolbarActions>
-          <Button
-            variant="secondary"
-            disabled={shown.length === 0}
-            onClick={() => downloadCsv(`event-list-${(competition?.name ?? 'competition').toLowerCase().replace(/\W+/g, '-')}.csv`, eventListCsv(shown, ageGroupLabel))}
-          >
+          <ButtonLink variant="secondary" to={printPath('pdf=1')} target="_blank">
             <Download aria-hidden size={16} strokeWidth={2} />
-            Download
-          </Button>
-          <ButtonLink to={`/print/event-list/${competitionId}${printQuery ? `?${printQuery}` : ''}`} target="_blank">
+            Download PDF
+          </ButtonLink>
+          <ButtonLink to={printPath()} target="_blank">
             Print
             <ArrowUpRight aria-hidden size={16} strokeWidth={2} />
           </ButtonLink>

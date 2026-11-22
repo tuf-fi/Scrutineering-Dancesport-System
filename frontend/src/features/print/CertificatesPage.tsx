@@ -26,7 +26,9 @@ export function CertificatesPage() {
   const { eventId = '' } = useParams()
   const signers = useSheetSigners(eventId)
   const ctx = usePrintContext(eventId)
-  const { rows, byId, failed, retry } = useFinalRows(eventId)
+  const { rows: placed, byId, failed, retry } = useFinalRows(eventId)
+  // Last place prints first and 1st last, so the pile is in order when it is handed out from the top
+  const rows = [...placed].sort((a, b) => b.place - a.place)
   const { eventGrade } = useCatalog()
   const layout = useCertificateLayout()
 

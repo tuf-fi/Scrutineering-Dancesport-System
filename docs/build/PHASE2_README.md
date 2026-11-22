@@ -42,7 +42,7 @@ The Skating System rules (Rules 1–11) are fixed, so the engine must follow the
 
 ### 3. Skating System, multi-dance final (Rules 9–11)
 - [x] Place each dance with the single-dance rules.
-- [x] Combine the dance places into overall places: lowest total of dance places wins (Rule 9).
+- [x] Combine the dance places into overall places: the most places of the place under review wins, the total is shown but does not decide (see SKATING_SYSTEM.md, Step 4).
 - [x] Break equal totals with Rule 10 (most marks of the place or higher, then lower sum, one place at a time), then Rule 11 (all dances' marks as one dance). If Rule 11 cannot split them either, they share the average place and the chairperson decides.
 - [x] Support 2- to 5-dance events.
 - [x] Return the working per dance and overall.

@@ -2,10 +2,9 @@ import type { Dance, Id } from '@bis/shared'
 import { ScoringError } from './errors.ts'
 import { placeDance, rankHolders, validateDance, type DanceResult, type PlacingMark } from './skating.ts'
 
-// Skating System Rules 9-11: the overall places of a multi-dance final.
-// Rule 9: add each competitor's dance places; the lowest total wins.
-// Rule 10: equal totals, one place at a time: the most marks of that place or higher wins,
-// then the lower sum of those marks. Rule 11: still equal, treat every adjudicator's marks from
+// The overall places of a multi-dance final, as this competition ranks them: the total is shown
+// but does not decide. One place at a time (Rule 10): the most dance places of that place or better
+// wins, then the lower sum of those. Still equal (Rule 11): treat every adjudicator's marks from
 // every dance as one dance (Rules 5-8) to pick the best. Still equal after that, they share.
 
 export interface FinalDance {
@@ -66,55 +65,46 @@ function summarise(input: SummaryInput): Map<Id, Placed> {
   const { competitorIds, dancePlaces, allMarks, adjudicatorCount } = input
   const n = competitorIds.length
   const placesOf = new Map<Id, number[]>(competitorIds.map((id) => [id, dancePlaces.map((d) => d[id]!)]))
-  const total = (id: Id) => placesOf.get(id)!.reduce((sum, p) => sum + p, 0)
   const majority11 = Math.floor((adjudicatorCount * dancePlaces.length) / 2) + 1
 
   const result = new Map<Id, Placed>()
-  const totals = [...new Set(competitorIds.map(total))].sort((a, b) => a - b)
+  const remaining = [...competitorIds]
   let next = 1
 
-  for (const groupTotal of totals) {
-    const remaining = competitorIds.filter((id) => total(id) === groupTotal)
+  while (remaining.length > 0) {
     if (remaining.length === 1) {
       result.set(remaining[0]!, { place: next, announcedPlace: next, shared: false, decidedBy: 'total' })
+      break
+    }
+
+    // The place under review: the most dance places of this place or better wins, then the lower sum of those
+    const scored = remaining.map((id) => ({ id, ...summaryCount(placesOf.get(id)!, next) }))
+    const best = scored.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.sum < a.sum) ? b : a))
+    const tied = scored.filter((s) => s.count === best.count && s.sum === best.sum).map((s) => s.id)
+
+    if (tied.length === 1) {
+      // 'total' here means the count alone decided it; 'rule10' means the sum had to
+      const decidedBy = scored.some((s) => s.id !== best.id && s.count === best.count) ? 'rule10' : 'total'
+      result.set(best.id, { place: next, announcedPlace: next, shared: false, decidedBy })
+      remaining.splice(remaining.indexOf(best.id), 1)
       next += 1
       continue
     }
 
-    while (remaining.length > 0) {
-      if (remaining.length === 1) {
-        result.set(remaining[0]!, { place: next, announcedPlace: next, shared: false, decidedBy: 'rule10' })
-        next += 1
-        break
-      }
-
-      // Rule 10 for the place under review
-      const scored = remaining.map((id) => ({ id, ...summaryCount(placesOf.get(id)!, next) }))
-      const best = scored.reduce((a, b) => (b.count > a.count || (b.count === a.count && b.sum < a.sum) ? b : a))
-      const tied = scored.filter((s) => s.count === best.count && s.sum === best.sum).map((s) => s.id)
-
-      if (tied.length === 1) {
-        result.set(best.id, { place: next, announcedPlace: next, shared: false, decidedBy: 'rule10' })
-        remaining.splice(remaining.indexOf(best.id), 1)
-        next += 1
-        continue
-      }
-
-      // Rule 11: only the best of the tied competitors takes this place; the rest go back to Rule 10
-      const { groups } = rankHolders(allMarks, tied, next, n, majority11)
-      const top = groups[0]!
-      const average = next + (top.length - 1) / 2
-      for (const id of top) {
-        result.set(id, {
-          place: average,
-          announcedPlace: next,
-          shared: top.length > 1,
-          decidedBy: top.length > 1 ? 'shared' : 'rule11',
-        })
-        remaining.splice(remaining.indexOf(id), 1)
-      }
-      next += top.length
+    // Rule 11: only the best of the tied competitors takes this place; the rest go back to the count
+    const { groups } = rankHolders(allMarks, tied, next, n, majority11)
+    const top = groups[0]!
+    const average = next + (top.length - 1) / 2
+    for (const id of top) {
+      result.set(id, {
+        place: average,
+        announcedPlace: next,
+        shared: top.length > 1,
+        decidedBy: top.length > 1 ? 'shared' : 'rule11',
+      })
+      remaining.splice(remaining.indexOf(id), 1)
     }
+    next += top.length
   }
 
   return result

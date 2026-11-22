@@ -1,4 +1,4 @@
-{
+﻿{
   "source": "WDSF World Championship Burgas, 22 November 2025, Junior II Ten Dance final: https://www.worlddancesport.org/Competitions/Final/World-Championship-Burgas-Junior-II-Ten-Dance-62737",
   "adjudicators": ["A", "B", "C", "D", "E", "F", "G", "H", "I"],
   "dances": [
@@ -23,5 +23,5 @@
     "35": [1, 1, 1, 1, 1, 1, 2, 2, 1, 2]
   },
   "expectedPlaces": { "35": 1, "34": 2, "27": 3, "30": 4, "14": 5, "26": 6, "17": 7 },
-  "decidedBy": { "14": "rule10", "26": "rule10" }
+  "decidedBy": { "14": "total", "26": "total" }
 }

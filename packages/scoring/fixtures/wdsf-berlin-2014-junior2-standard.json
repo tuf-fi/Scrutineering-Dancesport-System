@@ -1,4 +1,4 @@
-{
+﻿{
   "source": "WDSF Open Berlin, 15 June 2014, Junior II Standard final: https://www.worlddancesport.org/Competitions/Final/Open-Berlin-Junior-II-Standard-45268",
   "adjudicators": ["A", "B", "C", "D", "E", "F", "G"],
   "dances": [
@@ -17,5 +17,5 @@
     "117": [2, 2, 3, 3, 3]
   },
   "expectedPlaces": { "115": 1, "103": 2, "117": 3, "112": 4, "105": 5, "106": 6 },
-  "decidedBy": { "103": "rule10", "117": "rule10" }
+  "decidedBy": { "103": "total", "117": "total" }
 }
