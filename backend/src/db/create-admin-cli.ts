@@ -14,7 +14,7 @@ const config = loadConfig()
 const { db, sqlite } = openDatabase(config.databasePath)
 runMigrations(db)
 try {
-  const admin = createAdmin(db, { username, name, password })
+  const admin = createAdmin(db, { username, name, password, staffEmailDomain: config.staffEmailDomain })
   console.log(`Admin "${admin.username}" created in ${config.databasePath}.`)
   console.log(`Password: ${admin.password}`)
   console.log('Sign in and change it from the Staff screen.')

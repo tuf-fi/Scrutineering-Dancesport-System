@@ -97,7 +97,7 @@ out.push(pageNew(`
 </table>
 <div class="signin"><div><h2 style="margin-top:0">Where to sign in</h2>
 <ul>
-<li><b>Staff</b> (admin, secretariat, scrutineer, chairperson, compere, barker): the website address followed by <b>/staff-access</b>.</li>
+<li><b>Staff</b> (admin, secretariat, scrutineer, chairperson, compere, barker): the website address followed by <b>/staff-access</b>. Your email is your role followed by <b>@boss2026.com</b>, such as <b>secretariat@boss2026.com</b>.</li>
 <li><b>Adjudicators:</b> the same page, <b>Adjudicator</b> tab, or the website address followed by <b>/adjudicator</b>.</li>
 <li><b>Athletes, coaches and teams:</b> press <b>Sign in</b> on the website and choose who you are. Athletes and coaches type their <b>membership ID</b> or their email; teams type their email.</li>
 </ul>
@@ -559,6 +559,7 @@ out.push(page(
   ], [I('admin/fees', 'Registration fees', { h: 640 }), I('admin/fees-late', 'Late entry fees', { h: 460 }), I('admin/fees-accounts', 'Accounts', { h: 520 }), I('admin/payment-method-add')]),
   feat('Staff accounts', 'Menu: Staff accounts', 'Create and manage the people who run the system.', [
     'Add account: name, email, photo (required) and role (secretariat, scrutineer, chairperson, compere, barker or admin).',
+    'The email is filled in from the role and cannot be typed: admin@boss2026.com, secretariat@boss2026.com, scrutineer@boss2026.com, chairperson@boss2026.com, compere@boss2026.com or barker@boss2026.com. Changing the role of an account changes its email to match, and the person signs in with the new one.',
     'A temporary password appears once. Give it to the person in person.',
     'Row icons: edit, reset password, reset two-step sign-in (if on), sign out everywhere, delete.',
     'Open an account to read its activity log.',
@@ -613,7 +614,7 @@ out.push(pageNew(`
 <p class="lead">From the first setup to published results. Each step names who does it and where.</p>
 <h2>Part 1 · Set up</h2>
 ${step(1, 'Admin', 'Set the fees and where to pay', 'Open <b>Fees and payment details</b>. Check the registration fees and the late entry fees, then add GCash, Maya or bank accounts under <b>Accounts</b>.')}
-${step(2, 'Admin', 'Create the staff accounts', 'Open <b>Staff accounts</b> and add the secretariat, scrutineer, chairperson and compere. Give each person their temporary password in person. Ask the secretariat and admin to turn on two-step sign-in.')}
+${step(2, 'Admin', 'Create the staff accounts', 'Open <b>Staff accounts</b> and add the secretariat, scrutineer, chairperson and compere, each with the email of its role: <b>secretariat@boss2026.com</b>, <b>scrutineer@boss2026.com</b>, <b>chairperson@boss2026.com</b> and <b>compere@boss2026.com</b> (the barker is <b>barker@boss2026.com</b>). Give each person their temporary password in person. Ask the secretariat and admin to turn on two-step sign-in.')}
 ${step(3, 'Admin', 'Add the adjudicators', 'Open <b>Adjudicators and panels</b> and add each adjudicator with a letter (A, B, C and so on).')}
 ${step(4, 'Admin', 'Check the points table', 'Open <b>Points table</b> and check the points for each place.')}
 ${step(5, 'Admin', 'Create the competition', 'Open <b>Competitions</b> and press <b>New competition</b>. Add the name, date, venue, organizer and a card photo. Set the entries and fees deadlines if you have them. Tick <b>Hold the results until the awarding</b> if every result is to be revealed together at the awarding.', [I('admin/competition-new', '', { mm: 62 })])}

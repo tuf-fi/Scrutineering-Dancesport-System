@@ -1,4 +1,4 @@
-import { Role } from '@bis/shared'
+import { Role, staffEmailFor } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import * as t from '../db/schema.ts'
@@ -7,11 +7,12 @@ import { newId } from '../ids.ts'
 import { hashPassword, temporaryPassword } from './password.ts'
 
 // The first admin of a new database. Everything else is done from the admin screens once this person signs in.
-export function createAdmin(db: Db, input: { username: string; name: string; password?: string }): { id: string; username: string; password: string } {
+export function createAdmin(db: Db, input: { username: string; name: string; password?: string; staffEmailDomain?: string | null }): { id: string; username: string; password: string } {
   const username = input.username.trim().toLowerCase()
   const name = input.name.trim()
   if (!username || !name) throw new Error('Give an email and a name.')
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(username)) throw new Error('Enter a valid email address.')
+  if (input.staffEmailDomain && username !== staffEmailFor(Role.Admin, input.staffEmailDomain)) throw new Error(`The admin's email must be ${staffEmailFor(Role.Admin, input.staffEmailDomain)}.`)
   if (db.select().from(t.staffUsers).where(eq(t.staffUsers.username, username)).get()) throw new Error(`The email "${username}" is already used by another account.`)
   const password = input.password ?? temporaryPassword()
   if (password.length < 8) throw new Error('Use a password of at least 8 characters.')

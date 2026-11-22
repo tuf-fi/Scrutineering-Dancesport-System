@@ -205,7 +205,7 @@ export const getCatalog = () => reply(catalog())
 
 let heroImage: string | null = null
 let signInImage: string | null = null
-export const getSiteSettings = () => reply<SiteSettings>({ heroImage, signInImage })
+export const getSiteSettings = () => reply<SiteSettings>({ heroImage, signInImage, staffEmailDomain: null })
 let certificateLayout: CertificateLayout = cleanCertificateLayout(null)
 export const getCertificateLayout = () => reply<CertificateLayout>(certificateLayout)
 export const saveCertificateLayout = (actorId: string, layout: CertificateLayout | null) =>
@@ -218,13 +218,13 @@ export const saveHeroImage = (actorId: string, image: string | null) =>
   settle<SiteSettings>(() => {
     heroImage = image
     record(actorId, image ? 'Changed the home page picture' : 'Reset the home page picture', 'Home page')
-    return { heroImage, signInImage }
+    return { heroImage, signInImage, staffEmailDomain: null }
   })
 export const saveSignInImage = (actorId: string, image: string | null) =>
   settle<SiteSettings>(() => {
     signInImage = image
     record(actorId, image ? 'Changed the sign-in picture' : 'Reset the sign-in picture', 'Home page')
-    return { heroImage, signInImage }
+    return { heroImage, signInImage, staffEmailDomain: null }
   })
 
 // TODO: the sample has no barker account, so its board is empty

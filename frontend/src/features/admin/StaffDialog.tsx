@@ -1,7 +1,7 @@
-import { Role, type StaffUser } from '@bis/shared'
+import { Role, staffEmailFor, type StaffUser } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, toast } from '../../components/ui/index.ts'
-import { useCreateStaff, useUpdateStaff } from '../../hooks/index.ts'
+import { useCreateStaff, useSiteSettings, useUpdateStaff } from '../../hooks/index.ts'
 import { ROLE_LABEL } from '../../lib/format.ts'
 import { PhotoInput } from '../../components/PhotoInput.tsx'
 import { STAFF_ROLES } from './constants.ts'
@@ -18,11 +18,14 @@ interface Values {
 function StaffForm({
   initial,
   editing,
+  domain,
   usernameError,
   onSubmit,
 }: {
   initial: Values
   editing: boolean
+  // Set in production: the email is the role's own, so it is shown, not typed
+  domain: string | null
   usernameError?: string
   onSubmit: (values: Values) => void
 }) {
@@ -33,10 +36,10 @@ function StaffForm({
     event.preventDefault()
     const found: typeof errors = {}
     if (!values.name.trim()) found.name = 'Enter a name.'
-    if (!editing && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.username.trim())) found.username = 'Enter a valid email address.'
+    if (!editing && !domain && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.username.trim())) found.username = 'Enter a valid email address.'
     if (!values.photo) found.photo = 'Add a photo.'
     setErrors(found)
-    if (Object.keys(found).length === 0) onSubmit(values)
+    if (Object.keys(found).length === 0) onSubmit(domain ? { ...values, username: staffEmailFor(values.role, domain) } : values)
   }
 
   return (
@@ -50,11 +53,11 @@ function StaffForm({
       />
       <Input
         label="Email" required
-        value={values.username}
+        value={domain ? staffEmailFor(values.role, domain) : values.username}
         onChange={(e) => setValues({ ...values, username: e.target.value })}
         error={errors.username ?? usernameError}
-        hint={editing ? "An email can't be changed." : undefined}
-        disabled={editing}
+        hint={domain ? 'The email follows the role.' : editing ? "An email can't be changed." : undefined}
+        disabled={editing || domain !== null}
         type="email"
         autoCapitalize="none"
       />
@@ -85,6 +88,7 @@ export function StaffDialog({
   const create = useCreateStaff()
   const update = useUpdateStaff()
   const editing = user !== null
+  const domain = useSiteSettings().data?.staffEmailDomain ?? null
   const [failure, setFailure] = useState<{ field: 'username' | 'other'; message: string } | null>(null)
   const pending = create.isPending || update.isPending
 
@@ -138,6 +142,7 @@ export function StaffDialog({
       <StaffForm
         key={user?.id ?? 'new'}
         editing={editing}
+        domain={domain}
         initial={{ name: user?.name ?? '', username: user?.username ?? '', role: user?.role ?? Role.Secretariat, photo: user?.photo ?? '' }}
         usernameError={failure?.field === 'username' ? failure.message : undefined}
         onSubmit={submit}

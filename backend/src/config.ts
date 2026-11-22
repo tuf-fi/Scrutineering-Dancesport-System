@@ -21,6 +21,8 @@ export interface Config {
   // Requests a minute from one address for calls that need no sign-in, such as the public pages; null means no limit.
   // Spectators on one mobile network can share an address, so this is generous.
   publicRatePerMinute: number | null
+  // Staff emails are the role at this domain (secretariat@boss2026.com); null leaves them free, as in development
+  staffEmailDomain: string | null
   // The venue laptop on a competition day: no internet, no HTTPS, everyone on the venue Wi-Fi (BIS_VENUE=true)
   venue: boolean
   // Email: the provider's key (none means mail is only printed), the sender, and the address the links in it point to
@@ -44,6 +46,14 @@ function pinWindowDays(env: NodeJS.ProcessEnv): number | null {
   const days = Number(value)
   if (!Number.isFinite(days) || days < 0) throw new Error(`ADJUDICATOR_PIN_DAYS must be a number of days or "off", got "${value}"`)
   return days
+}
+
+function staffEmailDomain(env: NodeJS.ProcessEnv): string | null {
+  const value = env.STAFF_EMAIL_DOMAIN?.trim().toLowerCase()
+  if (value === 'off') return null
+  if (!value) return env.NODE_ENV === 'production' ? 'boss2026.com' : null
+  if (!/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(value)) throw new Error(`STAFF_EMAIL_DOMAIN must be a domain such as boss2026.com or "off", got "${value}"`)
+  return value
 }
 
 function publicRate(env: NodeJS.ProcessEnv): number | null {
@@ -76,6 +86,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     dataKey,
     cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production' && env.BIS_VENUE !== 'true',
     venue: env.BIS_VENUE === 'true',
+    staffEmailDomain: staffEmailDomain(env),
     backupDirs: (env.BACKUP_DIRS ?? './data/backups').split(',').map((d) => d.trim()).filter(Boolean),
     backupIntervalMinutes: Number(env.BACKUP_INTERVAL_MINUTES ?? 5),
     frontendDir: env.FRONTEND_DIR === '' ? null : (env.FRONTEND_DIR ?? '../frontend/dist'),
