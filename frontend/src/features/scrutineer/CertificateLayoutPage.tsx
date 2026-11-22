@@ -42,7 +42,7 @@ const LINE_LABEL: Record<CertificateLineKey, string> = {
 const SAMPLE = {
   organizer: 'Bicol Dancesport Association',
   competition: 'Bicol Open Dancesport Championship',
-  name: 'Juan Dela Cruz &' + String.fromCharCode(10) + 'Maria Santos',
+  name: 'Juan Dela Cruz' + String.fromCharCode(10) + 'Maria Santos',
   team: 'Naga Dance Team',
   place: '1st',
   event: 'E12 Waltz, Tango, Quickstep',
@@ -325,7 +325,7 @@ function Editor({ saved }: { saved: CertificateLayout }) {
             <Input
               label="Wording"
               readOnly
-              value={fillCertificateText(line.text, SAMPLE).replaceAll(String.fromCharCode(10), ' ') || 'Hidden'}
+              value={fillCertificateText(line.text, SAMPLE).replaceAll(String.fromCharCode(10), ' & ') || 'Hidden'}
               onClick={() => setEditing((n) => n + 1)}
               onKeyDown={(e) => e.key === 'Enter' && setEditing((n) => n + 1)}
               className="cursor-pointer"

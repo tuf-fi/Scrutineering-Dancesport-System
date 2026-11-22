@@ -19,15 +19,13 @@ export const CERTIFICATE_PAPER = {
 } as const
 export type CertificatePaper = keyof typeof CERTIFICATE_PAPER
 
-export const CERTIFICATE_MARGIN_MM = 12
-
-// The paper as it is printed, and the sheet drawn inside its margins (a little short, so it never spills onto a second page)
+// The paper as it is printed. The sheet fills all of it, a hair short so rounding never spills onto a second page.
 export function certificatePage(layout: Pick<CertificateLayout, 'paper' | 'orientation'>) {
   const p = CERTIFICATE_PAPER[layout.paper]
   const landscape = layout.orientation === 'landscape'
   const width = landscape ? p.height : p.width
   const height = landscape ? p.width : p.height
-  return { width, height, sheetWidth: width - CERTIFICATE_MARGIN_MM * 2, sheetHeight: height - CERTIFICATE_MARGIN_MM * 2 - 2 }
+  return { width, height, sheetWidth: width, sheetHeight: height - 0.3 }
 }
 
 export const CERTIFICATE_LINE_KEYS = ['organizer', 'title', 'competition', 'certify', 'name', 'team', 'placed', 'place', 'grade', 'venue'] as const

@@ -50,6 +50,7 @@ describe('staff sidebar', () => {
       'Schedule',
       'Heats',
       'Program',
+      'Event list',
       'Results',
       'Points table',
       'Payments',

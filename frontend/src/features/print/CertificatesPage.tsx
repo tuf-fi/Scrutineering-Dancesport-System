@@ -41,7 +41,7 @@ export function CertificatesPage() {
         return (
           <>
             <style>{printCss(layout.data)}</style>
-            <div className="certificate-pages flex flex-col gap-8 print:block">
+            <div className="certificate-pages flex flex-col gap-8 pb-8 print:block print:pb-0">
               {rows.map((r, i) => {
                 const c = byId.get(r.competitorId)
                 const name = c ? competitorName(c.names) : ''
@@ -56,8 +56,8 @@ export function CertificatesPage() {
                     values={{
                       organizer: competition.organizer,
                       competition: competition.name,
-                      // Each athlete on a line of their own, the first ending in "&"
-                      name: c ? c.names.join(' &' + String.fromCharCode(10)) : '',
+                      // Each athlete on a line of their own
+                      name: c ? c.names.join(String.fromCharCode(10)) : '',
                       team: c?.teamName ?? '',
                       place: placeRange(r) ?? ordinal(r.place),
                       event: `${eventCode(event)} ${eventDances(event)}`,

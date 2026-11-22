@@ -145,7 +145,7 @@ export function CertificateSheet({ layout, values, signatures, date, label, page
     <article
       aria-label={label}
       style={{ width: `${page.sheetWidth}mm`, height: `${page.sheetHeight}mm` }}
-      className={`certificate-page relative flex mx-auto max-w-full flex-col justify-between overflow-hidden border border-neutral-900 px-[16mm] py-[9mm] text-neutral-900 ${pageBreak ? 'print-page-break' : ''}`}
+      className={`certificate-page relative flex mx-auto max-w-full flex-col justify-between overflow-hidden bg-white shadow-md px-[16mm] py-[9mm] text-neutral-900 ${pageBreak ? 'print-page-break' : ''}`}
     >
       {layout.background && <img src={layout.background} alt="" className="absolute inset-0 size-full object-cover" />}
       <header className="relative flex flex-col items-center gap-2 text-center">{lines(HEADER)}</header>

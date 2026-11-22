@@ -3,6 +3,8 @@ import { Navigate, createBrowserRouter, type RouteObject } from 'react-router'
 import { AdjudicatorsPage } from '../features/admin/AdjudicatorsPage.tsx'
 import { CategoriesPage } from '../features/admin/CategoriesPage.tsx'
 import { CompetitionsPage } from '../features/admin/CompetitionsPage.tsx'
+import { EventListPage } from '../features/admin/EventListPage.tsx'
+import { EventListPrintPage } from '../features/print/EventListPrintPage.tsx'
 import { OfflineDayPage } from '../features/admin/OfflineDayPage.tsx'
 import { PaymentsPage } from '../features/admin/PaymentsPage.tsx'
 import { FeesPage } from '../features/admin/FeesPage.tsx'
@@ -198,6 +200,7 @@ export const routes: RouteObject[] = [
               { path: 'offline-day', element: <OfflineDayPage /> },
               { path: 'site', element: <SitePage /> },
               { path: 'results', element: <ResultsPage /> },
+              { path: 'event-list', element: <EventListPage /> },
               { path: 'certificates', element: <CertificateLayoutPage /> },
               { path: 'security', element: <SecurityPage /> },
             ],
@@ -299,6 +302,7 @@ export const routes: RouteObject[] = [
             element: <PrintLayout />,
             children: [
               { index: true, element: <PrintIndexPage /> },
+              { path: 'event-list/:competitionId', element: <EventListPrintPage /> },
               { path: 'heats/:eventId', element: <HeatListPage /> },
               { path: 'recall/:eventId', element: <QualifiedPage /> },
               { path: 'scores/:eventId', element: <ScoresPage /> },
