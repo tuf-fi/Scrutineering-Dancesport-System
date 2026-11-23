@@ -35,7 +35,7 @@ A dancesport competition system: registration and payments, adjudicators marking
 
 [CLIENT_QUESTIONS.md](docs/client/CLIENT_QUESTIONS.md) and [CLIENT_DOCUMENTS.md](docs/client/CLIENT_DOCUMENTS.md): what was asked, and what the client sent back. The scoring engine is described in [PHASE2_README.md](docs/build/PHASE2_README.md).
 
-The PDFs sent to the client, the user manual, the screenshots of every role and the other generated documents are in the separate `img-and-docs` repository.
+The PDFs sent to the client, the user manual, the screenshots of every role and the other generated documents are on the `img-and-docs` branch.
 
 ## Where the files are
 
