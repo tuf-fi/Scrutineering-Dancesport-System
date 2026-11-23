@@ -1,5 +1,5 @@
 // Builds the BOSS user manual: manual.html and BOSS_User_Manual.pdf.
-// Screenshots come from `node rehearsal/manual-shots.mjs`. Run this with `node docs/manual/build.mjs`.
+// Screenshots come from `node rehearsal/manual-shots.mjs`. Run this with `node build.mjs` from this folder (the app is read from ../../../Scrutineering-Dancesport-System, or BOSS_REPO).
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -7,7 +7,9 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const DIR = import.meta.dirname
-const ROOT = resolve(DIR, '..', '..')
+// The app (logo, font, Playwright) is in the main repository, next to this one
+const ROOT = process.env.BOSS_REPO ?? resolve(DIR, '..', '..', '..', 'Scrutineering-Dancesport-System')
+const APP = pathToFileURL(ROOT).href
 const { chromium } = createRequire(join(ROOT, 'package.json'))('playwright-core')
 
 // ---------------------------------------------------------------------------------------------- images
@@ -70,7 +72,7 @@ const note = (t) => `<div class="note">${t}</div>`
 const out = []
 
 out.push(`<div class="cover">
-  <img src="../../frontend/src/assets/logo.png" alt="BOSS">
+  <img src="${APP}/frontend/src/assets/logo.png" alt="BOSS">
   <div><div class="bar"></div><p class="kicker">Bicol Oragon Scruteneering System</p><h1>User<br>Manual</h1>
   <p>Every screen and every action, role by role, then a step-by-step guide to running a whole competition.</p></div>
   <p class="roles">Visitors · Athletes · Coaches · Teams · Adjudicators · Compere · Barker · Scrutineer · Chairperson · Secretariat · Admin</p>
@@ -91,7 +93,7 @@ out.push(pageNew(`
 <tr><td>Compere</td><td>Read out who is called and who won.</td><td>Email</td><td>Laptop or screen</td></tr>
 <tr><td>Barker</td><td>Line the competitors up and call them to be ready.</td><td>Email</td><td>Phone or tablet</td></tr>
 <tr><td>Scrutineer</td><td>Run each round, check marks, publish results.</td><td>Email</td><td>Laptop</td></tr>
-<tr><td>Chairperson</td><td>Watch the marks and confirm tie decisions.</td><td>Email</td><td>Laptop</td></tr>
+<tr><td>Chairperson</td><td>Watch the marks and confirm tie decisions in a final.</td><td>Email</td><td>Laptop</td></tr>
 <tr><td>Secretariat</td><td>Enter dancers, give back numbers, plan the program.</td><td>Email</td><td>Laptop</td></tr>
 <tr><td>Admin</td><td>Set up competitions, staff, adjudicators, fees and points.</td><td>Email</td><td>Laptop</td></tr>
 </table>
@@ -103,6 +105,7 @@ out.push(pageNew(`
 </ul>
 ${note('Everyone needs an internet connection: mobile data or Wi-Fi is fine. Staff and adjudicators are given their account by the admin.')}</div>
 ${I('athlete/signup', 'Athletes, coaches and teams create their own account.', { mm: 38, h: 1100 })}</div>
+<article class="feat"><div class="txt"><h2 class="ft">Staff and adjudicator sign-in</h2><p class="where">The website address followed by /staff-access</p><p>One page for the staff and the adjudicators. Pick the <b>Staff</b> tab and type your email and password, or the <b>Adjudicator</b> tab and type your PIN. If two-step sign-in is on, a second step asks for the 6-digit code from your app.</p></div><div class="imgs">${I('auth/staff-access', '', { mm: 110, h: 800 })}</div></article>
 `))
 
 out.push(pageNew(`
@@ -114,6 +117,12 @@ out.push(pageNew(`
 <p>A field that must be filled in has a red <b>*</b> after its label. Buttons that save are switched off while the save is under way, so pressing twice never saves twice. On a phone the fields do not zoom in when you tap them.</p>
 <h2>Your password</h2>
 <p>Everyone who signs in with an email can change their own password. Athletes, coaches and teams can also <b>Sign out everywhere</b>. Staff can turn on <b>two-step sign-in</b>: after the password you type a 6-digit code from an app on your phone.</p>
+<p><b>Forgot it?</b> On a sign-in page press <b>Forgot password?</b>, type the email of your account and press the button. We send a link that works once, for an hour (look in the spam folder too). It opens a page where you choose a new password; you are signed out everywhere when it is changed. Staff and adjudicators who are locked out ask the admin for a new password or PIN.</p>
+<h2>Confirm your email</h2>
+<p>A new athlete, coach or team account shows <b>Confirm your email address</b> on its pages. Open the link in the email we sent (or press <b>Send it again</b>). Until it is confirmed you cannot link your account to a record, enter events or pay.</p>
+<h2>Your account and notifications (staff)</h2>
+<p>Staff open <b>My account</b> by pressing their name at the top of the menu: change your name, and change your password under <b>Password</b>. <b>Notifications</b> at the bottom of the menu keeps the pop-up messages you were sent. The dot under it shows <b>Online</b>; if the connection drops it says so, and your screen catches up when it returns. <b>Sign out</b> is the last item.</p>
+<div class="imgs">${I('admin/account', 'My account', { h: 700, mm: 110 })}${I('admin/notifications', 'Notifications', { h: 700, mm: 110 })}</div>
 <h2>Phone and laptop</h2>
 <p>The same pages fit any screen. On a phone, the menu is the three lines at the top right, and athlete, coach and team pages have a strip of links under the top bar.</p>
 <h2>Safe by design</h2>
@@ -149,6 +158,11 @@ out.push(pageCols(
     'Type a back number to follow one competitor.',
     'Press Print to print the program or save it as a PDF.',
   ], [I('public/program')], true),
+  feat('Live board', 'Menu: Live board', 'Follow a competition while it is on the floor.', [
+    'On the day of a competition the Live board shows the round on the floor now and what comes next. Outside a competition day it says "No ongoing competition".',
+    'If two competitions are on the same day, choose one. Each opens its own live board.',
+    'Type a back number to follow one competitor.',
+  ], [I('public/live', 'No competition today'), I('public/live-competition', 'On the day')], true),
   feat('Event results', 'Results or Competitions, then a competition, then an event', 'The published results of one event.', [
     'Results show only after the scrutineer publishes them. Until then you see "No results yet".',
     'When the organizer holds the results until the awarding, no event shows its results until the scrutineer reveals them all at once at the awarding. The ranking points and Standings wait too.',
@@ -183,8 +197,9 @@ out.push(pageCols(
   feat('Create your account', 'Sign in, choose Athlete, then Create an account', 'Make your own account with your name, a photo, an email and a password of at least 8 characters. Coaches and teams do the same, choosing Coach or Team.', [
     'A photo is required. Choose a square picture; it shows in your account and the menu.',
     'Use the same email as on your entry form, so you are not charged membership twice.',
-    'Forgot your password? Ask the secretariat for a new one.',
-  ], [I('athlete/signup')], true),
+    'We send a link to confirm your email. Open it to link your account, enter events and pay.',
+    'Forgot your password? Press Forgot password? on the sign-in page. We email you a link to choose a new one.',
+  ], [I('athlete/signup'), I('auth/forgot-password', 'Forgot password')], true),
   feat('Sign in', 'Sign in, then choose Athlete', 'Type your membership ID or your email, then your password.', [
     'Your membership ID (such as A-00001) is given when your first membership payment is confirmed. Until then, sign in with your email.',
     'The ID and the email both work from then on.',
@@ -240,7 +255,7 @@ out.push(pageCols(
 ))
 
 // ================================================================================ TEAM
-out.push(divider('Teams', 'Dance teams, studios and clubs. Use your phone or laptop.', 'Account · Link your team · Edit account · Notifications · Dancers · Results · Standings · Entries · Payments · Enter events · My requests · Password'))
+out.push(divider('Teams', 'Dance teams, studios and clubs. Use your phone or laptop.', 'Account · Link your team · Edit account · Notifications · Dancers · Results · Standings · Entries · Membership · Payments · Enter events · My requests · Password'))
 out.push(pageCols(
   feat('Account', 'Team menu: Account', 'Your home page.', ['Your team\'s details, picture and what you are linked to.', 'The number of dancers on your team.'], [I('team/account')], true),
   feat('Link your team', 'Team menu: Link your team', 'Connect your account to your team record.', [
@@ -253,6 +268,10 @@ out.push(pageCols(
   feat('Results', 'Team menu: Results', 'How your dancers placed.', [], [I('team/results')], true),
   feat('Standings', 'Team menu: Standings', 'Where your dancers stand.', [], [I('team/standings')], true),
   feat('Entries', 'Team menu: Entries', 'The events your dancers are entered in.', [], [I('team/entries')], true),
+  feat('Membership', 'Team menu: Membership', 'Pay the year\'s membership for your athletes.', [
+    'Membership is paid once a year for each athlete and ends on December 31 of that year, whenever it is paid.',
+    'Choose the athletes, pay and send. The secretariat confirms it when the money arrives, and each athlete gets a membership ID with the first one.',
+  ], [I('team/membership')], true),
   feat('Payments', 'Team menu: Payments', 'What has been paid and how.', [], [I('team/payments')], true),
   feat('Enter events', 'Team menu: Enter events', 'Send entries for your dancers.', [
     'Pick one of your dancers, the competition and the events.',
@@ -330,7 +349,7 @@ out.push(page(
 ))
 
 // ================================================================================ BARKER
-out.push(divider('Barker', 'You line the competitors up. Use a phone or a tablet.', 'Board · Account'))
+out.push(divider('Barker', 'You line the competitors up. Use a phone or a tablet.', 'On the floor · Up next · Account'))
 out.push(page(
   feat('Board', 'Sign in as barker: you land here', 'Who is on the floor, and who to call next.', [
     'On the floor now: the round being danced, with each competitor\'s back number and names, by heat.',
@@ -338,12 +357,15 @@ out.push(page(
     'The board updates by itself when the scrutineer starts a round. It needs the running order: ask the secretariat to generate it if nothing shows.',
     'A competitor without a back number shows a dash. Ask the secretariat to assign one.',
     'The barker only reads. Nothing can be changed from this screen.',
-  ], [I('barker/board', '', { h: 900 })], true),
+  ], [I('barker/board', 'On the floor', { h: 900 })], true),
+  feat('Up next', 'Barker menu: Up next', 'The next event only, to line the competitors up early.', [
+    'The same list as Next event on the board, on a screen of its own, so you can keep it open while the round on the floor is danced.',
+  ], [I('barker/next', '', { h: 900 })], true),
   feat('Account', 'Menu: Account', 'Change your name and password. Turn on two-step sign-in.', ['The admin makes the barker\'s account under Staff accounts.']),
 ))
 
 // ================================================================================ SCRUTINEER
-out.push(divider('Scrutineer', 'You run every round. Use a laptop and keep it open all day.', 'Rounds · Heats · Program · Advancement · Live board · Paper marks · Recall · Results · Printouts · Security'))
+out.push(divider('Scrutineer', 'You run every round. Use a laptop and keep it open all day.', 'Rounds · Heats · Program · Advancement · Live board · Paper marks · Recall · Results · Certificates · Printouts · Security'))
 out.push(page(
   feat('Rounds', 'Menu: Rounds', 'See where the competition is and every round still to run.', [
     'Plan rounds: press once so every event with entries gets its rounds.',
@@ -357,7 +379,10 @@ out.push(page(
     'Split evenly shares them out. Use the heat box on a row to move one dancer.',
     'Press Save heats. The program and its printout then show the split of every round, for example 12 | 12 | 8.',
     'The admin and the secretariat have the same Heats page, so the heats can be set before the day.',
-  ], [I('scrutineer/heats', '', { h: 640 })]),
+    'Merge heats: everyone in the first heat joins the second. Swap couples: two couples trade heats. Move a heat: it is danced at a new position and the others shift. Nothing is kept until you press Save heats.',
+    'Changing heats while a round is on the floor asks you to confirm, because the adjudicators\' phones change at once. Their marks stay.',
+    'Redance a heat (only you, only while the round is being marked or reviewed): choose the heat and give the reason. Adjudicators who already sent their marks mark that heat once more; the other heats keep their marks. In a final, every finalist is placed again. The reason is kept with the cleared marks, and the heats cannot change until every adjudicator has marked it again.',
+  ], [I('scrutineer/heats', '', { h: 640 }), I('scrutineer/heats-split', 'Heats split into twelves', { h: 640 }), I('scrutineer/heat-merge', 'Merge heats', { maxh: 110 }), I('scrutineer/heat-swap', 'Swap couples', { maxh: 110 }), I('scrutineer/heat-move', 'Move a heat', { maxh: 110 }), I('scrutineer/redance', 'Redance a heat', { maxh: 110 })]),
   feat('Program, Schedule and Panels', 'Menu: Program, Schedule, Panels', 'The running order and who marks each event, the same screens the secretariat uses.', [
     'Program: every round, break and the awarding with its start time, how many couples dance (and the heats of each round) and what is done in it, such as Select 6 or Rank 8. Drag a line to move it.',
     'Schedule sets the order of the events. Panels shows which adjudicators mark each event.',
@@ -381,22 +406,31 @@ out.push(page(
   ], [I('scrutineer/paper-marks', '', { h: 330, mm: 130 }), I('scrutineer/paper-sheet', 'The sheet typed in', { y: 250, h: 640, mm: 130 }), I('scrutineer/paper-confirm', 'Check, then Enter marks')]),
   feat('Recall', 'Menu: Recall', 'See who goes through to the next round.', [
     'X marks per dancer and the cut-off for the next round.',
-    'Tie at the cut-off: choose Recall all those tied, or Recall only those above, and press Propose decision.',
-    'The chairperson then confirms. The round cannot be approved until they do.',
-  ], [I('scrutineer/recall', 'Before a decision', { h: 640 }), I('scrutineer/recall-proposed', 'Decision proposed, waiting for the chairperson', { h: 640 })]),
+    'Couples level with the last couple to be recalled all go through, so the number recalled can be higher than the recall number (here 15 go through for a recall of 12). There is no tie to decide and nothing for the chairperson to confirm.',
+    'Only a tie in a final needs a decision. See Results.',
+  ], [I('scrutineer/recall', 'Couples level on the cut-off all go through', { h: 640 })]),
   feat('Results', 'Menu: Results', 'Each adjudicator\'s marks and how the round works out.', [
     'See every adjudicator\'s marks, the X total and the places. In a final you also see the skating tables.',
-    'Tie in a final: propose keeping the shared place, or a tie-break order. The chairperson confirms.',
+    'Tie in a final: when the marks cannot separate two couples, a Tie in the final box says which couples share a place. Choose Keep the shared place, or settle it with a dance-off (for 1st place) or a tie-break (for any other place) and give each couple its place in it, then press Propose decision. The chairperson confirms. The final cannot be approved until they do.',
     'Approve results: locks the marks, saves the result, adds the ranking points and takes a backup.',
     'Publish results: makes the result public and shows it to the compere.',
     'When the competition holds its results until the awarding, a bar at the top says how many finals are published and waiting. Publishing keeps them private. Press Reveal results at the awarding to make every event public at once, on the website and the compere screen. Only the scrutineer and the chairperson can reveal, and it cannot be undone.',
     'Print summary prints the round.',
-  ], [I('scrutineer/results', '', { h: 640 }), I('scrutineer/approve-confirm', 'Approve'), I('scrutineer/publish-confirm', 'Publish'), I('scrutineer/results-hold', 'When results are held: the bar at the top shows how many finals are waiting', { h: 330 }), I('scrutineer/reveal-confirm', 'Reveal results asks first')]),
+  ], [I('scrutineer/results', '', { h: 640 }), I('scrutineer/final-tie', 'A tie in a final', { h: 520 }), I('scrutineer/final-tie-order', 'Settled with a dance-off', { h: 520 }), I('scrutineer/final-tie-proposed', 'Proposed, waiting for the chairperson', { h: 520 }), I('scrutineer/approve-confirm', 'Approve'), I('scrutineer/publish-confirm', 'Publish'), I('scrutineer/results-hold', 'When results are held: the bar at the top shows how many finals are waiting', { h: 330 }), I('scrutineer/reveal-confirm', 'Reveal results asks first')]),
+  feat('Certificates', 'Menu: Certificates', 'Design how the printed certificates look. One layout serves every competition; the admin has the same page.', [
+    'The page shows a preview with sample names. Click a line to edit it, or drag it to move it (the arrow keys nudge it).',
+    'Page: paper size, and Landscape or Portrait.',
+    'Line: choose a line (organizer, title, name, team, place, event, date and so on). Wording is the text printed; it can include a detail that changes for each couple, such as the name or the place. Empty hides the line. Also set the font, the size, Bold, Italic, Capitals and the color.',
+    'Signatures: each signature block has a title (for example Organizer) and a name. An empty name uses the competition\'s organizer, and the chairperson signs with their own signature. Add signatory adds another block; its signature picture and its name can be dragged on their own.',
+    'Import layout: use a designed certificate as the background (JPG, PNG, WebP or the first page of a PDF, up to 10 MB). Reset goes back to the built-in layout.',
+    'Press Save layout to keep your changes.',
+    'To print: open All printouts, choose the event and press Certificates. There is one for each placed finalist, printed from last place to 1st, once the final is approved. Press Print, or Download PDF.',
+  ], [I('scrutineer/certificates', '', { h: 760 }), I('scrutineer/print-certificates', 'Printed certificates', { y: 60, h: 900 })]),
   feat('Printouts', 'Print summary, or All printouts', 'Paper sheets for any event or round.', [
-    'Heat list, list of dancers going through, scores sheet, final results and blank mark sheets.',
+    'Program, heat list, list of dancers going through (the qualified list), scores sheet, final results (with room to sign), certificates and blank mark sheets.',
     'Press Print on the sheet, or Back to return.',
   ], [I('scrutineer/print-index', '', { h: 560 }), I('scrutineer/print-recall', 'List of dancers going through', { y: 80, h: 800 })]),
-  feat('Scores sheet and blank sheets', 'All printouts', 'Marks of every adjudicator on paper, and empty sheets for a backup.', [], [I('scrutineer/print-scores', 'Scores sheet', { y: 60, h: 800 }), I('scrutineer/print-blank', 'Blank mark sheets', { y: 60, h: 800 })]),
+  feat('Scores sheet, final results and blank sheets', 'All printouts', 'Marks of every adjudicator on paper, the final results to sign, and empty sheets for a backup.', [], [I('scrutineer/print-scores', 'Scores sheet', { y: 60, h: 800 }), I('scrutineer/print-results', 'Final results', { y: 60, h: 800 }), I('scrutineer/print-blank', 'Blank mark sheets', { y: 60, h: 800 })]),
   feat('Security', 'Menu: Security', 'Turn on two-step sign-in and change your password.', [
     'Backup warning: a red note at the top of the screen means a backup folder failed. Tell the admin. Results are still saved.',
     'You cannot confirm your own tie proposal. The chairperson does that.',
@@ -411,19 +445,19 @@ out.push(page(
     'You can press Reveal results on the Results page at the awarding, when the competition holds its results.',
     'Every decision you make is stored with your name and the time.',
   ], [I('chairperson/live', 'Live board: who has submitted', { h: 640 })]),
-  feat('Confirm a tie at the cut-off', 'Menu: Recall', 'When the scrutineer has proposed how to settle a tie, read it and confirm.', [
-    'It says "Proposed. Waiting for the chairperson to confirm."',
-    'If it is right, press Confirm tie decision. The round cannot be approved until you do.',
-  ], [I('chairperson/recall-confirm', '', { h: 700 }), I('chairperson/confirmed', 'After confirming', { h: 700 })]),
+  feat('Recall', 'Menu: Recall', 'See who goes through. There is nothing to confirm here.', [
+    'Couples level with the last couple to be recalled all go through, so a tie at the cut-off needs no decision.',
+  ], [I('chairperson/results', 'Results: check the places and the marks before they are published', { h: 640 })]),
   feat('Confirm a tie in a final', 'Menu: Results', 'If two couples still share a place, Results shows Tie in the final.', [
-    'Check the scrutineer\'s proposal against the tie-break sheet, then press Confirm tie decision.',
-    'The final cannot be approved until you do.',
-  ], [I('chairperson/results', 'Check the places and the skating tables before they are published', { h: 640 })]),
+    'The scrutineer proposes keeping the shared place, or a dance-off (1st place) or tie-break (other places) order. The box says "Waiting for the chairperson".',
+    'Check the proposal against the dance-off or tie-break result, then press Confirm tie decision. Afterwards it says who confirmed it.',
+    'The final cannot be approved until you do. You cannot confirm your own proposal, and the scrutineer cannot confirm theirs.',
+  ], [I('chairperson/final-tie-confirm', 'The proposal to confirm', { h: 520 }), I('chairperson/final-tie-confirmed', 'After confirming', { h: 520 })]),
   feat('Printouts and Security', 'Print summary; Menu: Security', 'The same printouts as the scrutineer, and the same security page.', [], [I('chairperson/security', '', { h: 460 })]),
 ))
 
 // ================================================================================ SECRETARIAT
-out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Heats · Program · Printouts · Security'))
+out.push(divider('Secretariat', 'Entries, back numbers and the order of the day. Use a laptop.', 'Events · Teams · Coaches · Athletes · Entry requests · Account links · Profile changes · Late entries · Schedule · Heats · Program · Panels · Printouts · Security'))
 out.push(page(
   feat('Events', 'Menu: Events', 'Every event in the competition and how many entries it has.', [
     'Add event, edit and delete. Set the age group, class, style, dances, solo or couple.',
@@ -492,12 +526,16 @@ out.push(page(
     'Adjudicators shows who marks each round as a set: Set A, Set B and so on, one name for each different group of adjudicators, in the order they first appear. When only some of the panel mark a round (5 of 7, say), press Rotate adjudicators and enter how many, or use the adjudicators icon on a round to choose them. Only those adjudicators mark that round, and it cannot change once the round has started.',
     'Visitors see the program on the website.',
   ], [I('secretariat/program-empty', 'Before it is generated', { h: 420 }), I('secretariat/program', 'After pressing Generate', { h: 640 }), I('secretariat/program-break', 'Add break')]),
+  feat('Panels', 'Menu: Panels', 'Which adjudicators mark each event.', [
+    'A grid of events by adjudicator. Tick the adjudicators for each event; the Panel column names each different group as a set (Set A, Set B and so on).',
+    'The admin makes the same choices under Adjudicators and panels. A panel cannot change once the event has started.',
+  ], [I('secretariat/panels', '', { h: 640 })]),
   feat('Printouts', 'All printouts', 'Heat lists, recall lists, score sheets and blank sheets, plus the program.', [], [I('secretariat/print-index', '', { h: 560 }), I('secretariat/print-heats', 'Heat list', { y: 60, h: 700 })]),
   feat('Security', 'Menu: Security', 'Turn on two-step sign-in and change your password.', ['Do turn on two-step sign-in: this role records payments and resets accounts.', 'You cannot create competitions or staff, change fees or run rounds.'], [I('secretariat/security', '', { h: 460 })]),
 ))
 
 // ================================================================================ ADMIN
-out.push(divider('Admin', 'You set the system up. Use a laptop.', 'Competitions · Past competition · Kinds and age groups · Adjudicators and panels · Points table · Payments · Fees · Staff accounts · Security · plus every secretariat screen'))
+out.push(divider('Admin', 'You set the system up. Use a laptop.', 'Competitions · Past competition · Kinds, classes and age groups · Adjudicators and panels · Event list · Results · Points table · Payments · Fees · Staff accounts · Security · plus every secretariat screen'))
 out.push(page(
   feat('Competitions', 'Menu: Competitions', 'Create and manage the competitions.', [
     'New competition: name, date, organizer, venue and a card photo (required). The date cannot be before today: a finished competition cannot be added or moved into the past. A competition already held can still have its other details corrected.',
@@ -512,8 +550,8 @@ out.push(page(
     'The system checks the whole file first and keeps nothing yet. Each thing to fix is listed with its sheet and row. A warning does not stop the import: it means the marks work out a different placing from the printed one, and the printed placing is kept.',
     'When the list is clean, press Import it. All of the competition is saved, or none of it.',
     'Dancers are matched to the ones already in the system by team and name, so their history joins up. Adjudicators are matched by name, and a new one gets a free letter. Imported dancers get no back number.',
-    'The age groups and classes used in Events must already exist under Kinds and age groups. Only the admin can import.',
-  ]),
+    'The age groups and classes used in Events must already exist under Kinds, classes and age groups. Only the admin can import.',
+  ], [I('admin/past-competition', '', { h: 640 })]),
   `<table class="xl">
 <tr><th>Sheet</th><th>One row is</th><th>Columns</th></tr>
 <tr><td>Competition</td><td>The competition (one row)</td><td>name, date (year-month-day, such as 2024-03-16), venue, organizer, executor (optional)</td></tr>
@@ -526,12 +564,13 @@ out.push(page(
 <tr><td>Placings</td><td>One printed final placing (optional)</td><td>event_no, back_number, place. An event with only placings shows its results without the round detail.</td></tr>
 </table>
 <p class="xn">Dances are written as samba, cha_cha_cha, rumba, paso_doble, jive, waltz, tango, viennese_waltz, foxtrot or quickstep. Each adjudicator marks the same number of X in every dance of a round, and gives every finalist a different placing in each dance.</p>`,
-  feat('Kinds and age groups', 'Menu: Kinds and age groups', 'The kinds of event and the age groups the system uses.', [
+  feat('Kinds, classes and age groups', 'Menu: Kinds, classes and age groups', 'The kinds of event, the classes and the age groups the system uses. Three tabs: Event kinds, Classes and Age groups.', [
+    'Classes (for example E1, D, C, B) are listed with how many events use each and which events they are. New class adds one; the pencil edits and the bin deletes. A class that events use cannot be deleted. Choose a competition to see only its events.',
     'Kinds set which disciplines their events are danced in and who may enter, for example Beginners only or Closed to one province. Age groups set a name, how it is printed and the years of birth the group covers.',
     'A change never rewrites the past. Once an event in an age group has started, saving a change makes a new version and keeps the old one for those events, their results and sheets. Events still to run, and competitors, move to the new version.',
     'Standings add points earned under the old version to the new one. A group or kind that events use cannot be deleted.',
     'Age groups go by year of birth. A couple dances in the group of its older partner or an older one. You can add groups such as Under 21 or Senior.',
-  ]),
+  ], [I('admin/categories', 'Event kinds', { h: 560 }), I('admin/categories-classes', 'Classes', { h: 700 }), I('admin/categories-ages', 'Age groups', { h: 560 })]),
   feat('Adjudicators', 'Menu: Adjudicators and panels', 'The adjudicators and their PINs.', [
     'Add adjudicator: name, a photo (required) and a letter, A to J. Edit or delete with the icons on the row. Adjudicators can be added before any competition exists; only their PINs need one.',
     'Choose a competition to see each adjudicator\'s PIN for it. The pencil edits, the key makes a new PIN, the arrow signs that phone out at once.',
@@ -543,6 +582,30 @@ out.push(page(
   feat('Panels', 'Adjudicators and panels, Panels tab', 'Choose which adjudicators mark each event.', [
     'A grid of events by adjudicator. Tick the adjudicators for each event; the Panel column names each different group of adjudicators as a set (Set A, Set B and so on).',
   ], [I('admin/panels', '', { h: 640 })]),
+  feat('Event list', 'Menu: Event list', 'Every event with the back numbers and the athletes entered, to give out or print.', [
+    'Search by athlete name, team or back number. Filter by event, and choose the competition when there is more than one.',
+    'Download saves the list as a PDF. Print opens a printout with the same filters.',
+  ], [I('admin/event-list', '', { h: 640 }), I('admin/event-list-print', 'Printout', { y: 40, h: 700 })]),
+  feat('Results', 'Menu: Results', 'Read every adjudicator\'s marks of any round, with the same table the scrutineer sees.', [
+    'Choose the round. The status at the top right says whether it is still being marked, waiting for review, approved or published.',
+    'Print summary prints the round. The admin cannot start, approve or publish a round; the scrutineer does that.',
+  ], [I('admin/results', '', { h: 760 })]),
+  feat('Certificates', 'Menu: Certificates', 'The certificate layout, the same page as the scrutineer\'s Certificates. Design it once, before the day.', [
+    'Paper and orientation, each line\'s wording, font, size, style and color, the signature blocks (a title, a name and an uploaded signature picture) and a designed background.',
+    'Press Save layout. See Certificates in the Scrutineer section for how to use it and how to print.',
+  ], [I('admin/certificates', '', { h: 760 })]),
+  feat('Offline day', 'Menu: Offline day', 'The rehearsed fallback for a venue with no internet: one competition runs on a venue laptop, then goes back online as one file. Online is always the normal way.', [
+    'Before the day, online: press Start offline day on the competition and confirm. From then on staff changes and new entry requests for that competition are refused online, with a message that says why. Reading and the athletes\' own pages still work.',
+    'Press Download database copy and put the file on the venue laptop, following the Offline day guide. Print the PIN cards from the laptop, because each card\'s QR code holds the address it was printed from.',
+    'On the laptop the same page says "This is the venue laptop". After the competition, press Download day file there.',
+    'Back online, press Load day file on the competition and choose the file. The system checks it first and lists what it holds: the competition\'s rounds, marks, results, entries and payments, which it replaces. Press Load it to keep it. The floor is cleared, the competition is released and the rankings show on the website.',
+    'Take back cancels the offline day without loading anything; whatever the laptop did is not loaded.',
+  ], [I('admin/offline-day', '', { h: 640 }), I('admin/offline-day-start', 'Hand it to the venue laptop')]),
+  feat('Home page', 'Menu: Home page', 'The pictures on the public home page and beside the sign-in forms.', [
+    'Hero picture: a wide, landscape photo works best. It shows on the right half of the home page, fading into the black on its left.',
+    'Sign-in picture: a tall or square photo works best. It fills the right half of every sign-in page on laptops; phones do not show it.',
+    'Change hero picture or Change sign-in picture chooses a JPG, PNG or WebP file. Use the built-in picture goes back to the original.',
+  ], [I('admin/site', '', { h: 640 })]),
   feat('Points table', 'Menu: Points table', 'The ranking points for each place.', [
     'Edit the points for 1st to 7th and for the semi-final and quarter-final, then Save changes.',
     'Rankings update when the scrutineer approves a result.',
@@ -564,14 +627,14 @@ out.push(page(
     'Row icons: edit, reset password, reset two-step sign-in (if on), sign out everywhere, delete.',
     'Open an account to read its activity log.',
     'On the Athletes screen, the pencil corrects an athlete\'s name or date of birth directly. Only the admin can do this.',
-  ], [I('admin/staff', '', { h: 560 }), I('admin/staff-add'), I('admin/staff-password', 'Shown only once')]),
+  ], [I('admin/staff', '', { h: 560 }), I('admin/staff-add'), I('admin/staff-password', 'Shown only once'), I('admin/staff-activity', 'An account\'s Activity tab', { maxh: 110 })]),
   feat('Security', 'Menu: Security', 'Turn on two-step sign-in and change your password.', [
     'Turn on: scan the code with an authenticator app, type the 6-digit code it shows and save the recovery codes it gives you.',
     'If someone loses their phone and codes, reset it for them on Staff accounts.',
   ], [I('admin/security', '', { h: 420 }), I('admin/two-step')]),
   feat('Backups and the secretariat\'s screens', 'Top of every screen; menu sections Entries and The day', 'Two more things for the admin.', [
     'A warning appears at the top if a backup folder fails.',
-    'Your menu also holds every secretariat screen (Events, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Heats, Program), so you can do that work from your own account. See the Secretariat section.',
+    'Your menu also holds every secretariat screen (Events, Teams, Coaches, Athletes, Entry requests, Account links, Profile changes, Late entries, Schedule, Heats, Program, Event list), so you can do that work from your own account. See the Secretariat section.',
     'You cannot start, approve or publish a round, or confirm a tie.',
   ]),
 ))
@@ -586,12 +649,12 @@ out.push(pageNew(`
   <div><b>Secretariat</b><span>Enters dancers, gives back numbers, plans the program</span></div>
   <div><b>Scrutineer</b><span>Starts each round</span></div>
   <div><b>Adjudicators</b><span>Mark on their phones</span></div>
-  <div><b>Scrutineer</b><span>Checks the marks and settles ties with the chairperson</span></div>
+  <div><b>Scrutineer</b><span>Checks the marks and settles a tie in a final with the chairperson</span></div>
   <div><b>Scrutineer</b><span>Approves and publishes the result</span></div>
   <div><b>Compere and visitors</b><span>The compere announces it. Everyone sees it on the website</span></div>
 </div>
 <h2>How marks become results</h2>
-<p><b>Early rounds (round 1, round 2, quarter-final, semi-final).</b> Each adjudicator marks an X for the number of couples to go on (the recall number). BOSS counts the X marks for each couple. The couples with the most X marks go through. If couples are tied right at the cut-off, the scrutineer proposes whether to take all those tied or only those above, and the chairperson confirms.</p>
+<p><b>Early rounds (round 1, round 2, quarter-final, semi-final).</b> Each adjudicator marks an X for the number of couples to go on (the recall number). BOSS counts the X marks for each couple. The couples with the most X marks go through. Couples level with the last couple to be recalled all go through, so there is never a tie to settle in an early round.</p>
 <p><b>The final.</b> Each adjudicator places every finalist, 1st to last, in each dance. BOSS works out the places with the official <b>Skating System</b>: a couple wins a place when a <b>majority</b> of the adjudicators (more than half) place them at that place or better. If couples still cannot be separated, the scrutineer proposes keeping the shared place or a tie-break dance, and the chairperson confirms.</p>
 <p><b>Ranking points.</b> When the scrutineer approves a result, points from the admin's points table are added to each dancer's ranking. Rankings are kept per category, for example Junior I E1 Latin.</p>
 <h2>Words used</h2>
@@ -630,7 +693,7 @@ ${step(13, 'Admin', 'Choose the panels', 'On <b>Adjudicators and panels</b>, ope
 ${step(14, 'Secretariat', 'Plan the day', 'Open <b>Schedule</b> to set the order of the events. Then open <b>Program</b>, press <b>Generate</b>, set the start time and add breaks. The program is now on the website for everyone.', [I('secretariat/program', '', { y: 0, h: 560 })])}
 <h2>Part 3 · The day before</h2>
 ${step(15, 'Admin', 'Print the PIN cards', 'On <b>Adjudicators and panels</b>, choose the competition, tick the adjudicators and press <b>Print PIN cards</b>. Hand them out privately.')}
-${step(16, 'Admin', 'Check the system', 'Make sure there is no backup warning at the top of the screen and that the server clock is right. PINs work only around the competition date.')}
+${step(16, 'Admin', 'Check the system', 'Make sure there is no backup warning at the top of the screen and that the server clock is right. PINs work only around the competition date. Check <b>Certificates</b> too: the layout, the signatures and the background. If the venue may have no internet, rehearse <b>Offline day</b> now.')}
 ${step(17, 'Secretariat', 'Print the heat lists', 'Open an event and press <b>Heat list</b>, or open <b>All printouts</b>.')}
 ${step(18, 'Everyone', 'Sign in and test', 'Staff sign in on their laptops. Each adjudicator signs in with their PIN and sees <b>Waiting for the next round</b>.', [I('adjudicator/waiting', '', { mm: 60, y: 780, h: 420 })])}
 <h2>Part 4 · On the day, round by round</h2>
@@ -639,15 +702,15 @@ ${step(20, 'Scrutineer', 'Split into heats if needed', 'If a round is too big fo
 ${step(21, 'Scrutineer', 'Start the round', 'On <b>Rounds</b>, press <b>Start</b> on the round. It appears on the adjudicators\' phones and the compere\'s screen shows the numbers to call. If it will not start, some entries are unpaid: the secretariat records the payment or scratches the dancer.', [I('scrutineer/rounds', '', { h: 560 })])}
 ${step(22, 'Adjudicators', 'Mark and sign', 'Early rounds: tap the numbers of the dancers to go through, exactly the number shown. Final: place every finalist 1st to last. Press <b>Submit</b>, check, then <b>Final and submit</b>, sign and press <b>Finalize</b>.', [I('adjudicator/mark-chosen', '', { mm: 34 }), I('adjudicator/review', '', { mm: 40 }), I('adjudicator/sign', '', { mm: 40 })])}
 ${step(23, 'Scrutineer', 'Watch the live board', 'Watch each phone go from <b>Waiting</b> to <b>Submitted</b>. If a phone cannot send, take the paper sheet and type it in on <b>Paper marks</b>.', [I('scrutineer/live-complete', '', { h: 640, mm: 120 })])}
-${step(24, 'Scrutineer and chairperson', 'Settle any tie', 'Open <b>Recall</b>. If couples are tied at the cut-off, the scrutineer chooses an option and presses <b>Propose decision</b>. The chairperson opens <b>Recall</b> and presses <b>Confirm tie decision</b>.', [I('scrutineer/recall-proposed', '', { h: 640, mm: 120 })])}
+${step(24, 'Scrutineer', 'Check the recall', 'Open <b>Recall</b>. Everyone level with the last couple to be recalled goes through, so there is nothing to decide. Then go to <b>Results</b>. If this is a final and two couples share a place, settle it as in step 27.', [I('scrutineer/recall', '', { h: 640, mm: 120 })])}
 ${step(25, 'Scrutineer', 'Approve and publish', 'Open <b>Results</b>. Check the table, press <b>Approve results</b>, then <b>Publish results</b>. The result is now on the website and on the compere\'s screen, and the ranking points are added.', [I('scrutineer/publish-confirm', '', { mm: 60 })])}
 ${step(26, 'Compere', 'Announce', 'The compere reads the numbers that go through (<b>Recalled</b>), or the places from last to first (<b>Results</b>). Press the arrows or number keys for the next announcement.', [I('compere/recalled', '', { h: 720, mm: 110 })])}
-${step(27, 'Scrutineer', 'Next round', 'Go back to step 21 for the next round: round 1, round 2, quarter-final, semi-final and finally the final. In the final the adjudicators place every finalist, and a tie in the final is settled the same way as step 24.')}
+${step(27, 'Scrutineer', 'Next round', 'Go back to step 21 for the next round: round 1, round 2, quarter-final, semi-final and finally the final. In the final the adjudicators place every finalist, and if two couples still share a place, the <b>Tie in the final</b> box on <b>Results</b> asks the scrutineer to propose keeping the shared place, or a dance-off or tie-break order, and the chairperson presses <b>Confirm tie decision</b>. The final cannot be approved until then.', [I('scrutineer/final-tie-proposed', '', { h: 520, mm: 120 })])}
 ${step(28, 'Scrutineer or chairperson', 'Reveal the results (when they are held)', 'If the competition holds its results until the awarding, finals stay private after they are published. At the awarding, open <b>Results</b> and press <b>Reveal results</b>. Every event goes public at once and the compere reads the places from last to first, event by event.', [I('scrutineer/results-hold', '', { h: 330, mm: 120 }), I('scrutineer/reveal-confirm', '', { mm: 60 })])}
 ${step(29, 'Secretariat', 'Late changes', 'A dancer withdraws: open the event and press <b>Scratch</b>. A dancer arrives late: add them under <b>Late entries</b>. They cannot dance until they have paid.')}
 <h2>Part 5 · After the competition</h2>
 ${step(30, 'Everyone', 'Results and standings are public', 'Visitors read the results on the competition page and the points on <b>Standings</b>. Athletes, coaches and teams see their results on their own pages.', [I('public/standings', '', { mm: 40, h: 1450 })])}
-${step(31, 'Scrutineer', 'Print the results', 'Use <b>Print summary</b> on <b>Results</b>, or <b>All printouts</b> for score sheets and final results.')}
+${step(31, 'Scrutineer', 'Print the results', 'Use <b>Print summary</b> on <b>Results</b>, or <b>All printouts</b> for score sheets and final results. Choose the event and press <b>Certificates</b> to print one for each placed finalist, from last place to 1st, once the final is approved.', [I('scrutineer/print-certificates', '', { y: 60, h: 700, mm: 110 })])}
 ${step(32, 'Admin', 'Check the money and the backups', 'Open <b>Payments</b> to see what is paid and what is still owed. Check there is no backup warning.')}
 `))
 
@@ -656,7 +719,9 @@ out.push(pageNew(`
 <p class="lead">Quick answers. If these do not help, ask the secretariat or the admin.</p>
 <table>
 <tr><th>Question</th><th>Answer</th></tr>
-<tr><td>I forgot my password.</td><td>Athletes, coaches and teams: ask the secretariat for a new one. Staff: ask the admin.</td></tr>
+<tr><td>I forgot my password.</td><td>Athletes, coaches and teams: press Forgot password? on the sign-in page and open the link we email you. Staff: ask the admin. Adjudicators: ask the admin for a new PIN.</td></tr>
+<tr><td>The reset email did not arrive.</td><td>Check the spam folder and the spelling of the email. The link works once and for one hour; ask for a new one if it ran out.</td></tr>
+<tr><td>It says to confirm my email.</td><td>Open the link in the email we sent, or press Send it again on your account page.</td></tr>
 <tr><td>My entry or payment was turned down.</td><td>Teams: open Notifications or My requests to read the reason, fix it and send it again. Athletes: ask your team or the secretariat.</td></tr>
 <tr><td>I cannot see my dancers.</td><td>Your account must be linked first. Open Link your team (or coach) and send the request.</td></tr>
 <tr><td>A round will not start.</td><td>Some entries are not paid. The secretariat records the payment or scratches the dancer.</td></tr>
@@ -665,7 +730,7 @@ out.push(pageNew(`
 <tr><td>I opened a link and landed on the home page.</td><td>The address does not exist. Staff pages go to the staff sign-in instead.</td></tr>
 <tr><td>A page says "No data available".</td><td>There is nothing to show yet, for example a competition with no program. If it says "Couldn't load this", press Try again.</td></tr>
 <tr><td>A phone says marks are not sent.</td><td>They are saved. Move to mobile data or other Wi-Fi, or use the paper sheet.</td></tr>
-<tr><td>Two couples have the same place in a final.</td><td>The scrutineer proposes how to settle it, the chairperson confirms, then the round can be approved.</td></tr>
+<tr><td>Two couples have the same place in a final.</td><td>The scrutineer proposes how to settle it on Results (keep the shared place, a dance-off or a tie-break), the chairperson confirms, then the final can be approved.</td></tr>
 <tr><td>An adjudicator's PIN is refused.</td><td>The admin makes a new one on Adjudicators and panels. A PIN only works around the competition date.</td></tr>
 <tr><td>A wrong round was started.</td><td>The scrutineer presses Take off the floor. Possible until an adjudicator has submitted.</td></tr>
 </table>
@@ -673,7 +738,7 @@ out.push(pageNew(`
 
 // ---------------------------------------------------------------------------------------------- page
 const css = `
-  @font-face { font-family: 'Manrope'; src: url('../../frontend/src/assets/manrope-latin-wght-normal.woff2') format('woff2'); font-weight: 200 800; }
+  @font-face { font-family: 'Manrope'; src: url('${APP}/frontend/src/assets/manrope-latin-wght-normal.woff2') format('woff2'); font-weight: 200 800; }
   @page { size: A4; margin: 20mm 18mm 22mm;
     @bottom-left { content: 'BOSS User Manual'; font: 600 7.5pt 'Manrope', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #8a8379; border-top: 0.5pt solid #d8d3cb; padding-top: 3mm; vertical-align: top; }
     @bottom-right { content: counter(page); font: 600 7.5pt 'Manrope', sans-serif; color: #8a8379; border-top: 0.5pt solid #d8d3cb; padding-top: 3mm; vertical-align: top; } }

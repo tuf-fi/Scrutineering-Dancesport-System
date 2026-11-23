@@ -1,6 +1,6 @@
-# img-and-docs
+# img-and-docs (branch)
 
-Images and PDFs taken out of the BIS repository (Scrutineering-Dancesport-System) to keep it light.
+Images and PDFs taken out of `main` to keep it light. This branch holds only these files; it shares no history with `main`. Check it out with `git switch img-and-docs`.
 
 | Folder | Holds |
 | --- | --- |
@@ -11,4 +11,4 @@ Images and PDFs taken out of the BIS repository (Scrutineering-Dancesport-System
 | `docs/operations/` | Operations PDFs (go-live, offline day, dry-run fixes) with the HTML and scripts that build them |
 | `printed-result.jpg` | A sample printed result sheet |
 
-The screenshots come from `rehearsal/role-shots.mjs` in the main repository.
+Each file is named `NN-page-device.png` (a page, from `rehearsal/role-shots.mjs`) or `Fnn-feature-device.png` (a feature being used, from `rehearsal/feature-shots.mjs`: forms filled in, confirmations, approvals, the adjudicator marking a final). The device is `macbook-12` (MacBook 12", 1280x800) or `iphone-15` (393x852).
