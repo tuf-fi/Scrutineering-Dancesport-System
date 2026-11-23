@@ -4,7 +4,7 @@ Images and PDFs taken out of `main` to keep it light. This branch holds only the
 
 | Folder | Holds |
 | --- | --- |
-| `screenshots/<role>/macbook-12/` and `screenshots/<role>/iphone-15/` | Every screen of each role and account kind, one folder per device (MacBook 12" and iPhone 15), on realistic scenario data (Bicol Grand Prix 2026) |
+| `screenshots/<role>/macbook-12/` and `screenshots/<role>/iphone-15/` | Every screen of each role and account kind, one folder per device (MacBook 12" at 1920x1200, iPhone 15 at 1179x2556, one screen each), on realistic scenario data (Bicol Grand Prix 2026) |
 | `docs/manual/` | The user manual: `manual.html`, its build script, the PDF and the images it uses |
 | `docs/client/` | PDFs sent to the client |
 | `docs/guides/` | The compere guide PDF |
