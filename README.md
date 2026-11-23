@@ -35,7 +35,7 @@ A dancesport competition system: registration and payments, adjudicators marking
 
 [CLIENT_QUESTIONS.md](docs/client/CLIENT_QUESTIONS.md) and [CLIENT_DOCUMENTS.md](docs/client/CLIENT_DOCUMENTS.md): what was asked, and what the client sent back. The scoring engine is described in [PHASE2_README.md](docs/build/PHASE2_README.md).
 
-The PDFs sent to the client are in [docs/client/](docs/client/): [questions and hardware](docs/client/BOSS_Client_Questions_and_Hardware.pdf), [online cost](docs/client/BOSS_Online_Cost.pdf) and [online setup steps](docs/client/BOSS_Online_Setup_Steps.pdf).
+The PDFs sent to the client, the user manual, the screenshots of every role and the other generated documents are in the separate `img-and-docs` repository.
 
 ## Where the files are
 
@@ -46,6 +46,6 @@ The PDFs sent to the client are in [docs/client/](docs/client/): [questions and 
 | `docs/build/` | How it is built: architecture, roadmap, status, the scoring engine |
 | `docs/operations/` | Running it: hosting cost, hardware, the pilot, accounts |
 | `docs/guides/` | A short guide for each role |
-| `docs/client/` | What was asked of the client, what came back, and the PDFs |
+| `docs/client/` | What was asked of the client and what came back |
 | `deploy/` | The server files, with the production and staging guides beside them |
 | `rehearsal/` | The automated rehearsals and load test |

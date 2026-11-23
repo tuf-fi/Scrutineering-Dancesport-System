@@ -53,7 +53,7 @@ Built for the Bicol competition circuit and the way these events actually run: o
 
 ## Evidence on Hand
 
-- `printed-result.jpg`: a real printed "Qualified Solos for the final" sheet, E47, JUN 1 - E1 Latin, Sorsogon Provincial Gymnasium, 10/Oct/2026, organizer and executor "BN IT Scrutineer", 6 solos of a total of 21, with back numbers 60 to 219.
+- `printed-result.jpg` (now in the `img-and-docs` repository): a real printed "Qualified Solos for the final" sheet, E47, JUN 1 - E1 Latin, Sorsogon Provincial Gymnasium, 10/Oct/2026, organizer and executor "BN IT Scrutineer", 6 solos of a total of 21, with back numbers 60 to 219.
 - No client testimonials, rankings data, fee amounts, bank or wallet details, or a points table approved by the client yet. The points table in ROLES_README is a suggestion awaiting approval. Do not invent these.
 
 ## Product Principles

@@ -22,3 +22,7 @@ fix*.py
 docs/operations/STAGING_TEST_GUIDE.pdf
 docs/operations/STAGING_LOGINS.pdf
 docs/operations/test-competitors.csv
+
+# Screenshots and manual images live in the separate img-and-docs repository
+/screenshots/
+docs/manual/

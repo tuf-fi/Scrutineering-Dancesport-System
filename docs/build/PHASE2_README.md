@@ -60,7 +60,7 @@ The Skating System rules (Rules 1–11) are fixed, so the engine must follow the
 ### 6. Testing
 - [x] Unit tests for every rule, one test per rule branch (50 in `packages/scoring`).
 - [x] Fixtures from the worked examples in the Skating System guide (Rules 1, 5, 6, 7, 8, 9, 10). Rule 11 and shared-place cases are hand-built, because the guide's Rule 11 tables did not extract cleanly.
-- [x] [printed-result.jpg](../../printed-result.jpg) checked: it is only a "Qualified Solos for the final" list with no marks, so it is not a fixture.
+- [x] `printed-result.jpg` (in the `img-and-docs` repository) checked: it is only a "Qualified Solos for the final" list with no marks, so it is not a fixture.
 - [x] Edge cases: tie at the recall cutoff, tie starting at the top, three-way ties, equal sums, 7-competitor final, solo final, even-sized panel, a couple winning the section without winning a dance.
 - [x] Property tests: any valid marks give every finalist exactly one place, and the places add up (single dance and 2- to 5-dance finals).
 - [x] `packages/scoring/fixtures/` is ready for real result sheets (format in its README).
