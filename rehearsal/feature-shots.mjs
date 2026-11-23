@@ -710,6 +710,38 @@ async function sequence(dbPath) {
     await sleep(500)
   })
 
+  // Back numbers: three late entries have none yet
+  await quietly('clear three back numbers', async () => {
+    const db = new Database(dbPath)
+    db.prepare('UPDATE competitors SET back_number = NULL WHERE id IN (SELECT id FROM competitors WHERE back_number IS NOT NULL ORDER BY back_number DESC LIMIT 3)').run()
+    db.close()
+  })
+  await feature('secretariat', 'back-numbers-missing', async (p) => {
+    await go(p, '/secretariat/athletes')
+    await p.getByLabel('Competition').selectOption({ index: 1 }).catch(() => {})
+    await settle(p)
+    await p.getByRole('button', { name: /^Assign [0-9]+ back number/ }).waitFor()
+  })
+  await feature('secretariat', 'back-number-set-in-side-panel', async (p) => {
+    await go(p, '/secretariat/athletes')
+    await p.getByLabel('Competition').selectOption({ index: 1 }).catch(() => {})
+    await settle(p)
+    await p.locator('tbody tr').first().click()
+    await sleep(800)
+    await p.getByRole('button', { name: 'Set back number' }).first().click()
+    await waitDialog(p)
+    await p.locator('[role=dialog]').last().locator('input').first().fill('151')
+    await sleep(400)
+  })
+  await feature('secretariat', 'back-numbers-assigned', async (p) => {
+    await closeDialogs(p)
+    await go(p, '/secretariat/athletes')
+    await p.getByLabel('Competition').selectOption({ index: 1 }).catch(() => {})
+    await settle(p)
+    await p.getByRole('button', { name: /^Assign [0-9]+ back number/ }).click()
+    await sleep(1500)
+  })
+
   // ------------------------------------------------------------------------------------------------ scrutineer: run the round in review
   rounds = await api(admin0, 'getCompetitionRounds', C)
   await feature('scrutineer', 'rounds-plan', async (p) => {
