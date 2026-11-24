@@ -28,7 +28,7 @@ beforeAll(async () => {
   freeEvent = (await app.ok<{ id: string }>('saveEvent', [free.id, event], secretariat)).id
   paidEvent = (await app.ok<{ id: string }>('saveEvent', [paid.id, { ...event, number: 2 }], secretariat)).id
   competitorId = (
-    await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details: { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: 'Naga', email: 'ana@test.example', phone: '0917' }], beginner: false, memberYear: null } }], secretariat)
+    await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details: { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: 'Naga', email: 'ana@test.example', phone: '0917' }], memberYear: null } }], secretariat)
   ).id
 })
 afterAll(() => app.close())

@@ -1,0 +1,1 @@
+DELETE FROM `event_kinds` WHERE `id` = 'bgb' AND NOT EXISTS (SELECT 1 FROM `events` WHERE `kind` = 'bgb');

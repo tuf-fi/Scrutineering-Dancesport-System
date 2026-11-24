@@ -155,7 +155,7 @@ describe('athletes and their entries', () => {
   it('asks which entry when an athlete dances in more than one', async () => {
     const [team] = await getTeams()
     const blank = { birthDate: '2015-05-05', gender: '' as const, address: 'Naga City', email: 'a@test.example', phone: '0917' }
-    const details = { province: '', coachId: null, dancers: [blank, blank], beginner: false, memberYear: null, memberMonth: null }
+    const details = { province: '', coachId: null, dancers: [blank, blank], memberYear: null, memberMonth: null }
     await createCompetitor('test', { names: ['Chuck Twin'], teamId: team!.id, details })
     await createCompetitor('test', { names: ['Chuck Twin', 'Dee Pair'], teamId: team!.id, details })
 
@@ -199,7 +199,6 @@ describe('editing and removing', () => {
     expect(await within(dialog).findByText('Choose at least one dance.')).toBeInTheDocument()
 
     expect(within(dialog).getByLabelText('Event number')).toHaveValue('55')
-    expect(within(within(dialog).getByLabelText('Kind')).queryByRole('option', { name: /Beginners/ })).toBeNull()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Samba' }))
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add event' }))
     expect(await screen.findByText('Added E55')).toBeInTheDocument()

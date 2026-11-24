@@ -5,7 +5,7 @@ const SECTIONS: Array<{ title: string; body: string[] }> = [
   {
     title: 'What we keep',
     body: [
-      'From the entry form: for each dancer the name, date of birth, address, email and contact number; the province, the team and the coach; whether the entry is a beginners (BGB) entry; and the year the membership was paid.',
+      'From the entry form: for each dancer the name, date of birth, address, email and contact number; the province, the team and the coach; and the year the membership was paid.',
       'For a team or a coach: the name, a contact person, a contact number and an email. For a coach, also the years the membership and the Coaches Summit were paid.',
       'For an athlete account: the name, email and a scrambled form of the password (never the password itself), and the details the athlete fills in on their own page (date of birth, contact number, address, province, team and coach).',
       'For payments: the amount, how it was paid, the reference number and who recorded it. Card details and bank logins are never kept.',

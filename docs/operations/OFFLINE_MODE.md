@@ -1,6 +1,6 @@
 # Running a competition day with no internet
 
-How to run the competition day on a laptop at the venue, so the whole day (admin, secretariat, scrutineer, chairperson, compere and the adjudicators' phones) works with no internet and no venue Wi-Fi. This is a **fallback**: the online server stays the normal way. Written for whoever sets up the venue. The online servers are covered in [../../deploy/PRODUCTION.md](../../deploy/PRODUCTION.md). A step-by-step version for people who are not technical is [OFFLINE_DAY_GUIDE.pdf](OFFLINE_DAY_GUIDE.pdf).
+How to run the competition day on a laptop at the venue, so the whole day (admin, secretariat, scrutineer, chairperson, compere and the adjudicators' phones) works with no internet and no venue Wi-Fi. This is a **fallback**: the online server stays the normal way. Written for whoever sets up the venue. The online servers are covered in [../../deploy/PRODUCTION.md](../../deploy/PRODUCTION.md). A step-by-step version for people who are not technical is [OFFLINE_DAY_GUIDE.pdf](OFFLINE_DAY_GUIDE.pdf). The full manual, role by role with screenshots, is [OFFLINE_MODE_MANUAL.pdf](OFFLINE_MODE_MANUAL.pdf); rebuild it with `node rehearsal/offline-manual-shots.mjs` then `node rehearsal/offline-manual-build.mjs`.
 
 **Status:** the screen, the lock, the file routes and the venue server are built and tested in code. It has **not** been rehearsed on a real venue laptop, a real router and real phones, and the `.bat` files in `deploy/venue` have not been run end to end. Do that rehearsal before relying on it.
 
@@ -46,7 +46,8 @@ The files in `deploy\venue`: `setup.bat` (first time and starting again from a c
 - Everyone joins the router's Wi-Fi and uses the laptop's address: staff at `/staff-access`, the compere at `/compere`, adjudicators at `/adjudicator` (or by scanning their card).
 - The laptop must stay on, plugged in and awake. Do not close the lid.
 - Every change is also copied to the USB drive about every two minutes and after every change.
-- Nobody at the venue needs the internet. Spectators' phones cannot see the public site from the venue Wi-Fi.
+- Nobody at the venue needs the internet.
+- **Visitors** join the same Wi-Fi and see the public pages (program, live and results) from the laptop. On the laptop, **Offline day** shows the address and a QR code to scan or print. Visitors on mobile data cannot reach it.
 
 **If the router stops:** adjudicator phones keep their marks and send them when the Wi-Fi is back. Staff screens show Offline until then. Replace the router with the same settings.
 

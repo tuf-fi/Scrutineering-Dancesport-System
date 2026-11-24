@@ -446,7 +446,6 @@ export function addSampleCompetitorData(db: Db) {
           email: `${slug(name)}@sample.example`,
           phone: `0917 555 ${String(1000 + ((i * 7 + j) % 9000)).padStart(4, '0')}`,
         })),
-        beginner: ['juvenile_1', 'juvenile_2'].includes(c.ageGroup ?? '') && i % 5 === 0,
         memberYear: i % 4 === 0 ? 2025 : 2026,
       }
       tx.update(t.competitors).set({ details }).where(eq(t.competitors.id, c.id)).run()
@@ -569,7 +568,6 @@ export function addSampleEntryData(db: Db) {
       province: 'Camarines Sur',
       coachId: 'coach-sample',
       dancers: [{ birthDate: `${d.year}-05-14`, address: 'Zone 2, Barangay Triangulo, Naga City', email: '', phone: '0917 555 0300' }],
-      beginner: false,
       memberYear: 2026,
     }
     db.insert(t.competitors).values({ id: d.id, names: d.names, ageGroup: d.ageGroup, teamId, details }).onConflictDoNothing().run()

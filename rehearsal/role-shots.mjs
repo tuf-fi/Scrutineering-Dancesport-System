@@ -1,6 +1,6 @@
 // Screenshots of every screen and feature of each role (admin, secretariat, scrutineer, chairperson, compere,
 // barker, adjudicator) and each account kind (athlete, coach, team), plus the public site. Each one is taken twice:
-// MacBook 12" and iPhone 15. Output: screenshots/<role>/<NN>-<name>-<device>.png
+// MacBook 12" (1920x1200) and iPhone 15 (1179x2556), one screen each. Output: screenshots/<role>/<device>/<NN>-<name>.png
 //
 // It needs a running server on a throwaway database that holds the scenario data (see docs/operations/TEST_ACCOUNTS.md,
 // "One competition with every scenario") after `node rehearsal/polish-data.mjs`.
@@ -16,10 +16,10 @@ const CHROME = [process.env.CHROME_PATH, 'C:/Program Files/Google/Chrome/Applica
 if (!CHROME) throw new Error('No Chrome or Edge found. Set CHROME_PATH.')
 
 const DEVICES = {
-  'macbook-12': { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 },
+  'macbook-12': { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5 },
   'iphone-15': {
     viewport: { width: 393, height: 852 },
-    deviceScaleFactor: 2,
+    deviceScaleFactor: 3,
     isMobile: true,
     hasTouch: true,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
@@ -80,12 +80,12 @@ const markAll = async (p) => {
 let missed = 0
 let taken = 0
 async function capture(page, role, index, name, device) {
-  const dir = join(OUT, role)
+  const dir = join(OUT, role, device)
   mkdirSync(dir, { recursive: true })
-  const file = join(dir, `${String(index).padStart(2, '0')}-${name}-${device}.png`)
+  const file = join(dir, `${String(index).padStart(2, '0')}-${name}.png`)
   const overlay = await page.locator('[role=dialog]').first().isVisible().catch(() => false)
   // An open dialog or drawer is shown over the page as it is; otherwise the whole page, top to bottom
-  await page.screenshot({ path: file, fullPage: !overlay })
+  await page.screenshot({ path: file, fullPage: false })
   taken++
 }
 

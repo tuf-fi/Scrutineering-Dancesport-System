@@ -35,7 +35,6 @@ export function CompetitorFacts({ competitor }: { competitor: CompetitorRow }) {
           ['Province', details.province],
           ['Coach', coaches.data?.find((c) => c.id === details.coachId)?.name],
           ['Membership', membershipPaidText(details.memberYear ?? null, new Date().getFullYear())],
-          ['Beginner (BGB)', details.beginner ? 'Yes' : 'No'],
         ]}
       />
       {competitor.names.map((name, i) => {

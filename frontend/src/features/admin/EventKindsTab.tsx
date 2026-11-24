@@ -11,7 +11,6 @@ import { EventKindDialog } from './EventKindDialog.tsx'
 // What a kind asks of an entry, in a line
 const rules = (k: EventKindDef) =>
   [
-    k.beginnersOnly && 'Beginners only',
     k.closedToProvince && 'Closed to one province',
     k.requires.length > 0 && `Needs ${k.requires.map((f) => KIND_FIELD_LABEL[f]).join(', ')}`,
   ]

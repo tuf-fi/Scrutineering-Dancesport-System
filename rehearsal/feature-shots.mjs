@@ -21,10 +21,10 @@ const BASE = `http://localhost:${PORT}`
 const PASSWORD = 'bis2026'
 const ONLY = process.env.ONLY?.split(',')
 const DEVICES = {
-  'macbook-12': { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 },
+  'macbook-12': { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5 },
   'iphone-15': {
     viewport: { width: 393, height: 852 },
-    deviceScaleFactor: 2,
+    deviceScaleFactor: 3,
     isMobile: true,
     hasTouch: true,
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
@@ -168,9 +168,9 @@ async function feature(role, name, fn, { full = true, keep = false } = {}) {
     await sleep(400)
     await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {})
     const overlay = await dlg(page).isVisible().catch(() => false)
-    const dir = join(OUT, role)
+    const dir = join(OUT, role, device)
     mkdirSync(dir, { recursive: true })
-    await page.screenshot({ path: join(dir, `F${String(n).padStart(2, '0')}-${name}-${device}.png`), fullPage: full && !overlay })
+    await page.screenshot({ path: join(dir, `F${String(n).padStart(2, '0')}-${name}.png`), fullPage: false })
     taken++
     console.log(`shot ${label}-${device}`)
   } catch (e) {

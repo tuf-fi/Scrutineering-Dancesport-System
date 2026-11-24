@@ -11,7 +11,7 @@ const dialogFor = (name: string) => screen.findByRole('dialog', { name })
 describe('event kinds', () => {
   it('lists the built-in kinds, then adds, renames and deletes one', async () => {
     renderApp('/admin/categories', Role.Admin)
-    expect(await screen.findByText('Beginners (BGB)')).toBeInTheDocument()
+    expect(await screen.findByText('Inter-collegiate')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'New kind' }))
     let dialog = await dialogFor('New kind')

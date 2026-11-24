@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
 import { useCatalog, useCompetition, useEventList } from '../../hooks/index.ts'
 import type { EventListRow } from '../../hooks/index.ts'
-import { eventCode, eventDances, sheetDate } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventCode, eventDances, sheetDate } from '../../lib/format.ts'
 import { filterEventList } from '../../lib/eventList.ts'
 import { num, td, th } from './tableStyles.ts'
 
@@ -18,6 +18,10 @@ const FIRST_PAGE = 24
 const NEXT_PAGE = 30
 // An event's heading and column titles take about this many rows
 const HEADING = 3
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+// A couple is counted as one couple; a solo as one dancer
+const countOf = (isSolo: boolean, n: number) => (isSolo ? plural(n, 'solo dancer') : plural(n, 'couple'))
 
 // Splits the events into A4 pages, an event carrying over to the next page when it does not fit
 function paginate(events: Event[], rows: EventListRow[]): Chunk[][] {
@@ -39,6 +43,12 @@ function paginate(events: Event[], rows: EventListRow[]): Chunk[][] {
     }
   }
   return pages
+}
+
+const totals = (rows: EventListRow[]) => {
+  const solos = rows.filter((r) => r.event.isSolo).length
+  const couples = rows.length - solos
+  return [couples > 0 && plural(couples, 'couple'), solos > 0 && plural(solos, 'solo dancer')].filter(Boolean).join(' and ') || '0 entries'
 }
 
 // Every event with the back numbers and athletes entered, on A4 pages shown one by one
@@ -97,10 +107,14 @@ export function EventListSheets({ competition, events, rows }: { competition: Co
               {rows.length === 0 && <p>No entries yet.</p>}
               {chunks.map(({ event, rows: chunk, continued }) => (
                 <section key={`${event.id}-${continued}`} className="break-inside-avoid">
-                  <h2 className="mb-1 font-bold">
-                    {eventCode(event)} Â· {eventDances(event)} Â· {ageGroupLabel(event.ageGroup)} Â· {event.class}
+                  <h2 className="flex justify-between gap-4 font-bold">
+                    <span>
+                    {eventCode(event)} - {ageGroupLabel(event.ageGroup)} - {event.class} - {DISCIPLINE_LABEL[event.discipline]}
                     {continued && <span className="font-normal text-neutral-600"> (continued)</span>}
+                    </span>
+                    {!continued && <span className="shrink-0 font-normal text-neutral-600">{countOf(event.isSolo, rows.filter((r) => r.event.id === event.id).length)}</span>}
                   </h2>
+                  <p className="mb-1 text-[9pt] text-neutral-600">{eventDances(event)}</p>
                   <table className="w-full table-fixed border-collapse">
                     <thead>
                       <tr>
@@ -125,7 +139,7 @@ export function EventListSheets({ competition, events, rows }: { competition: Co
 
             <footer className="mt-auto flex justify-between px-3 pb-3 pt-1 font-semibold">
               <span>
-                {i === pages.length - 1 && `${rows.length} ${rows.length === 1 ? 'entry' : 'entries'} in ${events.length} ${events.length === 1 ? 'event' : 'events'}.`}
+                {i === pages.length - 1 && `${totals(rows)} in ${plural(events.length, 'event')}.`}
               </span>
               <span className="font-normal text-neutral-600">
                 Page {i + 1} of {pages.length}

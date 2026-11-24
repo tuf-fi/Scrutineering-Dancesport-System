@@ -74,7 +74,7 @@ describe('before the competition', () => {
     for (let i = 1; i <= 10; i++) {
       const dancer = await app.ok<{ id: string }>(
         'createCompetitor',
-        [{ names: [`Dancer ${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear } }],
+        [{ names: [`Dancer ${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], memberYear } }],
         secretariat,
       )
       dancerIds.push(dancer.id)

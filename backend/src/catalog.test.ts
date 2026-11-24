@@ -11,7 +11,7 @@ let admin = ''
 let secretariat = ''
 let competitionId = ''
 
-const kindInput = { name: 'Inter-school', feeMode: 'couple_older', disciplines: ['latin', 'standard'], beginnersOnly: false, closedToProvince: false, requires: [] }
+const kindInput = { name: 'Inter-school', feeMode: 'couple_older', disciplines: ['latin', 'standard'], closedToProvince: false, requires: [] }
 const groupInput = { name: 'Masters', short: 'MST', bornFrom: 1982, bornTo: 1991, juvenileFee: false }
 const eventInput = { number: 901, ageGroup: 'adult', class: 'D', discipline: 'latin', dances: ['samba'], isSolo: false }
 
@@ -50,10 +50,9 @@ describe('classes', () => {
 describe('event kinds', () => {
   it('starts with the built-in kinds and age groups, readable without signing in', async () => {
     const catalog = await app.ok<Catalog>('getCatalog', [])
-    expect(catalog.kinds.map((k) => k.id)).toEqual(['standard', 'bgb', 'ranking', 'inter_elementary', 'inter_high_school', 'inter_collegiate', 'closed'])
+    expect(catalog.kinds.map((k) => k.id)).toEqual(['standard', 'ranking', 'inter_elementary', 'inter_high_school', 'inter_collegiate', 'closed'])
     expect(catalog.ageGroups.map((g) => g.id)).toEqual(['juvenile_1', 'juvenile_2', 'junior_1', 'junior_2', 'youth', 'adult', 'senior'])
     expect(catalog.kinds.find((k) => k.id === 'closed')).toMatchObject({ closedToProvince: true, feeMode: 'standard', disciplines: ['latin', 'standard'] })
-    expect(catalog.kinds.find((k) => k.id === 'bgb')).toMatchObject({ beginnersOnly: true })
   })
 
   it('adds, edits and deletes a kind, and keeps the secretariat out', async () => {
@@ -182,9 +181,9 @@ describe('rules follow the catalog', () => {
   const catalog: Catalog = {
     classes: [{ name: 'E1' }, { name: 'D' }],
     kinds: [
-      { id: 'standard', name: 'Standard', feeMode: 'standard', beginnersOnly: false, closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
-      { id: 'school', name: 'School cup', feeMode: 'couple_older', beginnersOnly: false, closedToProvince: false, disciplines: ['latin', 'standard'], requires: ['email', 'membership'] },
-      { id: 'open_day', name: 'Open day', feeMode: 'fixed', beginnersOnly: false, closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
+      { id: 'standard', name: 'Standard', feeMode: 'standard', closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
+      { id: 'school', name: 'School cup', feeMode: 'couple_older', closedToProvince: false, disciplines: ['latin', 'standard'], requires: ['email', 'membership'] },
+      { id: 'open_day', name: 'Open day', feeMode: 'fixed', closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
     ],
     ageGroups: [
       { id: 'tiny', name: 'Tiny', short: 'TNY', bornFrom: 2018, bornTo: null, juvenileFee: true },
@@ -209,7 +208,7 @@ describe('rules follow the catalog', () => {
     expect(ageGroupFits('junior_1', 'youth', true)).toBe(false)
     expect(ageGroupFits('adult', 'youth', false)).toBe(false)
     expect(ageGroupFits('senior', 'adult', true)).toBe(true)
-    expect(registrationWarnings({ province: '', coachId: null, dancers: [{ birthDate: '2013-01-01', address: '', email: '', phone: '' }, { birthDate: '2008-01-01', address: '', email: '', phone: '' }], beginner: false, memberYear: null }, 2, [{ number: 1, ageGroup: 'junior_1', kind: 'standard', province: '' }, { number: 2, ageGroup: 'adult', kind: 'standard', province: '' }]).filter((w) => w.includes('was born in'))).toHaveLength(1)
+    expect(registrationWarnings({ province: '', coachId: null, dancers: [{ birthDate: '2013-01-01', address: '', email: '', phone: '' }, { birthDate: '2008-01-01', address: '', email: '', phone: '' }], memberYear: null }, 2, [{ number: 1, ageGroup: 'junior_1', kind: 'standard', province: '' }, { number: 2, ageGroup: 'adult', kind: 'standard', province: '' }]).filter((w) => w.includes('was born in'))).toHaveLength(1)
   })
 
   it('works out the age group from birth years with the groups it is given', () => {
@@ -219,7 +218,7 @@ describe('rules follow the catalog', () => {
 
   it('warns about the data a kind requires, and names the age group by its name', () => {
     const dancer = { birthDate: '2016-01-01', address: 'Naga', email: '', phone: '09' }
-    const details = { province: 'Albay', coachId: null, dancers: [dancer], beginner: false, memberYear: null }
+    const details = { province: 'Albay', coachId: null, dancers: [dancer], memberYear: null }
     const warn = (newMembers: number) => registrationWarnings(details, 1, [{ number: 4, ageGroup: 'tiny', kind: 'school', province: '' }], catalog, newMembers)
     expect(warn(1)).toEqual([
       'E4 (School cup) needs the email of every dancer.',

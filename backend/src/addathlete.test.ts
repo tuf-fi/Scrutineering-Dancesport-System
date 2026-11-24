@@ -10,7 +10,7 @@ let compere = ''
 let teamId = ''
 
 const dancer = { birthDate: '2012-01-01', gender: '' as const, address: 'Naga City', email: 'dancer@test.example', phone: '09171234567' }
-const details = (extra: Partial<CompetitorDetails> = {}): CompetitorDetails => ({ province: 'Albay', coachId: null, dancers: [dancer, dancer], beginner: false, memberYear: null, memberMonth: null, ...extra })
+const details = (extra: Partial<CompetitorDetails> = {}): CompetitorDetails => ({ province: 'Albay', coachId: null, dancers: [dancer, dancer], memberYear: null, memberMonth: null, ...extra })
 
 beforeAll(async () => {
   app = await startTestApp()

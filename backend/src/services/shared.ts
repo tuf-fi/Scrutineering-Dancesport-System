@@ -204,7 +204,7 @@ export function cleanDetails(ctx: Ctx, names: string[], input: unknown): Competi
   if (coachId) found(ctx.db.select().from(t.coaches).where(eq(t.coaches.id, coachId)).get(), 'Coach')
   const memberYear = Number.isInteger(d.memberYear) && (d.memberYear as number) > 2000 ? (d.memberYear as number) : null
   const memberMonth = memberYear !== null && Number.isInteger(d.memberMonth) && (d.memberMonth as number) >= 1 && (d.memberMonth as number) <= 12 ? (d.memberMonth as number) : null
-  return { province: clean(d.province), coachId, dancers, beginner: Boolean(d.beginner), memberYear, memberMonth }
+  return { province: clean(d.province), coachId, dancers, memberYear, memberMonth }
 }
 
 export function cleanNames(names: unknown, what = 'competitor'): string[] {
@@ -240,7 +240,7 @@ export function syncMembership(ctx: Ctx, name: string, year: number | null): voi
   const memberMonth = year === null ? null : new Date().getMonth() + 1
   for (const c of ctx.db.select().from(t.competitors).all()) {
     if (!c.names.some((n) => sameName(n, name))) continue
-    const details: CompetitorDetails = c.details ?? { province: '', coachId: null, dancers: [], beginner: false, memberYear: null }
+    const details: CompetitorDetails = c.details ?? { province: '', coachId: null, dancers: [], memberYear: null }
     ctx.db.update(t.competitors).set({ details: { ...details, memberYear: year, memberMonth } }).where(eq(t.competitors.id, c.id)).run()
   }
   for (const a of ctx.db.select().from(t.athletes).all()) {
@@ -490,7 +490,6 @@ const toKind = (r: typeof t.eventKinds.$inferSelect): EventKindDef => ({
   id: r.id,
   name: r.name,
   feeMode: r.feeMode,
-  beginnersOnly: r.beginnersOnly,
   closedToProvince: r.closedToProvince,
   disciplines: r.disciplines,
   requires: r.requires,
@@ -561,7 +560,7 @@ export function applySettles(ctx: Ctx, paymentId: string) {
   if (settles.competitorId) {
     const competitor = ctx.db.select().from(t.competitors).where(eq(t.competitors.id, settles.competitorId)).get()
     if (competitor) {
-      const details: CompetitorDetails = competitor.details ?? { province: '', coachId: null, dancers: [], beginner: false, memberYear: null }
+      const details: CompetitorDetails = competitor.details ?? { province: '', coachId: null, dancers: [], memberYear: null }
       ctx.db.update(t.competitors).set({ details: { ...details, memberYear: settles.year } }).where(eq(t.competitors.id, competitor.id)).run()
     }
   }

@@ -940,7 +940,6 @@ export const importCompetitors = (actorId: string, rows: CompetitorCsvRow[]) =>
           province: row.details.province.trim(),
           coachId: coach?.id ?? null,
           dancers: names.map((_, i) => row.details!.dancers[i] ?? { birthDate: '', address: '', email: '', phone: '' }),
-          beginner: row.details.beginner,
           memberYear: null,
         }
       }
@@ -2491,7 +2490,7 @@ export const setMembershipPaid = (actorId: string, name: string, paid: boolean) 
     const memberMonth = paid ? new Date().getMonth() + 1 : null
     const person = normalName(name)
     for (const c of competitors.filter((x) => x.names.some((n) => normalName(n) === person))) {
-      c.details = { ...(c.details ?? { province: '', coachId: null, dancers: [], beginner: false, memberYear: null }), memberYear, memberMonth }
+      c.details = { ...(c.details ?? { province: '', coachId: null, dancers: [], memberYear: null }), memberYear, memberMonth }
     }
     for (const athlete of sampleAthletes.filter((a) => normalName(a.name) === person)) {
       if (paid) {

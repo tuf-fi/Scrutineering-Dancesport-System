@@ -53,7 +53,7 @@ export function addFloorDemo(db: Db): { competitionId: string; missing: string[]
       .onConflictDoNothing()
       .run()
     db.insert(t.competitors)
-      .values({ id, names: [name], ageGroup, birthDate, backNumber: back, teamId: 'td-floor-team', details: { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate, address: 'Rizal Street, Naga City', email, phone: '0920 555 0000' }], beginner: false, memberYear: 2026 } })
+      .values({ id, names: [name], ageGroup, birthDate, backNumber: back, teamId: 'td-floor-team', details: { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate, address: 'Rizal Street, Naga City', email, phone: '0920 555 0000' }], memberYear: 2026 } })
       .onConflictDoNothing()
       .run()
     return id

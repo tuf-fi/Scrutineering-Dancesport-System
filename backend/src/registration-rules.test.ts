@@ -4,7 +4,7 @@ import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
 import { startTestApp, type TestApp } from './testing.ts'
 
-// Coach fees, memberships paid later, the fee schedule, deadlines, the beginners rule and the CSV columns
+// Coach fees, memberships paid later, the fee schedule, deadlines, and the CSV columns
 
 let app: TestApp
 let secretariat = ''
@@ -17,7 +17,6 @@ const details = (over: Partial<CompetitorDetails> = {}): CompetitorDetails => ({
   province: 'Camarines Sur',
   coachId,
   dancers: [{ birthDate: '2017-03-02', address: '', email: '', phone: '' }],
-  beginner: false,
   memberYear: null,
   ...over,
 })
@@ -47,7 +46,6 @@ beforeAll(async () => {
   await make('juv1', event(1))
   await make('juv2', event(2, { dances: ['rumba'] }))
   await make('junior', event(3, { ageGroup: 'junior_1', dances: ['jive'] }))
-  await make('bgb', event(4, { kind: 'bgb', dances: ['cha_cha_cha'] }))
   coachId = (await app.ok<Coach>('saveCoach', [{ name: 'Coach Lito', email: '', phone: '0918', memberYear: null, summitYear: null }], secretariat)).id
 })
 afterAll(() => app.close())
@@ -83,7 +81,7 @@ describe('coach fees and memberships paid later', () => {
   })
 })
 
-describe('the fee schedule, deadlines and the beginners rule', () => {
+describe('the fee schedule, and deadlines', () => {
   it('shows the default schedule, then prices from a saved one', async () => {
     const shown = await app.ok<PaymentSettings>('getPaymentSettings', [], admin)
     expect(shown.schedule).toEqual(DEFAULT_FEE_SCHEDULE)
@@ -109,36 +107,21 @@ describe('the fee schedule, deadlines and the beginners rule', () => {
     expect(late).toMatch(/Fees were due on 2020-01-02/)
     expect((await app.call('saveCompetition', [{ ...input, entryDeadline: 'soon' }, competitionId], admin)).error).toMatch(/year-month-day/)
   })
-
-  it('warns when a beginner placed in the top 3 of the same event at the last tournament', async () => {
-    app.db.insert(t.competitions).values({ id: 'earlier', name: '3rd Quarter', date: '2026-09-06', venue: 'v', organizer: 'o' }).run()
-    app.db
-      .insert(t.events)
-      .values({ id: 'earlier-bgb', competitionId: 'earlier', number: 4, position: 1, ageGroup: 'juvenile_1', class: 'C', discipline: 'latin', dances: ['cha_cha_cha'], isSolo: true, kind: 'bgb' })
-      .run()
-    const ben = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Ben Diaz'], teamId: 'team-1', details: details({ beginner: true }) }], secretariat)
-    app.db.insert(t.results).values({ id: 'r1', eventId: 'earlier-bgb', competitorId: ben.id, place: 2, placeFrom: 2, placeTo: 2, stage: 'final', approvedBy: 's2', approvedAt: '2026-09-06T10:00:00Z' }).run()
-    const quote = await app.ok<RegistrationQuote>('quoteRegistration', [ben.id, [events.bgb]], secretariat)
-    expect(quote.warnings.join(' ')).toMatch(/E4: placed 2nd in this event at 3rd Quarter/)
-    // Placing 4th would not matter
-    app.db.update(t.results).set({ place: 4, placeFrom: 4, placeTo: 4 }).run()
-    expect((await app.ok<RegistrationQuote>('quoteRegistration', [ben.id, [events.bgb]], secretariat)).warnings.join(' ')).not.toMatch(/placed/)
-  })
 })
 
 describe('importing the entry form columns', () => {
-  it('reads province, coach, beginner and each dancer’s details, and skips a bad row', async () => {
+  it('reads province, coach and each dancer’s details, and skips a bad row', async () => {
     const csv = [
-      'Dancer,Partner,Team,Province,Coach,Beginner,Dancer birth date,Dancer contact no.,Dancer email,Dancer address,Partner birth date',
-      'Eli Lopez,Mia Lopez,Naga Dancers,Albay,Coach Lito,yes,2012-05-04,0917,e@x.example,Legazpi,2013-01-09',
-      'Zed,,Naga Dancers,Albay,Nobody,,,,,',
-      'Old,,Naga Dancers,,,,4 May 2012,,,',
+      'Dancer,Partner,Team,Province,Coach,Dancer birth date,Dancer contact no.,Dancer email,Dancer address,Partner birth date',
+      'Eli Lopez,Mia Lopez,Naga Dancers,Albay,Coach Lito,2012-05-04,0917,e@x.example,Legazpi,2013-01-09',
+      'Zed,,Naga Dancers,Albay,Nobody,,,,',
+      'Old,,Naga Dancers,,,4 May 2012,,,',
     ].join('\n')
     const result = await app.ok<ImportResult>('importCompetitorsCsv', [csv], secretariat)
     expect(result.created).toBe(1)
     expect(result.skipped.map((s) => s.reason)).toEqual(['Unknown coach "Nobody".', 'Enter each date of birth as year-month-day.'])
     const eli = (await rows()).find((c) => c.names[0] === 'Eli Lopez')!
-    expect(eli.details).toMatchObject({ province: 'Albay', beginner: true, memberYear: null })
+    expect(eli.details).toMatchObject({ province: 'Albay', memberYear: null })
     expect(eli.details?.dancers.map((d) => d.birthDate)).toEqual(['2012-05-04', '2013-01-09'])
     expect(eli.details?.dancers[0]).toMatchObject({ phone: '0917', email: 'e@x.example', address: 'Legazpi' })
   })

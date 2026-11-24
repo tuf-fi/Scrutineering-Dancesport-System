@@ -149,7 +149,7 @@ describe('athlete accounts', () => {
 
   it('counts a membership paid on the account when pricing an entry', async () => {
     app.db.insert(t.events).values({ id: 'e1', competitionId: 'c1', number: 1, position: 1, ageGroup: 'juvenile_1', class: 'C', discipline: 'latin', dances: ['samba'], isSolo: true } as typeof t.events.$inferInsert).run()
-    const details = (email: string) => ({ province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: '', email, phone: '' }], beginner: false, memberYear: null })
+    const details = (email: string) => ({ province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: '', email, phone: '' }], memberYear: null })
     const paid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details: details('ANA@test.example') }], secretariat)
     const unpaid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Cara Diaz'], teamId: 'team-1', details: details('cara@test.example') }], secretariat)
     expect((await app.ok<RegistrationQuote>('quoteRegistration', [paid.id, ['e1']], secretariat)).total).toBe(400)
@@ -215,7 +215,7 @@ describe('the athlete account beyond the basics', () => {
 
   it('finds the results and entries of the competitors carrying their name, with no approval', async () => {
     expect((await app.ok<{ competitorIds: string[] }>('getMyActivity', [], dana)).competitorIds).toEqual([])
-    const details = { province: 'Camarines Sur', coachId: null, dancers: [], beginner: false, memberYear: null }
+    const details = { province: 'Camarines Sur', coachId: null, dancers: [], memberYear: null }
     const couple = await app.ok<{ id: string }>('createCompetitor', [{ names: ['dana  lopez', 'Eli Tan'], teamId: 'team-1', details }], secretariat)
     app.db.insert(t.entries).values({ id: 'en1', eventId: 'e1', competitorId: couple.id }).run()
     const activity = await app.ok<{ competitorIds: string[]; entries: { names: string[]; eventNumber: number }[] }>('getMyActivity', [], dana)

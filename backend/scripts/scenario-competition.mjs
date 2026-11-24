@@ -97,7 +97,6 @@ const EVENTS = [
   { number: 6, ageGroup: 'adult', class: 'A', discipline: 'latin', dances: ['samba', 'cha_cha_cha', 'rumba', 'paso_doble', 'jive'], isSolo: false, kind: 'standard' },
   { number: 7, ageGroup: 'adult', class: 'B', discipline: 'standard', dances: ['waltz', 'foxtrot', 'quickstep'], isSolo: false, kind: 'standard' },
   { number: 8, ageGroup: 'senior', class: 'C', discipline: 'latin', dances: ['cha_cha_cha', 'jive'], isSolo: false, kind: 'standard' },
-  { number: 9, ageGroup: 'juvenile_2', class: 'E1', discipline: 'latin', dances: ['cha_cha_cha', 'rumba'], isSolo: true, kind: 'bgb' },
   { number: 10, ageGroup: 'junior_1', class: 'D', discipline: 'standard', dances: ['waltz', 'quickstep'], isSolo: true, kind: 'ranking' },
   { number: 11, ageGroup: 'juvenile_2', class: 'E1', discipline: 'latin', dances: ['cha_cha_cha', 'jive'], isSolo: false, kind: 'inter_elementary', usesPoints: false },
   { number: 12, ageGroup: 'youth', class: 'C', discipline: 'latin', dances: ['samba', 'rumba'], isSolo: true, kind: 'closed', province: 'Albay' },
@@ -146,7 +145,7 @@ let pay = 0
 const competitors = {}
 const entered = {}
 
-async function addDancers(n, count, { couples = false, teamPool = teams, beginner = false, province } = {}) {
+async function addDancers(n, count, { couples = false, teamPool = teams, province } = {}) {
   const ev = EVENTS.find((e) => e.number === n)
   const years = YEARS[ev.ageGroup]
   const made = []
@@ -156,7 +155,7 @@ async function addDancers(n, count, { couples = false, teamPool = teams, beginne
     const names = couples ? [nextName(), nextName()] : [nextName()]
     const gender = (k) => (k % 2 === 0 ? 'female' : 'male')
     const dancers = names.map((_, k) => dancer(years[(i + k) % years.length], gender(i + k)))
-    const row = await call('createCompetitor', [{ names, teamId: team.id, details: { province: province ?? team.province, coachId: coach.id, dancers, beginner, memberYear: 2026 } }], sec)
+    const row = await call('createCompetitor', [{ names, teamId: team.id, details: { province: province ?? team.province, coachId: coach.id, dancers, memberYear: 2026 } }], sec)
     made.push(row)
   }
   competitors[n] = made
@@ -180,7 +179,6 @@ await enter(5, await addDancers(5, 8, { couples: true }))
 await enter(6, await addDancers(6, 16, { couples: true }))
 await enter(7, await addDancers(7, 14, { couples: true }))
 await enter(8, await addDancers(8, 10, { couples: true }))
-await enter(9, await addDancers(9, 8, { beginner: true }), { unpaid: [1, 4, 6] })
 await enter(10, await addDancers(10, 6))
 await enter(11, await addDancers(11, 6, { couples: true }), { unpaid: [0, 1, 2, 3, 4, 5] })
 await enter(12, await addDancers(12, 5, { province: 'Albay', teamPool: [teams[1], teams[7]] }), { unpaid: [2] })
@@ -189,7 +187,7 @@ log('dancers and entries made')
 
 // Two couples are a Youth couple because one partner is a Junior: the older partner decides the group
 {
-  const mixed = await call('createCompetitor', [{ names: [nextName(), nextName()], teamId: teams[0].id, details: { province: 'Camarines Sur', coachId: coaches[0].id, dancers: [dancer(2011, 'female'), dancer(2009, 'male')], beginner: false, memberYear: 2026 } }], sec)
+  const mixed = await call('createCompetitor', [{ names: [nextName(), nextName()], teamId: teams[0].id, details: { province: 'Camarines Sur', coachId: coaches[0].id, dancers: [dancer(2011, 'female'), dancer(2009, 'male')], memberYear: 2026 } }], sec)
   await call('registerCompetitor', [{ competitorId: mixed.id, eventIds: [event[5].id], method: 'gcash', reference: 'GCMIXED1' }], sec)
   competitors[5].push(mixed)
   entered[5].push(mixed)
@@ -377,9 +375,9 @@ for (const c of claims.filter((x) => x.email === 'team@sample.example' || x.emai
 log('team and coach accounts linked; one link request waiting')
 
 // Dancers the team and an athlete can send entries for
-const extra = async (names, team, years, beginner = false) => {
+const extra = async (names, team, years) => {
   const dancers = names.map((_, k) => dancer(years[k % years.length], k % 2 === 0 ? 'female' : 'male'))
-  return call('createCompetitor', [{ names, teamId: team.id, details: { province: team.province, coachId: coaches[0].id, dancers, beginner, memberYear: 2026 } }], sec)
+  return call('createCompetitor', [{ names, teamId: team.id, details: { province: team.province, coachId: coaches[0].id, dancers, memberYear: 2026 } }], sec)
 }
 const requestA = await extra([nextName()], teams[0], YEARS.juvenile_2)
 const requestB = await extra([nextName()], teams[0], YEARS.junior_1)

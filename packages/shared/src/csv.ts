@@ -4,7 +4,6 @@ import type { DancerDetails } from './types.ts'
 export interface CompetitorCsvDetails {
   province: string
   coachName: string
-  beginner: boolean
   dancers: DancerDetails[]
 }
 
@@ -57,13 +56,13 @@ export function parseCsv(text: string): string[][] {
 }
 
 // Reads "Dancer, Partner, Team" lines; the partner is empty for a solo dancer. Further columns follow the entry form:
-// Province, Coach, Beginner (yes or no), then for the dancer and for the partner: Date of birth, Contact no.,
+// Province, Coach, then for the dancer and for the partner: Date of birth, Contact no.,
 // Email, Address.
 export function parseCompetitorCsv(text: string): CompetitorCsvRow[] {
   const rows = parseCsv(text)
   if (rows[0]?.[0]?.toLowerCase().startsWith('dancer')) rows.shift()
   return rows.map((cells) => {
-    const [first = '', second = '', team = '', province = '', coachName = '', beginner = ''] = cells
+    const [first = '', second = '', team = '', province = '', coachName = ''] = cells
     const names = [first, second].filter(Boolean)
     const dancer = (from: number): DancerDetails => ({
       birthDate: cells[from] ?? '',
@@ -76,8 +75,7 @@ export function parseCompetitorCsv(text: string): CompetitorCsvRow[] {
       row.details = {
         province,
         coachName,
-        beginner: /^(y|yes|true|1|bgb)$/i.test(beginner),
-        dancers: [dancer(6), dancer(10)].slice(0, Math.max(names.length, 1)),
+        dancers: [dancer(5), dancer(9)].slice(0, Math.max(names.length, 1)),
       }
     }
     return row

@@ -77,7 +77,6 @@ describe('what guests may not see', () => {
           province: 'Albay',
           coachId: null,
           dancers: [{ birthDate: '2012-03-04', address: '1 Rizal St', email: 'dancer@example.com', phone: '0917 555 0101' }],
-          beginner: false,
           memberYear: null,
         },
       },

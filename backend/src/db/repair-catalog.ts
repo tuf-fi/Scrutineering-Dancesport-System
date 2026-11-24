@@ -29,10 +29,10 @@ export function repairCatalogRefs(sqlite: Sqlite): CatalogRepair {
   }
 
   const next = (sqlite.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM event_kinds').get() as { n: number }).n
-  const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, fee_mode, beginners_only, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+  const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, fee_mode, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)')
   missingKinds.forEach((id, i) => {
     const known = DEFAULT_EVENT_KINDS.find((k) => k.id === id)
-    addKind.run(id, known?.name ?? titled(id), known?.feeMode ?? 'standard', known?.beginnersOnly ? 1 : 0, known?.closedToProvince ? 1 : 0, JSON.stringify(known?.disciplines ?? ['latin', 'standard']), JSON.stringify(known?.requires ?? []), next + i)
+    addKind.run(id, known?.name ?? titled(id), known?.feeMode ?? 'standard', known?.closedToProvince ? 1 : 0, JSON.stringify(known?.disciplines ?? ['latin', 'standard']), JSON.stringify(known?.requires ?? []), next + i)
   })
 
   return { ageGroups: missingGroups, kinds: missingKinds }

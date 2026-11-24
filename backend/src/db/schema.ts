@@ -77,7 +77,7 @@ export const competitors = sqliteTable(
     // Worked out in the team's form from the dancers' birth years, which are not kept
     ageGroup: text('age_group'),
     birthDate: text('birth_date'),
-    // The rest of the entry form: province, coach, each dancer's details, beginner and membership
+    // The rest of the entry form: province, coach, each dancer's details, and membership
     details: text('details', { mode: 'json' }).$type<CompetitorDetails>(),
     // Null until the secretariat assigns one; unique once assigned
     backNumber: integer('back_number'),
@@ -431,6 +431,7 @@ export const eventKinds = sqliteTable('event_kinds', {
   id: id(),
   name: text('name').notNull(),
   feeMode: text('fee_mode').$type<FeeMode>().notNull().default('standard'),
+  // No longer used; the column stays so the database needs no migration
   beginnersOnly: integer('beginners_only', { mode: 'boolean' }).notNull().default(false),
   closedToProvince: integer('closed_to_province', { mode: 'boolean' }).notNull().default(false),
   disciplines: text('disciplines', { mode: 'json' }).$type<Discipline[]>().notNull().default(['latin', 'standard']),

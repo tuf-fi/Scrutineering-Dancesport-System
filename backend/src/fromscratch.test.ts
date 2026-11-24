@@ -71,7 +71,7 @@ describe('2. secretariat registers', () => {
       for (let i = 1; i <= size; i++) {
         const dancer = await app.ok<{ id: string }>(
           'createCompetitor',
-          [{ names: [`Dancer ${size}-${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear } }],
+          [{ names: [`Dancer ${size}-${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], memberYear } }],
           secretariat,
         )
         await app.ok('registerCompetitor', [{ competitorId: dancer.id, eventIds: [eventId], method: 'gcash', reference: 'GC1234' }], secretariat)

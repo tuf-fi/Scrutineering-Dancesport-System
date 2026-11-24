@@ -5,6 +5,7 @@ import { buttonStyles } from '../../components/ui/buttonStyles.ts'
 import { useCancelOfflineDay, useLoadDayFile, useOfflineDays, useStartOfflineDay } from '../../hooks/index.ts'
 import { formatDate, formatDateTime } from '../../lib/format.ts'
 import { DATABASE_COPY_URL, dayFileUrl } from './offlineUrls.ts'
+import { VenuePublicAddress } from './VenuePublicAddress.tsx'
 
 const COUNT_LABEL: Record<string, string> = {
   rounds: 'Rounds',
@@ -16,6 +17,17 @@ const COUNT_LABEL: Record<string, string> = {
   entries: 'Entries',
   payments: 'Payments',
   entry_requests: 'Entry requests',
+  adjudicator_pins: 'Adjudicator PINs',
+  panels: 'Panels',
+  panel_members: 'Panel members',
+  program_starts: 'Program start times',
+  program_slots: 'Program slots',
+  advancement_rules: 'Advancement rules',
+  round_sets: 'Round adjudicators',
+  heat_competitors: 'Heat entries',
+  redances: 'Redances',
+  tie_decisions: 'Tie decisions',
+  final_tie_decisions: 'Final tie decisions',
   competitors: 'New dancers',
   teams: 'New teams',
   coaches: 'New coaches',
@@ -160,6 +172,8 @@ export function OfflineDayPage() {
           )
         }
       />
+
+      {venue && <VenuePublicAddress />}
 
       <Table<OfflineDayCompetition>
         loading={days.isLoading}

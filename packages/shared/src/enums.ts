@@ -113,7 +113,6 @@ export const DISCIPLINE_DANCES: Record<Discipline, Dance[]> = {
 // What kind of event it is, which sets its fee and who may enter
 export const EventKind = {
   Standard: 'standard',
-  Beginners: 'bgb',
   Ranking: 'ranking',
   InterElementary: 'inter_elementary',
   InterHighSchool: 'inter_high_school',

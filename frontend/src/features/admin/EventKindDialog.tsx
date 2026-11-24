@@ -6,7 +6,7 @@ import { DISCIPLINE_LABEL } from '../../lib/format.ts'
 
 const FORM_ID = 'event-kind-form'
 
-const empty: EventKindInput = { name: '', disciplines: [Discipline.Latin, Discipline.Standard], beginnersOnly: false, closedToProvince: false, requires: [] }
+const empty: EventKindInput = { name: '', disciplines: [Discipline.Latin, Discipline.Standard], closedToProvince: false, requires: [] }
 
 function Check({ checked, onChange, label, hint }: { checked: boolean; onChange: (checked: boolean) => void; label: string; hint?: string }) {
   return (
@@ -101,7 +101,7 @@ export function EventKindDialog({ open, kind, onClose }: { open: boolean; kind: 
     >
       <KindForm
         key={kind?.id ?? 'new'}
-        initial={kind ? { name: kind.name, disciplines: kind.disciplines, beginnersOnly: kind.beginnersOnly, closedToProvince: kind.closedToProvince, requires: kind.requires } : empty}
+        initial={kind ? { name: kind.name, disciplines: kind.disciplines, closedToProvince: kind.closedToProvince, requires: kind.requires } : empty}
         onSubmit={submit}
       />
       {failure && (

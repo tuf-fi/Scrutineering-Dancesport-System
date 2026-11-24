@@ -35,8 +35,6 @@ export interface EventKindDef {
   feeMode: FeeMode
   // The disciplines its events are danced in
   disciplines: Discipline[]
-  // Only beginner (BGB) athletes enter it, and they may enter nothing else
-  beginnersOnly: boolean
   // Open only to one province, named on each event
   closedToProvince: boolean
   // What every dancer entering must have on the entry form
@@ -60,7 +58,7 @@ export interface AgeGroupDef {
   family?: string
 }
 
-// A class, from the beginners' E1 up. Its name is what events and result sheets show, and the list keeps the order.
+// A class, from E1 up. Its name is what events and result sheets show, and the list keeps the order.
 export interface ClassDef {
   name: string
 }
@@ -78,7 +76,6 @@ export interface EventKindInput {
   name: string
   feeMode?: FeeMode
   disciplines: Discipline[]
-  beginnersOnly: boolean
   closedToProvince: boolean
   requires: KindField[]
 }
@@ -86,18 +83,16 @@ export type AgeGroupInput = Omit<AgeGroupDef, 'id' | 'retired' | 'family'>
 
 // What a new database starts with, from the organizer's 2026 entry forms
 const BOTH: Discipline[] = [Discipline.Latin, Discipline.Standard]
-const kind = (id: string, name: string, feeMode: FeeMode, limits: { beginnersOnly?: boolean; closedToProvince?: boolean } = {}): EventKindDef => ({
+const kind = (id: string, name: string, feeMode: FeeMode, limits: { closedToProvince?: boolean } = {}): EventKindDef => ({
   id,
   name,
   feeMode,
   disciplines: [...BOTH],
-  beginnersOnly: limits.beginnersOnly ?? false,
   closedToProvince: limits.closedToProvince ?? false,
   requires: [],
 })
 export const DEFAULT_EVENT_KINDS: EventKindDef[] = [
   kind(EventKind.Standard, 'Standard', FeeMode.Standard),
-  kind(EventKind.Beginners, 'Beginners (BGB)', FeeMode.Standard, { beginnersOnly: true }),
   kind(EventKind.Ranking, 'Ranking', FeeMode.Fixed),
   kind(EventKind.InterElementary, 'Inter-elementary', FeeMode.CoupleJuvenile),
   kind(EventKind.InterHighSchool, 'Inter-high school', FeeMode.CoupleOlder),
@@ -160,8 +155,8 @@ export function checkEventKind(input: EventKindInput | undefined, others: EventK
   if (!Array.isArray(input.disciplines) || input.disciplines.length === 0 || input.disciplines.some((d) => !DISCIPLINES.includes(d))) {
     return { error: 'Choose Latin, Standard or both.', status: 400 }
   }
-  if (typeof input.beginnersOnly !== 'boolean' || typeof input.closedToProvince !== 'boolean') {
-    return { error: 'Choose whether the kind is for beginners or closed to a province.', status: 400 }
+  if (typeof input.closedToProvince !== 'boolean') {
+    return { error: 'Choose whether the kind is closed to a province.', status: 400 }
   }
   if (!Array.isArray(input.requires) || input.requires.some((f) => !KIND_FIELDS.includes(f))) {
     return { error: 'Choose the data from the entry form.', status: 400 }
@@ -172,7 +167,6 @@ export function checkEventKind(input: EventKindInput | undefined, others: EventK
       name,
       ...(input.feeMode ? { feeMode: input.feeMode } : {}),
       disciplines: DISCIPLINES.filter((d) => input.disciplines.includes(d as Discipline)) as Discipline[],
-      beginnersOnly: input.beginnersOnly,
       closedToProvince: input.closedToProvince,
       requires: [...new Set(input.requires)],
     },

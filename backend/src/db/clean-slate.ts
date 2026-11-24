@@ -45,8 +45,8 @@ export function cleanSlate(sqlite: Sqlite, options: { catalog?: boolean } = {}):
       sqlite.prepare('DELETE FROM event_classes').run()
       const addGroup = sqlite.prepare('INSERT INTO age_groups (id, name, short, born_from, born_to, juvenile_fee, family, retired) VALUES (?, ?, ?, ?, ?, ?, NULL, 0)')
       for (const g of DEFAULT_AGE_GROUPS) addGroup.run(g.id, g.name, g.short, g.bornFrom, g.bornTo, g.juvenileFee ? 1 : 0)
-      const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, fee_mode, beginners_only, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-      DEFAULT_EVENT_KINDS.forEach((k, i) => addKind.run(k.id, k.name, k.feeMode, k.beginnersOnly ? 1 : 0, k.closedToProvince ? 1 : 0, JSON.stringify(k.disciplines), JSON.stringify(k.requires), i))
+      const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, fee_mode, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      DEFAULT_EVENT_KINDS.forEach((k, i) => addKind.run(k.id, k.name, k.feeMode, k.closedToProvince ? 1 : 0, JSON.stringify(k.disciplines), JSON.stringify(k.requires), i))
       const addClass = sqlite.prepare('INSERT INTO event_classes (name, sort_order) VALUES (?, ?)')
       DEFAULT_CLASSES.forEach((c, i) => addClass.run(c.name, i))
     }

@@ -26,7 +26,7 @@ const dancer = (gender: string) => ({ birthDate: '2012-01-01', gender, address: 
 function addEntry(id: string, names: string[], ageGroup: string, gender = '') {
   app.db
     .insert(t.competitors)
-    .values({ id, names, ageGroup: null, birthDate: null, backNumber: null, teamId, details: { province: '', coachId: null, dancers: names.map(() => dancer(gender)), beginner: false, memberYear: null } } as typeof t.competitors.$inferInsert)
+    .values({ id, names, ageGroup: null, birthDate: null, backNumber: null, teamId, details: { province: '', coachId: null, dancers: names.map(() => dancer(gender)), memberYear: null } } as typeof t.competitors.$inferInsert)
     .run()
   app.db.insert(t.rankingPoints).values({ id: `p-${id}`, competitorId: id, ageGroup, class: 'D', discipline: 'latin', competitionId, eventId, points: 5 }).run()
 }

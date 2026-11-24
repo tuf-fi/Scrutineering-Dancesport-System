@@ -17,7 +17,6 @@ const details = (over: Partial<CompetitorDetails> = {}): CompetitorDetails => ({
   province: 'Camarines Sur',
   coachId,
   dancers: [{ birthDate: '2017-03-02', address: 'Naga City', email: 'ana@test.example', phone: '0917' }],
-  beginner: false,
   memberYear: null,
   ...over,
 })
@@ -45,7 +44,6 @@ beforeAll(async () => {
   await make('juv1', event(1))
   await make('juv2', event(2, { dances: ['rumba'] }))
   await make('junior', event(3, { ageGroup: 'junior_1', dances: ['jive'] }))
-  await make('bgb', event(4, { kind: 'bgb', dances: ['cha_cha_cha'] }))
   await make('ranking', event(5, { kind: 'ranking', ageGroup: 'junior_1', dances: ['paso_doble'] }))
   coachId = (await app.ok<Coach>('saveCoach', [{ name: 'Coach Lito', email: '', phone: '0918', memberYear: null, summitYear: null }], secretariat)).id
 })
@@ -113,13 +111,10 @@ describe('registering a team from the entry form', () => {
     expect((await app.call('deleteEntry', [first], secretariat)).status).toBe(404)
   })
 
-  it('leaves an entry unpaid, and warns about beginners without refusing', async () => {
-    const made = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ben Diaz'], teamId: 'team-1', details: details({ beginner: true, dancers: [{ birthDate: '2017-01-01', address: '', email: '', phone: '' }] }) }], secretariat)
+  it('leaves an entry unpaid', async () => {
+    const made = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ben Diaz'], teamId: 'team-1', details: details({ dancers: [{ birthDate: '2017-01-01', address: '', email: '', phone: '' }] }) }], secretariat)
     const result = await app.ok<RegistrationResult>('registerCompetitor', [{ competitorId: made.id, eventIds: [events.juv1], method: 'unpaid' }], secretariat)
-    expect(result.warnings.join(' ')).toMatch(/E1: a beginner/)
     expect(app.sqlite.prepare('select status from payments where id = ?').get(result.paymentId)).toEqual({ status: 'unpaid' })
-    // A beginners event is the one a beginner may enter
-    expect((await app.ok<RegistrationQuote>('quoteRegistration', [made.id, [events.bgb]], secretariat)).warnings).toEqual([])
   })
 
   it('refuses a bad date of birth and a missing choice', async () => {

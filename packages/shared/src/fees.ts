@@ -92,12 +92,6 @@ export function registrationWarnings(
   for (const event of events) {
     const code = `E${event.number}`
     const kind = kindOf(catalog.kinds, event.kind)
-    if (details && details.beginner && !kind?.beginnersOnly) {
-      warnings.push(`${code}: a beginner (BGB) athlete may not enter solo, couples or ranking events.`)
-    }
-    if (details && !details.beginner && kind?.beginnersOnly) {
-      warnings.push(`${code} is for beginners. This entry is not marked as a beginner.`)
-    }
     if (kind?.closedToProvince && !sameProvince(details?.province, event.province)) {
       warnings.push(`${code} is closed to ${event.province}. This entry is from ${details?.province?.trim() || 'no province'}, so it cannot be entered.`)
     }

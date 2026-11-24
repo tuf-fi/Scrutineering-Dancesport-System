@@ -25,8 +25,6 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
   const [teamId, setTeamId] = useState(competitor?.teamId ?? '')
   const [province, setProvince] = useState(saved?.province ?? '')
   const [coachId, setCoachId] = useState(saved?.coachId ?? '')
-  // No longer asked on the form; a saved value is kept as it is
-  const beginner = saved?.beginner ?? false
   const [memberYear, setMemberYear] = useState(monthYearText(saved?.memberMonth, saved?.memberYear))
   const [dancers, setDancers] = useState<DancerDetails[]>([saved?.dancers[0] ?? BLANK, saved?.dancers[1] ?? BLANK])
   const [errors, setErrors] = useState<{ first?: string; team?: string; year?: string }>({})
@@ -67,7 +65,6 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
       province,
       coachId: coachId || null,
       dancers: dancers.slice(0, names.length),
-      beginner,
       memberYear: paid?.year ?? null,
       memberMonth: paid?.month ?? null,
     }

@@ -111,7 +111,7 @@ export function addTestData(db: Db): TestDataReport {
         birthDate,
         backNumber: backNumber ?? null,
         teamId: teamIds[team]!,
-        details: { province: PROVINCES[team]!, coachId: coachIds[team]!, dancers: [{ birthDate, address, email, phone }], beginner: false, memberYear: 2026 },
+        details: { province: PROVINCES[team]!, coachId: coachIds[team]!, dancers: [{ birthDate, address, email, phone }], memberYear: 2026 },
       })
       .onConflictDoNothing()
       .run()

@@ -67,7 +67,7 @@ export function addProgramDemo(db: Db): { competitionId: string } {
         birthDate: '2012-03-04',
         backNumber: back,
         teamId: `td-program-team-${(i % TEAMS.length) + 1}`,
-        details: { province: 'Camarines Sur', coachId: null, dancers: names.map(() => ({ birthDate: '2012-03-04', address: 'Rizal Street, Naga City', email: '', phone: '' })), beginner: false, memberYear: 2026 },
+        details: { province: 'Camarines Sur', coachId: null, dancers: names.map(() => ({ birthDate: '2012-03-04', address: 'Rizal Street, Naga City', email: '', phone: '' })), memberYear: 2026 },
       })
       .onConflictDoNothing()
       .run()

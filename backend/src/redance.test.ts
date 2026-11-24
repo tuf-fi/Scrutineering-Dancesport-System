@@ -57,7 +57,7 @@ beforeAll(async () => {
   for (let i = 1; i <= 10; i++) {
     const dancer = await app.ok<{ id: string }>(
       'createCompetitor',
-      [{ names: [`Dancer ${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear: Number(today.slice(0, 4)) } }],
+      [{ names: [`Dancer ${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], memberYear: Number(today.slice(0, 4)) } }],
       secretariat,
     )
     ids.push(dancer.id)

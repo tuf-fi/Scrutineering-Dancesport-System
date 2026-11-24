@@ -1,12 +1,10 @@
 import {
   DEFAULT_FEE_SCHEDULE,
   isFixedFee,
-  kindOf,
   PayMethod,
   PaymentStatus,
   registrationFee,
   registrationWarnings,
-  type Catalog,
   type Team,
   type TeamInput,
   type Coach,
@@ -15,7 +13,7 @@ import {
   type RegistrationQuote,
   type RegistrationResult,
 } from '@bis/shared'
-import { and, desc, eq, lt, sql } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
 import { confirmCascade, impactSummary, removeCascade } from './cascade.ts'
 import { record } from '../core/audit.ts'
@@ -53,42 +51,6 @@ const month = (value: unknown): number | null => (Number.isInteger(value) && (va
 // Today in the Philippines, as YYYY-MM-DD
 const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 
-const SUFFIX = ['th', 'st', 'nd', 'rd']
-const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? 'th' : (SUFFIX[n % 10] ?? 'th')}`
-
-// Beginners who placed in the top 3 of an event may not enter the same event at the next tournament
-function medalWarnings(ctx: Ctx, competitorId: string, competition: typeof t.competitions.$inferSelect, events: Array<typeof t.events.$inferSelect>, catalog: Catalog): string[] {
-  const beginners = (kind: string) => kindOf(catalog.kinds, kind)?.beginnersOnly === true
-  const previous = ctx.db
-    .select()
-    .from(t.competitions)
-    .where(lt(t.competitions.date, competition.date))
-    .orderBy(desc(t.competitions.date))
-    .limit(1)
-    .get()
-  if (!previous) return []
-  const earlier = ctx.db.select().from(t.events).where(eq(t.events.competitionId, previous.id)).all()
-  const warnings: string[] = []
-  for (const event of events.filter((e) => beginners(e.kind))) {
-    const same = earlier.filter(
-      (e) =>
-        beginners(e.kind) &&
-        e.ageGroup === event.ageGroup &&
-        e.class === event.class &&
-        e.discipline === event.discipline &&
-        e.isSolo === event.isSolo &&
-        JSON.stringify(e.dances) === JSON.stringify(event.dances),
-    )
-    for (const e of same) {
-      const result = ctx.db.select().from(t.results).where(and(eq(t.results.eventId, e.id), eq(t.results.competitorId, competitorId))).get()
-      if (result && result.place <= 3) {
-        warnings.push(`E${event.number}: placed ${ordinal(result.place)} in this event at ${previous.name}. Beginners in the top 3 may not enter it at the next tournament.`)
-      }
-    }
-  }
-  return warnings
-}
-
 // Prices the entries of one dancer or couple, and notes what the secretariat should look at
 export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachFees = { membership: false, summit: false }) {
   const competitor = getCompetitorRow(ctx, competitorId)
@@ -103,7 +65,7 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   // A free competition asks for no fee, membership or payment: only the warnings about who may enter remain
   if (!competition.paymentRequired) {
     const catalog = catalogOf(ctx)
-    const warnings = [...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, 0), ...medalWarnings(ctx, competitor.id, competition, events, catalog)]
+    const warnings = [...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, 0)]
     const day = today()
     if (competition.entryDeadline && day > competition.entryDeadline) warnings.push(`Entries closed on ${competition.entryDeadline}. This is a late entry.`)
     return { lines: [], total: 0, warnings, year: competitionYear, newMembers: 0, collect: { membership: false, summit: false }, coachId: undefined, paymentRequired: false }
@@ -135,10 +97,7 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   }
   const { lines, total } = registrationFee(schedule, events.map(toEvent), newMembers, prior, collect, catalog)
 
-  const warnings = [
-    ...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, newMembers),
-    ...medalWarnings(ctx, competitor.id, competition, events, catalog),
-  ]
+  const warnings = registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, newMembers)
   const day = today()
   if (competition.entryDeadline && day > competition.entryDeadline) {
     warnings.push(`Entries closed on ${competition.entryDeadline}. This is a late entry.`)

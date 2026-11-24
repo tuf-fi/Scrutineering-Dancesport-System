@@ -44,7 +44,7 @@ beforeAll(async () => {
     for (let i = 1; i <= 6; i++) {
       const dancer = await app.ok<{ id: string }>(
         'createCompetitor',
-        [{ names: [`Dancer ${number}-${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], beginner: false, memberYear: Number(today.slice(0, 4)) } }],
+        [{ names: [`Dancer ${number}-${i}`], teamId: team.id, details: { province: '', coachId: null, dancers: [{ birthDate: '', address: '', email: '', phone: '' }], memberYear: Number(today.slice(0, 4)) } }],
         secretariat,
       )
       await app.ok('registerCompetitor', [{ competitorId: dancer.id, eventIds: [eventId], method: 'gcash', reference: 'GC1234' }], secretariat)

@@ -52,17 +52,74 @@ const startedAt = new Date().toISOString()
 const results = []
 const browserIssues = []
 const log = (m) => console.log(m)
+// Every step leaves at least one screenshot: the pages it opened (taken as each closes), or else the screen that
+// shows what the step checked
+let stepShots = []
+let witness = null
+const WHERE = [
+  ['1a', '/'], ['1b', '/competitions'], ['1c', '/admin/staff'], ['2e', '/admin/payments'], ['4d', '/admin/points'],
+  ['6', '/secretariat/entry-requests'], ['10a', '/secretariat'], ['10b', '/secretariat/late-entries'],
+  ['14', '/scrutineer'], ['8', '/admin'], ['9', '/admin'],
+]
+const whereFor = (name) => WHERE.find(([id]) => name.split('.')[0] === id || name.startsWith(id))?.[1] ?? '/scrutineer/results'
+async function witnessShot(name) {
+  try {
+    if (!witness) {
+      witness = await open(LAPTOP, 'witness', true)
+      await staffSignIn(witness.page, 'admin')
+    }
+    await witness.page.goto(BASE + whereFor(name), { waitUntil: 'networkidle', timeout: 8000 }).catch(() => {})
+    await sleep(300)
+    return await witness.page.screenshot({ fullPage: false })
+  } catch {
+    return null
+  }
+}
+const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
+let stepNo = 0
+async function saveShots(name, ok, skip) {
+  const file = (k) => `step-${String(stepNo).padStart(2, '0')}-${slug(name)}${k ? `-${k}` : ''}.png`
+  let shots = stepShots.splice(0)
+  if (!shots.length && !skip) {
+    const w = await witnessShot(name)
+    if (w) shots = [w]
+  }
+  const names = []
+  shots.forEach((buf, i) => {
+    const f = file(shots.length > 1 ? i + 1 : 0)
+    writeFileSync(join(SHOTS, f), buf)
+    names.push(f)
+  })
+  return names
+}
+const gallery = []
 async function step(name, fn, skip = false) {
-  if (skip) return log(`SKIP  ${name}`)
+  stepNo++
+  stepShots = []
+  if (skip) {
+    gallery.push({ name, status: 'SKIP', note: '', shots: [] })
+    return log(`SKIP  ${name}`)
+  }
   const t = Date.now()
   try {
     const note = await fn()
     results.push({ name, ok: true })
+    gallery.push({ name, status: 'PASS', note: note ?? '', shots: await saveShots(name, true) })
     log(`PASS  ${name}${note ? `  (${note})` : ''}  [${((Date.now() - t) / 1000).toFixed(1)}s]`)
   } catch (e) {
-    results.push({ name, ok: false, note: String(e.message ?? e).split('\n')[0] })
-    log(`FAIL  ${name}\n      ${String(e.message ?? e).split('\n').slice(0, 4).join('\n      ')}`)
+    const why = String(e.message ?? e)
+    results.push({ name, ok: false, note: why.split('\n')[0] })
+    gallery.push({ name, status: 'FAIL', note: why.split('\n')[0], shots: await saveShots(name, false) })
+    log(`FAIL  ${name}\n      ${why.split('\n').slice(0, 4).join('\n      ')}`)
   }
+}
+function writeGallery() {
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  const rows = gallery
+    .map((g) => `<section><h2><span class="${g.status}">${g.status}</span> ${esc(g.name)}</h2>${g.note ? `<p>${esc(g.note)}</p>` : ''}<div>${g.shots.map((f) => `<a href="${f}"><img src="${f}" loading="lazy"></a>`).join('')}</div></section>`)
+    .join('')
+  const css = 'body{font:14px system-ui;margin:24px;max-width:1400px}section{border-top:1px solid #ddd;padding:12px 0}h2{font-size:15px}span{padding:2px 8px;border-radius:4px;color:#fff;font-size:12px}.PASS{background:#15803d}.FAIL{background:#b91c1c}.SKIP{background:#777}div{display:flex;flex-wrap:wrap;gap:8px}img{max-height:340px;border:1px solid #ccc}'
+  writeFileSync(join(SHOTS, 'index.html'), `<!doctype html><meta charset="utf-8"><title>End to end run</title><style>${css}</style><h1>End to end run: ${results.filter((r) => r.ok).length}/${results.length} steps passed</h1>${rows}`)
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 function expect(cond, message) {
@@ -134,6 +191,11 @@ async function open(options, label, quiet = false) {
   const ctx = await browser.newContext(options)
   const page = await ctx.newPage()
   page.setDefaultTimeout(15000)
+  const realClose = ctx.close.bind(ctx)
+  ctx.close = async () => {
+    if (label !== 'witness') await page.screenshot({ fullPage: false, timeout: 4000 }).then((b) => stepShots.push(b)).catch(() => {})
+    return realClose()
+  }
   if (!quiet) {
   page.on('pageerror', (e) => browserIssues.push(`${label}: page error: ${e.message.slice(0, 160)}`))
   page.on('console', (m) => m.type() === 'error' && browserIssues.push(`${label}: console: ${m.text().slice(0, 160)}`))
@@ -954,6 +1016,7 @@ try {
   results.push({ name: 'setup', ok: false, note: String(e.message ?? e) })
   log(`FAIL  setup\n      ${String(e.message ?? e)}`)
 } finally {
+  await witness?.ctx.close().catch(() => {})
   await browser?.close().catch(() => {})
   server?.kill()
   await sleep(500)
@@ -962,6 +1025,7 @@ try {
   } catch {}
 }
 
+writeGallery()
 const failed = results.filter((r) => !r.ok)
 log(`\n===== ${results.length - failed.length}/${results.length} steps passed =====`)
 for (const r of failed) log(`FAIL  ${r.name}  ->  ${r.note}`)

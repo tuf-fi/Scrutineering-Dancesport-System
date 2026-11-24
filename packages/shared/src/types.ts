@@ -141,8 +141,6 @@ export interface CompetitorDetails {
   coachId: Id | null
   // One entry per name; a dancer without details has empty fields
   dancers: DancerDetails[]
-  // A Bicol Grassroots Beginners athlete: no regional or national experience
-  beginner: boolean
   // The year the athletes' membership was last paid for; it lasts until December
   memberYear: number | null
   memberMonth?: number | null

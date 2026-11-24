@@ -1,5 +1,5 @@
 // Takes the screenshots for the user manual (docs/manual) from the real server on a throwaway sample database.
-// Run `pnpm build` first, then `node rehearsal/manual-shots.mjs`. Images go to docs/manual/images/<role>/.
+// Run `pnpm build` first, then `node rehearsal/manual-shots.mjs`. Images go to ../img-and-docs/docs/manual/images/<role>/.
 // Pass names to take only some jobs, e.g. `node rehearsal/manual-shots.mjs admin public`.
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
@@ -10,7 +10,8 @@ import { chromium } from 'playwright-core'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const BACKEND = join(ROOT, 'backend')
-const OUT = join(ROOT, 'docs', 'manual', 'images')
+// The manual lives in the img-and-docs repository, next to this one
+const OUT = process.env.MANUAL_IMAGES ?? join(ROOT, '..', 'img-and-docs', 'docs', 'manual', 'images')
 const CHROME = [
   process.env.CHROME_PATH,
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -164,6 +165,7 @@ async function tryShot(page, role, name, act) {
     await shot(page, role, name)
   } catch (e) {
     console.error(`MISSED ${role}/${name}: ${e.message.split('\n')[0]}`)
+    if (process.env.DEBUG_SHOTS) console.error((await page.locator('main').innerText().catch(() => '')).slice(0, 1500))
   }
 }
 const dialog = async (page) => {
@@ -247,13 +249,6 @@ const JOBS = {
       ['standings', '/athlete/rankings'],
       ['entries', '/athlete/entries'],
     ]) await visit(page, R, name, path)
-    await visit(page, R, 'register', '/athlete/register', {
-      before: async (p) => {
-        await p.locator('input[type=checkbox]').first().check()
-        await sleep(800)
-        await p.getByText('FEE').first().scrollIntoViewIfNeeded()
-      },
-    })
     for (const [name, path] of [
       ['requests', '/athlete/requests'],
       ['notifications', '/athlete/notifications'],
@@ -289,6 +284,7 @@ const JOBS = {
       ['results', '/team/results'],
       ['standings', '/team/rankings'],
       ['entries', '/team/entries'],
+      ['membership', '/team/membership'],
       ['payments', '/team/payments'],
     ]) await visit(page, 'team', name, path)
     await visit(page, 'team', 'register', '/team/register', {
@@ -417,7 +413,13 @@ const JOBS = {
     })
     await closeDialogs(page)
     await tryShot(page, R, 'back-number', async () => {
-      await page.getByRole('button', { name: /^Set back number/ }).first().click()
+      const setNumber = page.getByRole('button', { name: /^Set back number/ }).first()
+      for (let i = 0; i < 8 && !(await setNumber.isVisible()); i++) {
+        await page.keyboard.press('Escape')
+        await page.locator('tbody tr').nth(i).click()
+        await sleep(700)
+      }
+      await setNumber.click()
       await dialog(page)
     })
     await closeDialogs(page)
@@ -511,6 +513,17 @@ const JOBS = {
     // ---- Scrutineer: the round on the floor
     await visit(S, 'scrutineer', 'rounds', '/scrutineer')
     await visit(S, 'scrutineer', 'heats', '/scrutineer/heats')
+    await tryShot(S, 'scrutineer', 'heats-split', async () => {
+      await S.getByLabel('Per heat').fill('12')
+      await S.getByRole('button', { name: 'Split evenly' }).click()
+    })
+    for (const [name, label] of [['heat-merge', 'Merge heats'], ['heat-swap', 'Swap couples'], ['heat-move', 'Move a heat'], ['redance', 'Redance a heat']]) {
+      await tryShot(S, 'scrutineer', name, async () => {
+        await S.getByRole('button', { name: label }).click()
+        await dialog(S)
+      })
+      await closeDialogs(S)
+    }
     await visit(S, 'scrutineer', 'program', '/scrutineer/program')
     await visit(S, 'scrutineer', 'advancement', '/scrutineer/advancement')
     await visit(S, 'scrutineer', 'live', '/scrutineer/live')
@@ -571,19 +584,9 @@ const JOBS = {
       await api(scr.ctx, 'enterAdjudicatorMarks', adj, R2, [{ dance: 'cha_cha_cha', competitorIds: [...ABOVE, tied].map((n) => ids[n]) }])
     }
 
-    // ---- Live board complete, then the recall with a tie
+    // ---- Live board complete, then the recall
     await visit(S, 'scrutineer', 'live-complete', '/scrutineer/live')
     await visit(S, 'scrutineer', 'recall', '/scrutineer/recall')
-    await tryShot(S, 'scrutineer', 'recall-proposed', async () => {
-      await S.getByRole('button', { name: 'Propose decision' }).click()
-      await S.getByText(/Waiting for the chairperson/i).first().waitFor()
-      await sleep(4000)
-    })
-    await visit(chair.page, 'chairperson', 'recall-confirm', '/scrutineer/recall')
-    await tryShot(chair.page, 'chairperson', 'confirmed', async () => {
-      await chair.page.getByRole('button', { name: 'Confirm tie decision' }).click()
-      await sleep(1500)
-    })
     await visit(chair.page, 'chairperson', 'results', '/scrutineer/results')
 
     // ---- Results: approve, publish
@@ -696,6 +699,7 @@ const JOBS = {
       const page = await ctx.newPage()
       page.setDefaultTimeout(15000)
       await visit(page, 'barker', 'board', '/barker')
+      await visit(page, 'barker', 'next', '/barker/next')
       await ctx.close()
     }
     await tryShot(compere.page, 'compere', 'program', async () => {
@@ -716,6 +720,161 @@ const JOBS = {
     await chair.ctx.close()
     await compere.ctx.close()
     await phone.ctx.close()
+  },
+
+  // A tie in a final: the panel splits on the top two, so the scrutineer proposes and the chairperson confirms
+  async tie() {
+    const EV = `${COMP}:e3`
+    const FINAL = `${EV}:final`
+    const adm = await session('admin')
+    const sec = await session('secretariat')
+    const scr = await session('scrutineer')
+    const chair = await session('chairperson')
+    const sign = signaturePng()
+    await api(scr.ctx, 'saveMyStaffSignature', sign)
+    await api(chair.ctx, 'saveMyStaffSignature', sign)
+    await api(adm.ctx, 'setPanel', EV, ['adj-a', 'adj-b', 'adj-c', 'adj-i'])
+    const status = Object.fromEntries((await api(sec.ctx, 'getPayments')).map((p) => [p.id, p.status]))
+    for (const e of (await api(sec.ctx, 'getCompetitionEntries', COMP)).filter((x) => x.eventId === EV)) {
+      const st = status[e.paymentId]
+      if (st === 'unpaid' || st === 'rejected') await api(sec.ctx, 'markPaidAtVenue', e.paymentId).catch(() => {})
+      else if (st === 'for_checking') await api(sec.ctx, 'setEntryScratched', e.id, true).catch(() => {})
+    }
+    await api(scr.ctx, 'startRound', FINAL)
+    const ids = (await api(scr.ctx, 'getMarkingTask', FINAL)).competitors.map((c) => c.id)
+    const dances = (await api(sec.ctx, 'getEvent', EV)).dances
+    for (const [i, adj] of ['adj-a', 'adj-b', 'adj-c', 'adj-i'].entries()) {
+      const order = [...ids]
+      if (i >= 2) [order[0], order[1]] = [order[1], order[0]]
+      await api(scr.ctx, 'enterAdjudicatorMarks', adj, FINAL, dances.map((dance) => ({ dance, competitorIds: order })))
+    }
+    const S = scr.page
+    await visit(S, 'scrutineer', 'final-tie', `/scrutineer/results?round=${FINAL}`, { before: (p) => p.getByRole('region', { name: 'Tie in the final' }).waitFor() })
+    await tryShot(S, 'scrutineer', 'final-tie-order', async () => {
+      await S.getByLabel('Settle it with a dance-off').check()
+      const picks = S.getByRole('region', { name: 'Tie in the final' }).locator('select')
+      await picks.nth(0).selectOption('2')
+      await picks.nth(1).selectOption('1')
+    })
+    await tryShot(S, 'scrutineer', 'final-tie-proposed', async () => {
+      await S.getByRole('button', { name: 'Propose decision' }).click()
+      await S.getByText(/Waiting for the chairperson|waiting/i).first().waitFor()
+      await sleep(3500)
+    })
+    await visit(chair.page, 'chairperson', 'final-tie-confirm', `/scrutineer/results?round=${FINAL}`, { before: (p) => p.getByRole('button', { name: 'Confirm tie decision' }).waitFor() })
+    await tryShot(chair.page, 'chairperson', 'final-tie-confirmed', async () => {
+      await chair.page.getByRole('button', { name: 'Confirm tie decision' }).click()
+      await sleep(1500)
+    })
+    for (const s of [adm, sec, scr, chair]) await s.ctx.close()
+  },
+
+  // Screens added since the first manual: the admin's system pages, certificates, sign-in and account pages, the live board
+  async more() {
+    const sec = await session('secretariat')
+    await api(sec.ctx, 'generateProgram', COMP)
+    await api(sec.ctx, 'setProgramStart', COMP, '08:00')
+    let done = null
+    for (const c of await api(sec.ctx, 'getCompetitions')) {
+      const ids = await api(sec.ctx, 'getResultEventIds', c.id)
+      if (ids.length) {
+        done = { c: c.id, e: ids[0] }
+        break
+      }
+    }
+    await sec.ctx.close()
+    const ev = done?.e ?? E11
+
+    // ---- Sign-in and password pages
+    {
+      const { ctx, page } = await session('public', { viewport: { width: 1280, height: 800 } })
+      await visit(page, 'auth', 'staff-access', '/staff-access')
+      await tryShot(page, 'auth', 'staff-access-adjudicator', async () => {
+        await page.getByRole('tab', { name: /adjudicator/i }).or(page.getByRole('button', { name: /adjudicator/i })).first().click()
+        await settle(page)
+      })
+      await visit(page, 'auth', 'login', '/login')
+      await visit(page, 'auth', 'forgot-password', '/forgot-password')
+      await visit(page, 'auth', 'not-found', '/nothing-here')
+      await ctx.close()
+    }
+
+    // ---- Admin
+    {
+      const { ctx, page } = await session('admin')
+      const R = 'admin'
+      await visit(page, R, 'offline-day', '/admin/offline-day')
+      await tryShot(page, R, 'offline-day-start', async () => {
+        await page.getByRole('button', { name: /Start the offline day/ }).first().click()
+        await dialog(page)
+      })
+      await closeDialogs(page)
+      await visit(page, R, 'site', '/admin/site')
+      await visit(page, R, 'event-list', `/admin/event-list?competition=${COMP}`)
+      await visit(page, R, 'event-list-print', `/print/event-list/${COMP}`)
+      await visit(page, R, 'results', '/admin/results')
+      await visit(page, R, 'certificates', '/admin/certificates')
+      await visit(page, R, 'categories-classes', '/admin/categories', {
+        before: async (p) => {
+          await p.getByRole('tab', { name: /class/i }).first().click()
+          await settle(p)
+        },
+      })
+      await visit(page, R, 'categories-ages', '/admin/categories', {
+        before: async (p) => {
+          await p.getByRole('tab', { name: /age/i }).first().click()
+          await settle(p)
+        },
+      })
+      await visit(page, R, 'past-competition', '/admin/past-competition')
+      await visit(page, R, 'account', '/account')
+      await visit(page, R, 'notifications', '/notifications')
+      await tryShot(page, R, 'staff-activity', async () => {
+        await page.goto(BASE + '/admin/staff')
+        await settle(page)
+        await page.locator('tbody tr').first().click()
+        await settle(page)
+        await page.getByRole('button', { name: 'Activity' }).or(page.getByText('Activity', { exact: true })).first().click()
+        await settle(page)
+      })
+      await ctx.close()
+    }
+
+    // ---- Scrutineer
+    {
+      const { ctx, page } = await session('scrutineer')
+      const R = 'scrutineer'
+      await api(ctx, 'saveMyStaffSignature', signaturePng())
+      await visit(page, R, 'schedule', '/scrutineer/schedule')
+      await visit(page, R, 'panels', '/scrutineer/panels')
+      await visit(page, R, 'certificates', '/scrutineer/certificates')
+      await visit(page, R, 'print-certificates', `/print/certificates/${ev}`)
+      await visit(page, R, 'print-results', `/print/results/${ev}`)
+      await visit(page, R, 'account', '/account')
+      await ctx.close()
+    }
+
+    // ---- Secretariat
+    {
+      const { ctx, page } = await session('secretariat')
+      await visit(page, 'secretariat', 'panels', '/secretariat/panels')
+      await visit(page, 'secretariat', 'account', '/account')
+      await ctx.close()
+    }
+
+    // ---- Public: the live board and the program printout. The live board shows a competition held today.
+    {
+      const adm = await session('admin')
+      const comp = (await api(adm.ctx, 'getCompetitions')).find((c) => c.id === COMP)
+      const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
+      await api(adm.ctx, 'saveCompetition', { name: comp.name, date: today, venue: comp.venue, organizer: comp.organizer }, COMP)
+      await adm.ctx.close()
+      const { ctx, page } = await session('public', PHONE)
+      await visit(page, 'public', 'live', '/live')
+      await visit(page, 'public', 'live-competition', `/live/${COMP}`)
+      await visit(page, 'public', 'program-print', `/competitions/${COMP}/program/print`)
+      await ctx.close()
+    }
   },
 }
 
