@@ -95,7 +95,7 @@ export function ProgramPrintPage() {
                 <th className={`${th} ${keep}`}>Round</th>
                 <th className={`${thCenter} ${keep}`}>No. of Entries</th>
                 <th className={`${th} ${keep}`}>Action</th>
-                <th className={`${th} ${keep}`}>Adjudicators</th>
+                <th className={`${th} ${keep}`}>Adjud</th>
               </tr>
             </thead>
             <tbody>

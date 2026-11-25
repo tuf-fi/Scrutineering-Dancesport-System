@@ -157,6 +157,7 @@ On the day, the secretariat can still add late entries and mark cash payments at
 | coaches | Coach, contact, the years their membership and Coaches Summit were paid |
 | athletes | An athlete's account: email, password, details, membership year and any payment waiting for the secretariat |
 | member_accounts | A coach or team account: email, password, details and picture, and the coach or team record it is linked to (or the link it is waiting to have approved) |
+| competition_fees | A price a competition charges: name, amount, and optionally a price for extra entries and for late entries. Each event points to one |
 | entry_requests | An entry a team or athlete sent online: the events, the fee, how it was paid, the payment screenshot and whether the secretariat approved or turned it down |
 | notifications, member_notifications | What an athlete, or a coach or team, is told (entry decided, link decided, and so on) |
 | payments | Team, amount, reference number, how it was paid, status, recorded by, recorded at |

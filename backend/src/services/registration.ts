@@ -1,6 +1,7 @@
 import {
-  DEFAULT_FEE_SCHEDULE,
-  isFixedFee,
+  type FeeLine,
+  unpricedEvents,
+  unpricedMessage,
   PayMethod,
   PaymentStatus,
   registrationFee,
@@ -21,7 +22,7 @@ import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
 import { checkEligible, checkNotStarted } from './secretariat.ts'
-import { applySettles, catalogOf, clean, giveCoachMembershipId, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
+import { applySettles, catalogOf, feesOf, priorEntries, clean, giveCoachMembershipId, getCompetitorRow, getEventRow, isStaff, toTeam, toEvent } from './shared.ts'
 
 const toCoach = (r: typeof t.coaches.$inferSelect): Coach => ({
   id: r.id,
@@ -51,6 +52,42 @@ const month = (value: unknown): number | null => (Number.isInteger(value) && (va
 // Today in the Philippines, as YYYY-MM-DD
 const today = () => new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 
+type Quote = ReturnType<typeof quote>
+
+export interface Agreed {
+  total: number
+  warnings: string[]
+  charge: t.RequestCharge
+}
+
+const agreedPrice = (agreed: Agreed) => ({ lines: [], total: agreed.total, warnings: agreed.warnings, paymentRequired: true })
+
+export const feesByEvent = (lines: FeeLine[]): Record<string, number> => Object.fromEntries(lines.flatMap((l) => (l.eventId ? [[l.eventId, l.amount]] : [])))
+
+// What a payment of this price settles once it is paid, now or later
+export function settlesOf(priced: Quote, competitorId: string): t.PaymentSettles | null {
+  const coachSettled = priced.collect.membership || priced.collect.summit
+  if (priced.chargedMembers === 0 && !coachSettled) return null
+  return {
+    year: priced.year,
+    ...(priced.chargedMembers > 0 ? { competitorId } : {}),
+    ...(coachSettled ? { coachId: priced.coachId, coachMembership: priced.collect.membership, coachSummit: priced.collect.summit } : {}),
+  }
+}
+
+// Memberships already charged and still waiting to be paid or confirmed, which are not charged again: on a payment that
+// still has entries, or on an entry request waiting for the secretariat
+function waitingCharges(ctx: Ctx): t.PaymentSettles[] {
+  const billed = ctx.sqlite
+    .prepare(
+      `SELECT settles FROM payments p WHERE settles IS NOT NULL AND status IN ('unpaid', 'for_checking', 'rejected')
+       AND EXISTS (SELECT 1 FROM entries e WHERE e.payment_id = p.id)`,
+    )
+    .all() as Array<{ settles: string }>
+  const requested = ctx.db.select({ charge: t.entryRequests.charge }).from(t.entryRequests).where(eq(t.entryRequests.status, 'waiting')).all()
+  return [...billed.map((p) => JSON.parse(p.settles) as t.PaymentSettles), ...requested.flatMap((r) => (r.charge?.settles ? [r.charge.settles] : []))]
+}
+
 // Prices the entries of one dancer or couple, and notes what the secretariat should look at
 export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachFees = { membership: false, summit: false }) {
   const competitor = getCompetitorRow(ctx, competitorId)
@@ -68,34 +105,39 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
     const warnings = [...registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, 0)]
     const day = today()
     if (competition.entryDeadline && day > competition.entryDeadline) warnings.push(`Entries closed on ${competition.entryDeadline}. This is a late entry.`)
-    return { lines: [], total: 0, warnings, year: competitionYear, newMembers: 0, collect: { membership: false, summit: false }, coachId: undefined, paymentRequired: false }
+    return { lines: [], total: 0, warnings, year: competitionYear, chargedMembers: 0, collect: { membership: false, summit: false }, coachId: undefined, paymentRequired: false }
   }
   // A dancer is covered by the entry form's membership year, or by a membership paid on their own account (matched by email)
-  const paidOnAccount = (email: string | undefined) =>
-    Boolean(email) && ctx.db.select({ year: t.athletes.memberYear }).from(t.athletes).where(eq(t.athletes.email, email!.trim().toLowerCase())).get()?.year === competitionYear
-  const newMembers =
-    details?.memberYear === competitionYear ? 0 : competitor.names.filter((_, i) => !paidOnAccount(details?.dancers[i]?.email)).length
-  const schedule = readPaymentSettings(ctx.sqlite).schedule ?? DEFAULT_FEE_SCHEDULE
+  const accountOf = (email: string | undefined) =>
+    email ? ctx.db.select({ year: t.athletes.memberYear, request: t.athletes.request }).from(t.athletes).where(eq(t.athletes.email, email.trim().toLowerCase())).get() : undefined
+  const unpaid = details?.memberYear === competitionYear ? [] : competitor.names.map((_, i) => accountOf(details?.dancers[i]?.email)).filter((a) => a?.year !== competitionYear)
+  const newMembers = unpaid.length
+  // Not charged again while a charge for it is waiting: here, or a payment the team already sent for the athlete
+  const waiting = waitingCharges(ctx).filter((w) => w.year === competitionYear)
+  const chargedMembers = waiting.some((w) => w.competitorId === competitor.id)
+    ? 0
+    : unpaid.filter((a) => !(a?.request && !a.request.rejectedReason && a.request.year === competitionYear)).length
+  const { memberships } = readPaymentSettings(ctx.sqlite)
   const catalog = catalogOf(ctx)
-  // Entries already made in this competition, not counting the fixed-price events
-  const prior = ctx.db
-    .select({ kind: t.events.kind })
-    .from(t.entries)
-    .innerJoin(t.events, eq(t.events.id, t.entries.eventId))
-    .where(and(eq(t.entries.competitorId, competitor.id), eq(t.entries.scratched, false), eq(t.events.competitionId, competition.id)))
-    .all()
-    .filter((e) => !isFixedFee(catalog, e.kind)).length
+  const fees = feesOf(ctx, competition.id)
+  const unpriced = unpricedEvents(fees, events)
+  if (unpriced.length > 0) return fail(unpricedMessage(unpriced), 409)
+  const prior = priorEntries(ctx, competitor.id, competition.id, fees)
 
   // The coach's own fees, offered while they have not paid this year
   const coachRow = details?.coachId ? ctx.db.select().from(t.coaches).where(eq(t.coaches.id, details.coachId)).get() : undefined
   const coach = coachRow
-    ? { name: coachRow.name, membershipDue: coachRow.memberYear !== competitionYear, summitDue: coachRow.summitYear !== competitionYear }
+    ? {
+        name: coachRow.name,
+        membershipDue: coachRow.memberYear !== competitionYear && !waiting.some((w) => w.coachId === coachRow.id && w.coachMembership),
+        summitDue: coachRow.summitYear !== competitionYear && !waiting.some((w) => w.coachId === coachRow.id && w.coachSummit),
+      }
     : undefined
   const collect = {
     membership: Boolean(coach?.membershipDue && coachFees.membership),
     summit: Boolean(coach?.summitDue && coachFees.summit),
   }
-  const { lines, total } = registrationFee(schedule, events.map(toEvent), newMembers, prior, collect, catalog)
+  const { lines, total } = registrationFee(fees, events, memberships, chargedMembers, prior, collect)
 
   const warnings = registrationWarnings(details ?? undefined, competitor.names.length, events.map(toEvent), catalog, newMembers)
   const day = today()
@@ -105,13 +147,14 @@ export function quote(ctx: Ctx, competitorId: string, eventIds: string[], coachF
   if (competition.feeDeadline && day > competition.feeDeadline) {
     warnings.push(`Fees were due on ${competition.feeDeadline}. An entry still unpaid is subject to disqualification.`)
   }
-  return { lines, total, warnings, ...(coach ? { coach } : {}), year: competitionYear, newMembers, collect, coachId: coachRow?.id, paymentRequired: true }
+  return { lines, total, warnings, ...(coach ? { coach } : {}), year: competitionYear, chargedMembers, collect, coachId: coachRow?.id, paymentRequired: true }
 }
 
 // Enters one dancer or couple in several events at once, with one payment; a receipt is kept when it was sent online
-export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: string): RegistrationResult {
+// agreed is the price an entry request showed; without one the entry is priced now
+export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: string, agreed?: Agreed): RegistrationResult {
   const competitor = getCompetitorRow(ctx, input?.competitorId)
-  const priced = quote(ctx, competitor.id, input.eventIds, input.coachFees)
+  const priced = agreed ? agreedPrice(agreed) : quote(ctx, competitor.id, input.eventIds, input.coachFees)
   if (priced.paymentRequired && !Object.values(PayMethod).includes(input.method)) return fail('Choose how it was paid.')
   for (const id of new Set(input.eventIds)) {
     const event = getEventRow(ctx, id)
@@ -132,16 +175,8 @@ export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: st
   }
   const paid = input.method !== PayMethod.Unpaid
   const paymentId = newId()
-  // What the payment settles once it is paid, now or later
-  const coachSettled = priced.collect.membership || priced.collect.summit
-  const settles: t.PaymentSettles | null =
-    priced.newMembers > 0 || coachSettled
-      ? {
-          year: priced.year,
-          ...(priced.newMembers > 0 ? { competitorId: competitor.id } : {}),
-          ...(coachSettled ? { coachId: priced.coachId, coachMembership: priced.collect.membership, coachSummit: priced.collect.summit } : {}),
-        }
-      : null
+  const settles = agreed ? agreed.charge.settles : settlesOf(priced as Quote, competitor.id)
+  const fees = agreed ? agreed.charge.fees : feesByEvent(priced.lines)
   ctx.db
     .insert(t.payments)
     .values({
@@ -161,7 +196,7 @@ export function enterCompetitor(ctx: Ctx, input: RegistrationInput, receipt?: st
     })
     .run()
   for (const eventId of new Set(input.eventIds)) {
-    ctx.db.insert(t.entries).values({ id: newId(), eventId, competitorId: competitor.id, scratched: false, paymentId, late: false }).run()
+    ctx.db.insert(t.entries).values({ id: newId(), eventId, competitorId: competitor.id, scratched: false, paymentId, late: false, fee: fees[eventId] ?? null }).run()
   }
   if (paid) applySettles(ctx, paymentId)
   record(ctx.db, user.id, 'Registered entries', competitor.names.join(' & '), {

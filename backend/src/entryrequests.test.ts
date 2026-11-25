@@ -1,3 +1,4 @@
+import { priceSampleEvents } from './db/sample-fees.ts'
 import type { EntryRequest, MemberClaimRow, MemberRosterRow, RegistrationQuote } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
@@ -30,7 +31,10 @@ beforeAll(async () => {
     { id: 'team-2', name: 'Legazpi Stars', contactName: '', contactEmail: '', contactPhone: '' },
   ]).run()
   competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2099-12-06', venue: 'Robinsons Naga', organizer: 'BGDT', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
-  const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
+  const make = async (key: string, input: object) => {
+    events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id
+    priceSampleEvents(app.db)
+  }
   await make('solo1', event(1))
   await make('solo2', event(2, { dances: ['rumba'] }))
   await make('couple', event(3, { isSolo: false, dances: ['jive'] }))

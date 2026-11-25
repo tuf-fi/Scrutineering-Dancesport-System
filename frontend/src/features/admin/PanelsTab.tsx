@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button, EmptyState, ErrorState, SearchField, Table, Toolbar, ToolbarActions, Tooltip, toast } from '../../components/ui/index.ts'
 import { cn } from '../../lib/cn.ts'
 import { useAdjudicators, useEvents, usePanels, useSetPanel, useSetPanels, useCatalog } from '../../hooks/index.ts'
-import { adjudicatorSets, eventCode, eventDances, letterRanges } from '../../lib/format.ts'
+import { adjudicatorSets, eventCode, eventDanceNames, eventDances, letterRanges } from '../../lib/format.ts'
 import { CompetitionSelect } from '../../components/CompetitionSelect.tsx'
 import { PanelsApplyDialog } from './PanelsApplyDialog.tsx'
 
@@ -30,7 +30,7 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
 
   const everyone = adjudicators.data ?? []
   const panelOf = (eventId: string) => panels.data?.find((p) => p.eventId === eventId)?.adjudicatorIds ?? []
-  const rows = (events.data ?? []).filter((e) => !needle || `${eventCode(e)} ${eventDances(e)} ${eventGrade(e)}`.toLowerCase().includes(needle))
+  const rows = (events.data ?? []).filter((e) => !needle || `${eventCode(e)} ${eventDances(e)} ${eventDanceNames(e)} ${eventGrade(e)}`.toLowerCase().includes(needle))
 
   function toggle(event: Event, adjudicatorId: string) {
     const current = panelOf(event.id)

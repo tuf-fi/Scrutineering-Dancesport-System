@@ -12,6 +12,9 @@ import {
   type EntryRow,
   type Event,
   type EventInput,
+  feeOf,
+  lateEntryFee,
+  unpricedMessage,
   type ImportResult,
   type LateEntryRow,
   type PaymentDetail,
@@ -32,8 +35,9 @@ import {
   cleanDetails,
   cleanNames,
   applySettles,
-  assertFeesSet,
-  feeFor,
+  revertSettles,
+  feesOf,
+  priorEntries,
   getTeamRow,
   getCompetitorRow,
   getEventRow,
@@ -105,6 +109,14 @@ export function checkNotStarted(ctx: Ctx, eventId: string) {
 // A free competition charges nothing, so it has no fee to set and no payment to take
 const needsPayment = (ctx: Ctx, competitionId: string) => ctx.db.select({ p: t.competitions.paymentRequired }).from(t.competitions).where(eq(t.competitions.id, competitionId)).get()?.p !== false
 
+// What a late entry of this dancer or couple in this event costs; refuses while no fee prices the event
+function lateFeeFor(ctx: Ctx, competitorId: string, event: typeof t.events.$inferSelect, except?: string): number {
+  const fees = feesOf(ctx, event.competitionId)
+  const fee = feeOf(fees, event)
+  if (!fee) return fail(unpricedMessage([event]), 409)
+  return lateEntryFee(fee, priorEntries(ctx, competitorId, event.competitionId, fees, except))
+}
+
 function lateRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): LateEntryRow {
   const event = getEventRow(ctx, entry.eventId)
   return {
@@ -112,7 +124,7 @@ function lateRow(ctx: Ctx, entry: typeof t.entries.$inferSelect): LateEntryRow {
     eventId: event.id,
     eventNumber: event.number,
     dances: event.dances,
-    fee: needsPayment(ctx, event.competitionId) ? feeFor(ctx, event) : 0,
+    fee: entry.paymentId && needsPayment(ctx, event.competitionId) ? getPaymentRow(ctx, entry.paymentId).amountDue : 0,
     paymentId: entry.paymentId ?? '',
   }
 }
@@ -151,6 +163,7 @@ function checkEvent(ctx: Ctx, competitionId: string, input: EventInput, id?: str
   const allowed = DISCIPLINE_DANCES[input.discipline]
   if (!allowed) return fail('Choose Latin or Standard.')
   if (input.dances.some((d) => !allowed.includes(d))) return fail(`These dances do not belong to ${input.discipline}.`)
+  if (input.feeId && !feesOf(ctx, competitionId).some((f) => f.id === input.feeId)) return fail('Choose a fee of this competition.')
   const catalog = catalogOf(ctx)
   const kind = kindOf(catalog.kinds, input.kind)
   if (!kind) return fail('Choose a kind.')
@@ -336,7 +349,6 @@ export const secretariat = {
   createLateEntry(ctx: Ctx, input: { competitorId: string; eventId: string; paidInCash: boolean }): LateEntryRow {
     const event = getEventRow(ctx, input?.eventId)
     const pays = needsPayment(ctx, event.competitionId)
-    if (pays) assertFeesSet(ctx)
     const competitor = getCompetitorRow(ctx, input.competitorId)
     checkEligible(ctx, competitor.id, event)
     if (ctx.db.select().from(t.entries).where(and(eq(t.entries.eventId, event.id), eq(t.entries.competitorId, competitor.id))).get()) {
@@ -345,12 +357,12 @@ export const secretariat = {
     checkNotStarted(ctx, event.id)
     const user = actor(ctx)
     if (!pays) {
-      const free = { id: newId(), eventId: event.id, competitorId: competitor.id, scratched: false, paymentId: null, late: true }
+      const free = { id: newId(), eventId: event.id, competitorId: competitor.id, scratched: false, paymentId: null, late: true, fee: null }
       ctx.db.insert(t.entries).values(free).run()
       record(ctx.db, user.id, 'Added late entry', `Event ${event.number}, ${competitor.names.join(' & ')}`, { after: { payment: 'not required' } })
       return lateRow(ctx, free)
     }
-    const fee = feeFor(ctx, event)
+    const fee = lateFeeFor(ctx, competitor.id, event)
     const paid = Boolean(input.paidInCash)
     const paymentId = newId()
     ctx.db
@@ -367,7 +379,7 @@ export const secretariat = {
         checkedAt: paid ? now() : null,
       })
       .run()
-    const entry = { id: newId(), eventId: event.id, competitorId: competitor.id, scratched: false, paymentId, late: true }
+    const entry = { id: newId(), eventId: event.id, competitorId: competitor.id, scratched: false, paymentId, late: true, fee }
     ctx.db.insert(t.entries).values(entry).run()
     record(ctx.db, user.id, 'Added late entry', `Event ${event.number}, ${competitor.names.join(' & ')}`, { after: { paidInCash: paid } })
     return lateRow(ctx, entry)
@@ -394,6 +406,7 @@ export const secretariat = {
     const payment = getPaymentRow(ctx, paymentId)
     if (payment.status !== PaymentStatus.PaidAtVenue && payment.status !== PaymentStatus.Approved) return fail('Only a paid payment can be marked unpaid.', 409)
     ctx.db.update(t.payments).set({ status: PaymentStatus.Unpaid, amountPaid: 0, checkedBy: actor(ctx).id, checkedAt: now() }).where(eq(t.payments.id, paymentId)).run()
+    revertSettles(ctx, paymentId)
     const detail = paymentDetail(ctx, getPaymentRow(ctx, paymentId))
     record(ctx.db, actor(ctx).id, 'Marked payment unpaid', detail.teamName, { before: { status: payment.status }, after: { status: PaymentStatus.Unpaid } })
     return detail
@@ -497,9 +510,10 @@ export const secretariat = {
       }
     }
     const payment = getPaymentRow(ctx, entry.paymentId ?? '')
-    const fee = feeFor(ctx, event)
+    // An edit that keeps the event keeps its price; moving it to another event prices it again
+    const fee = event.id === entry.eventId ? payment.amountDue : lateFeeFor(ctx, entry.competitorId, event, entry.id)
     const paid = Boolean(input.paidInCash)
-    ctx.db.update(t.entries).set({ eventId: event.id }).where(eq(t.entries.id, entryId)).run()
+    ctx.db.update(t.entries).set({ eventId: event.id, fee }).where(eq(t.entries.id, entryId)).run()
     ctx.db
       .update(t.payments)
       .set({
@@ -511,7 +525,7 @@ export const secretariat = {
       })
       .where(eq(t.payments.id, payment.id))
       .run()
-    const updated = { ...entry, eventId: event.id }
+    const updated = { ...entry, eventId: event.id, fee }
     record(ctx.db, actor(ctx).id, 'Edited late entry', `Event ${event.number}, ${entryRow(ctx, updated).names.join(' & ')}`, {
       before: { eventId: entry.eventId, status: payment.status },
       after: { eventId: event.id, paidInCash: paid },
@@ -539,20 +553,21 @@ export const secretariat = {
         return fail('Remove the entries before changing between solo and couple.', 409)
       }
       const usesPoints = input.usesPoints ?? event.usesPoints
-      const rankingOnly = Object.entries(values).every(([key, value]) => JSON.stringify(value) === JSON.stringify(event[key as keyof typeof event]))
-      // Whether it counts towards the rankings can still change once it has started; the rest cannot
-      if (!(rankingOnly && usesPoints !== event.usesPoints)) checkNotStarted(ctx, id)
-      ctx.db.update(t.events).set({ ...values, usesPoints }).where(eq(t.events.id, id)).run()
+      const feeId = input.feeId === undefined ? event.feeId : input.feeId || null
+      const unchanged = Object.entries(values).every(([key, value]) => JSON.stringify(value) === JSON.stringify(event[key as keyof typeof event]))
+      // Its fee, and whether it counts towards the rankings, can still change once it has started; the rest cannot
+      if (!(unchanged && (usesPoints !== event.usesPoints || feeId !== event.feeId))) checkNotStarted(ctx, id)
+      ctx.db.update(t.events).set({ ...values, usesPoints, feeId }).where(eq(t.events.id, id)).run()
       // Off removes what the event awarded; on awards it from the results already approved
       if (usesPoints !== event.usesPoints) {
         recomputeEventPoints(ctx, id)
         ctx.defer(() => ctx.hub.rankings())
       }
-      record(ctx.db, actor(ctx).id, 'Edited event', `Event ${event.number}`, { before: toEvent(event), after: { ...values, usesPoints } })
-      return toEvent({ ...event, ...values, usesPoints })
+      record(ctx.db, actor(ctx).id, 'Edited event', `Event ${event.number}`, { before: toEvent(event), after: { ...values, usesPoints, feeId } })
+      return toEvent({ ...event, ...values, usesPoints, feeId })
     }
     const last = ctx.db.select({ p: sql<number>`coalesce(max(${t.events.position}), 0)` }).from(t.events).where(eq(t.events.competitionId, competitionId)).get()
-    const row = { id: newId(), competitionId, position: (last?.p ?? 0) + 1, ...values, usesPoints: input.usesPoints ?? true }
+    const row = { id: newId(), competitionId, position: (last?.p ?? 0) + 1, ...values, usesPoints: input.usesPoints ?? true, feeId: input.feeId || null }
     ctx.db.insert(t.events).values(row).run()
     record(ctx.db, actor(ctx).id, 'Created event', `Event ${row.number}`, { after: values })
     return toEvent(row)

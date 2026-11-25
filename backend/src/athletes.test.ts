@@ -1,3 +1,4 @@
+import { priceSampleEvents } from './db/sample-fees.ts'
 import { isMember, membershipLabel, type AthleteNotification, type AthletePage, type AthleteProfile, type AthleteRow, type RegistrationQuote } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -149,6 +150,7 @@ describe('athlete accounts', () => {
 
   it('counts a membership paid on the account when pricing an entry', async () => {
     app.db.insert(t.events).values({ id: 'e1', competitionId: 'c1', number: 1, position: 1, ageGroup: 'juvenile_1', class: 'C', discipline: 'latin', dances: ['samba'], isSolo: true } as typeof t.events.$inferInsert).run()
+    priceSampleEvents(app.db)
     const details = (email: string) => ({ province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: '', email, phone: '' }], memberYear: null })
     const paid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details: details('ANA@test.example') }], secretariat)
     const unpaid = await app.ok<{ id: string }>('createCompetitor', [{ names: ['Cara Diaz'], teamId: 'team-1', details: details('cara@test.example') }], secretariat)

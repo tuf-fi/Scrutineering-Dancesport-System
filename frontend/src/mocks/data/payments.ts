@@ -5,6 +5,7 @@ import { entries, paymentIdForTeam } from './entries.ts'
 import { events } from './events.ts'
 import { at } from './rng.ts'
 
+// The flat amounts the sample payments were made with
 const FEE_SOLO = 500
 const FEE_COUPLE = 800
 

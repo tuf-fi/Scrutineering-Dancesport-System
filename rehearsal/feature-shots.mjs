@@ -341,10 +341,11 @@ async function sequence(dbPath) {
     await p.getByPlaceholder(/search|type/i).first().fill('Naga')
     await sleep(800)
   })
-  await feature('admin', 'fees-edit-registration', async (p) => {
+  await feature('admin', 'fees-edit', async (p) => {
     await go(p, '/admin/fees')
-    const first = p.locator('input[type=number], input[inputmode=numeric]').first()
-    await first.fill('900')
+    await p.getByRole('button', { name: /^Edit / }).first().click()
+    await waitDialog(p)
+    await dlg(p).getByLabel('Price per entry (₱)').fill('900')
     await sleep(500)
   })
   await feature('admin', 'fees-method-edit', async (p) => {
@@ -626,7 +627,7 @@ async function sequence(dbPath) {
     await sleep(900)
   })
   await feature('secretariat', 'event-scratch', async (p) => {
-    await go(p, `/secretariat/events/${eid(9)}`)
+    await go(p, `/secretariat/events/${eid(12)}`)
     await p.getByRole('button', { name: /Scratch/ }).first().click()
     await sleep(1200)
   })

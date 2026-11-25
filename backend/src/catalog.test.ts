@@ -1,4 +1,4 @@
-import { DEFAULT_FEE_SCHEDULE, ageGroupFits, ageGroupForBirthYears, registrationFee, registrationWarnings, type AgeGroupDef, type Catalog, type Competition, type Event, type EventKindDef } from '@bis/shared'
+import { ageGroupFits, ageGroupForBirthYears, registrationWarnings, type AgeGroupDef, type Catalog, type Competition, type Event, type EventKindDef } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import * as t from './db/schema.ts'
@@ -11,8 +11,8 @@ let admin = ''
 let secretariat = ''
 let competitionId = ''
 
-const kindInput = { name: 'Inter-school', feeMode: 'couple_older', disciplines: ['latin', 'standard'], closedToProvince: false, requires: [] }
-const groupInput = { name: 'Masters', short: 'MST', bornFrom: 1982, bornTo: 1991, juvenileFee: false }
+const kindInput = { name: 'Inter-school', disciplines: ['latin', 'standard'], closedToProvince: false, requires: [] }
+const groupInput = { name: 'Masters', short: 'MST', bornFrom: 1982, bornTo: 1991 }
 const eventInput = { number: 901, ageGroup: 'adult', class: 'D', discipline: 'latin', dances: ['samba'], isSolo: false }
 
 beforeAll(async () => {
@@ -52,16 +52,15 @@ describe('event kinds', () => {
     const catalog = await app.ok<Catalog>('getCatalog', [])
     expect(catalog.kinds.map((k) => k.id)).toEqual(['standard', 'ranking', 'inter_elementary', 'inter_high_school', 'inter_collegiate', 'closed'])
     expect(catalog.ageGroups.map((g) => g.id)).toEqual(['juvenile_1', 'juvenile_2', 'junior_1', 'junior_2', 'youth', 'adult', 'senior'])
-    expect(catalog.kinds.find((k) => k.id === 'closed')).toMatchObject({ closedToProvince: true, feeMode: 'standard', disciplines: ['latin', 'standard'] })
+    expect(catalog.kinds.find((k) => k.id === 'closed')).toMatchObject({ closedToProvince: true, disciplines: ['latin', 'standard'] })
   })
 
   it('adds, edits and deletes a kind, and keeps the secretariat out', async () => {
     expect((await app.call('saveEventKind', [kindInput], secretariat)).status).toBe(403)
     const made = await app.ok<EventKindDef>('saveEventKind', [kindInput], admin)
-    expect(made).toMatchObject({ id: 'inter_school', name: 'Inter-school', feeMode: 'couple_older' })
+    expect(made).toMatchObject({ id: 'inter_school', name: 'Inter-school' })
     expect((await app.call('saveEventKind', [{ ...kindInput, name: 'inter-SCHOOL' }], admin)).error).toMatch(/already exists/)
     expect((await app.call('saveEventKind', [{ ...kindInput, name: ' ' }], admin)).error).toMatch(/name/)
-    expect((await app.call('saveEventKind', [{ ...kindInput, feeMode: 'free' }], admin)).error).toMatch(/priced/)
     expect((await app.call('saveEventKind', [{ ...kindInput, requires: ['shoe_size'] }], admin)).error).toMatch(/entry form/)
 
     const renamed = await app.ok<EventKindDef>('saveEventKind', [{ ...kindInput, name: 'Inter-school cup', requires: ['email', 'email', 'phone'] }, made.id], admin)
@@ -170,7 +169,7 @@ describe('age groups', () => {
     expect((await app.call('saveAgeGroup', [groupInput, made.id], admin)).status).toBe(409)
 
     // Changing nothing makes no new version; one with no started events changes in place
-    expect((await app.ok<AgeGroupDef>('saveAgeGroup', [{ name: next.name, short: next.short, bornFrom: 1977, bornTo: 1991, juvenileFee: false }, next.id], admin)).id).toBe(next.id)
+    expect((await app.ok<AgeGroupDef>('saveAgeGroup', [{ name: next.name, short: next.short, bornFrom: 1977, bornTo: 1991 }, next.id], admin)).id).toBe(next.id)
     await app.ok('deleteEvent', [upcoming.id], secretariat)
     app.db.delete(t.rounds).where(eq(t.rounds.id, 'veterans-round')).run()
     await app.ok('deleteEvent', [started.id], secretariat)
@@ -181,24 +180,15 @@ describe('rules follow the catalog', () => {
   const catalog: Catalog = {
     classes: [{ name: 'E1' }, { name: 'D' }],
     kinds: [
-      { id: 'standard', name: 'Standard', feeMode: 'standard', closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
-      { id: 'school', name: 'School cup', feeMode: 'couple_older', closedToProvince: false, disciplines: ['latin', 'standard'], requires: ['email', 'membership'] },
-      { id: 'open_day', name: 'Open day', feeMode: 'fixed', closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
+      { id: 'standard', name: 'Standard', closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
+      { id: 'school', name: 'School cup', closedToProvince: false, disciplines: ['latin', 'standard'], requires: ['email', 'membership'] },
+      { id: 'open_day', name: 'Open day', closedToProvince: false, disciplines: ['latin', 'standard'], requires: [] },
     ],
     ageGroups: [
-      { id: 'tiny', name: 'Tiny', short: 'TNY', bornFrom: 2018, bornTo: null, juvenileFee: true },
-      { id: 'rest', name: 'Rest', short: 'RST', bornFrom: null, bornTo: 2017, juvenileFee: false },
+      { id: 'tiny', name: 'Tiny', short: 'TNY', bornFrom: 2018, bornTo: null },
+      { id: 'rest', name: 'Rest', short: 'RST', bornFrom: null, bornTo: 2017 },
     ],
   }
-
-  it('prices an event by the kind and the age group it points at', () => {
-    const event = { number: 1, isSolo: true, kind: 'standard' }
-    const fee = (e: object) => registrationFee(DEFAULT_FEE_SCHEDULE, [{ ...event, ageGroup: 'tiny', ...e }], 0, 0, undefined, catalog).total
-    expect(fee({})).toBe(DEFAULT_FEE_SCHEDULE.soloJuvenile.first)
-    expect(fee({ ageGroup: 'rest' })).toBe(DEFAULT_FEE_SCHEDULE.soloOlder.first)
-    expect(fee({ kind: 'school' })).toBe(DEFAULT_FEE_SCHEDULE.coupleOlder.first)
-    expect(fee({ kind: 'open_day' })).toBe(DEFAULT_FEE_SCHEDULE.fixed)
-  })
 
   it('puts a couple in the older partner group or older, and a solo only in its own', () => {
     // A Junior I and a Youth dancer make a Youth couple

@@ -39,6 +39,7 @@ import {
   getEventRow,
   getRoundRow,
   hiddenEventIds,
+  isStaff,
   heatsOfRound,
   panelAdjudicatorIds,
   roundAdjudicatorIds,
@@ -445,9 +446,9 @@ function eventReport(ctx: Ctx, eventId: string): EventReport {
   }
 }
 
-// Guests see a round's tables once it is published; everyone else who may call this is staff
+// Staff see a round's tables at any stage. Everyone else, signed in or not, only once it is published.
 function assertCanView<T>(ctx: Ctx, roundId: string, build: () => T): T {
-  if (ctx.user && ctx.user.role !== 'adjudicator') return build()
+  if (isStaff(ctx)) return build()
   const round = getRoundRow(ctx, roundId)
   if (round.status !== RoundStatus.Published) return fail('These results are not published yet.', 403)
   if (hiddenEventIds(ctx).has(round.eventId)) return fail('These results are held until the awarding.', 403)

@@ -149,7 +149,7 @@ describe('program printout', () => {
     await screen.findByText(/lines?( of \d+, filtered by .*)?\.$/)
     expect(print).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('button', { name: 'Download PDF' }))
-    await waitFor(() => expect(downloadPdf).toHaveBeenCalledWith(expect.any(HTMLElement), 'program', 210))
+    await waitFor(() => expect(downloadPdf).toHaveBeenCalledWith(expect.any(HTMLElement), 'program', { width: 210, height: 297 }))
     expect(print).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('button', { name: 'Print' }))
     expect(print).toHaveBeenCalledTimes(1)

@@ -1,4 +1,4 @@
-import { DEFAULT_FEE_SCHEDULE, Role, type TeamMembershipInput, type TeamMembershipPage } from '@bis/shared'
+import { Role, type TeamMembershipInput, type TeamMembershipPage } from '@bis/shared'
 import { eq, inArray } from 'drizzle-orm'
 import { record } from '../core/audit.ts'
 import { actor, fail, found, type Ctx } from '../core/context.ts'
@@ -33,7 +33,7 @@ export function getTeamMembership(ctx: Ctx): TeamMembershipPage {
     .all()
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((a) => ({ id: a.id, name: a.name, membershipId: a.membershipId ?? null, status: statusOf(a, current), reason: a.request?.rejectedReason ?? null }))
-  return { year: current, fee: (settings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership, methods: settings.methods, athletes }
+  return { year: current, fee: settings.memberships.athlete, methods: settings.methods, athletes }
 }
 
 // The team says it paid for these athletes; the secretariat checks the screenshot against the money received

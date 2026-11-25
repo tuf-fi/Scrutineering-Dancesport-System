@@ -5,13 +5,8 @@ import { describe, expect, it } from 'vitest'
 import { confirmDelete, renderApp } from '../../test-utils.tsx'
 
 describe('fees and payment details', () => {
-  it('shows the saved fees, saves them, and saves a way to pay as soon as it is added', async () => {
-    renderApp('/admin/fees?section=late', Role.Admin)
-    expect(await screen.findByLabelText('Solo, per event (₱)')).toHaveValue('500')
-    expect(screen.getByLabelText('Couple, per event (₱)')).toHaveValue('800')
-
-    // The accounts are in their own part of the side menu
-    await userEvent.click(within(screen.getByRole('navigation', { name: 'Fee sections' })).getByRole('link', { name: /Accounts/ }))
+  it('saves a way to pay as soon as it is added', async () => {
+    renderApp('/admin/fees?section=accounts', Role.Admin)
     await userEvent.click(await screen.findByRole('button', { name: 'Add a way to pay' }))
     const dialog = await screen.findByRole('dialog')
     await userEvent.type(within(dialog).getByLabelText('Name'), 'Union Bank')
@@ -20,21 +15,21 @@ describe('fees and payment details', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }))
     expect(await screen.findByText('Way to pay added')).toBeInTheDocument()
     expect(await screen.findByText('Union Bank')).toBeInTheDocument()
-
-    await userEvent.click(within(screen.getByRole('navigation', { name: 'Fee sections' })).getByRole('link', { name: /Late entry fees/ }))
-    const save = await screen.findByRole('button', { name: 'Save' })
-    expect(save).toBeEnabled()
-    await userEvent.click(save)
-    expect(await screen.findByText('Fees saved')).toBeInTheDocument()
   })
 
-  it('refuses fees that are not whole pesos', async () => {
-    renderApp('/admin/fees?section=late', Role.Admin)
-    const solo = await screen.findByLabelText('Solo, per event (₱)')
-    await userEvent.clear(solo)
-    await userEvent.type(solo, '12.5')
-    expect(await screen.findByText('Whole pesos')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+  it('saves the membership fees, and refuses one that is not whole pesos', async () => {
+    renderApp('/admin/fees?section=memberships', Role.Admin)
+    const coach = await screen.findByLabelText('Coach membership (₱)')
+    expect(coach).toHaveValue('1000')
+    const save = screen.getByRole('button', { name: 'Save membership fees' })
+    expect(save).toBeDisabled()
+    await userEvent.clear(coach)
+    await userEvent.type(coach, '12.5')
+    expect(save).toBeDisabled()
+    await userEvent.clear(coach)
+    await userEvent.type(coach, '1200')
+    await userEvent.click(save)
+    expect(await screen.findByText('Membership fees saved')).toBeInTheDocument()
   })
 })
 
@@ -85,25 +80,42 @@ describe('teams', () => {
   })
 })
 
-describe('registration fees', () => {
-  it('shows the organizer’s schedule, saves an edit, and refuses a price that is not whole pesos', async () => {
+describe('event fees', () => {
+  it('adds a fee with its optional prices, edits it and removes it', async () => {
     renderApp('/admin/fees', Role.Admin)
-    const first = await screen.findByLabelText('Solo, juvenile, first entry')
-    expect(first).toHaveValue('400')
-    expect(screen.getByLabelText('Couple, junior, youth and inter-high school, each extra entry')).toHaveValue('250')
-    expect(screen.getByLabelText('Coach membership (₱)')).toHaveValue('1000')
-    const save = screen.getByRole('button', { name: 'Save registration fees' })
-    expect(save).toBeDisabled()
+    const add = await screen.findByRole('button', { name: 'Add fee' })
+    await waitFor(() => expect(add).toBeEnabled())
+    await userEvent.click(add)
+    const dialog = await screen.findByRole('dialog', { name: 'Add fee' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add fee' }))
+    expect(within(dialog).getByText('Enter a name.')).toBeInTheDocument()
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Showcase')
+    await userEvent.type(within(dialog).getByLabelText('Price per entry (₱)'), '750')
+    // The other prices are asked only when ticked
+    expect(within(dialog).queryByLabelText('Each extra entry (₱)')).not.toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: /different price for extra entries/ }))
+    await userEvent.type(within(dialog).getByLabelText('Each extra entry (₱)'), '125')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Add fee' }))
+    expect(await screen.findByText('Fee added')).toBeInTheDocument()
 
-    await userEvent.clear(first)
-    await userEvent.type(first, '12.5')
-    expect(save).toBeDisabled()
-    await userEvent.clear(first)
-    await userEvent.type(first, '450')
-    expect(save).toBeEnabled()
-    await userEvent.click(save)
-    expect(await screen.findByText('Registration fees saved')).toBeInTheDocument()
-    expect(await screen.findByLabelText('Solo, juvenile, first entry')).toHaveValue('450')
+    // It is the last row, which may be on a later page
+    const showing = async () => {
+      let next = screen.queryByRole('button', { name: 'Next page' })
+      while (!screen.queryByRole('button', { name: 'Edit Showcase' }) && next && !next.hasAttribute('disabled')) {
+        await userEvent.click(next)
+        next = screen.queryByRole('button', { name: 'Next page' })
+      }
+      return screen.findByRole('button', { name: 'Edit Showcase' })
+    }
+    await userEvent.click(await showing())
+    const edit = await screen.findByRole('dialog', { name: 'Edit fee' })
+    expect(within(edit).getByLabelText('Each extra entry (₱)')).toHaveValue('125')
+    await userEvent.click(within(edit).getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Remove Showcase' }))
+    await userEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Remove' }))
+    expect(await screen.findByText('Fee removed')).toBeInTheDocument()
   })
 })
 

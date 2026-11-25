@@ -1,4 +1,4 @@
-import { DEFAULT_FEE_SCHEDULE, Role, type AthleteInput, type AthletePage, type AthleteProfile, type AthleteRow, type AthleteSignUp, type AthleteNotification, type MembershipEvent, type MyActivity, type SessionUser } from '@bis/shared'
+import { Role, type AthleteInput, type AthletePage, type AthleteProfile, type AthleteRow, type AthleteSignUp, type AthleteNotification, type MembershipEvent, type MyActivity, type SessionUser } from '@bis/shared'
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { hashPassword, verifyPassword } from '../auth/password.ts'
 import { bumpSessionVersion } from '../auth/signin.ts'
@@ -119,7 +119,7 @@ export const athletes = {
     return {
       profile: { ...toProfile(mine(ctx)), claim: claimOf(ctx, mine(ctx)) },
       year: membershipYear(),
-      fee: (settings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
+      fee: settings.memberships.athlete,
       methods: settings.methods,
     }
   },

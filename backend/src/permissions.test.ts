@@ -28,7 +28,8 @@ describe('the permission table', () => {
 
   it('treats anything that is not a read as a write', () => {
     for (const name of endpointNames()) {
-      expect(endpoint(name)!.write).toBe(!name.startsWith('get'))
+      const lookup = ['quoteRegistration', 'quoteMyEntries', 'findSimilarCompetitors', 'findSimilarAccounts'].includes(name)
+      expect(endpoint(name)!.write, name).toBe(!name.startsWith('get') && !lookup)
     }
   })
 })

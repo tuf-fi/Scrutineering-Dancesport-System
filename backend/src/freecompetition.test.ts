@@ -1,3 +1,4 @@
+import { priceSampleEvents } from './db/sample-fees.ts'
 import type { Competition, RegistrationQuote, RegistrationResult } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
@@ -27,6 +28,7 @@ beforeAll(async () => {
   const paid = await app.ok<Competition>('saveCompetition', [{ name: 'Paid Cup', date: '2099-08-01', venue: 'Gym', organizer: 'Org', image }], admin)
   freeEvent = (await app.ok<{ id: string }>('saveEvent', [free.id, event], secretariat)).id
   paidEvent = (await app.ok<{ id: string }>('saveEvent', [paid.id, { ...event, number: 2 }], secretariat)).id
+  priceSampleEvents(app.db)
   competitorId = (
     await app.ok<{ id: string }>('createCompetitor', [{ names: ['Ana Cruz'], teamId: 'team-1', details: { province: 'Camarines Sur', coachId: null, dancers: [{ birthDate: '2017-03-02', address: 'Naga', email: 'ana@test.example', phone: '0917' }], memberYear: null } }], secretariat)
   ).id

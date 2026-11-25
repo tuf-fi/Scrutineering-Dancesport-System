@@ -53,6 +53,8 @@ import type {
   PastWorkbook,
   OfflineDayInfo,
   PaymentSettings,
+  FeeItem,
+  FeeItemInput,
   Team,
   Competition,
   CompetitionInput,
@@ -404,3 +406,7 @@ export const getSampleCredentials = async (): Promise<SampleCredentials> => ({ p
 
 export const getPaymentSettings = () => call<PaymentSettings>('getPaymentSettings')
 export const savePaymentSettings = (_adminId: string, input: PaymentSettings) => call<PaymentSettings>('savePaymentSettings', input)
+export const getCompetitionFees = (competitionId: string) => call<FeeItem[]>('getCompetitionFees', competitionId)
+export const saveCompetitionFee = (_adminId: string, competitionId: string, input: FeeItemInput, id?: string) =>
+  call<FeeItem>('saveCompetitionFee', competitionId, input, id)
+export const deleteCompetitionFee = (_adminId: string, id: string) => call<{ id: string }>('deleteCompetitionFee', id)

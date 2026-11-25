@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { EmptyState, Pagination, Skeleton } from './ui/index.ts'
 import { usePagination } from '../hooks/usePagination.ts'
 import { cn } from '../lib/cn.ts'
-import { DANCE_LABEL, eventCode, formatDate, todayIso } from '../lib/format.ts'
+import { eventCode, formatDate, todayIso, eventDances } from '../lib/format.ts'
 import { useCatalog } from '../hooks/index.ts'
 
 interface Group {
@@ -83,7 +83,7 @@ function CompetitionGroup({ group, compact }: { group: Group; compact?: boolean 
                     {eventGrade(e)}
                   </Link>
                   <span className={cn('text-neutral-500', compact ? 'text-xs' : 'text-small')}>
-                    {e.dances.map((d) => DANCE_LABEL[d]).join(', ')}
+                    {eventDances(e)}
                     {e.names.length > 1 && (
                       <>
                         {' '}

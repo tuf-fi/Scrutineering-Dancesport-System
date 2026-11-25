@@ -64,4 +64,5 @@ When a function is added to the server, add it to `API_FUNCTIONS` in `packages/s
 - Keep shared types in `packages/shared`. Don't redefine data shapes in the frontend.
 - Screens never import from `mocks/` directly. Go through `api/` and the hooks in `hooks/`.
 - Keep components small and organize them by feature (`features/<role>/`).
-- Use the domain terms from ROLES_README (back number, recall, heat, X mark, placing, Skating System). Always say "adjudicator", never "judge", in UI text, code, routes and file names.
+- Use the domain terms from ROLES_README (back number, recall, heat, X mark, placing, Skating System). Always say "adjudicator", never "judge", in UI text, code, routes and file names. The one short form is "Adjud" (singular and plural), used only in table headers and table labels, on screen and in PDFs.
+- An event with two or more dances shows as "Latin - S C R P J" or "Standard - W T V F Q" (`eventDances`). Marking phones, the compere and the barker show full names (`eventDanceNames`).

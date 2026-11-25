@@ -3,7 +3,7 @@ import { ProgramKind, ProgramStatus, type Announcement, type Program } from '@bi
 import { StatusDot } from '../../components/StatusDot.tsx'
 import { useCatalog } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { ROUND_TYPE_LABEL, eventDances, formatClock } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventDanceNames, formatClock } from '../../lib/format.ts'
 import { roundKey, showRounds, type ShowRound } from './rounds.ts'
 
 const STATE_LABEL: Record<ProgramStatus, string> = {
@@ -70,7 +70,7 @@ function Details({ round, program, onGo }: { round: ShowRound; program: Program 
           {eventGrade(sample)}
         </span>
         <span className="text-[max(1.3vmin,0.717rem)] font-medium text-brown-100">
-          {ROUND_TYPE_LABEL[round.roundType]} · {eventDances(sample)}
+          {ROUND_TYPE_LABEL[round.roundType]} · {eventDanceNames(sample)}
           {sample.select !== null && ` · Select ${sample.select}`}
           {row && row.entryCount > 0 && ` · ${row.entryCount} entries`}
         </span>
@@ -117,7 +117,7 @@ function NextResults({ next, onGo }: { next: Announcement; onGo: (id: string) =>
           {eventGrade(next)}
         </span>
         <span className="text-[max(1.3vmin,0.717rem)] font-medium text-brown-100">
-          {ROUND_TYPE_LABEL[next.roundType]} · {eventDances(next)}
+          {ROUND_TYPE_LABEL[next.roundType]} · {eventDanceNames(next)}
         </span>
       </p>
       <button type="button" onClick={() => onGo(next.id)} className="group flex items-center gap-[1vmin] self-start py-[0.5vmin] text-[max(1.3vmin,0.717rem)] font-semibold text-white transition-colors hover:text-gold-400">

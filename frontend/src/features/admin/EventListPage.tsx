@@ -30,7 +30,7 @@ export function EventListPage() {
     void (async () => {
       try {
         await new Promise((resolve) => requestAnimationFrame(resolve))
-        if (!cancelled && sheets.current) await downloadPdf(sheets.current, 'event-list', 210)
+        if (!cancelled && sheets.current) await downloadPdf(sheets.current, 'event-list')
       } catch {
         toast.error('The PDF could not be made. Try Print and choose Save as PDF instead.')
       } finally {

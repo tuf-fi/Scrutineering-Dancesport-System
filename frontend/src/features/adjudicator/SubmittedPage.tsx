@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react'
 import { Navigate } from 'react-router'
 import { ErrorState, Skeleton } from '../../components/ui/index.ts'
-import { ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDanceNames } from '../../lib/format.ts'
 import { useConnection } from '../../stores/connection.ts'
 import { DemoControls } from './DemoControls.tsx'
 import { useFloor } from './useFloor.ts'
@@ -34,7 +34,7 @@ export function SubmittedPage() {
           <p className="mt-2 animate-rise-in text-small text-neutral-500 [animation-delay:140ms]">
             <span className="font-mono text-neutral-900">{eventCode(task.event)}</span>
             <span className="mx-2 text-neutral-300">/</span>
-            {eventDances(task.event)}
+            {eventDanceNames(task.event)}
             <span className="mx-2 text-neutral-300">/</span>
             {ROUND_TYPE_LABEL[task.round.type]}
           </p>

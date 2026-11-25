@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { randomBytes } from 'node:crypto'
 import { hashPassword } from '../auth/password.ts'
 import type { Db } from './client.ts'
+import { priceSampleEvents } from './sample-fees.ts'
 import { sampleCompetitionImage } from './seed.ts'
 import * as t from './schema.ts'
 
@@ -230,6 +231,7 @@ export function addTestData(db: Db): TestDataReport {
   PAST.forEach((c, i) => make(c, `past-${i + 1}`, true, i + 1))
   UPCOMING.forEach((c, i) => make(c, `upcoming-${i + 1}`, false, i + 1))
 
+  priceSampleEvents(db, (e) => e.competitionId.startsWith('td-'))
   return {
     teams: TEAMS.length,
     coaches: COACHES.length,

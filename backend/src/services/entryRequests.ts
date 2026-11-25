@@ -6,7 +6,7 @@ import { actor, fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
 import { newId, now } from '../ids.ts'
 import { readPaymentSettings } from '../paymentSettings.ts'
-import { enterCompetitor, quote } from './registration.ts'
+import { enterCompetitor, feesByEvent, quote, settlesOf } from './registration.ts'
 import { checkEligible, checkNotStarted } from './secretariat.ts'
 import { MAX_RECEIPT, PHOTO, clean, getCompetitorRow, getEventRow } from './shared.ts'
 
@@ -134,6 +134,7 @@ export const entryRequests = {
       competitionId: getEventRow(ctx, eventIds[0]!).competitionId,
       eventIds,
       total: priced.total,
+      charge: paying ? { fees: feesByEvent(priced.lines), settles: settlesOf(priced, competitor.id) } : null,
       warnings: priced.warnings,
       method: paying ? input.method : PayMethod.Unpaid,
       reference,
@@ -185,7 +186,11 @@ export const entryRequests = {
   approveEntryRequest(ctx: Ctx, id: string): EntryRequest[] {
     const row = found(ctx.db.select().from(t.entryRequests).where(eq(t.entryRequests.id, id)).get(), 'Entry request')
     if (row.status !== 'waiting') return fail('This request was already decided.', 409)
-    const result = enterCompetitor(ctx, { competitorId: row.competitorId, eventIds: row.eventIds, method: row.method, reference: row.reference }, row.receipt)
+    // The price the sender was shown is what they paid, whatever the fees are now. Requests sent before it was kept
+    // keep their total.
+    const charge = () => row.charge ?? { fees: {}, settles: settlesOf(quote(ctx, row.competitorId, row.eventIds), row.competitorId) }
+    const agreed = row.total > 0 ? { total: row.total, warnings: row.warnings, charge: charge() } : undefined
+    const result = enterCompetitor(ctx, { competitorId: row.competitorId, eventIds: row.eventIds, method: row.method, reference: row.reference }, row.receipt, agreed)
     ctx.db.update(t.entryRequests).set({ status: 'approved', decidedAt: now(), decidedBy: actor(ctx).id }).where(eq(t.entryRequests.id, row.id)).run()
     record(ctx.db, actor(ctx).id, 'Approved an entry request', row.requesterName, { after: { paymentId: result.paymentId, total: result.total } })
     tell(ctx, row, { kind: 'entry_approved', title: 'Your entry was approved', detail: `${row.eventIds.length} ${row.eventIds.length === 1 ? 'event' : 'events'} entered.${result.paymentId ? ' Your payment was received.' : ''}`, link: `${base(row)}/entries` })

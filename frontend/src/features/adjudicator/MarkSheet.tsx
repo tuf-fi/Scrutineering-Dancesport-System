@@ -1,7 +1,7 @@
 import { syllabusFor, type AgeGroup, type Class, type Dance, type Discipline, type MarkingTask, type MarkSubmission, type RoundType } from '@bis/shared'
 import { useState } from 'react'
 import { Button, Dialog, DarkPanel, Tabs } from '../../components/ui/index.ts'
-import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDances, ordinal } from '../../lib/format.ts'
+import { DANCE_LABEL, ROUND_TYPE_LABEL, eventCode, eventDanceNames, ordinal } from '../../lib/format.ts'
 import { PlacingBoard } from './PlacingBoard.tsx'
 import { SignaturePad } from './SignaturePad.tsx'
 import { NumberGrid } from './NumberGrid.tsx'
@@ -110,7 +110,7 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
           <p className="flex flex-wrap items-center gap-x-3 text-small text-brown-100">
             <span className="font-mono tabular-nums text-gold-400">{eventCode(task.event)}</span>
             <span aria-hidden className="h-3 w-px bg-white/25" />
-            {ROUND_TYPE_LABEL[task.round.type]} · {eventDances(task.event)}
+            {ROUND_TYPE_LABEL[task.round.type]} · {eventDanceNames(task.event)}
           </p>
           {heat !== undefined && (
             <p className="text-small font-semibold text-gold-400">{isFinal ? 'Redance of the final. Place every finalist again.' : `Redance: heat ${heat}. Mark this heat again.`}</p>

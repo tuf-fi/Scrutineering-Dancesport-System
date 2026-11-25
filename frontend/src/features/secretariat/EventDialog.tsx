@@ -1,9 +1,10 @@
 import { DISCIPLINE_DANCES, Discipline, type Event } from '@bis/shared'
 import { useState, type FormEvent } from 'react'
 import { Button, Dialog, Input, Select, Textarea, toast } from '../../components/ui/index.ts'
-import { useSaveEvent, useCatalog } from '../../hooks/index.ts'
+import { useSaveEvent, useCatalog, useCompetitionFees } from '../../hooks/index.ts'
+import { useCompetitions } from '../../hooks/queries.ts'
 import { cn } from '../../lib/cn.ts'
-import { DANCE_LABEL, DISCIPLINE_LABEL, eventCode } from '../../lib/format.ts'
+import { DANCE_LABEL, DISCIPLINE_LABEL, eventCode, formatPeso } from '../../lib/format.ts'
 
 const FORM_ID = 'event-form'
 
@@ -30,6 +31,9 @@ function EventForm({
   const [province, setProvince] = useState(event?.province ?? '')
   const [syllabus, setSyllabus] = useState(event?.syllabus ?? '')
   const [ranking, setRanking] = useState(event?.usesPoints ?? true)
+  const [feeId, setFeeId] = useState(event?.feeId ?? '')
+  const fees = useCompetitionFees(competitionId)
+  const paid = useCompetitions().data?.find((c) => c.id === competitionId)?.paymentRequired !== false
   const [error, setError] = useState<string | null>(null)
   const picked = kinds.find((k) => k.id === kind)
   const closed = picked?.closedToProvince === true
@@ -62,7 +66,7 @@ function EventForm({
       {
         competitionId,
         id: event?.id,
-        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, syllabus: syllabus.trim(), usesPoints: ranking, ...(closed ? { province: province.trim() } : {}) },
+        input: { number: Number(n), ageGroup, class: cls, discipline, dances, isSolo: type === 'solo', kind, syllabus: syllabus.trim(), usesPoints: ranking, feeId: feeId || null, ...(closed ? { province: province.trim() } : {}) },
       },
       {
         onSuccess: (saved) => {
@@ -88,13 +92,30 @@ function EventForm({
           <option value="solo">Solo</option>
           <option value="couple">Couple</option>
         </Select>
-        <Select label="Kind" required hint="Sets the fee, the disciplines and who may enter." value={kind} onChange={(e) => pickKind(e.target.value)}>
+        <Select label="Kind" required hint="Sets the disciplines and who may enter." value={kind} onChange={(e) => pickKind(e.target.value)}>
           {kinds.map((k) => (
             <option key={k.id} value={k.id}>
               {k.name}
             </option>
           ))}
         </Select>
+        {paid && (
+          <div className="sm:col-span-2">
+            <Select
+              label="Fee"
+              hint={fees.data?.length === 0 ? 'This competition has no fees yet. The admin adds them under Fees and payment details.' : 'An event without a fee cannot be entered.'}
+              value={feeId}
+              onChange={(e) => setFeeId(e.target.value)}
+            >
+              <option value="">No fee yet</option>
+              {(fees.data ?? []).map((f) => (
+                <option key={f.id} value={f.id}>
+                  {`${f.name} (${formatPeso(f.amount)})`}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
         {closed && (
           <div className="sm:col-span-2">
             <Input label="Open to province" required hint="Only teams from this province can be entered." value={province} onChange={(e) => setProvince(e.target.value)} />

@@ -1,21 +1,26 @@
-import type { PaymentMethod, PaymentSettings } from '@bis/shared'
+import { DEFAULT_MEMBERSHIP_FEES, type PaymentMethod, type PaymentSettings } from '@bis/shared'
 import type { Sqlite } from './db/client.ts'
 
-// Entry fees and where teams send payment, set by the organizer. They live in the settings table, so a backup carries
-// them, and late entries at the venue use the same fees.
+// The membership fees and where teams send payment, set by the organizer. They live in the settings table, so a backup
+// carries them.
 const PAYMENT_SETTINGS_KEY = 'payment_settings'
 
-const NO_PAYMENT_SETTINGS: PaymentSettings = { fees: null, methods: [] }
+const NO_PAYMENT_SETTINGS: PaymentSettings = { memberships: DEFAULT_MEMBERSHIP_FEES, methods: [] }
+
+// Settings saved before competitions had their own fees kept the membership prices in a fee schedule
+interface Saved extends Partial<PaymentSettings> {
+  schedule?: { athleteMembership: number; coachMembership: number; coachesSummit: number }
+}
 
 export function readPaymentSettings(sqlite: Sqlite): PaymentSettings {
   const row = sqlite.prepare('SELECT value FROM settings WHERE key = ?').get(PAYMENT_SETTINGS_KEY) as { value: string } | undefined
   if (!row) return NO_PAYMENT_SETTINGS
   try {
-    const saved = JSON.parse(row.value) as Partial<PaymentSettings>
+    const saved = JSON.parse(row.value) as Saved
+    const old = saved.schedule
     return {
-      fees: saved.fees ?? null,
+      memberships: saved.memberships ?? (old ? { athlete: old.athleteMembership, coach: old.coachMembership, summit: old.coachesSummit } : DEFAULT_MEMBERSHIP_FEES),
       methods: Array.isArray(saved.methods) ? (saved.methods as PaymentMethod[]) : [],
-      ...(saved.schedule ? { schedule: saved.schedule } : {}),
     }
   } catch {
     return NO_PAYMENT_SETTINGS

@@ -3,7 +3,7 @@ import { Fact } from '../../components/Fact.tsx'
 import { PaymentStatusBadge } from '../../components/PaymentStatusBadge.tsx'
 import { Button, Drawer, Table, toast } from '../../components/ui/index.ts'
 import { useMarkPaidAtVenue, useStaffUsers } from '../../hooks/index.ts'
-import { DANCE_LABEL, competitorName, eventCode, formatDateTime, formatPeso } from '../../lib/format.ts'
+import { competitorName, eventCode, formatDateTime, formatPeso, eventDances } from '../../lib/format.ts'
 
 // What one payment covers, and who confirmed it. The admin keeps the record and can confirm a cash payment here; the secretariat only confirms.
 export function PaymentReview({ payment, onClose }: { payment: PaymentDetail; onClose: () => void }) {
@@ -61,7 +61,7 @@ export function PaymentReview({ payment, onClose }: { payment: PaymentDetail; on
             empty={{ title: 'No entries on this payment' }}
             columns={[
               { key: 'event', header: 'Event', cell: (l) => eventCode({ number: l.eventNumber }), mono: true },
-              { key: 'dances', header: 'Dances', cell: (l) => l.dances.map((d) => DANCE_LABEL[d]).join(', ') },
+              { key: 'dances', header: 'Dances', cell: (l) => eventDances(l) },
               { key: 'who', header: 'Dancers', cell: (l) => competitorName(l.competitorNames) },
               { key: 'fee', header: 'Fee', cell: (l) => formatPeso(l.fee), mono: true, align: 'right' },
             ]}

@@ -6,7 +6,7 @@ import { RoundStatusBadge, ROUND_STATUS_LABEL } from '../../components/RoundStat
 import { Button, ErrorState, DarkPanel, PageHeader, SearchField, Select, Table, Toolbar, ToolbarActions, glass, toast } from '../../components/ui/index.ts'
 import { ApiError } from '../../api/http.ts'
 import { useClearFloor, useLiveSubmissions, usePlanRounds, useRedances, useStartRound, useCatalog } from '../../hooks/index.ts'
-import { ROUND_TYPE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventCode, eventDanceNames, eventDances } from '../../lib/format.ts'
 import { useRoundChoice } from './useRoundChoice.ts'
 
 const ROUND_ORDER: RoundType[] = ['round_1', 'round_2', 'quarter_final', 'semi_final', 'final']
@@ -129,7 +129,7 @@ export function RoundsPage() {
     .filter(
       (r) =>
         (status === 'all' || r.status === status) &&
-        (!needle || `${eventCode({ number: r.eventNumber })} ${eventDances(r)} ${ROUND_TYPE_LABEL[r.type]}`.toLowerCase().includes(needle)),
+        (!needle || `${eventCode({ number: r.eventNumber })} ${eventDances(r)} ${eventDanceNames(r)} ${ROUND_TYPE_LABEL[r.type]}`.toLowerCase().includes(needle)),
     )
 
   const startable = rows.filter((r) => canStart(r, list))

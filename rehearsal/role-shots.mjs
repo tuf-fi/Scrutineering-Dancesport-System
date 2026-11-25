@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path'
 import { chromium } from 'playwright-core'
 
 const ROOT = resolve(import.meta.dirname, '..')
-const OUT = join(ROOT, 'screenshots')
+const OUT = process.env.OUT ?? join(ROOT, 'screenshots')
 const BASE = process.env.BASE ?? 'http://localhost:4062'
 const CHROME = [process.env.CHROME_PATH, 'C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find((p) => p && existsSync(p))
 if (!CHROME) throw new Error('No Chrome or Edge found. Set CHROME_PATH.')
@@ -252,10 +252,10 @@ const ROLES = {
       },
       { name: 'fees', path: '/admin/fees' },
       {
-        name: 'fees-late',
+        name: 'fees-memberships',
         path: '/admin/fees',
         act: async (p) => {
-          await p.getByText('Late entry fees').first().click()
+          await p.getByText('Memberships', { exact: true }).first().click()
           await settle(p)
         },
       },

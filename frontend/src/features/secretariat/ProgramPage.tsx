@@ -268,7 +268,7 @@ export function ProgramPage() {
           },
           {
             key: "adj",
-            header: "Adjudicators",
+            header: "Adjud",
             cell: (r) =>
               r.kind === ProgramKind.Round ? (
                 <span

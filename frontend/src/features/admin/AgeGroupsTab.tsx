@@ -52,7 +52,6 @@ export function AgeGroupsTab() {
           { key: 'name', header: 'Age group', cell: (g) => <span className="font-medium text-neutral-900">{g.name}</span> },
           { key: 'short', header: 'Printed as', cell: (g) => g.short, mono: true, hideBelow: 'sm' },
           { key: 'years', header: 'Born', cell: years, mono: true },
-          { key: 'fee', header: 'Fee tier', cell: (g) => (g.juvenileFee ? 'Juvenile' : 'Standard'), muted: true, hideBelow: 'md' },
           { key: 'events', header: 'Events', cell: (g) => eventCount(g.id) ?? '–', mono: true, align: 'center', hideBelow: 'sm' },
           {
             key: 'actions',

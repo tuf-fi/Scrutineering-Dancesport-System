@@ -1,15 +1,5 @@
 import { AgeGroup, Class, Discipline, EventKind } from './enums.ts'
 
-// How an event's entry is priced from the fee schedule: by age group and solo or couple, at the couple price of the
-// younger or older tier, or at the one fixed price
-export const FeeMode = {
-  Standard: 'standard',
-  CoupleJuvenile: 'couple_juvenile',
-  CoupleOlder: 'couple_older',
-  Fixed: 'fixed',
-} as const
-export type FeeMode = (typeof FeeMode)[keyof typeof FeeMode]
-
 // What the entry form holds about each dancer, which a kind can require
 export const KindField = {
   BirthDate: 'birth_date',
@@ -28,11 +18,10 @@ export const KIND_FIELD_LABEL: Record<KindField, string> = {
   membership: 'paid membership',
 }
 
-// A kind of event, which sets its fee and who may enter
+// A kind of event, which sets who may enter
 export interface EventKindDef {
   id: EventKind
   name: string
-  feeMode: FeeMode
   // The disciplines its events are danced in
   disciplines: Discipline[]
   // Open only to one province, named on each event
@@ -50,8 +39,6 @@ export interface AgeGroupDef {
   short: string
   bornFrom: number | null
   bornTo: number | null
-  // Pays the juvenile price in a standard event
-  juvenileFee: boolean
   // Replaced by a newer version after events ran in it: kept for those events, never offered for new ones
   retired?: boolean
   // Versions of one group share a family; rankings add them together
@@ -71,10 +58,9 @@ export interface Catalog {
   classes: ClassDef[]
 }
 
-// What the admin sends for a kind. The price is kept when left out (a new kind starts at the standard price).
+// What the admin sends for a kind
 export interface EventKindInput {
   name: string
-  feeMode?: FeeMode
   disciplines: Discipline[]
   closedToProvince: boolean
   requires: KindField[]
@@ -83,34 +69,33 @@ export type AgeGroupInput = Omit<AgeGroupDef, 'id' | 'retired' | 'family'>
 
 // What a new database starts with, from the organizer's 2026 entry forms
 const BOTH: Discipline[] = [Discipline.Latin, Discipline.Standard]
-const kind = (id: string, name: string, feeMode: FeeMode, limits: { closedToProvince?: boolean } = {}): EventKindDef => ({
+const kind = (id: string, name: string, limits: { closedToProvince?: boolean } = {}): EventKindDef => ({
   id,
   name,
-  feeMode,
   disciplines: [...BOTH],
   closedToProvince: limits.closedToProvince ?? false,
   requires: [],
 })
 export const DEFAULT_EVENT_KINDS: EventKindDef[] = [
-  kind(EventKind.Standard, 'Standard', FeeMode.Standard),
-  kind(EventKind.Ranking, 'Ranking', FeeMode.Fixed),
-  kind(EventKind.InterElementary, 'Inter-elementary', FeeMode.CoupleJuvenile),
-  kind(EventKind.InterHighSchool, 'Inter-high school', FeeMode.CoupleOlder),
-  kind(EventKind.InterCollegiate, 'Inter-collegiate', FeeMode.Fixed),
-  kind(EventKind.Closed, 'Closed to a province', FeeMode.Standard, { closedToProvince: true }),
+  kind(EventKind.Standard, 'Standard'),
+  kind(EventKind.Ranking, 'Ranking'),
+  kind(EventKind.InterElementary, 'Inter-elementary'),
+  kind(EventKind.InterHighSchool, 'Inter-high school'),
+  kind(EventKind.InterCollegiate, 'Inter-collegiate'),
+  kind(EventKind.Closed, 'Closed to a province', { closedToProvince: true }),
 ]
 
 // The birth years are from the organizer's 2026 entry forms (Juvenile 1 born 2017 or later, Juvenile 2 2015-2016,
 // Junior 1 2013-2014, Junior 2 2011-2012, Youth 2008-2010). Adult and Senior follow WDSF Competition Rules 2018, E.2
 // (Adult 19 and over, Senior from 35), counted for 2026.
 export const DEFAULT_AGE_GROUPS: AgeGroupDef[] = [
-  { id: AgeGroup.Juvenile1, name: 'Juvenile 1', short: 'JUV 1', bornFrom: 2017, bornTo: null, juvenileFee: true },
-  { id: AgeGroup.Juvenile2, name: 'Juvenile 2', short: 'JUV 2', bornFrom: 2015, bornTo: 2016, juvenileFee: true },
-  { id: AgeGroup.Junior1, name: 'Junior I', short: 'JUN 1', bornFrom: 2013, bornTo: 2014, juvenileFee: false },
-  { id: AgeGroup.Junior2, name: 'Junior II', short: 'JUN 2', bornFrom: 2011, bornTo: 2012, juvenileFee: false },
-  { id: AgeGroup.Youth, name: 'Youth', short: 'YTH', bornFrom: 2008, bornTo: 2010, juvenileFee: false },
-  { id: AgeGroup.Adult, name: 'Adult', short: 'ADT', bornFrom: 1992, bornTo: 2007, juvenileFee: false },
-  { id: AgeGroup.Senior, name: 'Senior', short: 'SEN', bornFrom: null, bornTo: 1991, juvenileFee: false },
+  { id: AgeGroup.Juvenile1, name: 'Juvenile 1', short: 'JUV 1', bornFrom: 2017, bornTo: null },
+  { id: AgeGroup.Juvenile2, name: 'Juvenile 2', short: 'JUV 2', bornFrom: 2015, bornTo: 2016 },
+  { id: AgeGroup.Junior1, name: 'Junior I', short: 'JUN 1', bornFrom: 2013, bornTo: 2014 },
+  { id: AgeGroup.Junior2, name: 'Junior II', short: 'JUN 2', bornFrom: 2011, bornTo: 2012 },
+  { id: AgeGroup.Youth, name: 'Youth', short: 'YTH', bornFrom: 2008, bornTo: 2010 },
+  { id: AgeGroup.Adult, name: 'Adult', short: 'ADT', bornFrom: 1992, bornTo: 2007 },
+  { id: AgeGroup.Senior, name: 'Senior', short: 'SEN', bornFrom: null, bornTo: 1991 },
 ]
 
 // The groups from the youngest dancers to the oldest
@@ -138,20 +123,18 @@ export const kindOf = (kinds: EventKindDef[], id: string | undefined): EventKind
 
 export type Checked<T> = { values: T } | { error: string; status: number }
 
-const FEE_MODES: string[] = Object.values(FeeMode)
 const KIND_FIELDS: string[] = Object.values(KindField)
 const DISCIPLINES: string[] = Object.values(Discipline)
 
 const trimmed = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 
-export type CheckedKind = Omit<EventKindDef, 'id' | 'feeMode'> & { feeMode?: FeeMode }
+export type CheckedKind = Omit<EventKindDef, 'id'>
 
 // others are the kinds apart from the one being edited
 export function checkEventKind(input: EventKindInput | undefined, others: EventKindDef[]): Checked<CheckedKind> {
   const name = trimmed(input?.name)
   if (!input || !name) return { error: 'Enter the name of the kind.', status: 400 }
   if (name.length > 60) return { error: 'The name is too long.', status: 400 }
-  if (input.feeMode !== undefined && !FEE_MODES.includes(input.feeMode)) return { error: 'Choose how the kind is priced.', status: 400 }
   if (!Array.isArray(input.disciplines) || input.disciplines.length === 0 || input.disciplines.some((d) => !DISCIPLINES.includes(d))) {
     return { error: 'Choose Latin, Standard or both.', status: 400 }
   }
@@ -165,7 +148,6 @@ export function checkEventKind(input: EventKindInput | undefined, others: EventK
   return {
     values: {
       name,
-      ...(input.feeMode ? { feeMode: input.feeMode } : {}),
       disciplines: DISCIPLINES.filter((d) => input.disciplines.includes(d as Discipline)) as Discipline[],
       closedToProvince: input.closedToProvince,
       requires: [...new Set(input.requires)],
@@ -198,9 +180,8 @@ export function checkAgeGroup(input: AgeGroupInput | undefined, others: AgeGroup
   if (!year(bornFrom) || !year(bornTo)) return { error: `A year of birth is a whole number from ${MIN_YEAR} to ${MAX_YEAR}.`, status: 400 }
   if (bornFrom === null && bornTo === null) return { error: 'Enter the first or the last year of birth.', status: 400 }
   if (bornFrom !== null && bornTo !== null && bornFrom > bornTo) return { error: 'The first year of birth comes before the last.', status: 400 }
-  if (typeof input.juvenileFee !== 'boolean') return { error: 'Choose whether it pays the juvenile price.', status: 400 }
   if (others.some((g) => g.name.toLowerCase() === name.toLowerCase())) return { error: 'An age group with this name already exists.', status: 409 }
-  return { values: { name, short, bornFrom, bornTo, juvenileFee: input.juvenileFee } }
+  return { values: { name, short, bornFrom, bornTo } }
 }
 
 // A readable id from the name, such as "inter_school"; a number is added if it is taken

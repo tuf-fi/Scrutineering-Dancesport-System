@@ -29,7 +29,7 @@ Staff sign in at `/staff-access`, which is not linked from the public site. Ever
 
 | Step | Where | What happens |
 | --- | --- | --- |
-| Fees and where to pay | `/admin/fees` (Fees and payment details) | Sets the registration fees and the GCash, Maya and bank details that teams and athletes are shown when they pay |
+| Fees and where to pay | `/admin/fees` (Fees and payment details) | Sets each competition's event fees, the yearly membership fees, and the GCash, Maya and bank details that teams and athletes are shown when they pay |
 | Staff accounts | `/admin/staff` (Staff accounts) | One account per person; a temporary password is shown once. See [ROLE_ACCOUNTS.md](../operations/ROLE_ACCOUNTS.md) |
 | Points table | `/admin/points` (Points table) | Points per place, used for rankings |
 | Turn on two-step sign-in | `/admin/security`, `/secretariat/security`, `/scrutineer/security` | An authenticator code after the password, for Admin and Secretariat in particular |

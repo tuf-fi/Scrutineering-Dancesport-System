@@ -1,8 +1,11 @@
-import { DEFAULT_FEE_SCHEDULE, type FeeSchedule, type FeeTier, type PaymentMethod, type PaymentSettings } from '@bis/shared'
+import { checkFee, isPesoAmount, type FeeItem, type FeeItemInput, type MembershipFees, type PaymentMethod, type PaymentSettings } from '@bis/shared'
+import { eq, sql } from 'drizzle-orm'
 import { record } from '../core/audit.ts'
-import { actor, fail, type Ctx } from '../core/context.ts'
+import { actor, fail, found, type Ctx } from '../core/context.ts'
+import * as t from '../db/schema.ts'
+import { newId } from '../ids.ts'
 import { readPaymentSettings, writePaymentSettings } from '../paymentSettings.ts'
-import { clean } from './shared.ts'
+import { clean, feesOf } from './shared.ts'
 
 const MAX_METHODS = 8
 
@@ -16,44 +19,60 @@ function cleanMethods(input: unknown): PaymentMethod[] {
   })
 }
 
-const SCHEDULE_NUMBERS = ['fixed', 'athleteMembership', 'coachMembership', 'coachesSummit'] as const
+function cleanMemberships(input: MembershipFees | undefined): MembershipFees {
+  if (!input || ![input.athlete, input.coach, input.summit].every(isPesoAmount)) return fail('Enter every membership fee as whole pesos.')
+  return { athlete: input.athlete, coach: input.coach, summit: input.summit }
+}
 
-// Every price in the schedule is whole pesos
-function cleanSchedule(input: FeeSchedule): FeeSchedule {
-  const bad = () => fail('Enter every registration fee as whole pesos.')
-  const tier = (t: FeeTier | undefined): FeeTier => {
-    if (!t || !wholePesos(t.first) || !wholePesos(t.additional)) return bad()
-    return { first: t.first, additional: t.additional }
-  }
-  for (const key of SCHEDULE_NUMBERS) if (!wholePesos(input?.[key])) return bad()
-  return {
-    soloJuvenile: tier(input.soloJuvenile),
-    soloOlder: tier(input.soloOlder),
-    coupleJuvenile: tier(input.coupleJuvenile),
-    coupleOlder: tier(input.coupleOlder),
-    fixed: input.fixed,
-    athleteMembership: input.athleteMembership,
-    coachMembership: input.coachMembership,
-    coachesSummit: input.coachesSummit,
+// Puts the events named on this fee, and takes it off every other event it priced
+function assignEvents(ctx: Ctx, competitionId: string, feeId: string, eventIds: string[]) {
+  const events = ctx.db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).all()
+  const wanted = new Set(eventIds)
+  if ([...wanted].some((id) => !events.some((e) => e.id === id))) return fail('Choose events of this competition.')
+  for (const e of events) {
+    if (wanted.has(e.id) === (e.feeId === feeId)) continue
+    ctx.db.update(t.events).set({ feeId: wanted.has(e.id) ? feeId : null }).where(eq(t.events.id, e.id)).run()
   }
 }
-const wholePesos = (value: unknown) => typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100_000
+
+const getCompetition = (ctx: Ctx, id: string) => found(ctx.db.select().from(t.competitions).where(eq(t.competitions.id, id)).get(), 'Competition')
 
 export const accountFunctions = {
-  // The fee schedule always shows: the saved one, or the organizer's 2026 entry form
-  getPaymentSettings: (ctx: Ctx): PaymentSettings => {
-    const saved = readPaymentSettings(ctx.sqlite)
-    return { ...saved, schedule: saved.schedule ?? DEFAULT_FEE_SCHEDULE }
+  getCompetitionFees: (ctx: Ctx, competitionId: string): FeeItem[] => feesOf(ctx, getCompetition(ctx, competitionId).id),
+
+  // A change of price applies to entries made from now on; what was already charged stays
+  saveCompetitionFee(ctx: Ctx, competitionId: string, input: FeeItemInput, id?: string): FeeItem {
+    const competition = getCompetition(ctx, competitionId)
+    const fees = feesOf(ctx, competition.id)
+    const before = id ? found(fees.find((f) => f.id === id), 'Fee') : undefined
+    const checked = checkFee(input, fees.filter((f) => f.id !== id))
+    if ('error' in checked) return fail(checked.error, checked.status)
+    const fee: FeeItem = { id: before?.id ?? newId(), competitionId: competition.id, ...checked.values }
+    if (before) ctx.db.update(t.competitionFees).set(checked.values).where(eq(t.competitionFees.id, fee.id)).run()
+    else {
+      const last = ctx.db.select({ n: sql<number>`coalesce(max(${t.competitionFees.sortOrder}), 0)` }).from(t.competitionFees).where(eq(t.competitionFees.competitionId, competition.id)).get()
+      ctx.db.insert(t.competitionFees).values({ ...fee, sortOrder: (last?.n ?? 0) + 1 }).run()
+    }
+    assignEvents(ctx, competition.id, fee.id, input.eventIds)
+    record(ctx.db, actor(ctx).id, before ? 'Edited fee' : 'Added fee', `${fee.name}, ${competition.name}`, { before, after: fee })
+    return fee
   },
+
+  // Its events are left without a fee, so they cannot be entered until another is set
+  deleteCompetitionFee(ctx: Ctx, id: string): { id: string } {
+    const row = found(ctx.db.select().from(t.competitionFees).where(eq(t.competitionFees.id, id)).get(), 'Fee')
+    const competition = getCompetition(ctx, row.competitionId)
+    ctx.db.delete(t.competitionFees).where(eq(t.competitionFees.id, id)).run()
+    record(ctx.db, actor(ctx).id, 'Deleted fee', `${row.name}, ${competition.name}`, { before: row })
+    return { id }
+  },
+
+  getPaymentSettings: (ctx: Ctx): PaymentSettings => readPaymentSettings(ctx.sqlite),
 
   savePaymentSettings(ctx: Ctx, input: PaymentSettings): PaymentSettings {
     const user = actor(ctx)
     const before = readPaymentSettings(ctx.sqlite)
-    if (input?.fees && (!wholePesos(input.fees.solo) || !wholePesos(input.fees.couple))) return fail('Enter both fees as whole pesos.')
-    if (!input?.fees && !input?.schedule) return fail('Enter both fees as whole pesos.')
-    const fees = input.fees ? { solo: input.fees.solo, couple: input.fees.couple } : before.fees
-    const schedule = input.schedule ? cleanSchedule(input.schedule) : before.schedule
-    const next: PaymentSettings = { fees, methods: cleanMethods(input.methods), ...(schedule ? { schedule } : {}) }
+    const next: PaymentSettings = { memberships: cleanMemberships(input?.memberships), methods: cleanMethods(input.methods) }
     writePaymentSettings(ctx.sqlite, next)
     record(ctx.db, user.id, 'Changed fees and payment details', 'Payment settings', { before, after: next })
     return next

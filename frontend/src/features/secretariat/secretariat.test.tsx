@@ -209,7 +209,7 @@ describe('editing and removing', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Jive' }))
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save changes' }))
     expect(await screen.findByText('Saved E55')).toBeInTheDocument()
-    expect(await screen.findByText('Samba, Jive')).toBeInTheDocument()
+    expect(await screen.findByText('Latin - S J')).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Delete E55' }))
     await confirmDelete(await screen.findByRole('dialog'))

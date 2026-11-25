@@ -1,3 +1,4 @@
+import { priceSampleEvents } from './db/sample-fees.ts'
 import type { Coach, CompetitorDetails, RegistrationQuote, RegistrationResult } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
@@ -40,7 +41,10 @@ beforeAll(async () => {
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   app.db.insert(t.teams).values({ id: 'team-1', name: 'Naga Dancers', contactName: 'Coach', contactEmail: 'c@test.example', contactPhone: '1' }).run()
   competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
-  const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
+  const make = async (key: string, input: object) => {
+    events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id
+    priceSampleEvents(app.db)
+  }
   await make('juv1', event(1))
   await make('juv2', event(2, { dances: ['rumba'] }))
   await make('junior', event(3, { ageGroup: 'junior_1', dances: ['jive'] }))
@@ -91,7 +95,7 @@ describe('registering a team from the entry form', () => {
 
     // Membership lasts the year, and the two entries already made mean the next is an additional one
     const next = await app.ok<RegistrationQuote>('quoteRegistration', [ana.id, [events.junior]], secretariat)
-    expect(next.lines).toEqual([{ label: 'E3 additional entry', amount: 200 }])
+    expect(next.lines).toMatchObject([{ label: 'E3 additional entry', amount: 200 }])
     expect((await app.call('registerCompetitor', [{ competitorId: ana.id, eventIds: [events.juv1], method: 'cash' }], secretariat)).status).toBe(409)
 
     // The athlete's entries show the payment, and the secretariat can take it back and record it again

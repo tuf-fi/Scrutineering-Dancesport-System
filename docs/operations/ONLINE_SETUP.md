@@ -92,7 +92,7 @@ After the accounts are ready, I will:
 
 1. Create the server, install BIS and connect the domain. The address then opens with a padlock (HTTPS).
 2. Create the first **admin** login and give it to you. You sign in and change the password right away.
-3. In BIS, open **Fees and payment details** and enter the entry fees and your GCash, Maya and bank account details. Teams cannot register until the fees are saved.
+3. In BIS, open **Fees and payment details** and enter the membership fees and your GCash, Maya and bank account details. Add each competition's fees there too: an event cannot be entered until it has one.
 4. Turn on the daily backup copy.
 
 ## Keeping it safe

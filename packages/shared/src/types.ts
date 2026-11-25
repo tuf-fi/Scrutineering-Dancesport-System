@@ -89,6 +89,8 @@ export interface Event {
   syllabus?: string
   // Whether its results count towards the rankings; a missing value counts as on
   usesPoints?: boolean
+  // The competition fee that prices it; an event without one cannot be entered when payment is required
+  feeId?: Id | null
 }
 
 export interface Team {
@@ -165,26 +167,31 @@ export interface Coach {
 
 export type CoachInput = Omit<Coach, 'id' | 'membershipId'>
 
-// What the secretariat charges, from the organizer's entry form. A tier has a price for the first entry of a
-// dancer or couple and a lower one for each extra entry.
-export interface FeeTier {
-  first: number
-  additional: number
+// One price a competition charges for its events; the admin adds, edits and removes them
+export interface FeeItem {
+  id: Id
+  competitionId: Id
+  name: string
+  amount: number
+  // What a dancer or couple pays for each entry after their first; null charges every entry in full
+  extra: number | null
+  // The price of a late entry at the venue; null charges it like any other entry
+  late: number | null
 }
 
-export interface FeeSchedule {
-  soloJuvenile: FeeTier
-  soloOlder: FeeTier
-  coupleJuvenile: FeeTier
-  coupleOlder: FeeTier
-  // Inter-collegiate and ranking events: one price each, never discounted
-  fixed: number
-  athleteMembership: number
-  coachMembership: number
-  coachesSummit: number
+// eventIds are the events this fee prices
+export type FeeItemInput = Omit<FeeItem, 'id' | 'competitionId'> & { eventIds: Id[] }
+
+// The yearly fees that no event carries; 0 charges nothing
+export interface MembershipFees {
+  athlete: number
+  coach: number
+  summit: number
 }
 
 export interface FeeLine {
+  // The event an entry line is for; membership lines have none
+  eventId?: Id
   label: string
   amount: number
 }
@@ -1079,12 +1086,10 @@ export interface SampleCredentials {
   pins: Array<{ letter: string; pin: string }>
 }
 
-// What teams pay and where to send it, set by the organizer. No flat fees means late entries are closed until they are set.
+// The membership fees and where teams send payment, set by the organizer. Event prices belong to each competition.
 export interface PaymentSettings {
-  fees: { solo: number; couple: number } | null
+  memberships: MembershipFees
   methods: PaymentMethod[]
-  // The secretariat's fee schedule; the organizer's 2026 form is used until one is saved
-  schedule?: FeeSchedule
 }
 
 // ---- Entering a competition online ----

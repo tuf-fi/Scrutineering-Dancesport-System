@@ -1,9 +1,9 @@
 import { ProgramKind, type ProgramRow } from '@bis/shared'
-import { DISCIPLINE_LABEL, defaultAgeGroupLabel, eventCode, eventDances } from './format.ts'
+import { DISCIPLINE_LABEL, defaultAgeGroupLabel, eventCode, eventDanceNames, eventDances } from './format.ts'
 
 const searchText = (r: ProgramRow, ageGroupLabel: (id: string) => string) =>
   r.kind === ProgramKind.Round && r.eventNumber !== null && r.ageGroup && r.class && r.discipline
-    ? `${eventCode({ number: r.eventNumber })} ${eventDances(r)} ${ageGroupLabel(r.ageGroup)} ${r.class} ${DISCIPLINE_LABEL[r.discipline]}`
+    ? `${eventCode({ number: r.eventNumber })} ${eventDances(r)} ${eventDanceNames(r)} ${ageGroupLabel(r.ageGroup)} ${r.class} ${DISCIPLINE_LABEL[r.discipline]}`
     : (r.label ?? '')
 
 // The lines a search and a round filter leave; the screen and the printout use the same rule

@@ -52,7 +52,7 @@ export function loginSheetLines(opts: {
           { text: '', style: 'muted' as const },
           { text: `Adjudicators: all ${pinRows.length}`, style: 'heading' as const },
           { text: `Open ${site}/adjudicator on a phone and type the PIN. The same PINs work for every test competition.`, style: 'muted' as const },
-          { text: `${pad('Letter', 8)}${pad('Adjudicator', 36)}PIN`, style: 'code' as const },
+          { text: `${pad('Letter', 8)}${pad('Adjud', 36)}PIN`, style: 'code' as const },
           ...pinRows.map((r) => ({ text: `${pad(r.letter, 8)}${pad(r.name, 36)}${r.pin}`, style: 'code' as const })),
           { text: '', style: 'muted' as const },
           { text: 'Staging lets a PIN work on any day. An adjudicator is signed in on one phone at a time: signing in on a second phone signs the first out.', style: 'muted' as const },

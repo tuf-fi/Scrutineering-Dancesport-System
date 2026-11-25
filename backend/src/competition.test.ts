@@ -1,3 +1,5 @@
+import { DEFAULT_MEMBERSHIP_FEES } from '@bis/shared'
+import { priceSampleEvents } from './db/sample-fees.ts'
 import type { Announcement, EventReport, MarkSubmission, RecallTable, RoundRow, SkatingTable } from '@bis/shared'
 import { writePaymentSettings } from './paymentSettings.ts'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -38,7 +40,7 @@ beforeAll(async () => {
   for (const [id, name, username, role] of staff) {
     app.db.insert(t.staffUsers).values({ id, name, username: `${username}@sample.example`, role, passwordHash: hashPassword('pw-' + username), disabled: false }).run()
   }
-  writePaymentSettings(app.sqlite, { fees: { solo: 500, couple: 800 }, methods: [] })
+  writePaymentSettings(app.sqlite, { memberships: DEFAULT_MEMBERSHIP_FEES, methods: [] })
   // Every approval should trigger a backup
   backupRuns = vi.spyOn(app.backups, 'run')
   admin = await app.signIn.staff('admin', 'pw-admin')
@@ -54,6 +56,7 @@ describe('before the competition', () => {
   it('admin sets up the competition, event, adjudicators and panel', async () => {
     competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Test Open', date: today, venue: 'Gym', organizer: 'Org', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
     eventId = (await app.ok<{ id: string }>('saveEvent', [competitionId, solo], admin)).id
+    priceSampleEvents(app.db)
     for (const letter of 'ABCDE') {
       adjudicatorIds.push((await app.ok<{ id: string }>('createAdjudicator', [{ name: `Adjudicator ${letter}`, letter, photo: TEST_PHOTO }], admin)).id)
     }

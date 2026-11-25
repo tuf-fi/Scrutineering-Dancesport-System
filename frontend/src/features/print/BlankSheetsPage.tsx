@@ -7,6 +7,8 @@ import { num, td, th, thCenter } from './tableStyles.ts'
 import { usePrintContext } from './usePrintContext.ts'
 
 const box = 'inline-block size-5 border border-neutral-900 align-middle'
+// Tighter than the shared cell, so 24 numbers fit one printed A4 page
+const markCell = 'px-2.5 py-0.5 align-middle'
 
 // Paper fallback: one blank mark sheet per adjudicator on the panel, with the round's numbers filled in
 export function BlankSheetsPage() {
@@ -41,7 +43,7 @@ export function BlankSheetsPage() {
                   }
                 >
                   <div className="mb-4 grid grid-cols-[auto_1fr] items-end gap-x-3 gap-y-3">
-                    <span className="font-bold">Adjudicator</span>
+                    <span className="font-bold">Adjud</span>
                     <span className="text-[16pt] font-bold leading-none">{a.letter}</span>
                     <span>Name</span>
                     <span className="border-b border-neutral-900" />
@@ -88,10 +90,10 @@ export function BlankSheetsPage() {
                       </thead>
                       <tbody>
                         {numbers.map((n) => (
-                          <tr key={n} className="h-8">
-                            <td className={`${td} ${num} font-semibold`}>{n}</td>
+                          <tr key={n} className="h-7">
+                            <td className={`${markCell} ${num} font-semibold`}>{n}</td>
                             {event.dances.map((d) => (
-                              <td key={d} className={`${td} text-center`}>
+                              <td key={d} className={`${markCell} text-center`}>
                                 <span className={box} />
                               </td>
                             ))}

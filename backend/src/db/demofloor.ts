@@ -3,6 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import { randomBytes, randomInt } from 'node:crypto'
 import { hashPassword } from '../auth/password.ts'
 import type { Db } from './client.ts'
+import { priceSampleEvents } from './sample-fees.ts'
 import { sampleCompetitionImage } from './seed.ts'
 import * as t from './schema.ts'
 
@@ -91,5 +92,6 @@ export function addFloorDemo(db: Db): { competitionId: string; missing: string[]
     pins.add(pin)
     db.insert(t.adjudicatorPins).values({ competitionId, adjudicatorId: a.id, pin }).run()
   }
+  priceSampleEvents(db, (e) => e.competitionId === competitionId)
   return { competitionId, missing: [] }
 }

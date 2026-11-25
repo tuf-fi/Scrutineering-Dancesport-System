@@ -1,6 +1,14 @@
 import { ApiError } from '../api/http.ts'
 import {
-  DEFAULT_FEE_SCHEDULE,
+  DEFAULT_MEMBERSHIP_FEES,
+  checkFee,
+  feeOf,
+  hasExtraPrice,
+  lateEntryFee,
+  unpricedEvents,
+  unpricedMessage,
+  type FeeItem,
+  type FeeItemInput,
   type DeleteImpact,
   type PastImportReport,
   type PastWorkbook,
@@ -16,11 +24,9 @@ import {
   checkAgeGroup,
   checkClass,
   checkRoundPlan,
-  FeeMode,
   byAge,
   checkEventKind,
   freshId,
-  isFixedFee,
   kindOf,
   registrationFee,
   registrationWarnings,
@@ -122,7 +128,8 @@ import { ageGroupOf, competitors } from './data/competitors.ts'
 import { entries } from './data/entries.ts'
 import { events } from './data/events.ts'
 import { ageGroups, classes, eventKinds } from './data/catalog.ts'
-import { feeFor, paymentDetail, payments } from './data/payments.ts'
+import { competitionFees } from './data/fees.ts'
+import { paymentDetail, payments } from './data/payments.ts'
 import './data/late.ts'
 import { announcements } from './announcing.ts'
 import {
@@ -569,7 +576,7 @@ export const saveEventKind = (actorId: string, input: EventKindInput, id?: strin
       record(actorId, 'Edited event kind', kind.name)
       return kind
     }
-    const created = { id: freshId(checked.values.name, eventKinds.map((k) => k.id)), ...checked.values, feeMode: checked.values.feeMode ?? FeeMode.Standard }
+    const created = { id: freshId(checked.values.name, eventKinds.map((k) => k.id)), ...checked.values }
     eventKinds.push(created)
     record(actorId, 'Created event kind', created.name)
     return created
@@ -983,6 +990,22 @@ function checkEligible(competitorId: string, event: { number: number; isSolo: bo
   }
 }
 
+const feesIn = (competitionId: string) => competitionFees.filter((f) => f.competitionId === competitionId)
+
+function priorEntries(competitorId: string, competitionId: string, except?: string) {
+  const fees = feesIn(competitionId)
+  return entries.filter((e) => {
+    const event = events.find((x) => x.id === e.eventId)
+    return e.id !== except && e.competitorId === competitorId && !e.scratched && event?.competitionId === competitionId && hasExtraPrice(fees, event)
+  }).length
+}
+
+function lateFeeFor(competitorId: string, event: Event, except?: string): number {
+  const fee = feeOf(feesIn(event.competitionId), event)
+  if (!fee) throw new Error(unpricedMessage([event]))
+  return lateEntryFee(fee, priorEntries(competitorId, event.competitionId, except))
+}
+
 function lateRow(entry: Entry): LateEntryRow {
   const event = found(events.find((e) => e.id === entry.eventId), 'Event')
   return {
@@ -990,7 +1013,7 @@ function lateRow(entry: Entry): LateEntryRow {
     eventId: event.id,
     eventNumber: event.number,
     dances: event.dances,
-    fee: feeFor(event),
+    fee: payments.find((p) => p.id === entry.paymentId)?.amountDue ?? 0,
     paymentId: entry.paymentId ?? '',
   }
 }
@@ -1014,7 +1037,7 @@ export const createLateEntry = (
     if (entries.some((e) => e.eventId === event.id && e.competitorId === competitor.id)) {
       throw new Error('This competitor is already entered in the event.')
     }
-    const fee = feeFor(event)
+    const fee = lateFeeFor(competitor.id, event)
     const paymentId = `pay-late-${payments.length + 1}`
     const entry: Entry = {
       id: `${event.id}:${competitor.id}`,
@@ -1089,16 +1112,16 @@ function priceRegistration(competitorId: string, eventIds: string[], coachFees =
   const year = Number(competition.date.slice(0, 4))
   const members = competitor.details?.memberYear === year ? 0 : competitor.names.length
   const catalogNow = catalog()
-  const prior = entries.filter((e) => {
-    const event = events.find((x) => x.id === e.eventId)
-    return e.competitorId === competitorId && !e.scratched && event?.competitionId === competition.id && !isFixedFee(catalogNow, event.kind)
-  }).length
+  const fees = feesIn(competition.id)
+  const unpriced = unpricedEvents(fees, chosen)
+  if (unpriced.length > 0) throw new Error(unpricedMessage(unpriced))
+  const prior = priorEntries(competitorId, competition.id)
   const coachRow = coaches.find((c) => c.id === competitor.details?.coachId)
   const coach = coachRow
     ? { name: coachRow.name, membershipDue: coachRow.memberYear !== year, summitDue: coachRow.summitYear !== year }
     : undefined
   const collect = { membership: Boolean(coach?.membershipDue && coachFees.membership), summit: Boolean(coach?.summitDue && coachFees.summit) }
-  const { lines, total } = registrationFee(DEFAULT_FEE_SCHEDULE, chosen, members, prior, collect, catalogNow)
+  const { lines, total } = registrationFee(fees, chosen, samplePaymentSettings.memberships, members, prior, collect)
   return {
     competitor,
     chosen,
@@ -1407,11 +1430,11 @@ export const updateLateEntry = (actorId: string, entryId: string, input: { event
       }
     }
     const payment = found(payments.find((p) => p.id === entry.paymentId), 'Payment')
+    const fee = event.id === entry.eventId ? payment.amountDue : lateFeeFor(entry.competitorId, event, entry.id)
     const newId = `${event.id}:${entry.competitorId}`
     payment.entryIds = payment.entryIds.map((id) => (id === entry.id ? newId : id))
     entry.id = newId
     entry.eventId = event.id
-    const fee = feeFor(event)
     payment.amountDue = fee
     payment.amountPaid = input.paidInCash ? fee : null
     payment.status = input.paidInCash ? PaymentStatus.PaidAtVenue : PaymentStatus.Unpaid
@@ -1663,12 +1686,12 @@ const sampleMethods: PaymentMethod[] = [
   { name: 'Maya', accountName: 'BIS', number: '0918 000 0000' },
   { name: 'Bank transfer', accountName: 'BIS', number: '0000 0000 0000', note: 'BDO Savings, Sorsogon branch' },
 ]
-let samplePaymentSettings: PaymentSettings = { fees: { solo: 500, couple: 800 }, methods: sampleMethods, schedule: DEFAULT_FEE_SCHEDULE }
+let samplePaymentSettings: PaymentSettings = { memberships: DEFAULT_MEMBERSHIP_FEES, methods: sampleMethods }
 
 export const getPaymentSettings = () => reply(samplePaymentSettings)
 export const savePaymentSettings = (actorId: string, input: PaymentSettings) =>
   settle<PaymentSettings>(() => {
-    samplePaymentSettings = { ...structuredClone(input), schedule: structuredClone(input.schedule ?? samplePaymentSettings.schedule ?? DEFAULT_FEE_SCHEDULE) }
+    samplePaymentSettings = structuredClone(input)
     record(actorId, 'Changed fees and payment details', 'Payment settings')
     return samplePaymentSettings
   })
@@ -2191,7 +2214,7 @@ export const getMyAthlete = (athleteId: string) =>
   reply<AthletePage>({
     profile: publicAthlete(athleteOf(athleteId)),
     year: membershipYear(),
-    fee: (samplePaymentSettings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
+    fee: samplePaymentSettings.memberships.athlete,
     methods: samplePaymentSettings.methods,
   })
 
@@ -2253,7 +2276,7 @@ export const getTeamMembership = (memberId: string) =>
     const year = membershipYear()
     return {
       year,
-      fee: (samplePaymentSettings.schedule ?? DEFAULT_FEE_SCHEDULE).athleteMembership,
+      fee: samplePaymentSettings.memberships.athlete,
       methods: samplePaymentSettings.methods,
       athletes: sampleAthletes
         .filter((a) => a.teamId === member.linkedId)
@@ -2724,3 +2747,30 @@ function confirmCascade(kind: DeleteKind, id: string, cascade: boolean | undefin
   if (impact.blocked) throw new Error(impact.blocked)
   if (impact.items.length > 0 && !cascade) throw new Error(`${impact.name} has related data. Confirm to delete it too.`)
 }
+
+export const getCompetitionFees = (competitionId: string) => reply(feesIn(competitionId))
+
+export const saveCompetitionFee = (actorId: string, competitionId: string, input: FeeItemInput, id?: string) =>
+  settle<FeeItem>(() => {
+    const before = id ? found(feesIn(competitionId).find((f) => f.id === id), 'Fee') : undefined
+    const checked = checkFee(input, feesIn(competitionId).filter((f) => f.id !== id))
+    if ('error' in checked) throw new Error(checked.error)
+    const fee: FeeItem = { id: before?.id ?? `${competitionId}:fee:${competitionFees.length + 1}`, competitionId, ...checked.values }
+    if (before) competitionFees.splice(competitionFees.indexOf(before), 1, fee)
+    else competitionFees.push(fee)
+    for (const event of events.filter((e) => e.competitionId === competitionId)) {
+      if (input.eventIds.includes(event.id)) event.feeId = fee.id
+      else if (event.feeId === fee.id) event.feeId = null
+    }
+    record(actorId, before ? 'Edited fee' : 'Added fee', fee.name)
+    return fee
+  })
+
+export const deleteCompetitionFee = (actorId: string, id: string) =>
+  settle<{ id: string }>(() => {
+    const fee = found(competitionFees.find((f) => f.id === id), 'Fee')
+    competitionFees.splice(competitionFees.indexOf(fee), 1)
+    for (const event of events) if (event.feeId === id) event.feeId = null
+    record(actorId, 'Deleted fee', fee.name)
+    return { id }
+  })

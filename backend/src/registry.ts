@@ -279,6 +279,9 @@ const access: Record<string, Access> = {
   // Fees, payment details and team accounts
   getPaymentSettings: [Role.Admin, Role.Secretariat],
   savePaymentSettings: ADMIN,
+  getCompetitionFees: ADMIN_OR_SECRETARIAT,
+  saveCompetitionFee: ADMIN,
+  deleteCompetitionFee: ADMIN,
 
   // Athletes, each only for themselves; the secretariat checks their membership payments
   getMyAthlete: [Role.Athlete],
@@ -331,9 +334,13 @@ const access: Record<string, Access> = {
   rejectMemberChange: ADMIN_OR_SECRETARIAT,
 }
 
+// Lookups that are not named get…: they change nothing. A lookup taken for a change would make every screen refetch,
+// and an open price preview would then ask again, without end.
+const LOOKUPS = ['quoteRegistration', 'quoteMyEntries', 'findSimilarCompetitors', 'findSimilarAccounts']
+
 // Anything that changes data runs in one transaction and tells the other screens afterwards
 const reading = new Set(
-  Object.keys(handlers).filter((name) => /^get/.test(name)),
+  Object.keys(handlers).filter((name) => /^get/.test(name) || LOOKUPS.includes(name)),
 )
 
 export interface Endpoint {

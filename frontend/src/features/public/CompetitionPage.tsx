@@ -10,7 +10,7 @@ import { cn } from '../../lib/cn.ts'
 import { registerPath } from '../../app/nav.ts'
 import { useAuth } from '../../stores/auth.ts'
 import { HeaderStat, HeaderStats, PublicHeader } from './PublicHeader.tsx'
-import { DISCIPLINE_LABEL, eventCode, eventDances, formatDate, todayIso } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventCode, eventDanceNames, eventDances, formatDate, todayIso } from '../../lib/format.ts'
 
 const COLS = 'lg:grid-cols-[5rem_minmax(0,1.6fr)_minmax(0,1fr)_7rem_1.5rem]'
 
@@ -33,7 +33,7 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
     .filter(
       (e) =>
         (ageGroup === 'all' || e.ageGroup === ageGroup) &&
-        (!needle || `${eventCode(e)} ${eventDances(e)} ${DISCIPLINE_LABEL[e.discipline]} ${e.class}`.toLowerCase().includes(needle)),
+        (!needle || `${eventCode(e)} ${eventDances(e)} ${eventDanceNames(e)} ${DISCIPLINE_LABEL[e.discipline]} ${e.class}`.toLowerCase().includes(needle)),
     )
   const { page, setPage, pageSize, total, pageItems } = usePagination(rows, `${ageGroup}|${needle}`)
 

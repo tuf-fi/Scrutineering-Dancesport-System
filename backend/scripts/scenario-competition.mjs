@@ -40,7 +40,7 @@ const q = (id) => (skill.has(id) ? skill.get(id) : (skill.set(id, rand() * 10), 
 const FIRST = ['Aira', 'Bea', 'Carlo', 'Dino', 'Ella', 'Franco', 'Gwen', 'Hugo', 'Isla', 'Jules', 'Kira', 'Luis', 'Mara', 'Nico', 'Olga', 'Pio', 'Rina', 'Sean', 'Tess', 'Uriel', 'Vera', 'Wes', 'Xia', 'Yani', 'Zoe', 'Ariel', 'Brent', 'Cleo', 'Dana', 'Eli', 'Faye', 'Gio', 'Hazel', 'Ivo', 'Joy', 'Kai', 'Lia', 'Migs', 'Nina', 'Oscar', 'Pia', 'Rico', 'Sol', 'Tito', 'Una', 'Vic', 'Wynn', 'Yna', 'Zed', 'Amiel']
 const LAST = ['Alonzo', 'Bagasbas', 'Cordial', 'Dayao', 'Espiritu', 'Fuentes', 'Gamboa', 'Hernando', 'Ibarra', 'Jimenez', 'Lacson', 'Madrid', 'Nolasco', 'Ong', 'Pelayo', 'Quiambao', 'Rosales', 'Soriano', 'Tabuena', 'Ubaldo', 'Vasquez', 'Yulo', 'Zamora', 'Abad', 'Bautista', 'Cruz', 'Dizon', 'Estrada', 'Fabian', 'Garcia', 'Hizon', 'Jacinto', 'Lagman', 'Navarro', 'Ocampo', 'Panganiban', 'Reyes', 'Salvador', 'Tolentino', 'Umali']
 let seq = 0
-const nextName = () => `${FIRST[seq % FIRST.length]} ${LAST[(seq++ * 7 + 3) % LAST.length]}`
+const nextName = () => `${FIRST[seq % FIRST.length]} ${LAST[(Math.floor(seq / 200) + seq++ * 7 + 3) % LAST.length]}`
 const dancer = (year, gender) => {
   const i = seq
   return { birthDate: `${year}-${String(1 + (i % 12)).padStart(2, '0')}-${String(1 + ((i * 3) % 27)).padStart(2, '0')}`, gender, address: `${10 + (i % 90)} Rizal St, Naga City`, email: `dancer${i}@scenario.example`, phone: `0917 ${String(1000000 + i * 137).slice(0, 3)} ${String(1000 + i * 7).slice(0, 4)}` }
@@ -69,8 +69,8 @@ const adj = (letters) => letters.split('').map((l) => adjudicators.find((a) => a
 
 // ------------------------------------------------------------------------------------------------------ settings
 const settings = await call('getPaymentSettings', [], admin)
-if (!settings.fees || settings.methods.length === 0) {
-  await call('savePaymentSettings', [{ ...settings, fees: settings.fees ?? { solo: 500, couple: 800 }, methods: settings.methods.length ? settings.methods : [{ name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' }, { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' }, { name: 'BDO', accountName: 'BN IT Scrutineer', number: '0012 3456 7890' }] }], admin)
+if (settings.methods.length === 0) {
+  await call('savePaymentSettings', [{ ...settings, methods: [{ name: 'GCash', accountName: 'BN IT Scrutineer', number: '0917 000 0000' }, { name: 'Maya', accountName: 'BN IT Scrutineer', number: '0918 000 0000' }, { name: 'BDO', accountName: 'BN IT Scrutineer', number: '0012 3456 7890' }] }], admin)
 }
 
 // ------------------------------------------------------------------------------------------------------ the competition
@@ -107,8 +107,13 @@ const event = {}
 for (const e of EVENTS) event[e.number] = await call('saveEvent', [comp.id, e], admin)
 log('events', Object.keys(event).length)
 
+// The competition's fees: one for solo events and one for couples
+for (const [name, solo, amount, late] of [['Solo', true, 400, 500], ['Couple', false, 700, 800]]) {
+  await call('saveCompetitionFee', [comp.id, { name, amount, extra: 200, late, eventIds: EVENTS.filter((e) => e.isSolo === solo).map((e) => event[e.number].id) }], admin)
+}
+
 // Panels: how many adjudicators mark each event. Five is usual; seven for the big one; four so that a final can tie.
-const PANEL = { 1: 'ABCDE', 2: 'ABCDE', 3: 'ABCDEFG', 4: 'ABCDEF', 5: 'ABCD', 6: 'FGHIJ', 7: 'ABCDE', 8: 'ABCDE', 9: 'ABCDE', 10: 'ABCDE', 11: 'ABCDE', 12: 'ABCDE', 13: 'ABCDE', 14: 'ABCDE' }
+const PANEL = { 1: 'ABCDE', 2: 'ABCDE', 3: 'ABCDEFG', 4: 'ABCDEF', 5: 'ABCD', 6: 'FGHIJ', 7: 'ABCDE', 8: 'ABCDE', 10: 'ABCDE', 11: 'ABCDE', 12: 'ABCDE', 13: 'ABCDE', 14: 'ABCDE' }
 for (const [n, letters] of Object.entries(PANEL)) await call('setPanel', [event[n].id, adj(letters)], admin)
 await call('generatePins', [comp.id], admin)
 const pins = new Map((await call('getAdjudicatorPins', [comp.id], admin)).map((p) => [p.adjudicatorId, p.pin]))

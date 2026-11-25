@@ -3,7 +3,7 @@ import { CompetitionCard } from '../../components/CompetitionCard.tsx'
 import { EmptyState, Pagination, SkeletonList } from '../../components/ui/index.ts'
 import { useAdjudicatorAssignments, useCatalog } from '../../hooks/index.ts'
 import { usePagination } from '../../hooks/usePagination.ts'
-import { DANCE_LABEL, eventCode, formatDate } from '../../lib/format.ts'
+import { eventCode, formatDate, eventDances } from '../../lib/format.ts'
 
 // The competitions the adjudicator worked, newest first, each with the events on their panel
 function groupByCompetition(lines: AdjudicatorAssignment[]) {
@@ -57,7 +57,7 @@ export function AdjudicatorAssignments({ adjudicatorId }: { adjudicatorId: strin
                 <span className="font-mono text-small font-semibold tabular-nums text-neutral-500">{eventCode({ number: l.eventNumber })}</span>
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-small font-medium text-neutral-900">{eventGrade(l)}</span>
-                  <span className="text-xs text-neutral-500">{l.dances.map((d) => DANCE_LABEL[d]).join(', ')}</span>
+                  <span className="text-xs text-neutral-500">{eventDances(l)}</span>
                 </span>
                 <span className="whitespace-nowrap text-xs text-neutral-500">
                   {l.roundsMarked > 0 && (

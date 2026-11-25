@@ -1,7 +1,7 @@
 import { DEFAULT_AGE_GROUPS, DEFAULT_CLASSES, DEFAULT_EVENT_KINDS } from '@bis/shared'
 import type { Sqlite } from './client.ts'
 
-// What a clean slate keeps: staff accounts, adjudicators, the points table and the settings (fees, payment methods, home page
+// What a clean slate keeps: staff accounts, adjudicators, the points table and the settings (membership fees, payment methods, home page
 // pictures). Everything about competitions and the people in them goes.
 const TABLES_IN_ORDER = [
   'audit_log',
@@ -43,10 +43,10 @@ export function cleanSlate(sqlite: Sqlite, options: { catalog?: boolean } = {}):
       sqlite.prepare('DELETE FROM age_groups').run()
       sqlite.prepare('DELETE FROM event_kinds').run()
       sqlite.prepare('DELETE FROM event_classes').run()
-      const addGroup = sqlite.prepare('INSERT INTO age_groups (id, name, short, born_from, born_to, juvenile_fee, family, retired) VALUES (?, ?, ?, ?, ?, ?, NULL, 0)')
-      for (const g of DEFAULT_AGE_GROUPS) addGroup.run(g.id, g.name, g.short, g.bornFrom, g.bornTo, g.juvenileFee ? 1 : 0)
-      const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, fee_mode, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      DEFAULT_EVENT_KINDS.forEach((k, i) => addKind.run(k.id, k.name, k.feeMode, k.closedToProvince ? 1 : 0, JSON.stringify(k.disciplines), JSON.stringify(k.requires), i))
+      const addGroup = sqlite.prepare('INSERT INTO age_groups (id, name, short, born_from, born_to, family, retired) VALUES (?, ?, ?, ?, ?, NULL, 0)')
+      for (const g of DEFAULT_AGE_GROUPS) addGroup.run(g.id, g.name, g.short, g.bornFrom, g.bornTo)
+      const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?)')
+      DEFAULT_EVENT_KINDS.forEach((k, i) => addKind.run(k.id, k.name, k.closedToProvince ? 1 : 0, JSON.stringify(k.disciplines), JSON.stringify(k.requires), i))
       const addClass = sqlite.prepare('INSERT INTO event_classes (name, sort_order) VALUES (?, ?)')
       DEFAULT_CLASSES.forEach((c, i) => addClass.run(c.name, i))
     }

@@ -8,7 +8,7 @@ import logo from '../../assets/logo.png'
 import { ErrorState } from '../../components/ui/index.ts'
 import { useAnnouncements, useCompetitions, useProgram, useCatalog } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { ROUND_TYPE_LABEL, eventDances, ordinal } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventDanceNames, ordinal } from '../../lib/format.ts'
 import { AccountMenu } from '../../app/layouts/AccountMenu.tsx'
 import { NotificationBell } from '../../app/layouts/NotificationBell.tsx'
 import { useSignOut } from '../../app/useSignOut.ts'
@@ -171,7 +171,7 @@ function Sheet({ item, items, program, onGo }: { item: Announcement; items: Anno
               {eventGrade(item)}
             </span>
             <span className="text-[max(1.4vmin,0.717rem)] font-medium text-brown-100">
-              {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventDances(item)}
+              {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventDanceNames(item)}
             </span>
           </p>
 
@@ -237,7 +237,7 @@ function Heading({ item }: { item: Announcement }) {
           {eventGrade(item)}
         </p>
         <p className={cn('font-medium text-brown-100', centred ? 'text-[1.8vmin]' : 'text-[2.6vmin]')}>
-          {ROUND_TYPE_LABEL[item.roundType]} · {eventDances(item)}
+          {ROUND_TYPE_LABEL[item.roundType]} · {eventDanceNames(item)}
         </p>
       </div>
     </header>

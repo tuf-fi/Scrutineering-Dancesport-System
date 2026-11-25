@@ -3,7 +3,7 @@ import { StatusDot } from '../../components/StatusDot.tsx'
 import { ErrorState } from '../../components/ui/index.ts'
 import { useCatalog, useCompetitionRounds, useLiveSubmissions } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { ROUND_TYPE_LABEL, eventDances } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventDanceNames } from '../../lib/format.ts'
 
 // One round on the floor: how many adjudicators have sent their marks, never the marks themselves
 const LOOK = {
@@ -29,7 +29,7 @@ function Card({ row, size }: { row: RoundRow; size: Size }) {
           {ROUND_TYPE_LABEL[row.type]}
         </p>
         <h2 className={cn('text-balance font-semibold leading-[1.05] tracking-[-0.03em] text-white', look.dances)}>{eventGrade({ ageGroup: row.ageGroup, class: row.class, discipline: row.discipline })}</h2>
-        <p className={cn('font-medium text-brown-100', look.grade)}>{eventDances(row)}</p>
+        <p className={cn('font-medium text-brown-100', look.grade)}>{eventDanceNames(row)}</p>
       </div>
 
       <div className="flex flex-col gap-[1.6vmin]">

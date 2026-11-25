@@ -4,7 +4,7 @@ import { useId, useState } from 'react'
 import { Link } from 'react-router'
 import { usePagination } from '../hooks/usePagination.ts'
 import { cn } from '../lib/cn.ts'
-import { DANCE_LABEL, eventCode, formatDate, placeLabel, placeRange } from '../lib/format.ts'
+import { eventCode, formatDate, placeLabel, placeRange, eventDances } from '../lib/format.ts'
 import { EmptyState, Pagination, Skeleton } from './ui/index.ts'
 import { useCatalog } from '../hooks/index.ts'
 
@@ -83,7 +83,7 @@ function CompetitionGroup({ group, compact }: { group: Group; compact?: boolean 
                     </Link>
                     <span className={cn('text-neutral-500', compact ? 'text-xs' : 'text-small')}>
                       <span className="mr-2 font-mono tabular-nums">{eventCode({ number: l.eventNumber })}</span>
-                      {l.dances.map((d) => DANCE_LABEL[d]).join(', ')}
+                      {eventDances(l)}
                     </span>
                   </span>
                   <span className="flex items-baseline gap-1.5">

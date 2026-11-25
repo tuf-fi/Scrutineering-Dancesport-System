@@ -23,28 +23,19 @@ afterAll(async () => {
 
 describe('fees and payment details', () => {
   const next: PaymentSettings = {
-    fees: { solo: 600, couple: 900 },
+    memberships: { athlete: 600, coach: 1200, summit: 0 },
     methods: [{ name: 'GCash', accountName: 'Bicol Dance Org', number: '0917 123 4567' }],
   }
 
   it('are saved by an admin, shown to the secretariat, and checked', async () => {
-    expect((await cloud.ok<PaymentSettings>('getPaymentSettings', [], admin)).fees).toEqual({ solo: 500, couple: 800 })
-    expect(await cloud.ok<PaymentSettings>('savePaymentSettings', [next], admin)).toMatchObject(next)
+    expect((await cloud.ok<PaymentSettings>('getPaymentSettings', [], admin)).memberships).toEqual({ athlete: 500, coach: 1000, summit: 1000 })
+    expect(await cloud.ok<PaymentSettings>('savePaymentSettings', [next], admin)).toEqual(next)
     expect((await cloud.ok<PaymentSettings>('getPaymentSettings', [], secretariat)).methods).toEqual(next.methods)
 
-    expect((await cloud.call('savePaymentSettings', [{ fees: { solo: -1, couple: 900 }, methods: [] }], admin)).status).toBe(400)
-    expect((await cloud.call('savePaymentSettings', [{ fees: next.fees, methods: [{ name: 'GCash', accountName: '', number: '1' }] }], admin)).status).toBe(400)
+    expect((await cloud.call('savePaymentSettings', [{ memberships: { athlete: -1, coach: 0, summit: 0 }, methods: [] }], admin)).status).toBe(400)
+    expect((await cloud.call('savePaymentSettings', [{ memberships: next.memberships, methods: [{ name: 'GCash', accountName: '', number: '1' }] }], admin)).status).toBe(400)
     expect((await cloud.call('savePaymentSettings', [next], secretariat)).status).toBe(403)
     expect((await cloud.call('getPaymentSettings', [])).status).toBe(401)
-  })
-
-  it('close late entries while no flat fees are set', async () => {
-    cloud.sqlite.prepare("delete from settings where key = 'payment_settings'").run()
-    const events = await cloud.ok<Array<{ id: string }>>('getEvents', [])
-    const dancer = (await cloud.ok<Array<{ id: string }>>('getCompetitorRows', [], secretariat))[0]!
-    const closed = await cloud.call('createLateEntry', [{ competitorId: dancer.id, eventId: events[0]!.id, paidInCash: true }], secretariat)
-    expect(closed.status).toBe(409)
-    expect(closed.error).toMatch(/not set the entry fees/)
   })
 })
 

@@ -22,17 +22,17 @@ export function repairCatalogRefs(sqlite: Sqlite): CatalogRepair {
   )
   const missingKinds = ids('SELECT DISTINCT kind AS id FROM events WHERE kind NOT IN (SELECT id FROM event_kinds)')
 
-  const addGroup = sqlite.prepare('INSERT INTO age_groups (id, name, short, born_from, born_to, juvenile_fee, family, retired) VALUES (?, ?, ?, ?, ?, ?, NULL, 1)')
+  const addGroup = sqlite.prepare('INSERT INTO age_groups (id, name, short, born_from, born_to, family, retired) VALUES (?, ?, ?, ?, ?, NULL, 1)')
   for (const id of missingGroups) {
     const known = DEFAULT_AGE_GROUPS.find((g) => g.id === id)
-    addGroup.run(id, known?.name ?? titled(id), known?.short ?? readable(id).toUpperCase(), known?.bornFrom ?? null, known?.bornTo ?? null, known?.juvenileFee ? 1 : 0)
+    addGroup.run(id, known?.name ?? titled(id), known?.short ?? readable(id).toUpperCase(), known?.bornFrom ?? null, known?.bornTo ?? null)
   }
 
   const next = (sqlite.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM event_kinds').get() as { n: number }).n
-  const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, fee_mode, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)')
+  const addKind = sqlite.prepare('INSERT INTO event_kinds (id, name, closed_to_province, disciplines, requires, sort_order) VALUES (?, ?, ?, ?, ?, ?)')
   missingKinds.forEach((id, i) => {
     const known = DEFAULT_EVENT_KINDS.find((k) => k.id === id)
-    addKind.run(id, known?.name ?? titled(id), known?.feeMode ?? 'standard', known?.closedToProvince ? 1 : 0, JSON.stringify(known?.disciplines ?? ['latin', 'standard']), JSON.stringify(known?.requires ?? []), next + i)
+    addKind.run(id, known?.name ?? titled(id), known?.closedToProvince ? 1 : 0, JSON.stringify(known?.disciplines ?? ['latin', 'standard']), JSON.stringify(known?.requires ?? []), next + i)
   })
 
   return { ageGroups: missingGroups, kinds: missingKinds }

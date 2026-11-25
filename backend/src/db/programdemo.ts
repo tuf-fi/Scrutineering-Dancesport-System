@@ -1,5 +1,6 @@
 import { ProgramKind, ageGroupForBirthYears, type Dance, type RoundType } from '@bis/shared'
 import type { Db } from './client.ts'
+import { priceSampleEvents } from './sample-fees.ts'
 import { sampleCompetitionImage } from './seed.ts'
 import * as t from './schema.ts'
 
@@ -128,5 +129,6 @@ export function addProgramDemo(db: Db): { competitionId: string } {
   push({ kind: ProgramKind.Awarding, eventId: null, roundType: null, label: 'Awarding', minutes: 20 })
   db.insert(t.programSlots).values(slots).onConflictDoNothing().run()
 
+  priceSampleEvents(db, (e) => e.competitionId === competitionId)
   return { competitionId }
 }

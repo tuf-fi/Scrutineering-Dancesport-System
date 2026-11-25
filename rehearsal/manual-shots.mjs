@@ -348,8 +348,8 @@ const JOBS = {
     })
     await closeDialogs(page)
     await visit(page, R, 'fees', '/admin/fees')
-    await tryShot(page, R, 'fees-late', async () => {
-      await page.getByText('Late entry fees').first().click()
+    await tryShot(page, R, 'fees-memberships', async () => {
+      await page.getByText('Memberships', { exact: true }).first().click()
       await settle(page)
     })
     await tryShot(page, R, 'fees-accounts', async () => {

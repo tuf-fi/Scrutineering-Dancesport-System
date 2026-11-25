@@ -1,4 +1,5 @@
-import { DEFAULT_FEE_SCHEDULE, type Coach, type CompetitorDetails, type CompetitorRow, type ImportResult, type PaymentSettings, type RegistrationQuote, type RegistrationResult } from '@bis/shared'
+import { priceSampleEvents } from './db/sample-fees.ts'
+import { type Coach, type CompetitorDetails, type CompetitorRow, type ImportResult, type RegistrationQuote, type RegistrationResult } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
 import * as t from './db/schema.ts'
@@ -42,7 +43,10 @@ beforeAll(async () => {
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   app.db.insert(t.teams).values({ id: 'team-1', name: 'Naga Dancers', contactName: 'Coach', contactEmail: 'c@test.example', contactPhone: '1' }).run()
   competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: '4th Quarter', date: '2026-12-06', venue: 'Robinsons Naga', organizer: 'BGDT', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
-  const make = async (key: string, input: object) => (events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id)
+  const make = async (key: string, input: object) => {
+    events[key] = (await app.ok<{ id: string }>('saveEvent', [competitionId, input], secretariat)).id
+    priceSampleEvents(app.db)
+  }
   await make('juv1', event(1))
   await make('juv2', event(2, { dances: ['rumba'] }))
   await make('junior', event(3, { ageGroup: 'junior_1', dances: ['jive'] }))
@@ -81,21 +85,7 @@ describe('coach fees and memberships paid later', () => {
   })
 })
 
-describe('the fee schedule, and deadlines', () => {
-  it('shows the default schedule, then prices from a saved one', async () => {
-    const shown = await app.ok<PaymentSettings>('getPaymentSettings', [], admin)
-    expect(shown.schedule).toEqual(DEFAULT_FEE_SCHEDULE)
-    const edited = { ...DEFAULT_FEE_SCHEDULE, soloJuvenile: { first: 450, additional: 150 } }
-    const saved = await app.ok<PaymentSettings>('savePaymentSettings', [{ fees: { solo: 500, couple: 800 }, methods: [], schedule: edited }], admin)
-    expect(saved.schedule?.soloJuvenile).toEqual({ first: 450, additional: 150 })
-    const bad = { ...DEFAULT_FEE_SCHEDULE, fixed: -5 }
-    expect((await app.call('savePaymentSettings', [{ fees: { solo: 500, couple: 800 }, methods: [], schedule: bad }], admin)).error).toMatch(/whole pesos/)
-
-    const dancer = (await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Pat Ong'], teamId: 'team-1', details: details({ memberYear: 2026 }) }], secretariat)).id
-    expect((await app.ok<RegistrationQuote>('quoteRegistration', [dancer, [events.juv1, events.juv2]], secretariat)).total).toBe(600)
-    await app.ok('savePaymentSettings', [{ fees: { solo: 500, couple: 800 }, methods: [], schedule: DEFAULT_FEE_SCHEDULE }], admin)
-  })
-
+describe('fees and deadlines', () => {
   it('warns when entries have closed and when fees are overdue', async () => {
     const some = (await rows())[0]!
     const before = await app.ok<RegistrationQuote>('quoteRegistration', [some.id, [events.junior]], secretariat)
@@ -133,6 +123,7 @@ describe('closed events', () => {
     expect((await app.call('saveEvent', [competitionId, closed], secretariat)).error).toMatch(/province/)
     const id = (await app.ok<{ id: string; province?: string }>('saveEvent', [competitionId, { ...closed, province: ' Camarines Sur ' }], secretariat))
     expect(id.province).toBe('Camarines Sur')
+    priceSampleEvents(app.db)
 
     const local = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Eli Ong'], teamId: 'team-1', details: details({ province: 'camarines sur' }) }], secretariat)
     const visitor = await app.ok<CompetitorRow>('createCompetitor', [{ names: ['Fay Uy'], teamId: 'team-1', details: details({ province: 'Albay' }) }], secretariat)

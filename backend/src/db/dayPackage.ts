@@ -63,6 +63,7 @@ const ADDED: Array<{ table: string; where: string | null }> = [
   { table: 'coaches', where: null },
   { table: 'adjudicators', where: null },
   { table: 'competitors', where: null },
+  { table: 'competition_fees', where: 'competition_id = ?' },
   { table: 'events', where: 'competition_id = ?' },
   { table: 'audit_log', where: null },
 ]

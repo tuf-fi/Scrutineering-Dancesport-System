@@ -7,7 +7,7 @@ import type { Paging } from './Pager.tsx'
 import type { ShowRound } from './rounds.ts'
 import { cn } from '../../lib/cn.ts'
 import { useCatalog } from '../../hooks/index.ts'
-import { ROUND_TYPE_LABEL, eventDances, formatClock, programAction } from '../../lib/format.ts'
+import { ROUND_TYPE_LABEL, eventDanceNames, formatClock, programAction } from '../../lib/format.ts'
 
 // What a line is, in the wall's two sizes: a round names its event, a break or the awarding names itself
 function Name({ row }: { row: ProgramRow }) {
@@ -24,7 +24,7 @@ function Name({ row }: { row: ProgramRow }) {
 // The round, the grade and what the announcer says aloud: how many are called back, or how many are placed
 const detail = (row: ProgramRow) =>
   row.kind === ProgramKind.Round && row.roundType
-    ? [ROUND_TYPE_LABEL[row.roundType], eventDances(row), programAction(row)].join(' · ')
+    ? [ROUND_TYPE_LABEL[row.roundType], eventDanceNames(row), programAction(row)].join(' · ')
     : ''
 
 function Block({ title, status, rows, empty, large }: { title: string; status: ProgramStatus; rows: ProgramRow[]; empty: string; large: boolean }) {
@@ -70,7 +70,7 @@ function Loading() {
 }
 
 function Line({ row, round, open, onToggle }: { row: ProgramRow; round?: ShowRound; open?: boolean; onToggle?: () => void }) {
-  const meta = [row.roundType ? ROUND_TYPE_LABEL[row.roundType] : '', row.kind === ProgramKind.Round ? eventDances(row) : '', programAction(row)].filter(Boolean).join(' · ')
+  const meta = [row.roundType ? ROUND_TYPE_LABEL[row.roundType] : '', row.kind === ProgramKind.Round ? eventDanceNames(row) : '', programAction(row)].filter(Boolean).join(' · ')
   const tone = cn(
     'grid w-full items-center gap-x-[max(2.2vmin,0.75rem)] rounded-[1vmin] px-[max(2vmin,0.75rem)] py-[max(1.2vmin,0.6rem)] text-left',
     round ? 'grid-cols-[max(1.4vmin,0.5rem)_max(10vmin,4.75rem)_minmax(0,1fr)_auto]' : 'grid-cols-[max(1.4vmin,0.5rem)_max(10vmin,4.75rem)_minmax(0,1fr)]',

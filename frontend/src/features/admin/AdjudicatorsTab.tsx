@@ -167,7 +167,7 @@ export function AdjudicatorsTab({ competitionId, competitions, onCompetitionChan
           },
           {
             key: 'name',
-            header: 'Adjudicator',
+            header: 'Adjud',
             cell: (a) => (
               <div className="flex items-center gap-3">
                 <Avatars names={[a.name]} photo={a.photo} />

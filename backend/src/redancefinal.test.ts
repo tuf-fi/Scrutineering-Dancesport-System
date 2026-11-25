@@ -1,3 +1,5 @@
+import { DEFAULT_MEMBERSHIP_FEES } from '@bis/shared'
+import { priceSampleEvents } from './db/sample-fees.ts'
 import type { AdjudicatorState, MarkSubmission, Redance, RoundRow } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
@@ -25,12 +27,13 @@ beforeAll(async () => {
   for (const [id, role] of [['staff-admin', 'admin'], ['staff-sec', 'secretariat'], ['staff-scr', 'scrutineer']] as const) {
     app.db.insert(t.staffUsers).values({ id, name: `${role} one`, username: `${role}@sample.example`, role, passwordHash: hashPassword('pw-' + role), disabled: false }).run()
   }
-  writePaymentSettings(app.sqlite, { fees: { solo: 500, couple: 800 }, methods: [] })
+  writePaymentSettings(app.sqlite, { memberships: DEFAULT_MEMBERSHIP_FEES, methods: [] })
   const admin = await app.signIn.staff('admin', 'pw-admin')
   const secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   scrutineer = await app.signIn.staff('scrutineer', 'pw-scrutineer')
   const competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Final Redance Open', date: today, venue: 'Gym', organizer: 'Org', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
   eventId = (await app.ok<{ id: string }>('saveEvent', [competitionId, { number: 1, ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin', dances: ['samba', 'rumba'], isSolo: true }], admin)).id
+  priceSampleEvents(app.db)
   for (const letter of 'ABC') {
     adjudicatorIds.push((await app.ok<{ id: string }>('createAdjudicator', [{ name: `Adjudicator ${letter}`, letter, photo: TEST_PHOTO }], admin)).id)
   }

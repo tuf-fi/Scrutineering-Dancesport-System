@@ -1,3 +1,5 @@
+import { DEFAULT_MEMBERSHIP_FEES } from '@bis/shared'
+import { priceSampleEvents } from './db/sample-fees.ts'
 import { RoundType, type AdvancementRule, type HeatAssignment, type MarkSubmission, type RoundRow, type ScheduleItem } from '@bis/shared'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { hashPassword } from './auth/password.ts'
@@ -34,7 +36,7 @@ beforeAll(async () => {
   for (const [id, role] of [['staff-admin', 'admin'], ['staff-sec', 'secretariat'], ['staff-scr', 'scrutineer'], ['staff-chair', 'chairperson']] as const) {
     app.db.insert(t.staffUsers).values({ id, name: `${role} one`, username: `${role}@sample.example`, role, passwordHash: hashPassword('pw-' + role), disabled: false }).run()
   }
-  writePaymentSettings(app.sqlite, { fees: { solo: 500, couple: 800 }, methods: [] })
+  writePaymentSettings(app.sqlite, { memberships: DEFAULT_MEMBERSHIP_FEES, methods: [] })
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   scrutineer = await app.signIn.staff('scrutineer', 'pw-scrutineer')
@@ -49,6 +51,7 @@ describe('1. admin sets up', () => {
     for (const size of [7, 15, 26]) {
       number++
       const id = (await app.ok<{ id: string }>('saveEvent', [competitionId, { number, ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin', dances: ['samba'], isSolo: true }], admin)).id
+      priceSampleEvents(app.db)
       eventOf.set(size, id)
       await app.ok('setPanel', [id, adjudicators], admin)
     }

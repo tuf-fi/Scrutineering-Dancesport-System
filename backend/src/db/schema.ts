@@ -1,5 +1,5 @@
 import { Dance, Discipline, PayMethod, PaymentStatus, ProgramKind, Role, RoundStatus, RoundType } from '@bis/shared'
-import type { AthleteNotification, CompetitorDetails, FeeMode, KindField, MembershipEvent, MemberChangeRequest, MembershipRequest, ProfileChangeRequest } from '@bis/shared'
+import type { AthleteNotification, CompetitorDetails, KindField, MembershipEvent, MemberChangeRequest, MembershipRequest, ProfileChangeRequest } from '@bis/shared'
 import { index, integer, primaryKey, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 // Drizzle wants a non-empty tuple of the allowed strings
@@ -41,6 +41,24 @@ export const teams = sqliteTable('teams', {
   contactPhone: text('contact_phone').notNull().default(''),
 })
 
+// The prices a competition charges for its events
+export const competitionFees = sqliteTable(
+  'competition_fees',
+  {
+    id: id(),
+    competitionId: text('competition_id')
+      .notNull()
+      .references(() => competitions.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    amount: integer('amount').notNull(),
+    // See FeeItem: null means the price is not charged differently
+    extra: integer('extra'),
+    late: integer('late'),
+    sortOrder: integer('sort_order').notNull(),
+  },
+  (t) => [index('competition_fees_competition').on(t.competitionId)],
+)
+
 export const events = sqliteTable(
   'events',
   {
@@ -64,6 +82,7 @@ export const events = sqliteTable(
     syllabus: text('syllabus').notNull().default(''),
     // Whether its results count towards the rankings
     usesPoints: integer('uses_points', { mode: 'boolean' }).notNull().default(true),
+    feeId: text('fee_id').references(() => competitionFees.id, { onDelete: 'set null' }),
   },
   (t) => [uniqueIndex('events_number_per_competition').on(t.competitionId, t.number)],
 )
@@ -94,6 +113,14 @@ export interface PaymentSettles {
   coachId?: string
   coachMembership?: boolean
   coachSummit?: boolean
+  // The years on record before it was paid, so taking the payment back restores them
+  was?: { competitor?: number | null; coachMember?: number | null; coachSummit?: number | null }
+}
+
+// The price an entry request showed when it was sent; approving it charges exactly this
+export interface RequestCharge {
+  fees: Record<string, number>
+  settles: PaymentSettles | null
 }
 
 export const coaches = sqliteTable('coaches', {
@@ -149,6 +176,8 @@ export const entries = sqliteTable(
     paymentId: text('payment_id').references(() => payments.id),
     // Added at the venue after entries closed
     late: integer('late', { mode: 'boolean' }).notNull().default(false),
+    // What this entry was charged; null when it was free
+    fee: integer('fee'),
   },
   (t) => [
     uniqueIndex('entries_once_per_event').on(t.eventId, t.competitorId),
@@ -430,7 +459,8 @@ export const results = sqliteTable(
 export const eventKinds = sqliteTable('event_kinds', {
   id: id(),
   name: text('name').notNull(),
-  feeMode: text('fee_mode').$type<FeeMode>().notNull().default('standard'),
+  // No longer used, like the next column; both stay so old data is never dropped
+  feeMode: text('fee_mode').notNull().default('standard'),
   // No longer used; the column stays so the database needs no migration
   beginnersOnly: integer('beginners_only', { mode: 'boolean' }).notNull().default(false),
   closedToProvince: integer('closed_to_province', { mode: 'boolean' }).notNull().default(false),
@@ -452,6 +482,7 @@ export const ageGroups = sqliteTable('age_groups', {
   // The years of birth the group covers, both included; null reaches back to the oldest or up to the youngest
   bornFrom: integer('born_from'),
   bornTo: integer('born_to'),
+  // No longer used
   juvenileFee: integer('juvenile_fee', { mode: 'boolean' }).notNull().default(false),
   // Changing a group that events have already run in makes a new version and retires this one, so those events keep
   // what it meant on the day. Versions share a family (null is the group's own id); rankings add a family together.
@@ -617,6 +648,7 @@ export const entryRequests = sqliteTable(
       .references(() => competitions.id, { onDelete: 'cascade' }),
     eventIds: text('event_ids', { mode: 'json' }).$type<string[]>().notNull(),
     total: real('total').notNull(),
+    charge: text('charge', { mode: 'json' }).$type<RequestCharge>(),
     warnings: text('warnings', { mode: 'json' }).$type<string[]>().notNull().default([]),
     method: text('method').$type<PayMethod>().notNull(),
     reference: text('reference').notNull().default(''),

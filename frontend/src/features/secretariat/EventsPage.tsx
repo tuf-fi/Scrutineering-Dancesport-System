@@ -19,7 +19,7 @@ import { DeleteDialog } from '../../components/DeleteDialog.tsx'
 import { useCompetitionEntries, useCompetitions, useDeleteEvent, useEvents, useCatalog } from '../../hooks/index.ts'
 import { useCompetitionChoice } from '../../hooks/useCompetitionChoice.ts'
 import { EventDialog } from './EventDialog.tsx'
-import { DISCIPLINE_LABEL, eventCode, eventDances } from '../../lib/format.ts'
+import { DISCIPLINE_LABEL, eventCode, eventDanceNames, eventDances } from '../../lib/format.ts'
 
 export function EventsPage() {
   const { ageGroups, ageGroupLabel } = useCatalog()
@@ -53,7 +53,7 @@ export function EventsPage() {
     .filter(
       (e) =>
         (ageGroup === 'all' || e.ageGroup === ageGroup) &&
-        (!needle || `${eventCode(e)} ${eventDances(e)} ${DISCIPLINE_LABEL[e.discipline]} ${e.class}`.toLowerCase().includes(needle)),
+        (!needle || `${eventCode(e)} ${eventDances(e)} ${eventDanceNames(e)} ${DISCIPLINE_LABEL[e.discipline]} ${e.class}`.toLowerCase().includes(needle)),
     )
 
   return (

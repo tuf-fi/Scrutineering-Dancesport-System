@@ -167,7 +167,7 @@ export function ProgramPage() {
                   </span>
                   <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
                     {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}
-                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">Adjudicators: {setName(r.adjudicators)}</span>}
+                    {r.adjudicators.length > 0 && <span className="block font-mono text-xs">Adjud: {setName(r.adjudicators)}</span>}
                   </p>
                   <span className="col-start-2 row-start-2 self-start lg:col-start-auto lg:row-start-auto lg:justify-self-end">
                     <ProgramStatusBadge status={r.status} />

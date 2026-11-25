@@ -1,20 +1,21 @@
 import type { PaymentMethod, PaymentSettings } from '@bis/shared'
-import { Clock, Landmark, Pencil, Receipt, Trash2, type LucideIcon } from 'lucide-react'
+import { IdCard, Landmark, Pencil, Receipt, Trash2, type LucideIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { Button, Dialog, EmptyState, ErrorState, IconButton, Input, PageHeader, Skeleton, toast } from '../../components/ui/index.ts'
+import { Button, Dialog, EmptyState, ErrorState, IconButton, PageHeader, Skeleton, toast } from '../../components/ui/index.ts'
 import { SectionSidebar } from '../../app/layouts/SectionSidebar.tsx'
 import { useSection } from '../../app/layouts/useSection.ts'
 import { usePaymentSettings, useSavePaymentSettings } from '../../hooks/index.ts'
 import { PaymentMethodDialog } from './PaymentMethodDialog.tsx'
-import { RegistrationFees } from './RegistrationFees.tsx'
+import { EventFees } from './EventFees.tsx'
+import { MembershipFeesForm } from './MembershipFeesForm.tsx'
 import { SectionHead } from './SectionHead.tsx'
 
 const MAX_METHODS = 8
 
 // The parts of this page, each in its own place in the side menu. "accounts" is where teams and athletes send payment.
 const SECTIONS = [
-  { id: 'registration', label: 'Registration fees', icon: Receipt },
-  { id: 'late', label: 'Late entry fees', icon: Clock },
+  { id: 'events', label: 'Event fees', icon: Receipt },
+  { id: 'memberships', label: 'Memberships', icon: IdCard },
   { id: 'accounts', label: 'Accounts', icon: Landmark },
 ] as const satisfies ReadonlyArray<{ id: string; label: string; icon: LucideIcon }>
 type SectionId = (typeof SECTIONS)[number]['id']
@@ -27,44 +28,21 @@ function Pane({ id, current, children }: { id: SectionId; current: SectionId; ch
     </div>
   )
 }
-const isPesos = (v: string) => /^\d{1,6}$/.test(v.trim())
 
 function FeesEditor({ saved }: { saved: PaymentSettings }) {
-  const [solo, setSolo] = useState(String(saved.fees?.solo ?? ''))
-  const [couple, setCouple] = useState(String(saved.fees?.couple ?? ''))
   const methods = saved.methods
-  const [failure, setFailure] = useState<string | null>(null)
   // The way to pay being edited by index, or 'new' while adding one
   const [editing, setEditing] = useState<number | 'new' | null>(null)
   const [toRemove, setToRemove] = useState<number | null>(null)
   const save = useSavePaymentSettings()
   const current = useSection(SECTIONS) as SectionId
 
-  const valid = isPesos(solo) && isPesos(couple)
-
   const clean = (all: PaymentMethod[]) => all.map((m) => (m.note?.trim() ? m : { name: m.name, accountName: m.accountName, number: m.number }))
-
-  // Entry fees are saved with the button
-  function onSave() {
-    setFailure(null)
-    save.mutate(
-      {
-        fees: { solo: Number(solo), couple: Number(couple) },
-        methods: clean(methods),
-        schedule: saved.schedule,
-      },
-      {
-        onSuccess: () => toast.success('Fees saved'),
-        onError: (e) => setFailure(e.message),
-      },
-    )
-  }
 
   // Ways to pay are saved as soon as one is added, edited or removed
   function persistMethods(next: PaymentMethod[], done: string) {
-    if (!saved.fees) return toast.error('Save the entry fees first.')
     save.mutate(
-      { fees: saved.fees, methods: clean(next), schedule: saved.schedule },
+      { memberships: saved.memberships, methods: clean(next) },
       {
         onSuccess: () => toast.success(done),
         onError: (e) => toast.error(e.message),
@@ -83,48 +61,12 @@ function FeesEditor({ saved }: { saved: PaymentSettings }) {
       <SectionSidebar title="Fees" label="Fee sections" sections={SECTIONS} current={current} />
 
       <div className="min-w-0">
-        <Pane id="registration" current={current}>
-          <RegistrationFees saved={saved} />
+        <Pane id="events" current={current}>
+          <EventFees />
         </Pane>
 
-        <Pane id="late" current={current}>
-          <section className="flex flex-col gap-6">
-            <SectionHead title="Late entry fees" note="Charged for each event a late entry is added to at the venue." />
-            <ul className="border-y border-neutral-200">
-              <li className="grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-x-3 py-2.5">
-                <span className="text-small text-neutral-900">Solo, per event</span>
-                <Input
-                  label="Solo, per event (₱)" required
-                  hideLabel
-                  inputMode="numeric"
-                  className="h-9! bg-white px-2.5 text-right font-mono tabular-nums"
-                  value={solo}
-                  onChange={(e) => setSolo(e.target.value)}
-                  error={solo && !isPesos(solo) ? 'Whole pesos' : undefined}
-                />
-              </li>
-              <li className="grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-x-3 border-t border-neutral-200 py-2.5">
-                <span className="text-small text-neutral-900">Couple, per event</span>
-                <Input
-                  label="Couple, per event (₱)" required
-                  hideLabel
-                  inputMode="numeric"
-                  className="h-9! bg-white px-2.5 text-right font-mono tabular-nums"
-                  value={couple}
-                  onChange={(e) => setCouple(e.target.value)}
-                  error={couple && !isPesos(couple) ? 'Whole pesos' : undefined}
-                />
-              </li>
-            </ul>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p role={failure ? 'alert' : undefined} className={failure ? 'text-small text-danger' : 'text-small text-neutral-500'}>
-                {failure ?? (!saved.fees ? 'Until the fees are saved, teams cannot enter events.' : '')}
-              </p>
-              <Button disabled={!valid || save.isPending} onClick={onSave}>
-                {save.isPending ? 'Saving…' : 'Save'}
-              </Button>
-            </div>
-          </section>
+        <Pane id="memberships" current={current}>
+          <MembershipFeesForm saved={saved} />
         </Pane>
 
         <Pane id="accounts" current={current}>
@@ -207,11 +149,11 @@ export function FeesPage() {
   const settings = usePaymentSettings()
   return (
     <div className="flex flex-col gap-8 lg:ml-[13rem]">
-      <PageHeader title="Fees and payment details" description="What teams pay and where they send it." />
+      <PageHeader title="Fees and payment details" description="What entries cost, and where teams send payment." />
       {settings.isError ? (
         <ErrorState onRetry={() => void settings.refetch()} />
       ) : settings.data ? (
-        <FeesEditor key={JSON.stringify([settings.data.fees, settings.data.schedule])} saved={settings.data} />
+        <FeesEditor key={JSON.stringify(settings.data.memberships)} saved={settings.data} />
       ) : (
         <div className="flex flex-col gap-3">
           <Skeleton className="h-11 w-80" />

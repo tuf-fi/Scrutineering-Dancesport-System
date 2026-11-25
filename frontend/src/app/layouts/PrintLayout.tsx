@@ -29,7 +29,7 @@ export function PrintLayout() {
   // A certificate's sheet is as wide as its paper, in the size and direction the layout says
   const certificates = useMatch('/print/certificates/:eventId') !== null
   const layout = useCertificateLayout(certificates)
-  const paperWidth = certificates && layout.data ? certificatePage(layout.data).width : 210
+  const paper = certificates && layout.data ? certificatePage(layout.data) : { width: 210, height: 297 }
   // These printouts are made of whole pages, each drawn as a sheet of its own. The rest flow over as many A4 pages as they need,
   // so a dashed line shows about where the printer starts a new page.
   const blankSheets = useMatch('/print/blank-sheets/:eventId') !== null
@@ -46,7 +46,7 @@ export function PrintLayout() {
     const name = parts.includes('program') ? 'program' : (parts[0] === 'print' ? parts[1] : parts[0]) || 'printout'
     setSaving(true)
     try {
-      await downloadPdf(sheet.current, name, paperWidth)
+      await downloadPdf(sheet.current, name, paper)
     } catch {
       toast.error('The PDF could not be made. Try Print and choose Save as PDF instead.')
     } finally {
@@ -70,7 +70,7 @@ export function PrintLayout() {
           </Button>
         </div>
       </div>
-      <div ref={sheet} style={{ maxWidth: `${paperWidth}mm` }} className={`relative mx-auto my-6 ${paged ? '' : 'bg-white p-6 shadow-sm sm:p-[12mm]'} print:my-0 print:max-w-none print:p-0 print:shadow-none`}>
+      <div ref={sheet} style={{ maxWidth: `${paper.width}mm` }} className={`relative mx-auto my-6 ${paged ? '' : 'bg-white p-6 shadow-sm sm:p-[12mm]'} print:my-0 print:max-w-none print:p-0 print:shadow-none`}>
         <Outlet />
         {!paged && <PageGuides />}
       </div>

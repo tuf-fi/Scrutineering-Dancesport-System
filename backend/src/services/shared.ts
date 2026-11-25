@@ -9,6 +9,10 @@ import {
   type AgeGroupDef,
   type Catalog,
   byAge,
+  PaymentStatus,
+  feeOf,
+  hasExtraPrice,
+  type FeeItem,
   type EventKindDef,
   type Team,
   type Competition,
@@ -33,7 +37,6 @@ import { crc32 } from 'node:zlib'
 import { and, asc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { fail, found, type Ctx } from '../core/context.ts'
 import * as t from '../db/schema.ts'
-import { readPaymentSettings } from '../paymentSettings.ts'
 
 // Pictures are kept as data URLs but sent as an address of their own, so a list of competitions or the home page does not
 // carry every photo. The version changes with the picture, so a browser keeps it until it changes.
@@ -70,6 +73,7 @@ export const toEvent = (r: typeof t.events.$inferSelect): Event => ({
   ...(r.province ? { province: r.province } : {}),
   ...(r.syllabus ? { syllabus: r.syllabus } : {}),
   usesPoints: r.usesPoints,
+  feeId: r.feeId,
 })
 
 // The password hash never leaves the server
@@ -162,10 +166,25 @@ export const toPin = (r: typeof t.adjudicatorPins.$inferSelect): AdjudicatorPin 
   pin: r.pin,
 })
 
-// The organizer's fee for an event; 0 until they have set fees (registration and late entries refuse to start then)
-export function feeFor(ctx: Ctx, event: { isSolo: boolean }): number {
-  const fees = readPaymentSettings(ctx.sqlite).fees
-  return fees ? (event.isSolo ? fees.solo : fees.couple) : 0
+export const feesOf = (ctx: Ctx, competitionId: string): FeeItem[] =>
+  ctx.db
+    .select()
+    .from(t.competitionFees)
+    .where(eq(t.competitionFees.competitionId, competitionId))
+    .orderBy(asc(t.competitionFees.sortOrder))
+    .all()
+    .map(({ sortOrder: _, ...fee }) => fee)
+
+// How many of a dancer's or couple's entries in a competition were at a price that has an extra rate, so the next one
+// is charged at that rate. except leaves out the entry being repriced.
+export function priorEntries(ctx: Ctx, competitorId: string, competitionId: string, fees: FeeItem[], except?: string): number {
+  return ctx.db
+    .select({ id: t.entries.id, feeId: t.events.feeId })
+    .from(t.entries)
+    .innerJoin(t.events, eq(t.events.id, t.entries.eventId))
+    .where(and(eq(t.entries.competitorId, competitorId), eq(t.entries.scratched, false), eq(t.events.competitionId, competitionId)))
+    .all()
+    .filter((e) => e.id !== except && hasExtraPrice(fees, e)).length
 }
 
 // Entries of an event whose payment is not settled; only paid entries may dance. A competition that does not ask for
@@ -181,10 +200,6 @@ export function unpaidEntries(ctx: Ctx, eventId: string): number {
     )
     .get(eventId) as { n: number }
   return row.n
-}
-
-export function assertFeesSet(ctx: Ctx) {
-  if (!readPaymentSettings(ctx.sqlite).fees) fail('The organizer has not set the entry fees yet, so entries are closed.', 409)
 }
 
 export const clean = (value: unknown): string => (typeof value === 'string' ? value.trim() : '')
@@ -443,10 +458,30 @@ export function advancementOf(ctx: Ctx, competitionId: string): AdvancementRule[
 // Which rounds an event of this size needs, and how many each recalls
 export const planFor = (ctx: Ctx, competitionId: string, entryCount: number) => planForEntries(advancementOf(ctx, competitionId), entryCount)
 
+// What each entry of a payment was charged. Rows with no amount kept (sample data) are worked out from the fees now.
+function pricedLines<L extends { eventId: string; eventNumber: number; names: string[]; charged: number | null }>(ctx: Ctx, payment: typeof t.payments.$inferSelect, lines: L[]): Array<L & { fee: number }> {
+  if (payment.late) return lines.map((l) => ({ ...l, fee: payment.amountDue }))
+  const fees = payment.competitionId ? feesOf(ctx, payment.competitionId) : []
+  const feeIds = new Map(
+    ctx.db.select({ id: t.events.id, feeId: t.events.feeId }).from(t.events).where(inArray(t.events.id, lines.map((l) => l.eventId))).all().map((e) => [e.id, e.feeId]),
+  )
+  const seen = new Set<string>()
+  const priced = new Map<L, number>()
+  for (const line of [...lines].sort((a, b) => a.eventNumber - b.eventNumber)) {
+    const fee = feeOf(fees, { feeId: feeIds.get(line.eventId) })
+    const who = line.names.join('|')
+    const extra = fee?.extra ?? null
+    priced.set(line, !fee ? 0 : extra !== null && seen.has(who) ? extra : fee.amount)
+    if (extra !== null) seen.add(who)
+  }
+  return lines.map((l) => ({ ...l, fee: l.charged ?? priced.get(l)! }))
+}
+
 export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): PaymentDetail {
   const lines = ctx.db
     .select({
       entryId: t.entries.id,
+      charged: t.entries.fee,
       eventId: t.events.id,
       eventNumber: t.events.number,
       dances: t.events.dances,
@@ -475,13 +510,13 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
   return {
     ...payment,
     teamName: team?.name ?? 'Unknown team',
-    lines: lines.map((l) => ({
+    lines: pricedLines(ctx, row, lines).map((l) => ({
       entryId: l.entryId,
       eventId: l.eventId,
       eventNumber: l.eventNumber,
       dances: l.dances,
       competitorNames: l.names,
-      fee: feeFor(ctx, l),
+      fee: l.fee,
     })),
   }
 }
@@ -489,7 +524,6 @@ export function paymentDetail(ctx: Ctx, row: typeof t.payments.$inferSelect): Pa
 const toKind = (r: typeof t.eventKinds.$inferSelect): EventKindDef => ({
   id: r.id,
   name: r.name,
-  feeMode: r.feeMode,
   closedToProvince: r.closedToProvince,
   disciplines: r.disciplines,
   requires: r.requires,
@@ -501,7 +535,6 @@ const toAgeGroup = (r: typeof t.ageGroups.$inferSelect): AgeGroupDef => ({
   short: r.short,
   bornFrom: r.bornFrom,
   bornTo: r.bornTo,
-  juvenileFee: r.juvenileFee,
   ...(r.retired ? { retired: true } : {}),
   family: r.family ?? r.id,
 })
@@ -557,20 +590,56 @@ export function giveCoachMembershipId(ctx: Ctx, coachId: string): string | null 
 export function applySettles(ctx: Ctx, paymentId: string) {
   const settles = getPaymentRow(ctx, paymentId).settles
   if (!settles) return
+  const was: NonNullable<t.PaymentSettles['was']> = {}
   if (settles.competitorId) {
     const competitor = ctx.db.select().from(t.competitors).where(eq(t.competitors.id, settles.competitorId)).get()
     if (competitor) {
       const details: CompetitorDetails = competitor.details ?? { province: '', coachId: null, dancers: [], memberYear: null }
+      was.competitor = details.memberYear
       ctx.db.update(t.competitors).set({ details: { ...details, memberYear: settles.year } }).where(eq(t.competitors.id, competitor.id)).run()
     }
   }
   if (settles.coachId) {
+    const coach = ctx.db.select().from(t.coaches).where(eq(t.coaches.id, settles.coachId)).get()
     const set: { memberYear?: number; summitYear?: number } = {}
-    if (settles.coachMembership) set.memberYear = settles.year
-    if (settles.coachSummit) set.summitYear = settles.year
+    if (settles.coachMembership) {
+      was.coachMember = coach?.memberYear ?? null
+      set.memberYear = settles.year
+    }
+    if (settles.coachSummit) {
+      was.coachSummit = coach?.summitYear ?? null
+      set.summitYear = settles.year
+    }
     if (Object.keys(set).length > 0) ctx.db.update(t.coaches).set(set).where(eq(t.coaches.id, settles.coachId)).run()
     if (set.memberYear !== undefined) giveCoachMembershipId(ctx, settles.coachId)
   }
+  ctx.db.update(t.payments).set({ settles: { ...settles, was } }).where(eq(t.payments.id, paymentId)).run()
+}
+
+// Takes back what paying this payment recorded. A year another paid payment also settles stays, and so does one that
+// has been changed since. A membership ID, once given, is kept.
+export function revertSettles(ctx: Ctx, paymentId: string) {
+  const settles = getPaymentRow(ctx, paymentId).settles
+  if (!settles) return
+  const others = ctx.db
+    .select()
+    .from(t.payments)
+    .where(inArray(t.payments.status, [PaymentStatus.Approved, PaymentStatus.PaidAtVenue]))
+    .all()
+    .flatMap((p) => (p.id !== paymentId && p.settles?.year === settles.year ? [p.settles] : []))
+  if (settles.competitorId && !others.some((o) => o.competitorId === settles.competitorId)) {
+    const competitor = ctx.db.select().from(t.competitors).where(eq(t.competitors.id, settles.competitorId)).get()
+    if (competitor?.details?.memberYear === settles.year) {
+      ctx.db.update(t.competitors).set({ details: { ...competitor.details, memberYear: settles.was?.competitor ?? null } }).where(eq(t.competitors.id, competitor.id)).run()
+    }
+  }
+  const coach = settles.coachId ? ctx.db.select().from(t.coaches).where(eq(t.coaches.id, settles.coachId)).get() : undefined
+  if (!coach) return
+  const paidElsewhere = (key: 'coachMembership' | 'coachSummit') => others.some((o) => o.coachId === coach.id && o[key])
+  const set: { memberYear?: number | null; summitYear?: number | null } = {}
+  if (settles.coachMembership && !paidElsewhere('coachMembership') && coach.memberYear === settles.year) set.memberYear = settles.was?.coachMember ?? null
+  if (settles.coachSummit && !paidElsewhere('coachSummit') && coach.summitYear === settles.year) set.summitYear = settles.was?.coachSummit ?? null
+  if (Object.keys(set).length > 0) ctx.db.update(t.coaches).set(set).where(eq(t.coaches.id, coach.id)).run()
 }
 
 const STAFF_ROLES: Role[] = [Role.Admin, Role.Secretariat, Role.Scrutineer, Role.Chairperson, Role.Compere, Role.Barker]

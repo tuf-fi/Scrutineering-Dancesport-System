@@ -22,12 +22,13 @@ import type {
   RoundType,
   StaffUser,
 } from '@bis/shared'
-import { DEFAULT_FEE_SCHEDULE, ageGroupForBirthYears, registrationFee, samplePhoto } from '@bis/shared'
+import { DEFAULT_MEMBERSHIP_FEES, ageGroupForBirthYears, registrationFee, samplePhoto } from '@bis/shared'
 import { eq } from 'drizzle-orm'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { hashPassword } from '../auth/password.ts'
 import { newId } from '../ids.ts'
+import { priceSampleEvents } from './sample-fees.ts'
 import type { Db } from './client.ts'
 import * as t from './schema.ts'
 
@@ -77,7 +78,7 @@ export function hasData(db: Db): boolean {
 
 // Loads the same sample competition the frontend shows, so the real app can be tried before real data exists
 const SAMPLE_PAYMENT_SETTINGS = {
-  fees: { solo: 500, couple: 800 },
+  memberships: DEFAULT_MEMBERSHIP_FEES,
   methods: [
     { name: 'GCash', accountName: 'BIS', number: '0917 000 0000' },
     { name: 'Maya', accountName: 'BIS', number: '0918 000 0000' },
@@ -126,7 +127,7 @@ const SAMPLE_UPCOMING_EVENTS: Array<{ ageGroup: AgeGroup; class: Class; discipli
   { ageGroup: 'senior', class: 'B', discipline: 'standard', dances: ['waltz', 'foxtrot', 'quickstep'] },
 ]
 
-export function addSampleUpcoming(db: Pick<Db, 'insert'>) {
+export function addSampleUpcoming(db: Pick<Db, 'select' | 'insert' | 'update'>) {
   db.insert(t.competitions).values(SAMPLE_UPCOMING.map((c) => ({ ...c, image: sampleCompetitionImage() }))).onConflictDoNothing().run()
 
   for (const c of SAMPLE_UPCOMING) {
@@ -139,6 +140,7 @@ export function addSampleUpcoming(db: Pick<Db, 'insert'>) {
       isSolo: false,
     }))
     db.insert(t.events).values(events).onConflictDoNothing().run()
+    priceSampleEvents(db, (e) => events.some((own) => own.id === e.id))
 
     // Each event's final, with lunch halfway and the awarding last
     const lines = [
@@ -180,6 +182,8 @@ export function seedSampleData(db: Db) {
         return { ...e, position: next }
       })
     insertAll(eventRows, (batch) => tx.insert(t.events).values(batch).run())
+    const seeded = new Set(eventRows.map((e) => e.id))
+    priceSampleEvents(tx, (e) => seeded.has(e.id))
 
     insertAll(data.payments, (batch) =>
       tx
@@ -527,6 +531,7 @@ export function addSampleEntryData(db: Db) {
     { class: 'E1', discipline: 'latin', dances: ['cha_cha_cha'] },
     { class: 'E1', discipline: 'standard', dances: ['waltz'] },
   ]
+  const soloIds = new Set<string>()
   for (const competitionId of COMPETITIONS) {
     if (!db.select().from(t.competitions).where(eq(t.competitions.id, competitionId)).get()) continue
     const taken = db.select().from(t.events).where(eq(t.events.competitionId, competitionId)).all()
@@ -534,11 +539,14 @@ export function addSampleEntryData(db: Db) {
     for (const ageGroup of AGE_GROUPS) {
       for (const solo of SOLOS) {
         const id = `${competitionId}:solo:${ageGroup}:${solo.dances[0]}`
+        soloIds.add(id)
         db.insert(t.events).values({ id, competitionId, number, position: number, ageGroup, ...solo, isSolo: true }).onConflictDoNothing().run()
         number++
       }
     }
   }
+
+  priceSampleEvents(db, (e) => soloIds.has(e.id))
 
   const athlete = db.select().from(t.athletes).where(eq(t.athletes.id, 'athlete-sample')).get()
   const home = db.select().from(t.competitors).where(eq(t.competitors.id, 'c-ana-cruz')).get()
@@ -592,7 +600,7 @@ export function addSampleEntryData(db: Db) {
   // A dancer's age group, from the birth years of the dancers
   const groupIn = (c: { ageGroup: string | null; details?: { dancers: Array<{ birthDate: string }> } | null }) =>
     ageGroupForBirthYears((c.details?.dancers ?? []).map((d) => Number(d.birthDate.slice(0, 4)))) ?? c.ageGroup
-  const priced = (events: Array<typeof t.events.$inferSelect>) => registrationFee(DEFAULT_FEE_SCHEDULE, events as never, 0).total
+  const priced = (events: Array<typeof t.events.$inferSelect>) => registrationFee(db.select().from(t.competitionFees).all(), events, DEFAULT_MEMBERSHIP_FEES, 0).total
   const at = (hours: number) => new Date(Date.now() - hours * 3_600_000).toISOString()
   const team = { requesterId: 'member-sample-team', requesterRole: 'team' as const, requesterName: 'Sample Dance Team' }
 

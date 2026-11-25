@@ -10,7 +10,6 @@ interface Values {
   short: string
   bornFrom: string
   bornTo: string
-  juvenileFee: boolean
 }
 
 type Errors = Partial<Record<'name' | 'short' | 'bornFrom' | 'bornTo', string>>
@@ -34,7 +33,7 @@ function GroupForm({ initial, onSubmit }: { initial: Values; onSubmit: (values: 
     if (isYear(from) && isYear(to) && Number(from) > Number(to)) found.bornFrom = 'This year comes before the last year.'
     setErrors(found)
     if (Object.keys(found).length === 0) {
-      onSubmit({ name: values.name, short: values.short, bornFrom: from ? Number(from) : null, bornTo: to ? Number(to) : null, juvenileFee: values.juvenileFee })
+      onSubmit({ name: values.name, short: values.short, bornFrom: from ? Number(from) : null, bornTo: to ? Number(to) : null })
     }
   }
 
@@ -115,8 +114,8 @@ export function AgeGroupDialog({ open, group, onClose }: { open: boolean; group:
         key={group?.id ?? 'new'}
         initial={
           group
-            ? { name: group.name, short: group.short, bornFrom: group.bornFrom === null ? '' : String(group.bornFrom), bornTo: group.bornTo === null ? '' : String(group.bornTo), juvenileFee: group.juvenileFee }
-            : { name: '', short: '', bornFrom: '', bornTo: '', juvenileFee: false }
+            ? { name: group.name, short: group.short, bornFrom: group.bornFrom === null ? '' : String(group.bornFrom), bornTo: group.bornTo === null ? '' : String(group.bornTo) }
+            : { name: '', short: '', bornFrom: '', bornTo: '' }
         }
         onSubmit={submit}
       />

@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 import { Skeleton, Table, type Column } from '../../components/ui/index.ts'
 import { useEventReport } from '../../hooks/index.ts'
 import { cn } from '../../lib/cn.ts'
-import { DANCE_LABEL, ROUND_TYPE_LABEL, competitorName, ordinal, placeRange } from '../../lib/format.ts'
+import { DANCE_LABEL, ROUND_TYPE_LABEL, competitorName, ordinal, placeRange, eventDances } from '../../lib/format.ts'
 import { FinalMarks } from './FinalMarks.tsx'
 import { PlacingsOnly } from './PlacingsOnly.tsx'
 
@@ -131,7 +131,7 @@ function Officials({ report }: { report: EventReport }) {
         </div>
       ))}
       <div className="grid grid-cols-[7rem_minmax(0,1fr)] items-baseline gap-x-4 border-t border-neutral-200 py-3.5 sm:grid-cols-[10rem_minmax(0,1fr)]">
-        <dt className="font-mono text-xs uppercase text-neutral-500">Adjudicators</dt>
+        <dt className="font-mono text-xs uppercase text-neutral-500">Adjud</dt>
         <dd>
           <ul aria-label="Adjudicators" className="flex flex-col gap-2">
             {report.adjudicators.map((a) => (
@@ -265,7 +265,7 @@ export function EventReportView({ eventId, finalRoundId }: { eventId: string; fi
         </Part>
 
         {final && (
-          <Part index={4} title="Report of final round" meta={final.dances.map((d) => DANCE_LABEL[d]).join(', ')} {...at(4)}>
+          <Part index={4} title="Report of final round" meta={eventDances(final)} {...at(4)}>
             {final.dances.map((_, i) => (
               <MarksTable key={final.dances[i]} round={final} danceIndex={i} />
             ))}

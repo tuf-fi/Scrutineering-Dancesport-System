@@ -1,9 +1,8 @@
-import { DEFAULT_AGE_GROUPS, ageGroupName } from '@bis/shared'
+import { DEFAULT_AGE_GROUPS, DISCIPLINE_DANCES, ageGroupName } from '@bis/shared'
 import type {
   Dance,
   Discipline,
   Event,
-  FeeMode,
   PayMethod,
   PaymentStatus,
   ProgramRow,
@@ -11,14 +10,6 @@ import type {
   Role,
   RoundType,
 } from '@bis/shared'
-
-// How an event kind is priced, in the admin's words
-export const FEE_MODE_LABEL: Record<FeeMode, string> = {
-  standard: 'By age group, solo or couple',
-  couple_juvenile: 'Couple, juvenile price',
-  couple_older: 'Couple, older price',
-  fixed: 'One fixed price',
-}
 
 export const PAY_METHOD_LABEL: Record<PayMethod, string> = {
   unpaid: 'Not paid yet',
@@ -44,6 +35,20 @@ export const DANCE_LABEL: Record<Dance, string> = {
   viennese_waltz: 'Viennese Waltz',
   foxtrot: 'Foxtrot',
   quickstep: 'Quickstep',
+}
+
+// The short dance letters of result sheets
+export const DANCE_CODE: Record<Dance, string> = {
+  samba: 'S',
+  cha_cha_cha: 'C',
+  rumba: 'R',
+  paso_doble: 'P',
+  jive: 'J',
+  waltz: 'W',
+  tango: 'T',
+  viennese_waltz: 'V',
+  foxtrot: 'F',
+  quickstep: 'Q',
 }
 
 export const ROUND_TYPE_LABEL: Record<RoundType, string> = {
@@ -145,8 +150,15 @@ export const formatDateTime = (iso: string) =>
 // The event number as printed on sheets, e.g. E47
 export const eventCode = (event: Pick<Event, 'number'>) => `E${event.number}`
 
-export const eventDances = (event: Pick<Event, 'dances'>) =>
+export const eventDanceNames = (event: Pick<Event, 'dances'>) =>
   event.dances.map((d) => DANCE_LABEL[d]).join(', ')
+
+// One dance by name; two or more as "Latin - S C R P J"
+export function eventDances(event: Pick<Event, 'dances'>) {
+  if (event.dances.length < 2) return eventDanceNames(event)
+  const discipline = DISCIPLINE_DANCES.latin.includes(event.dances[0]!) ? 'latin' : 'standard'
+  return `${DISCIPLINE_LABEL[discipline]} - ${event.dances.map((d) => DANCE_CODE[d]).join(' ')}`
+}
 
 // The name of a built-in age group; screens use the admin's names from useCatalog
 export const defaultAgeGroupLabel = (id: string) => ageGroupName(DEFAULT_AGE_GROUPS, id)
