@@ -26,7 +26,8 @@ export function Tooltip({ label, children, className }: TooltipProps) {
   if (!label) return <>{children}</>
 
   const show = (el: HTMLElement) => {
-    const r = el.getBoundingClientRect()
+    // The child, not the wrapper: an absolutely placed child leaves the wrapper empty and somewhere else
+    const r = (el.firstElementChild ?? el).getBoundingClientRect()
     const below = r.top < 48
     setAt({ x: r.left + r.width / 2, y: below ? r.bottom + 8 : r.top - 8, below })
   }
