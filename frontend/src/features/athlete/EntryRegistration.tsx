@@ -168,8 +168,8 @@ export function RegisterPage({ who }: { who: 'team' | 'athlete' }) {
                         <input type="checkbox" checked={on} onChange={() => toggle(e.id)} className="size-4 accent-neutral-900" aria-label={`Enter ${eventCode(e)}`} />
                         <span className="w-9 font-mono text-xs font-medium tabular-nums text-gold-700">{eventCode(e)}</span>
                         <span className="flex min-w-0 flex-col gap-0.5">
-                          <span className="text-small font-semibold text-neutral-900">{eventDances(e)}</span>
-                          <span className="text-xs text-neutral-600">{eventGrade(e)}</span>
+                          <span className="text-small font-semibold text-neutral-900">{eventGrade(e)}</span>
+                          <span className="text-xs text-neutral-600">{eventDances(e)}</span>
                         </span>
                       </label>
                     </li>

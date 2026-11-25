@@ -28,8 +28,8 @@ function Card({ row, size }: { row: RoundRow; size: Size }) {
           <span className="tabular-nums text-gold-400">E{row.eventNumber}</span>
           {ROUND_TYPE_LABEL[row.type]}
         </p>
-        <h2 className={cn('text-balance font-semibold leading-[1.05] tracking-[-0.03em] text-white', look.dances)}>{eventDances(row)}</h2>
-        <p className={cn('font-medium text-brown-100', look.grade)}>{eventGrade({ ageGroup: row.ageGroup, class: row.class, discipline: row.discipline })}</p>
+        <h2 className={cn('text-balance font-semibold leading-[1.05] tracking-[-0.03em] text-white', look.dances)}>{eventGrade({ ageGroup: row.ageGroup, class: row.class, discipline: row.discipline })}</h2>
+        <p className={cn('font-medium text-brown-100', look.grade)}>{eventDances(row)}</p>
       </div>
 
       <div className="flex flex-col gap-[1.6vmin]">

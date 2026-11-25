@@ -26,9 +26,9 @@ export function UpNext({ rounds }: { rounds: RoundRow[] }) {
       {next ? (
         <p className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
           <span className="font-mono text-small font-medium tabular-nums text-gold-600">{eventCode({ number: next.eventNumber })}</span>
-          <span className="text-body font-semibold text-neutral-900">{eventDances(next)}</span>
+          <span className="text-body font-semibold text-neutral-900">{eventGrade({ ageGroup: next.ageGroup, class: next.class, discipline: next.discipline })}</span>
           <span className="text-small text-neutral-600">
-            {ROUND_TYPE_LABEL[next.type]} · {eventGrade({ ageGroup: next.ageGroup, class: next.class, discipline: next.discipline })}
+            {ROUND_TYPE_LABEL[next.type]} · {eventDances(next)}
           </span>
         </p>
       ) : (

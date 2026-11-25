@@ -20,7 +20,7 @@ export function Hero() {
       )}
       <div className="mx-auto flex w-full max-w-5xl flex-col justify-end px-4 py-10 sm:justify-center sm:px-8 sm:py-16">
         <h1 className="max-w-xl text-balance text-[clamp(1.75rem,1rem+2.4vw,2.75rem)] font-semibold leading-[1.12] tracking-[-0.02em] motion-safe:animate-rise-in">
-          Bicol Oragon Scruteneering System
+          Bicol Oragon Scrutineering System
         </h1>
         <ul style={{ animationDelay: '60ms' }} className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs font-medium uppercase tracking-[0.14em] text-gold-300 motion-safe:animate-rise-in">
           {['Integrity', 'Precision', 'Excellence'].map((word, i) => (

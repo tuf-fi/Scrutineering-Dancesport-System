@@ -106,10 +106,10 @@ export function ProgramPrintPage() {
                     <td className={`${td} ${num} ${keep}`}>{formatClock(r.startTime)}</td>
                     <td className={`${td} ${num} ${keep}`}>{eventCode({ number: r.eventNumber })}</td>
                     <td className={td}>
-                      {eventDances(r)}
-                      <span className="block text-neutral-600">
+                      <span className="block font-bold">
                         {ageGroupLabel(r.ageGroup)} · {r.class}
                       </span>
+                      <span className="block text-neutral-600">{eventDances(r)}</span>
                     </td>
                     <td className={`${td} ${keep}`}>{ROUND_TYPE_LABEL[r.roundType]}</td>
                     <td className={`${td} ${num} ${keep} text-center`}>{r.entryCount}

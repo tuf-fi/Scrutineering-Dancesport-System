@@ -1,6 +1,6 @@
 # Chairperson guide
 
-You oversee the scoring. You see the scrutineer's screens but cannot enter marks.
+You oversee the scoring. You can do everything the scrutineer can; see the [scrutineer guide](scrutineer.md). **Rounds** and **Heats** are not in your menu.
 
 ## Your part
 - **Ties at the recall cut-off:** when several couples have the same number of X marks across the recall number, the scrutineer proposes how to settle it on the **Recall** screen (**Propose decision**). When it says "Proposed. Waiting for the chairperson to confirm.", read the proposal and press **Confirm tie decision**. The round cannot be approved until you do.
@@ -11,7 +11,7 @@ You oversee the scoring. You see the scrutineer's screens but cannot enter marks
 ## At the awarding
 If the competition holds its results until the awarding, press **Reveal results** on **Results** to make every event public at once. The scrutineer can do it too. It cannot be undone.
 
-## You cannot
-- Start, approve or publish a round. Ask the scrutineer.
+## Running rounds
+You can also start, approve and publish a round, enter paper marks and call a redance, so the day goes on if the scrutineer is away. Only you can press **Confirm tie decision**.
 
 Every decision is recorded with your name and the time.

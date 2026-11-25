@@ -80,7 +80,7 @@ describe('a tie in a final', () => {
   it('needs the right people and a sensible order', async () => {
     expect((await app.call('proposeFinalTie', [round.roundId, 'order', [top[0]]], scrutineer)).status).toBe(400)
     expect((await app.call('proposeFinalTie', [round.roundId, 'order', [top[0], top[0]]], scrutineer)).status).toBe(400)
-    expect((await app.call('proposeFinalTie', [round.roundId, 'order', [top[1], top[0]]], chairperson)).status).toBe(403)
+    expect((await app.call('proposeFinalTie', [round.roundId, 'order', [top[1], top[0]]], await app.signIn.staff('secretariat'))).status).toBe(403)
     expect((await app.call('confirmFinalTie', [round.roundId], scrutineer)).status).toBe(403)
   })
 

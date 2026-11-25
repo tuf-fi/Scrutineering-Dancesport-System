@@ -67,10 +67,10 @@ export function SchedulePage() {
             cell: (i) => (
               <div className="flex flex-col">
                 <span className="font-medium text-neutral-900">
-                  <span className="font-mono tabular-nums">{eventCode({ number: i.eventNumber })}</span> {eventDances(i)}
+                  <span className="font-mono tabular-nums">{eventCode({ number: i.eventNumber })}</span> {ageGroupLabel(i.ageGroup)} · {i.class} · {DISCIPLINE_LABEL[i.discipline]}
                 </span>
                 <span className="text-xs text-neutral-500">
-                  {ageGroupLabel(i.ageGroup)} · {i.class} · {DISCIPLINE_LABEL[i.discipline]}
+                  {eventDances(i)}
                 </span>
               </div>
             ),

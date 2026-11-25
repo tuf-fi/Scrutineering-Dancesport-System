@@ -22,7 +22,8 @@ import { Button, Dialog, ErrorState, Input, PageHeader, Select, Skeleton, toast 
 import { useCertificateLayout, useSaveCertificateLayout } from '../../hooks/index.ts'
 import { certificateDesign } from '../../lib/certificateDesign.ts'
 import { signatureImage } from '../../lib/image.ts'
-import { CertificateSheet, certificateSignatures, type MoveTarget } from '../print/CertificateSheet.tsx'
+import { CertificateSheet, type MoveTarget } from '../print/CertificateSheet.tsx'
+import { certificateSignatures } from '../print/certificateSignatures.ts'
 import { WordingDialog } from './WordingDialog.tsx'
 
 const LINE_LABEL: Record<CertificateLineKey, string> = {

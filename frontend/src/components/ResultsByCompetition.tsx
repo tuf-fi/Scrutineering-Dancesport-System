@@ -79,11 +79,11 @@ function CompetitionGroup({ group, compact }: { group: Group; compact?: boolean 
                       tabIndex={open ? 0 : -1}
                       className={cn('font-medium text-neutral-900 after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500', compact && 'text-small')}
                     >
-                      {l.dances.map((d) => DANCE_LABEL[d]).join(', ')}
+                      {eventGrade(l)}
                     </Link>
                     <span className={cn('text-neutral-500', compact ? 'text-xs' : 'text-small')}>
                       <span className="mr-2 font-mono tabular-nums">{eventCode({ number: l.eventNumber })}</span>
-                      {eventGrade(l)}
+                      {l.dances.map((d) => DANCE_LABEL[d]).join(', ')}
                     </span>
                   </span>
                   <span className="flex items-baseline gap-1.5">

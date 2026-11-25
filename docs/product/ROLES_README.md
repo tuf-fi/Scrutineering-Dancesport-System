@@ -1,6 +1,6 @@
 # BIS Roles and Terms
 
-**BIS (Bicol Oragon Scruteneering System)** runs the results of dancesport competitions in the Bicol region. This guide explains who does what at a competition, what each person does in BIS, and the terms used on result sheets. For every screen and function of each role, see [ROLE_FEATURES.md](ROLE_FEATURES.md).
+**BIS (Bicol Oragon Scrutineering System)** runs the results of dancesport competitions in the Bicol region. This guide explains who does what at a competition, what each person does in BIS, and the terms used on result sheets. For every screen and function of each role, see [ROLE_FEATURES.md](ROLE_FEATURES.md).
 
 ## Who does what
 
@@ -9,7 +9,7 @@
 | **Admin** | The organization's system owner | Manages the system between competitions | Creates competitions, staff accounts and adjudicator panels; sets the points table; sees the payment ledger | Laptop (online) |
 | **Secretariat** | Registration and event staff | Handles entries, back numbers, schedule, the program and late changes | Sets up events, enters or imports competitors, assigns back numbers, marks scratches and on-site payments, lays out the program (start time, breaks, order), prints it with the heat and recall lists | Laptop |
 | **Scrutineer** | The person responsible for results (the "Executor" on result sheets) | Runs every round, checks marks, calculates results | Starts rounds and heats, sets recall numbers, watches adjudicators submit in real time, resolves ties, approves and publishes results | Laptop |
-| **Chairperson of Adjudicators** | The senior adjudicator who supervises the panel | Oversees fairness, decides ties at the recall cutoff with the scrutineer, signs results | Views live submissions and the calculation, confirms tie decisions | Laptop |
+| **Chairperson of Adjudicators** | The senior adjudicator who supervises the panel | Oversees fairness, decides ties at the recall cutoff with the scrutineer, signs results | Views live submissions and the calculation, confirms tie decisions, and can do everything the scrutineer can | Laptop |
 | **Adjudicators** | The adjudicators on the panel, usually 7 and up to 10, each with a letter (A, B, C…) | Watch the dancing and mark it | Sign in with a PIN, mark an X for each competitor to recall in early rounds, place finalists 1st to 6th or 7th in the final | Phone, one each |
 | **Compere / Announcer** | The host on the microphone | Calls competitors to the floor and announces results | Reads the next announcement (recalls, finalists, results from last place up) | Laptop or venue screen |
 | **Barker** | The person who lines the competitors up at the floor entrance | Calls the competitors of the round on the floor and of the next event to be ready | Signs in at the staff address with an account the admin makes; sees the rounds on the floor and the next event, each with back numbers and names | Phone or tablet |

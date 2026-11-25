@@ -127,10 +127,10 @@ describe('every role, using the functions the screens call', () => {
     expect((await client.getBackupStatus()).targets).toEqual([])
   })
 
-  it('refuses the chairperson what only the scrutineer may do, with a message', async () => {
+  it('refuses the chairperson what only the admin may do, with a message', async () => {
     useDevice('chair')
     await client.signInStaff('chairperson@sample.example', SAMPLE_PASSWORD)
-    await expect(client.approveRound('x', 'comp-sorsogon-2026:e11:round_2')).rejects.toMatchObject({ status: 403 })
+    await expect(client.deleteStaffUser('x', 'staff-scr')).rejects.toMatchObject({ status: 403 })
   })
 
   it('runs the secretariat\'s team and registration calls', async () => {

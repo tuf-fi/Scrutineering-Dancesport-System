@@ -20,6 +20,8 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
   const update = useUpdateCompetitor()
   const findSimilar = useFindSimilarCompetitors()
   const saved = competitor?.details
+  // A new athlete has no membership yet: it is recorded later, so no membership ID is used up
+  const adding = !competitor && intent === 'athlete'
   const [first, setFirst] = useState(competitor?.names[0] ?? prefillName ?? '')
   const [second, setSecond] = useState(competitor?.names[1] ?? '')
   const [teamId, setTeamId] = useState(competitor?.teamId ?? '')
@@ -121,16 +123,18 @@ function CompetitorForm({ competitor, intent, prefillName, onDone, onAdded }: { 
                 </option>
               ))}
             </Select>
-            <Input
-              label="Membership paid for"
-              hint="For example: January 2026. Leave empty if not paid."
-              value={memberYear}
-              onChange={(e) => setMemberYear(e.target.value)}
-              error={errors.year}
-              className="font-mono tabular-nums"
-            />
+            {!adding && (
+              <Input
+                label="Membership paid for"
+                hint="For example: January 2026. Leave empty if not paid."
+                value={memberYear}
+                onChange={(e) => setMemberYear(e.target.value)}
+                error={errors.year}
+                className="font-mono tabular-nums"
+              />
+            )}
           </div>
-          <p className="text-small text-neutral-500">Membership ends December 31 of the year it was paid in, whenever in the year that was.</p>
+          {!adding && <p className="text-small text-neutral-500">Membership ends December 31 of the year it was paid in, whenever in the year that was.</p>}
         </section>
 
         {names.map((name, i) => (

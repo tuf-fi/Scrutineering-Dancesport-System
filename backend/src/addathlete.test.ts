@@ -23,12 +23,12 @@ afterAll(() => app.close())
 const records = () => app.ok<AthleteRecord[]>('getAthleteRecords', [], secretariat)
 
 describe('adding an athlete', () => {
-  it('makes the athlete and the competitor together', async () => {
+  it('makes the athlete and the competitor together, with no membership or membership ID', async () => {
     const before = (await records()).length
     const row = await app.ok<CompetitorRow>('addAthlete', [{ names: ['Zed Alpha'], teamId, details: details({ memberYear: 2026, memberMonth: 1 }) }], secretariat)
     expect(row.names).toEqual(['Zed Alpha'])
     const added = (await records()).find((r) => r.name === 'Zed Alpha')
-    expect(added).toMatchObject({ teamId, province: 'Albay', birthDate: '2012-01-01', phone: '09171234567', memberYear: 2026 })
+    expect(added).toMatchObject({ teamId, province: 'Albay', birthDate: '2012-01-01', phone: '09171234567', memberYear: null, membershipId: null })
     expect((await records()).length).toBe(before + 1)
     expect((await app.ok<CompetitorRow[]>('getCompetitorRows', [], secretariat)).some((c) => c.id === row.id)).toBe(true)
   })

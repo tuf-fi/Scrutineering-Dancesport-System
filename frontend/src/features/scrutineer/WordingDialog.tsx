@@ -5,7 +5,7 @@ import { Button, Dialog, Input } from '../../components/ui/index.ts'
 type Detail = (typeof CERTIFICATE_TOKENS)[number]
 
 // What a person sees for each filled-in detail, instead of the {braces} the layout is stored with
-export const DETAIL_LABEL: Record<Detail, string> = {
+const DETAIL_LABEL: Record<Detail, string> = {
   organizer: 'Organizer',
   competition: 'Competition',
   name: 'Couple',

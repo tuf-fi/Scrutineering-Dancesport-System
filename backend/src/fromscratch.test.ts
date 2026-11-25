@@ -14,7 +14,6 @@ const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 let admin = ''
 let secretariat = ''
 let scrutineer = ''
-let chair = ''
 let competitionId = ''
 const eventOf = new Map<number, string>()
 const adjudicators: string[] = []
@@ -39,7 +38,6 @@ beforeAll(async () => {
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   scrutineer = await app.signIn.staff('scrutineer', 'pw-scrutineer')
-  chair = await app.signIn.staff('chairperson', 'pw-chairperson')
 }, 60_000)
 afterAll(() => app.close())
 
@@ -131,9 +129,9 @@ describe('4. the day', () => {
     for (const p of pins) phones.set(p.a, await app.signIn.adjudicator(p.pin))
   })
 
-  it('the chairperson cannot start a round', async () => {
+  it('the secretariat cannot start a round', async () => {
     const rounds = await app.ok<RoundRow[]>('getCompetitionRounds', [competitionId], scrutineer)
-    expect((await app.call('startRound', [rounds[0]!.roundId], chair)).status).toBe(403)
+    expect((await app.call('startRound', [rounds[0]!.roundId], secretariat)).status).toBe(403)
   })
 
   it('runs every round to a published result, each round the size the table says', async () => {

@@ -52,9 +52,9 @@ function RowHead({ row: r, grade, expandable, open, onToggle }: { row: ProgramRo
           <>
             <h3 className="font-semibold tracking-[-0.01em] text-neutral-900">
               <span className="mr-2 font-mono text-small font-medium tabular-nums text-neutral-500">{eventCode({ number: r.eventNumber })}</span>
-              {eventDances(r)}
+              {grade}
             </h3>
-            <p className="text-small text-neutral-600">{[grade, r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}</p>
+            <p className="text-small text-neutral-600">{[eventDances(r), r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}</p>
           </>
         ) : (
           <h3 className="font-semibold tracking-[-0.01em] text-neutral-900">{r.label}</h3>

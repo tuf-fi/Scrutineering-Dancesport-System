@@ -12,7 +12,7 @@ let adjudicators: Adjudicator[] = []
 
 beforeAll(async () => {
   app = await startTestApp()
-  for (const role of ['admin', 'secretariat', 'scrutineer', 'chairperson']) who[role] = await app.signIn.staff(role)
+  for (const role of ['admin', 'secretariat', 'scrutineer', 'chairperson', 'compere']) who[role] = await app.signIn.staff(role)
   const competition = (await app.ok<Competition[]>('getCompetitions', [], who.admin)).find((c) => c.name.includes('Bicol')) ?? (await app.ok<Competition[]>('getCompetitions', [], who.admin))[0]!
   competitionId = competition.id
   events = (await app.ok<Event[]>('getEvents', [competitionId], who.admin)).slice(0, 3)
@@ -56,6 +56,7 @@ describe('setting panels for many events', () => {
     expect((await app.call('setPanels', [competitionId, eventIds(), [], 'replace'], who.admin)).error).toMatch(/at least one adjudicator/)
     expect((await app.call('setPanels', [competitionId, eventIds(), ids(1), 'merge'], who.admin)).error).toMatch(/replace the panels or add/)
     expect((await app.call('setPanels', [competitionId, [], ids(1), 'replace'], who.admin)).error).toMatch(/at least one event/)
-    expect((await app.call('setPanels', [competitionId, eventIds(), ids(1), 'replace'], who.chairperson)).status).toBe(403)
+    expect((await app.call('setPanels', [competitionId, eventIds(), ids(1), 'replace'], who.compere)).status).toBe(403)
+    expect((await app.call('setPanels', [competitionId, eventIds(), ids(1), 'replace'], who.chairperson)).status).toBe(200)
   })
 })

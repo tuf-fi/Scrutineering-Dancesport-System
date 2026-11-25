@@ -12,7 +12,6 @@ const today = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10)
 let admin = ''
 let secretariat = ''
 let scrutineer = ''
-let chairperson = ''
 let competitionId = ''
 let eventId = ''
 let semiId = ''
@@ -42,7 +41,6 @@ beforeAll(async () => {
   admin = await app.signIn.staff('admin', 'pw-admin')
   secretariat = await app.signIn.staff('secretariat', 'pw-secretariat')
   scrutineer = await app.signIn.staff('scrutineer', 'pw-scrutineer')
-  chairperson = await app.signIn.staff('chairperson', 'pw-chairperson')
 
   competitionId = (await app.ok<{ id: string }>('saveCompetition', [{ name: 'Redance Open', date: today, venue: 'Gym', organizer: 'Org', image: 'data:image/png;base64,iVBORw0KGgo=' }], admin)).id
   eventId = (await app.ok<{ id: string }>('saveEvent', [competitionId, { number: 1, ageGroup: 'juvenile_1', class: 'E1', discipline: 'latin', dances: ['samba', 'rumba'], isSolo: true }], admin)).id
@@ -96,7 +94,7 @@ describe('a redance of one heat', () => {
   it('is refused for the wrong role, an empty reason, a missing heat and a round that is not being marked', async () => {
     await app.ok('submitAdjudicatorMarks', [semiId, a()], phones[0])
     await app.ok('submitAdjudicatorMarks', [semiId, b()], phones[1])
-    for (const [who, status] of [[secretariat, 403], [chairperson, 403], [admin, 403], [phones[0], 403]] as const) {
+    for (const [who, status] of [[secretariat, 403], [admin, 403], [phones[0], 403]] as const) {
       expect((await app.call('startRedance', [semiId, 2, 'Adjudicator B asked'], who)).status).toBe(status)
     }
     expect((await app.call('startRedance', [semiId, 2, ' '], scrutineer)).error).toMatch(/reason/)

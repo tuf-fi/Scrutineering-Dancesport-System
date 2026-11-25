@@ -866,7 +866,7 @@ export const addAthlete = (actorId: string, input: { names: string[]; teamId: st
       names,
       backNumber: null,
       teamId: input.teamId,
-      ...(input.details ? { details: input.details } : {}),
+      ...(input.details ? { details: { ...input.details, memberYear: null, memberMonth: null } } : {}),
     }
     competitors.push(competitor)
     const plain = (n: string) => n.toLowerCase().replace(/[.,]/g, '').replace(/\s+/g, ' ').trim()
@@ -881,8 +881,8 @@ export const addAthlete = (actorId: string, input: { names: string[]; teamId: st
         province: input.details?.province ?? '',
         teamId: input.teamId,
         coachId: input.details?.coachId ?? null,
-        memberYear: input.details?.memberYear ?? null,
-        memberMonth: input.details?.memberMonth ?? null,
+        memberYear: null,
+        memberMonth: null,
       })
     }
     record(actorId, 'Added athlete', names.join(' & '))

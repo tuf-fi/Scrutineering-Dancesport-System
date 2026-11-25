@@ -1,9 +1,11 @@
 import { ProgramKind, ProgramStatus, type ProgramRow } from '@bis/shared'
 import { DarkPanel } from '../../components/ui/index.ts'
+import { useCatalog } from '../../hooks/index.ts'
 import { ROUND_TYPE_LABEL, eventCode, eventDances, formatClock, programAction } from '../../lib/format.ts'
 
 // The line itself in words, for the strip above the list
 function Line({ label, row, empty }: { label: string; row: ProgramRow | undefined; empty: string }) {
+  const { eventGrade } = useCatalog()
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <h2 className="font-mono text-[0.6875rem] font-medium uppercase tracking-wide text-gold-300">{label}</h2>
@@ -13,12 +15,13 @@ function Line({ label, row, empty }: { label: string; row: ProgramRow | undefine
             {row.kind === ProgramKind.Round && row.eventNumber !== null ? (
               <>
                 <span className="mr-2 font-mono font-medium text-white/65">{eventCode({ number: row.eventNumber })}</span>
-                {eventDances(row)}
+                {row.ageGroup && row.class && row.discipline && eventGrade({ ageGroup: row.ageGroup, class: row.class, discipline: row.discipline })}
               </>
             ) : (
               row.label
             )}
           </p>
+          {row.kind === ProgramKind.Round && <p className="text-small font-medium text-white/85">{eventDances(row)}</p>}
           <p className="text-xs text-white/60 sm:text-small sm:text-white/70">
             {formatClock(row.startTime)}
             {row.roundType && ` · ${ROUND_TYPE_LABEL[row.roundType]}`}

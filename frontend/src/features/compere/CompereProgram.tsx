@@ -1,4 +1,4 @@
-import { ProgramKind, ProgramStatus, type Class, type Discipline, type Program, type ProgramRow } from '@bis/shared'
+import { ProgramKind, ProgramStatus, type Program, type ProgramRow } from '@bis/shared'
 import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { StatusDot } from '../../components/StatusDot.tsx'
@@ -11,27 +11,23 @@ import { ROUND_TYPE_LABEL, eventDances, formatClock, programAction } from '../..
 
 // What a line is, in the wall's two sizes: a round names its event, a break or the awarding names itself
 function Name({ row }: { row: ProgramRow }) {
+  const { eventGrade } = useCatalog()
   if (row.kind !== ProgramKind.Round || row.eventNumber === null) return <>{row.label}</>
   return (
     <>
       <span className="mr-[1.2vmin] font-mono font-medium tabular-nums text-gold-400">E{row.eventNumber}</span>
-      {eventDances(row)}
+      {row.ageGroup && row.class && row.discipline && eventGrade({ ageGroup: row.ageGroup, class: row.class, discipline: row.discipline })}
     </>
   )
 }
 
 // The round, the grade and what the announcer says aloud: how many are called back, or how many are placed
-const detail = (row: ProgramRow, eventGrade: (event: { ageGroup: string; class: Class; discipline: Discipline }) => string) =>
-  row.kind === ProgramKind.Round && row.roundType && row.ageGroup && row.class && row.discipline
-    ? [
-        ROUND_TYPE_LABEL[row.roundType],
-        eventGrade({ ageGroup: row.ageGroup, class: row.class, discipline: row.discipline }),
-        programAction(row),
-      ].join(' · ')
+const detail = (row: ProgramRow) =>
+  row.kind === ProgramKind.Round && row.roundType
+    ? [ROUND_TYPE_LABEL[row.roundType], eventDances(row), programAction(row)].join(' · ')
     : ''
 
 function Block({ title, status, rows, empty, large }: { title: string; status: ProgramStatus; rows: ProgramRow[]; empty: string; large: boolean }) {
-  const { eventGrade } = useCatalog()
   return (
     <section aria-label={title} className="flex min-w-0 flex-col gap-[1vmin]">
       <h2 className="flex items-center gap-[1.2vmin] font-mono text-[1.6vmin] font-medium uppercase tracking-[0.12em] text-brown-100">
@@ -47,7 +43,7 @@ function Block({ title, status, rows, empty, large }: { title: string; status: P
               </p>
               <p className="flex flex-wrap gap-x-[1.8vmin] text-[2vmin] font-medium text-brown-100">
                 <span className="font-mono tabular-nums text-white">{formatClock(row.startTime)}</span>
-                {detail(row, eventGrade) && <span>{detail(row, eventGrade)}</span>}
+                {detail(row) && <span>{detail(row)}</span>}
               </p>
             </li>
           ))}
@@ -74,7 +70,7 @@ function Loading() {
 }
 
 function Line({ row, round, open, onToggle }: { row: ProgramRow; round?: ShowRound; open?: boolean; onToggle?: () => void }) {
-  const meta = [row.roundType ? ROUND_TYPE_LABEL[row.roundType] : '', programAction(row)].filter(Boolean).join(' · ')
+  const meta = [row.roundType ? ROUND_TYPE_LABEL[row.roundType] : '', row.kind === ProgramKind.Round ? eventDances(row) : '', programAction(row)].filter(Boolean).join(' · ')
   const tone = cn(
     'grid w-full items-center gap-x-[max(2.2vmin,0.75rem)] rounded-[1vmin] px-[max(2vmin,0.75rem)] py-[max(1.2vmin,0.6rem)] text-left',
     round ? 'grid-cols-[max(1.4vmin,0.5rem)_max(10vmin,4.75rem)_minmax(0,1fr)_auto]' : 'grid-cols-[max(1.4vmin,0.5rem)_max(10vmin,4.75rem)_minmax(0,1fr)]',

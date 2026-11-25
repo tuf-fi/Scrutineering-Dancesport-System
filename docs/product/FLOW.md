@@ -128,7 +128,7 @@ Until an event's entries are paid, the scrutineer cannot start its round.
 | 9 | Scrutineer | `/scrutineer/results` → **Approve results** | Saves the result, adds the ranking points and takes a backup |
 | 10 | Scrutineer | `/scrutineer/results` → **Publish results** | Makes it public and shows it to the compere |
 
-The chairperson sees the same screens but cannot start, approve or publish; every decision is stored with their name and the time.
+The chairperson can do everything the scrutineer can, and also confirms tie decisions; every decision is stored with their name and the time.
 
 ### 2.3 What everyone else sees, live
 

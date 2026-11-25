@@ -119,8 +119,8 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
           <div>
             <div aria-hidden className={cn('hidden gap-x-8 px-3 pb-3 font-mono text-xs uppercase text-neutral-500 lg:grid', COLS)}>
               <span>Event</span>
-              <span>Dances</span>
               <span>Age group / Class</span>
+              <span>Dances</span>
               <span>Results</span>
               <span />
             </div>
@@ -143,14 +143,16 @@ export function CompetitionPage({ resultsOnly = false }: { resultsOnly?: boolean
                       {published ? (
                         <Link to={`/competitions/${competitionId}/events/${e.id}`} className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500">
                           <span className="sr-only">{eventCode(e)} </span>
-                          {eventDances(e)}
+                          {ageGroupLabel(e.ageGroup)} <span aria-hidden>/</span> {e.class} <span aria-hidden>/</span> {DISCIPLINE_LABEL[e.discipline]}
                         </Link>
                       ) : (
-                        eventDances(e)
+                        <>
+                          {ageGroupLabel(e.ageGroup)} <span aria-hidden>/</span> {e.class} <span aria-hidden>/</span> {DISCIPLINE_LABEL[e.discipline]}
+                        </>
                       )}
                     </h3>
                     <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
-                      {ageGroupLabel(e.ageGroup)} <span aria-hidden>/</span> {e.class} <span aria-hidden>/</span> {DISCIPLINE_LABEL[e.discipline]}
+                      {eventDances(e)}
                     </p>
                     <span className="col-start-2 row-start-2 flex items-center gap-2 self-start whitespace-nowrap text-small font-medium text-neutral-700 lg:col-start-auto lg:row-start-auto">
                       <span aria-hidden className={cn('size-1.5 rounded-full', published ? 'bg-gold-400' : 'bg-neutral-300')} />

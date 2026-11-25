@@ -24,10 +24,10 @@ export function EventResultsPage() {
       <PublicHeader
         back={{ to: `/competitions/${competitionId}`, label: competition.data.name }}
         eyebrow={formatDate(competition.data.date)}
-        title={`${eventCode(event.data)} ${eventDances(event.data)}`}
+        title={`${eventCode(event.data)} ${eventGrade(event.data)}`}
         description={
           <>
-            <span className="block">{eventGrade(event.data)}</span>
+            <span className="block">{eventDances(event.data)}</span>
             <span className="block">{competition.data.venue}</span>
           </>
         }

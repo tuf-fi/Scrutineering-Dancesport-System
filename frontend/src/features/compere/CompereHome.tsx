@@ -168,10 +168,10 @@ function Sheet({ item, items, program, onGo }: { item: Announcement; items: Anno
           <p className="flex min-w-0 flex-col gap-[0.8vmin]">
             <span className="flex flex-wrap items-baseline gap-x-[1.4vmin] text-[max(2.9vmin,1.23rem)] font-semibold leading-tight tracking-[-0.03em] text-white">
               <span className="font-mono font-medium tabular-nums text-gold-400">E{item.eventNumber}</span>
-              {eventDances(item)}
+              {eventGrade(item)}
             </span>
             <span className="text-[max(1.4vmin,0.717rem)] font-medium text-brown-100">
-              {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventGrade(item)}
+              {ROUND_TYPE_LABEL[item.roundType]} <span aria-hidden>·</span> {eventDances(item)}
             </span>
           </p>
 
@@ -234,10 +234,10 @@ function Heading({ item }: { item: Announcement }) {
       <div className={cn('flex flex-col gap-x-[2.4vmin] gap-y-[0.8vmin]', centred && 'items-center')}>
         <p className={cn('flex items-baseline gap-[1.6vmin] font-semibold text-white', centred ? 'text-[2.4vmin]' : 'text-[4vmin]')}>
           <span className="font-mono font-medium tabular-nums text-gold-400">E{item.eventNumber}</span>
-          {eventDances(item)}
+          {eventGrade(item)}
         </p>
         <p className={cn('font-medium text-brown-100', centred ? 'text-[1.8vmin]' : 'text-[2.6vmin]')}>
-          {ROUND_TYPE_LABEL[item.roundType]} · {eventGrade(item)}
+          {ROUND_TYPE_LABEL[item.roundType]} · {eventDances(item)}
         </p>
       </div>
     </header>
@@ -491,10 +491,7 @@ export function CompereHome() {
   // Results that arrive while the announcer is elsewhere mark Program with a dot, until they look
   const resultsCount = items.filter((a) => a.kind === 'results').length
   const [seenCount, setSeenCount] = useState<number | null>(null)
-  useEffect(() => {
-    if (!data) return
-    if (seenCount === null || view === 'program') setSeenCount(resultsCount)
-  }, [data, resultsCount, view, seenCount])
+  if (data && (seenCount === null || view === 'program') && seenCount !== resultsCount) setSeenCount(resultsCount)
   const newResults = seenCount !== null && resultsCount > seenCount && view !== 'program'
 
   // Results that get published bring the Results slide up by themselves while the live board is up

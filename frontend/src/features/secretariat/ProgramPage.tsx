@@ -212,14 +212,14 @@ export function ProgramPage() {
                     <span className="font-mono tabular-nums">
                       {eventCode({ number: r.eventNumber })}
                     </span>{" "}
-                    {eventDances(r)}
-                  </span>
-                  <span className="text-xs text-neutral-500">
                     {eventGrade({
                       ageGroup: r.ageGroup,
                       class: r.class,
                       discipline: r.discipline,
                     })}
+                  </span>
+                  <span className="text-xs text-neutral-500">
+                    {eventDances(r)}
                   </span>
                 </div>
               ) : (

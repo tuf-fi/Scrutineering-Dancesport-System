@@ -1,4 +1,4 @@
-# BIS: Bicol Oragon Scruteneering System
+# BIS: Bicol Oragon Scrutineering System
 
 A dancesport competition system: registration and payments, adjudicators marking on their phones, the Skating System placings, and published results and rankings. One online server, run with Docker behind Caddy over HTTPS.
 

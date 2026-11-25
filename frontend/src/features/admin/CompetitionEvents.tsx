@@ -22,8 +22,8 @@ export function CompetitionEvents({ competitionId }: { competitionId: string }) 
           <li key={e.id} className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-x-4 border-t border-neutral-100 py-3 first:border-t-0">
             <span className="font-mono text-small font-semibold tabular-nums text-neutral-500">{eventCode(e)}</span>
             <span className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-small font-medium text-neutral-900">{e.dances.map((d) => DANCE_LABEL[d]).join(', ')}</span>
-              <span className="text-xs text-neutral-500">{eventGrade(e)}</span>
+              <span className="text-small font-medium text-neutral-900">{eventGrade(e)}</span>
+              <span className="text-xs text-neutral-500">{e.dances.map((d) => DANCE_LABEL[d]).join(', ')}</span>
             </span>
           </li>
         ))}

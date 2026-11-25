@@ -56,8 +56,8 @@ export function AdjudicatorAssignments({ adjudicatorId }: { adjudicatorId: strin
               <li key={l.eventId} className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-4 border-t border-neutral-100 px-4 py-2.5 first:border-t-0 sm:grid-cols-[4rem_minmax(0,1fr)_auto]">
                 <span className="font-mono text-small font-semibold tabular-nums text-neutral-500">{eventCode({ number: l.eventNumber })}</span>
                 <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-small font-medium text-neutral-900">{l.dances.map((d) => DANCE_LABEL[d]).join(', ')}</span>
-                  <span className="text-xs text-neutral-500">{eventGrade(l)}</span>
+                  <span className="text-small font-medium text-neutral-900">{eventGrade(l)}</span>
+                  <span className="text-xs text-neutral-500">{l.dances.map((d) => DANCE_LABEL[d]).join(', ')}</span>
                 </span>
                 <span className="whitespace-nowrap text-xs text-neutral-500">
                   {l.roundsMarked > 0 && (

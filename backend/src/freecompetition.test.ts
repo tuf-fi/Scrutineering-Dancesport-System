@@ -51,6 +51,7 @@ describe('a competition that needs no payment', () => {
     expect(result.total).toBe(0)
     expect(app.db.select().from(t.payments).all()).toHaveLength(0)
     expect(app.db.select().from(t.entries).all().map((e) => e.paymentId)).toEqual([null])
+    expect(app.db.select().from(t.athleteRecords).all().filter((r) => r.membershipId)).toEqual([])
   })
 
   it('still asks how a paid competition was paid', async () => {

@@ -80,10 +80,10 @@ function CompetitionGroup({ group, compact }: { group: Group; compact?: boolean 
                     tabIndex={open ? 0 : -1}
                     className={cn('font-medium after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-gold-500', compact && 'text-small', e.scratched ? 'text-neutral-500' : 'text-neutral-900')}
                   >
-                    {e.dances.map((d) => DANCE_LABEL[d]).join(', ')}
+                    {eventGrade(e)}
                   </Link>
                   <span className={cn('text-neutral-500', compact ? 'text-xs' : 'text-small')}>
-                    {eventGrade(e)}
+                    {e.dances.map((d) => DANCE_LABEL[d]).join(', ')}
                     {e.names.length > 1 && (
                       <>
                         {' '}

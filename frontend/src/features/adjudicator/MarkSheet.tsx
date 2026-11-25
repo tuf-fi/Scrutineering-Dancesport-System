@@ -106,11 +106,11 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
       <DarkPanel as="header" className="flex flex-col gap-4 p-5 sm:p-6">
         <div className="flex flex-col gap-2">
           <span className="font-mono text-xs font-medium uppercase tracking-[0.12em] text-brown-100">Event</span>
-          <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">{eventDances(task.event)}</h1>
+          <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl">{eventGrade(task.event)}</h1>
           <p className="flex flex-wrap items-center gap-x-3 text-small text-brown-100">
             <span className="font-mono tabular-nums text-gold-400">{eventCode(task.event)}</span>
             <span aria-hidden className="h-3 w-px bg-white/25" />
-            {ROUND_TYPE_LABEL[task.round.type]} · {eventGrade(task.event)}
+            {ROUND_TYPE_LABEL[task.round.type]} · {eventDances(task.event)}
           </p>
           {heat !== undefined && (
             <p className="text-small font-semibold text-gold-400">{isFinal ? 'Redance of the final. Place every finalist again.' : `Redance: heat ${heat}. Mark this heat again.`}</p>
@@ -121,10 +121,9 @@ export function MarkSheet({ task, next, initial = {}, onChange, onSubmit, busy =
           {next ? (
             <span className="font-medium text-white/85">
               <span className="mr-2 font-mono tabular-nums text-gold-400">{eventCode({ number: next.eventNumber })}</span>
-              {next.dances.map((d) => DANCE_LABEL[d]).join(', ')}
+              {next.ageGroup && next.class && next.discipline && eventGrade({ ageGroup: next.ageGroup, class: next.class, discipline: next.discipline })}
               <span className="ml-2 text-brown-100">
-                {ROUND_TYPE_LABEL[next.roundType]}
-                {next.ageGroup && next.class && next.discipline ? ` · ${eventGrade({ ageGroup: next.ageGroup, class: next.class, discipline: next.discipline })}` : ''}
+                {ROUND_TYPE_LABEL[next.roundType]} · {next.dances.map((d) => DANCE_LABEL[d]).join(', ')}
               </span>
             </span>
           ) : (

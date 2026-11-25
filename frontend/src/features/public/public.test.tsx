@@ -166,7 +166,7 @@ describe('public site', () => {
     await userEvent.type(await screen.findByLabelText('Search events'), 'E12')
     await userEvent.click(await screen.findByRole('link', { name: /E12/ }))
 
-    expect(await screen.findByRole('heading', { name: /^E12 Rumba/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^E12 .+ · / })).toBeInTheDocument()
     // The sheet's parts, with the placings in the first
     for (const part of ['Competition report', 'Competition listing', 'Ranking report', 'Report of final round']) {
       expect(await screen.findByText(part)).toBeInTheDocument()
@@ -183,7 +183,7 @@ describe('public site', () => {
     expect(screen.queryByRole('link', { name: /Program and running order/ })).not.toBeInTheDocument()
     await userEvent.type(await screen.findByLabelText('Search events'), 'E12')
     await userEvent.click(await screen.findByRole('link', { name: /E12/ }))
-    expect(await screen.findByRole('heading', { name: /^E12 Rumba/ })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^E12 .+ · / })).toBeInTheDocument()
   })
 
   it('keeps the old rankings address working by sending it to the standings', async () => {

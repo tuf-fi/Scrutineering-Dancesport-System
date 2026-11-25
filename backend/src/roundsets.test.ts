@@ -70,7 +70,8 @@ describe('the adjudicators of a round', () => {
   })
 
   it('are chosen from the event panel, and only for the roles that edit the program', async () => {
-    expect((await app.call('setRoundSet', [events[0], 'final', adjudicators.slice(0, 5)], chairperson)).status).toBe(403)
+    expect((await app.call('setRoundSet', [events[0], 'final', adjudicators.slice(0, 5)], phones[0])).status).toBe(403)
+    await app.ok('setRoundSet', [events[0], 'final', adjudicators.slice(0, 5)], chairperson)
     await app.ok('setRoundSet', [events[0], 'final', adjudicators.slice(0, 5)], scrutineer)
     expect(await letters(1)).toBe('ABCDE')
     expect((await rows())[0]).toMatchObject({ customSet: true })

@@ -66,10 +66,10 @@ function EventBlock({ event, status, ready, onToggle }: { event: BarkerEvent; st
       <header className="flex items-start gap-4">
         <span className="font-mono text-display font-semibold tabular-nums text-gold-600">{eventCode({ number: event.eventNumber })}</span>
         <div className="flex min-w-0 flex-col gap-1">
-          <h3 className="text-display font-semibold leading-tight text-neutral-900">{event.dances.map((d) => DANCE_LABEL[d]).join(', ')}</h3>
+          <h3 className="text-display font-semibold leading-tight text-neutral-900">{eventGrade(event)}</h3>
           <p className="flex flex-wrap items-center gap-x-2 text-body text-neutral-600">
             <StatusDot status={status} className="size-2.5" />
-            {ROUND_TYPE_LABEL[event.roundType]} <span aria-hidden>/</span> {eventGrade(event)} <span aria-hidden>/</span> {total} {event.isSolo ? 'solos' : 'couples'}
+            {ROUND_TYPE_LABEL[event.roundType]} <span aria-hidden>/</span> {event.dances.map((d) => DANCE_LABEL[d]).join(', ')} <span aria-hidden>/</span> {total} {event.isSolo ? 'solos' : 'couples'}
           </p>
         </div>
       </header>

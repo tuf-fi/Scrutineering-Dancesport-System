@@ -91,10 +91,12 @@ function RegistrationForm({ competitor, onDone }: { competitor: CompetitorRow; o
                         className="size-5 accent-neutral-900"
                       />
                       <span className="w-10 font-mono tabular-nums text-neutral-500">{eventCode(ev)}</span>
-                      <span className="flex-1 truncate font-medium">{eventDances(ev)}</span>
-                      <span className="hidden text-neutral-500 sm:block">
-                        {eventGrade(ev)}
-                        {ev.kind && ev.kind !== 'standard' ? ` · ${kindLabel(ev.kind)}` : ''}
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate font-medium">{eventGrade(ev)}</span>
+                        <span className="truncate text-neutral-500">
+                          {eventDances(ev)}
+                          {ev.kind && ev.kind !== 'standard' ? ` · ${kindLabel(ev.kind)}` : ''}
+                        </span>
                       </span>
                     </label>
                   </li>

@@ -31,4 +31,4 @@ When an adjudicator's phone cannot send their marks, they hand in their paper sh
 3. Type in exactly what is on the sheet: an X for each couple marked (the recall number), or every finalist in order in a final, dance by dance.
 4. Press **Submit**, check the numbers against the sheet, and press **Enter marks**. They count the same as marks sent from the phone, and the adjudicator shows as submitted on the **Live board**.
 
-A sheet cannot be changed once entered. If the adjudicator's phone later sends different marks, the server refuses them: the sheet you entered stands. The chairperson cannot use this page.
+A sheet cannot be changed once entered. If the adjudicator's phone later sends different marks, the server refuses them: the sheet you entered stands. The chairperson can use this page too.

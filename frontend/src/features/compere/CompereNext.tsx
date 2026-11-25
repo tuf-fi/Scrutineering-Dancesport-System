@@ -67,10 +67,10 @@ function Details({ round, program, onGo }: { round: ShowRound; program: Program 
       <p className="flex flex-col gap-[0.5vmin]">
         <span className="text-[max(1.9vmin,0.922rem)] font-semibold leading-tight text-white">
           <span className="mr-[1vmin] font-mono font-medium tabular-nums text-gold-400">E{round.eventNumber}</span>
-          {eventDances(sample)}
+          {eventGrade(sample)}
         </span>
         <span className="text-[max(1.3vmin,0.717rem)] font-medium text-brown-100">
-          {ROUND_TYPE_LABEL[round.roundType]} · {eventGrade(sample)}
+          {ROUND_TYPE_LABEL[round.roundType]} · {eventDances(sample)}
           {sample.select !== null && ` · Select ${sample.select}`}
           {row && row.entryCount > 0 && ` · ${row.entryCount} entries`}
         </span>
@@ -114,10 +114,10 @@ function NextResults({ next, onGo }: { next: Announcement; onGo: (id: string) =>
       <p className="flex flex-col gap-[0.5vmin]">
         <span className="text-[max(1.9vmin,0.922rem)] font-semibold leading-tight text-white">
           <span className="mr-[1vmin] font-mono font-medium tabular-nums text-gold-400">E{next.eventNumber}</span>
-          {eventDances(next)}
+          {eventGrade(next)}
         </span>
         <span className="text-[max(1.3vmin,0.717rem)] font-medium text-brown-100">
-          {ROUND_TYPE_LABEL[next.roundType]} · {eventGrade(next)}
+          {ROUND_TYPE_LABEL[next.roundType]} · {eventDances(next)}
         </span>
       </p>
       <button type="button" onClick={() => onGo(next.id)} className="group flex items-center gap-[1vmin] self-start py-[0.5vmin] text-[max(1.3vmin,0.717rem)] font-semibold text-white transition-colors hover:text-gold-400">

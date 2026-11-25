@@ -43,8 +43,8 @@ export function EventPage() {
         All events
       </Link>
       <PageHeader
-        title={`${eventCode(event.data)} ${eventDances(event.data)}`}
-        description={`${eventGrade(event.data)} · ${event.data.isSolo ? 'Solo' : 'Couple'} · ${active} of ${rows.length} entries active`}
+        title={`${eventCode(event.data)} ${eventGrade(event.data)}`}
+        description={`${eventDances(event.data)} · ${event.data.isSolo ? 'Solo' : 'Couple'} · ${active} of ${rows.length} entries active`}
         actions={
           <>
             <ButtonLink variant="secondary" to={`/print/heats/${eventId}`} target="_blank">

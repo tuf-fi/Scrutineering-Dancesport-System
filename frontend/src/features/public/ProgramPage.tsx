@@ -22,7 +22,7 @@ import { OnTheFloor } from './OnTheFloor.tsx'
 import { PublicHeader } from './PublicHeader.tsx'
 import { filterProgram } from '../../lib/programFilter.ts'
 
-const COLS = 'lg:grid-cols-[4.5rem_6rem_minmax(0,1.6fr)_minmax(0,1fr)_8rem_8rem]'
+const COLS = 'lg:grid-cols-[4.5rem_6rem_minmax(0,1.6fr)_8rem_minmax(0,1fr)_8rem]'
 
 // The running order of one competition, live: what is on the floor, what is next, and when everything else starts
 export function ProgramPage() {
@@ -129,8 +129,8 @@ export function ProgramPage() {
               <span>No.</span>
               <span>Time</span>
               <span>Event</span>
-              <span>Round / Action</span>
               <span className="text-center">No. of Entries</span>
+              <span>Round / Action</span>
               <span className="text-right">Status</span>
             </div>
             <ul aria-label="Running order" className="border-b border-neutral-200">
@@ -154,21 +154,21 @@ export function ProgramPage() {
                       <>
                         <h3 className="font-semibold tracking-[-0.01em] text-neutral-900 lg:text-[1.0625rem]">
                           <span className="mr-2 font-mono text-small font-medium tabular-nums text-neutral-500">{eventCode({ number: r.eventNumber })}</span>
-                          {eventDances(r)}
+                          {eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}
                         </h3>
-                        <p className="text-small text-neutral-600">{eventGrade({ ageGroup: r.ageGroup, class: r.class, discipline: r.discipline })}</p>
+                        <p className="text-small text-neutral-600">{eventDances(r)}</p>
                       </>
                     ) : (
                       <h3 className="font-semibold tracking-[-0.01em] text-neutral-900 lg:text-[1.0625rem]">{r.label}</h3>
                     )}
                   </div>
+                  <span className="hidden text-center font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}
+                    <HeatSplit heats={r.heats} className="text-xs" />
+                  </span>
                   <p className="col-start-1 text-small text-neutral-600 lg:col-start-auto">
                     {[r.roundType && ROUND_TYPE_LABEL[r.roundType], programAction(r)].filter(Boolean).join(' · ')}
                     {r.adjudicators.length > 0 && <span className="block font-mono text-xs">Adjudicators: {setName(r.adjudicators)}</span>}
                   </p>
-                  <span className="hidden text-center font-mono text-small tabular-nums text-neutral-700 lg:block">{r.kind === ProgramKind.Round ? r.entryCount : ''}
-                    <HeatSplit heats={r.heats} className="text-xs" />
-                  </span>
                   <span className="col-start-2 row-start-2 self-start lg:col-start-auto lg:row-start-auto lg:justify-self-end">
                     <ProgramStatusBadge status={r.status} />
                   </span>

@@ -118,9 +118,9 @@ export function PanelsTab({ competitionId, competitions, onCompetitionChange }: 
             cell: (e) => (
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span>
-                  <span className="font-mono tabular-nums">{eventCode(e)}</span> <span className="font-semibold">{eventDances(e)}</span>
+                  <span className="font-mono tabular-nums">{eventCode(e)}</span> <span className="font-semibold">{eventGrade(e)}</span>
                 </span>
-                <span className="text-xs text-neutral-500">{eventGrade(e)}</span>
+                <span className="text-xs text-neutral-500">{eventDances(e)}</span>
               </span>
             ),
           },

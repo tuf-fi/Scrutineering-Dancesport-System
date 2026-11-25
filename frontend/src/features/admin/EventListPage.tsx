@@ -106,7 +106,7 @@ export function EventListPage() {
               <div className="flex flex-col">
                 <span className="font-mono tabular-nums text-neutral-900">{eventCode(r.event)}</span>
                 <span className="text-xs text-neutral-500">
-                  {eventDances(r.event)} · {ageGroupLabel(r.event.ageGroup)} · {r.event.class}
+                  {ageGroupLabel(r.event.ageGroup)} · {r.event.class} · {eventDances(r.event)}
                 </span>
               </div>
             ),

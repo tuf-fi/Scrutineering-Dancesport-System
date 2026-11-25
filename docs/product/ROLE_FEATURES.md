@@ -150,7 +150,7 @@ Slides appear when the scrutineer publishes a round; the Live view only shows pr
 | Backups | top of the screen | A warning appears if a backup folder fails |
 
 **Limits:** cannot confirm their own tie proposal (the chairperson does). Cannot enter or edit entries.
-**Paper marks** (above) is the scrutineer's page for typing in a paper sheet. The chairperson does not have it.
+**Paper marks** (above) is the page for typing in a paper sheet. The chairperson has it too.
 
 ---
 
@@ -160,12 +160,13 @@ Slides appear when the scrutineer publishes a round; the Live view only shows pr
 
 | Screen | Path | What you can do |
 | --- | --- | --- |
-| Rounds, Heats, Live board, Recall, Results | `/scrutineer/...` | See all of the scrutineer's screens and marks, read-only |
+| Schedule, Program, Live board, Paper marks, Recall, Results | `/scrutineer/...` | Everything the scrutineer can do, including starting, approving and publishing rounds, entering paper marks and calling a redance. **Rounds** and **Heats** are not in the chairperson's menu |
 | Recall | `/scrutineer/recall` | **Confirm tie decision** on a tie at the recall cut-off |
 | Results | `/scrutineer/results` | **Confirm tie decision** on a tie in a final; look at the places and skating tables before they are published |
+| Athletes | `/secretariat/athletes` | See the athletes list |
 | Printouts, Security | `/print`, `/scrutineer/security` | As the scrutineer |
 
-**Limits:** cannot start, approve or publish a round, and cannot enter marks. Every decision is stored with their name and the time.
+**Also:** only the chairperson can confirm a tie decision. Every decision is stored with their name and the time.
 
 ---
 

@@ -49,11 +49,11 @@ function OnTheFloor({ row, readOnly }: { row: RoundRow; readOnly: boolean }) {
         </p>
       </div>
       <div className="flex flex-col gap-3">
-        <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">{eventDances(row)}</h2>
+        <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">{ageGroupLabel(row.ageGroup)} · {row.class}</h2>
         <p className="flex items-center gap-3 text-body text-brown-100">
           <span className="font-mono tabular-nums text-gold-400">{eventCode({ number: row.eventNumber })}</span>
           <span aria-hidden className="h-3 w-px bg-white/25" />
-          {ageGroupLabel(row.ageGroup)} · {row.class}
+          {eventDances(row)}
         </p>
       </div>
       <dl className={`grid grid-cols-2 gap-y-6 p-4 sm:grid-cols-4 sm:divide-x sm:divide-white/10 ${glass}`}>

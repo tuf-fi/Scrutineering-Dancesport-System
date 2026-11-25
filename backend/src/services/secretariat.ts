@@ -232,7 +232,9 @@ export const secretariat = {
   // is not added again when an account or record with that name is already there.
   addAthlete(ctx: Ctx, input: { names: string[]; teamId: string; details?: CompetitorDetails }): CompetitorRow {
     return ctx.db.transaction(() => {
-      const row = createCompetitorEntry(ctx, input)
+      // Adding an athlete records no membership, so it never uses up a membership ID
+      const details = input?.details && { ...input.details, memberYear: null, memberMonth: null }
+      const row = createCompetitorEntry(ctx, { ...input, details })
       const name = row.names[0]!
       const taken = [...ctx.db.select({ name: t.athletes.name }).from(t.athletes).all(), ...ctx.db.select({ name: t.athleteRecords.name }).from(t.athleteRecords).all()].some((x) => plainName(x.name) === plainName(name))
       if (!taken) {
@@ -245,8 +247,8 @@ export const secretariat = {
           province: row.details?.province ?? '',
           teamId: input.teamId,
           coachId: row.details?.coachId ?? null,
-          memberYear: row.details?.memberYear ?? null,
-          memberMonth: row.details?.memberMonth ?? null,
+          memberYear: null,
+          memberMonth: null,
         })
       }
       return row

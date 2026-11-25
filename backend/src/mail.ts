@@ -61,7 +61,7 @@ export function createMailer(config: Config): Mailer {
 
 // ---- The messages ----
 
-const sign = 'BOSS · Bicol Oragon Scruteneering System'
+const sign = 'BOSS · Bicol Oragon Scrutineering System'
 
 export const verifyMessage = (to: string, name: string, link: string): MailMessage => ({
   to,

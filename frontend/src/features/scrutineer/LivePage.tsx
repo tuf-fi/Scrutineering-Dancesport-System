@@ -76,11 +76,11 @@ function Board({ row, final, select }: { row: RoundRow; final: boolean; select: 
       </div>
 
       <div className="flex flex-col gap-3">
-        <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">{eventDances(row)}</h2>
+        <h2 className="text-3xl font-semibold leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">{ageGroupLabel(row.ageGroup)} · {row.class}</h2>
         <p className="flex items-center gap-2 text-body text-brown-100">
           <span className="font-mono tabular-nums text-gold-400">{eventCode({ number: row.eventNumber })}</span>
           <span aria-hidden>·</span>
-          {ageGroupLabel(row.ageGroup)} · {row.class}
+          {eventDances(row)}
         </p>
       </div>
 

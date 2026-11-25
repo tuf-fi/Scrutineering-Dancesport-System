@@ -72,7 +72,7 @@ describe('search engines', () => {
   it("a competition's page, results and program carry its name, date, venue and card photo, with the text escaped", async () => {
     for (const url of ['/competitions/c1', '/results/c1', '/competitions/c1/program', '/competitions/c1/events/e9?x=1']) {
       const body = (await get(url)).body
-      expect(body).toContain('<title>Bicol &quot;Open&quot; &amp; Cup | Bicol Oragon Scruteneering System</title>')
+      expect(body).toContain('<title>Bicol &quot;Open&quot; &amp; Cup | Bicol Oragon Scrutineering System</title>')
       expect(body).toContain('1 May 2099 at Naga Gym')
       expect(body).toContain('<meta property="og:image" content="https://bis.example.com/api/competition-image/c1" />')
       expect(body).toContain('<link rel="canonical" href="https://bis.example.com/competitions/c1" />')

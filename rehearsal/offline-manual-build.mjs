@@ -75,7 +75,7 @@ const out = []
 
 out.push(`<div class="cover">
   <img src="${APP}/frontend/src/assets/logo.png" alt="BOSS">
-  <div><div class="bar"></div><p class="kicker">Bicol Oragon Scruteneering System</p><h1>Offline Mode<br>Manual</h1>
+  <div><div class="bar"></div><p class="kicker">Bicol Oragon Scrutineering System</p><h1>Offline Mode<br>Manual</h1>
   <p>How to run a competition day on a venue laptop with no internet, role by role, and how the day goes back online.</p></div>
   <p class="roles">Setting up · Visitors · Adjudicators · Scrutineer · Chairperson · Secretariat · Compere · Barker · Admin · Athletes, coaches and teams · Sending the day back</p>
 </div>`)

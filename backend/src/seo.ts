@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { readFileSync } from 'node:fs'
 import type { Sqlite } from './db/client.ts'
 
-const NAME = 'Bicol Oragon Scruteneering System'
+const NAME = 'Bicol Oragon Scrutineering System'
 
 // Screens behind a sign-in, the staff tools, and the pages about people: kept out of search
 export const PRIVATE_PREFIXES = [
