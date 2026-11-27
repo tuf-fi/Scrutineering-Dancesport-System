@@ -262,8 +262,8 @@ describe('adjudicator PIN sign-in', () => {
     renderAt('/adjudicator')
     await screen.findByRole('heading', { name: 'Enter your PIN' })
     for (const digit of '000000') await userEvent.click(screen.getByRole('button', { name: digit }))
-    expect(await screen.findByText(/That PIN isn't registered/)).toBeInTheDocument()
-    expect(screen.getByRole('alert')).toHaveTextContent("That PIN isn't registered")
+    expect(await screen.findByText(/That PIN isn't recognised/)).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent("That PIN isn't recognised")
     expect(screen.getByRole('img', { name: '0 of 6 digits entered' })).toBeInTheDocument()
   })
 

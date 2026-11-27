@@ -1,9 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Brand } from '../../components/Brand.tsx'
+import { SitePhoto } from '../../components/SitePhoto.tsx'
 import { Skeleton } from '../../components/ui/index.ts'
-import { useSiteSettings, useUpcomingCompetitions } from '../../hooks/index.ts'
-import { HERO_IMAGE } from '../../lib/hero.ts'
+import { useUpcomingCompetitions } from '../../hooks/index.ts'
 import { formatDate } from '../../lib/format.ts'
 
 const SLIDE_MS = 5000
@@ -82,9 +82,6 @@ export function AuthShell({
   children: ReactNode
   footer?: ReactNode
 }) {
-  const [heroFailed, setHeroFailed] = useState(false)
-  const settings = useSiteSettings()
-
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <div className="flex flex-col">
@@ -106,9 +103,7 @@ export function AuthShell({
       </div>
 
       <aside className="sticky top-0 hidden h-dvh self-start overflow-hidden bg-black lg:block">
-        {!heroFailed && (
-          <img src={settings.data?.signInImage ?? HERO_IMAGE} alt="" onError={() => setHeroFailed(true)} className="absolute inset-0 size-full object-cover opacity-80" />
-        )}
+        <SitePhoto which="signInImage" className="absolute inset-0 size-full object-cover" />
         <div className="absolute left-0 top-0 bg-black px-10 py-3">
           <Brand size="md" plate={false} />
         </div>

@@ -1,9 +1,8 @@
-import { competitionIsNear, Role, type AccountKind, type SessionUser } from '@bis/shared'
+import { competitionIsNear, pickCurrentCompetition, Role,type AccountKind, type SessionUser } from '@bis/shared'
 import { and, eq, sql } from 'drizzle-orm'
 import { fail, type Ctx } from '../core/context.ts'
 import { record } from '../core/audit.ts'
 import * as t from '../db/schema.ts'
-import { currentCompetition } from '../services/shared.ts'
 import { hashPassword, verifyPassword } from './password.ts'
 import { hashRecovery, verifyCode } from './totp.ts'
 import { decryptSecret } from './vault.ts'
@@ -54,20 +53,32 @@ export function staffSession(ctx: Ctx, username: string, password: string, code?
   return { id: row.id, name: row.name, role: row.role }
 }
 
-// A PIN is valid for the competition happening now, and only around its date: a PIN found after the event is no use
+const UNKNOWN_PIN = "That PIN isn't recognised. Check your PIN card and try again."
+
+const longDate = (time: number) => new Date(time).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
+
+// Why a real PIN is refused: every competition it belongs to is outside the window
+function outsideWindow(matches: Array<{ name: string; date: string }>, days: number): string {
+  const upcoming = matches.filter((m) => Date.parse(m.date) > Date.now()).sort((a, b) => a.date.localeCompare(b.date))[0]
+  if (upcoming) return `It's too early to sign in. Your PIN for ${upcoming.name} works from ${longDate(Date.parse(upcoming.date) - days * 86_400_000)}.`
+  const latest = [...matches].sort((a, b) => b.date.localeCompare(a.date))[0]!
+  return `This PIN has expired. It was for ${latest.name}, held on ${longDate(Date.parse(latest.date))}.`
+}
+
+// A PIN works only around its competition's date: a PIN found after the event is no use
 export function adjudicatorSession(ctx: Ctx, pin: string): SessionUser {
-  const found = currentCompetition(ctx)
+  const matches = ctx.db
+    .select({ adjudicatorId: t.adjudicatorPins.adjudicatorId, name: t.competitions.name, date: t.competitions.date })
+    .from(t.adjudicatorPins)
+    .innerJoin(t.competitions, eq(t.competitions.id, t.adjudicatorPins.competitionId))
+    .where(eq(t.adjudicatorPins.pin, pin.trim()))
+    .all()
+  if (!matches.length) return fail(UNKNOWN_PIN, 401)
   const days = ctx.config.pinWindowDays
-  const competition = found && (days === null || competitionIsNear(found.date, days)) ? found : undefined
-  const entry = competition
-    ? ctx.db
-        .select()
-        .from(t.adjudicatorPins)
-        .where(and(eq(t.adjudicatorPins.competitionId, competition.id), eq(t.adjudicatorPins.pin, pin.trim())))
-        .get()
-    : undefined
-  const adjudicator = entry ? ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, entry.adjudicatorId)).get() : undefined
-  if (!adjudicator) return fail("That PIN isn't registered for this competition.", 401)
+  const entry = pickCurrentCompetition(days === null ? matches : matches.filter((m) => competitionIsNear(m.date, days)))
+  if (!entry) return fail(outsideWindow(matches, days!), 401)
+  const adjudicator = ctx.db.select().from(t.adjudicators).where(eq(t.adjudicators.id, entry.adjudicatorId)).get()
+  if (!adjudicator) return fail(UNKNOWN_PIN, 401)
   return { id: adjudicator.id, name: adjudicator.name, role: Role.Adjudicator, letter: adjudicator.letter }
 }
 

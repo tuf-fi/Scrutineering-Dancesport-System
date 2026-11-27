@@ -749,7 +749,7 @@ export const signInAdjudicator = (pin: string) =>
       (p) => p.competitionId === currentCompetitionId && p.pin === pin,
     )
     const adjudicator = adjudicators.find((a) => a.id === entry?.adjudicatorId)
-    if (!adjudicator) throw new Error("That PIN isn't registered for this competition.")
+    if (!adjudicator) throw new Error("That PIN isn't recognised. Check your PIN card and try again.")
     return {
       id: adjudicator.id,
       name: adjudicator.name,

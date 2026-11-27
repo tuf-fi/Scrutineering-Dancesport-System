@@ -114,7 +114,8 @@ export const useSavePointsTable = () =>
 export const useRevokeSessions = () =>
   useWrite((v: { kind: AccountKind; id: string }) => api.revokeSessions(actor(), v.kind, v.id), () => [])
 
-export const useSiteSettings = () => useQuery({ queryKey: ['site-settings'], queryFn: api.getSiteSettings, staleTime: 5 * 60_000 })
+export const PICTURE_RETRY_MS = 5000
+export const useSiteSettings = () => useQuery({ queryKey: ['site-settings'], queryFn: api.getSiteSettings, staleTime: 5 * 60_000, retry: 3, refetchInterval: (query) => (query.state.data ? false : PICTURE_RETRY_MS) })
 
 export const useSaveSignInImage = () => useWrite((image: string | null) => api.saveSignInImage(actor(), image), () => [['site-settings']])
 

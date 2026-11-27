@@ -284,7 +284,7 @@ export const getTeamRow = (ctx: Ctx, id: string) =>
 export const getPaymentRow = (ctx: Ctx, id: string) =>
   found(ctx.db.select().from(t.payments).where(eq(t.payments.id, id)).get(), 'Payment')
 
-// The competition happening now (see pickCurrentCompetition): PINs belong to it
+// The competition happening now (see pickCurrentCompetition)
 export function currentCompetition(ctx: Ctx) {
   return pickCurrentCompetition(ctx.db.select().from(t.competitions).all())
 }

@@ -52,7 +52,7 @@ export function PinKeypad({ value, length, onChange, disabled = false, error }: 
             />
           ))}
         </div>
-        <p role="alert" className="min-h-5 text-center text-small text-danger">
+        <p role="alert" className="min-h-5 max-w-xs text-balance text-center text-small text-danger">
           {error}
         </p>
       </div>

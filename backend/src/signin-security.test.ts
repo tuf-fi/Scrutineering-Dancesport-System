@@ -87,6 +87,24 @@ describe('the PIN window', () => {
     expect((await pin(app, '10.4.0.2', '410000')).statusCode).toBe(200)
   })
 
+  const daysFromNow = (days: number) => new Date(Date.now() + 8 * 3_600_000 + days * 86_400_000).toISOString().slice(0, 10)
+  const move = (app: TestApp, date: string) => app.sqlite.prepare("update competitions set date = ? where id = 'comp-sorsogon-2026'").run(date)
+
+  it('opens the day before, even when an earlier competition is on file', async () => {
+    const app = await start({ ADJUDICATOR_PIN_DAYS: '1' })
+    move(app, daysFromNow(1))
+    expect((await pin(app, '10.4.1.1', '410000')).statusCode).toBe(200)
+  })
+
+  it('says why a PIN is refused: unknown, too early or expired', async () => {
+    const app = await start({ ADJUDICATOR_PIN_DAYS: '1' })
+    const message = async (ip: string, value: string) => (await pin(app, ip, value)).body
+    expect(await message('10.4.2.1', '0000')).toContain("isn't recognised")
+    expect(await message('10.4.2.2', '410000')).toContain('This PIN has expired')
+    move(app, daysFromNow(5))
+    expect(await message('10.4.2.3', '410000')).toContain("It's too early to sign in")
+  })
+
   it('is off by default outside production, and on (one day) in production', () => {
     expect(loadConfig({}).pinWindowDays).toBeNull()
     expect(loadConfig({ NODE_ENV: 'production', DATA_KEY: 'k'.repeat(32), COOKIE_SECRET: 'a-real-secret' }).pinWindowDays).toBe(1)
